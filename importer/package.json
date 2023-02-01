@@ -1,0 +1,31 @@
+{
+  "name": "chrome-commit-tracker",
+  "version": "1.0.0",
+  "description": "data visualization for chrome commits",
+  "main": "index.mjs",
+  "scripts": {
+    "main": "node index.mjs",
+    "to_csv": "node to_csv.mjs",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ArthurSonzogni/ChromeCommitTracker.git"
+  },
+  "keywords": [
+    "chrome",
+    "commit",
+    "tracker",
+    "visualization"
+  ],
+  "author": "Arthur Sonzogni",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ArthurSonzogni/ChromeCommitTracker/issues"
+  },
+  "homepage": "https://github.com/ArthurSonzogni/ChromeCommitTracker#readme",
+  "dependencies": {
+    "@actions/core": "^1.10.0",
+    "@actions/github": "^5.1.1"
+  }
+}
