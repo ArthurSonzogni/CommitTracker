@@ -91,7 +91,7 @@ export default {
     };
   },
   async fetch() {
-    const response = await fetch("/data/users.json");
+    const response = await fetch("./data/users.json");
     const list = await response.json();
     this.developerList = list;
   },
@@ -112,7 +112,7 @@ export default {
   watch: {
     async developers(newDevelopers) {
       this.developersData = await Promise.all(this.developers.map(async d => {
-        const response = await fetch(`/data/users/${d}.json`);
+        const response = await fetch(`./data/users/${d}.json`);
         const data = await response.json();
         return {
           developer: d,
