@@ -25,7 +25,6 @@ export default {
 
   // Global CSS: https://go.nuxtjs.dev/config-css
   css: [
-    "@/assets/css/main.css"
   ],
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
@@ -43,8 +42,12 @@ export default {
 
   // Modules: https://go.nuxtjs.dev/config-modules
   modules: [
-    'nuxt-buefy'
+    'nuxt-buefy',
   ],
+
+  panzoom: {
+    addControls: true, // Add PanzoomControls component 
+  },
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {

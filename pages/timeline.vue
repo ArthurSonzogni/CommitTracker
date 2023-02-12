@@ -1,129 +1,152 @@
 <template>
   <div>
     <Navbar/>
-    <section class="section">
-      <b-field grouped>
+
+    <div>
+      <section class="section sticky top">
+        <b-field grouped>
+          <DevelopersInput v-model="developers" ></DevelopersInput>
+
+          <b-field>
+            <b-checkbox-button
+              v-model="checkboxStates"
+              native-value="author"
+              size="is-medium"
+              >
+              Author
+            </b-checkbox-button>
+
+            <b-checkbox-button
+              v-model="checkboxStates"
+              native-value="review"
+              size="is-medium"
+              >
+              Review
+            </b-checkbox-button>
+          </b-field>
+
+          <b-field>
+            <b-checkbox-button
+              v-if="developers.length >= 2"
+              v-model="checkboxStates"
+              native-value="stacked"
+              size="is-medium"
+              >
+              Stacked
+            </b-checkbox-button>
+
+          </b-field>
+
+        </b-field>
+
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <h2 class="title">Timeline</h2>
+          <TimelineChart
+            :developers="developers"
+            :startDate="startDate"
+            :endDate="endDate"
+            :author="checkboxStates.includes('author')"
+            :review="checkboxStates.includes('review')"
+            :stacked="checkboxStates.includes('stacked')"
+            /></TimelineChart>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <h2 class="title">Count</h2>
+          <TimelineCount
+            :developers="developers"
+            :startDate="startDate"
+            :endDate="endDate"
+            /></TimelineCount>
+        </div>
+      </section>
+
+      <section class="section sticky bottom">
         <b-field expanded>
-          <b-slider
-            v-model="dates"
-            :min="0"
-            :max="1"
-            :step="0.001"
-            :custom-formatter="formatDate"
-            rounded
-            tooltip-always
-            lazy
-            ></b-slider>
+          <Timeline @change="changeDate" ></Timeline>
         </b-field>
-
-        <b-field>
-          <b-checkbox-button v-model="author"
-                             type="is-primary">
-            Author
-          </b-checkbox-button>
-
-          <b-checkbox-button v-model="review"
-                             type="is-primary">
-            Review
-          </b-checkbox-button>
-        </b-field>
-
-        <b-field>
-          <b-checkbox-button v-model="stacked"
-                             type="is-primary">
-            Stacked
-          </b-checkbox-button>
-
-        </b-field>
-      </b-field>
-
-      <b-field>
-        <b-taginput
-          v-model="developers"
-          @typing="computeDevelopersListFiltered"
-          :data="developerListFiltered"
-          :allow-new=false
-          autocomplete
-          icon="label"
-          field="this"
-          placeholder="developer username"
-          type="is-primary"
-          size="is-medium"
-          >
-        </b-taginput>
-      </b-field>
-
-    </section>
-
-    <section class="section">
-      <Timeline
-        :data="developersData"
-        :developers="developers"
-        :startDate="startDate"
-        :endDate="endDate"
-        /></Timeline>
-    </section>
+      </section>
+    </div>
   </div>
 </template>
 
 <script>
 
-import { interpolateDate } from "d3-interpolate";
-const interpolator = interpolateDate(new Date("2000-01"), new Date());
-const getDate = (val) => interpolator(Math.pow(val, 0.4));
-
 export default {
-  name: "App",
   data() {
     return {
-      developer: "",
+      startDate: new Date(),
+      endDate: new Date(),
       developers: [],
-      developerList: [],
-      developerListFiltered: [],
-      developersData: [],
-      dates : [0, 1],
-      startDate: getDate(0),
-      endDate: getDate(1),
-      patchKind: ["author", "review"],
-      author: false,
-      review: false,
-      stacked: false,
+      checkboxStates: ["author", "review"],
     };
   },
+
   async fetch() {
     const response = await fetch("./data/users.json");
     const list = await response.json();
     this.developerList = list;
   },
+
   methods: {
-    computeDevelopersListFiltered(developer) {
-      this.developerListFiltered = this.developerList.filter((option) => {
-        return option.indexOf(developer) >= 0;
-      })
+    changeDate(first, end) {
+      this.startDate = first;
+      this.endDate = end;
     },
-    removeDeveloper(developer) {
-      this.developers.splice(this.developers.indexOf(developer), 1);
-    },
-    formatDate(val) {
-      const date = getDate(val);
-      return date.getFullYear() + "-" + (date.getMonth() + 1);
-    }
-  },
-  watch: {
-    async developers(newDevelopers) {
-      this.developersData = await Promise.all(this.developers.map(async d => {
-        const response = await fetch(`./data/users/${d}.json`);
-        const data = await response.json();
-        return {
-          developer: d,
-          data: data,
-        }
-      }));
-    },
-    dates(newDates) {
-      this.startDate = new Date(getDate(newDates[0]));
-      this.endDate = new Date(getDate(newDates[1]));
-    }
   },
 };
+
+const updateHasScrolled = () => {
+  const maxScroll = Math.max(
+    document.body.scrollHeight,
+    document.body.offsetHeight, 
+    document.documentElement.clientHeight,
+    document.documentElement.scrollHeight,
+    document.documentElement.offsetHeight
+  );
+
+  document.documentElement.dataset.scrolltop =
+    (window.scrollY > 100) ? 1 : 0;
+  document.documentElement.dataset.scrollbottom=
+    (maxScroll - window.scrollY > 1000) ? 1 : 0;
+};
+
+updateHasScrolled();
+document.addEventListener('scroll', updateHasScrolled, { passive: true });
+
 </script>
+
+<style scoped>
+.sticky {
+  position: sticky;
+  width: 100%;
+  z-index: 1000;
+  backdrop-filter: blur(8px);
+  background-color: rgba(255, 255, 255, 0.1);
+  transition: background-color 0.2s ease-in-out;
+  transition: all 0.1s ease-in-out;
+}
+
+html[data-scrolltop= "1"] .sticky.top {
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.sticky.top {
+  top: 0;
+  margin-top:0;
+  padding-top:15px;
+  margin-bottom:0;
+  padding-bottom:15px;
+}
+
+.sticky.bottom {
+  bottom: 0;
+  margin-bottom:0px;
+  padding-bottom:15px;
+}
+</style>
