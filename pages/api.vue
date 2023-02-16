@@ -2,24 +2,55 @@
   <div>
     <Navbar/>
 
-    <section class="hero">
-      <div class="hero-body">
-        <p class="title">
-          Contributors list
+    <section class="section">
+      <div class="container">
+        <h1 class="title">User list</h1>
+        <p>
+          The API is made of static files stored on github. They are refreshed
+          every day.
         </p>
       </div>
     </section>
 
-    <section>
+    <section class="section">
       <div class="container">
-        <div class="title">Contributor list</div>
-        <p>
-          This page lists all the contributors of the Chromium project.
-          The list is generated from the git log.
-          <code>/data/users.json</code>
-        </p>
+        <h2 class="title">User list</h2>
+        <code>/data/users.json</code>
+        <pre>
+          <code>
+[
+  "user1",
+  "user2",
+  "user3",
+  ...
+]
+          </code>
+        </pre>
+      </div>
+    </section>
 
-        <div class="title">/data/users/${user}.json</div>
+    <section class="section">
+      <div class="container">
+        <h2 class="title">User info</h2>
+        <p>
+          <code>/data/users/${user}.json</code>
+        </p>
+        <pre>
+          <code>
+{
+  author: {
+    "2018-01-01": [reviewer1, reviewer2, ...],
+    "2018-01-02": [reviewer3],
+    ...
+  },
+  review: {
+    "2018-01-01": author1,
+    "2018-01-02": author2,
+    ...
+  }
+}
+          </code>
+        </pre>
       </div>
     </section>
   </div>

@@ -31,14 +31,7 @@
           </div>
 
           <div class="column">
-            <TimelineChart
-              :developers="['arthursonzogni']"
-              :startDate="new Date('2018-01-01')"
-              :endDate="new Date('2030-01-01')"
-              :author="true"
-              :review="true"
-              :stacked="false"
-              /></TimelineChart>
+            <TimelineChartRoll/>
           </div>
         </div>
       </div>

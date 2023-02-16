@@ -139,11 +139,16 @@ export default {
     },
 
     initialize() {
-      this.svgWidth = this.$refs.container.clientWidth;
-      this.svgHeight = this.svgWidth * 0.5;
+      try {
+        this.svgWidth = this.$refs.container.clientWidth;
+        this.svgHeight = this.svgWidth * 0.5;
+      } catch (e) {
+        console.log(e);
+      }
       this.developersChanged();
       this.render();
       window.addEventListener("resize", this.initialize);
+
     },
 
     render() {

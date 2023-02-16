@@ -61,7 +61,6 @@ export default {
       Promise.all(this.developers.map(async d => {
         const response = await fetch(`./data/users/${d}.json`);
         const data = await response.json();
-        console.log(data);
         return {
           developer:d,
           author:Object.keys(data.author),
@@ -69,7 +68,6 @@ export default {
         };
       })).then(data => {
         this.data = data;
-        console.log(this.data);
       });
     },
   }
