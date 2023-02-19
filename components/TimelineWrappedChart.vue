@@ -1,0 +1,362 @@
+<template>
+  <div ref="container" align="center">
+    <svg ref="svg" :width="svgWidth" :height="svgHeight">
+      <g ref="arcs"></g>
+      <g ref="indicators"></g>
+    </svg>
+  </div>
+</template>
+
+<script>
+
+import {axisBottom, axisLeft} from "d3-axis";
+import {extent, max} from "d3-array";
+import {scaleLinear, scaleRadial} from "d3-scale";
+import {select} from "d3-selection";
+import {transition} from "d3-transition";
+import {line} from "d3-shape";
+import {interpolatePath} from "d3-interpolate-path";
+import {scaleOrdinal} from "d3-scale";
+import {schemeCategory10} from "d3-scale-chromatic";
+import {pointer} from "d3-selection";
+import {bisector} from "d3-array";
+import {hsv} from "d3-hsv";
+import {catmullRom} from "d3-shape";
+import {arc} from "d3-shape";
+import {interpolate} from "d3-interpolate";
+import {local} from "d3-selection";
+
+const currentState = local();
+const now = new Date();
+
+export default {
+  props: {
+    developers: { type: Array },
+    startDate: { type: Date },
+    endDate: { type: Date },
+    author: { type: Boolean },
+    review: { type: Boolean },
+    stacked: { type: Boolean },
+    hourlyParam: { type: Number },
+    buckets: { type: Number, default: 24},
+  },
+
+  data() {
+    return {
+      data: [],
+      svgWidth: 300,
+      svgHeight: 300,
+    }
+  },
+
+  computed: {
+    modulo() {
+      switch(this.hourlyParam) {
+        case 0: return 24*60*60*1000;
+        case 1: return 7*24*60*60*1000;
+        case 2: return 30*24*60*60*1000;
+        case 3: return 365*24*60*60*1000;
+      }
+      return 0;
+    },
+
+    filteredData() {
+      // Filter:
+      let data = this.data.map(d => {
+        const author = !this.author ? {} :
+          Object.entries(d.data.author)
+          .map(([time, _]) => time)
+        const review = !this.review ? {} :
+          Object.entries(d.data.review)
+          .map(([time, _]) => time)
+
+        const values = [author, review]
+          .flat()
+          .sort()
+          .map(time => new Date(time))
+          .filter(time => {
+            return time >= this.startDate && time <= this.endDate;
+          })
+
+        return {
+          developer: d.developer,
+          values: values,
+        }
+      });
+
+
+      // Accumulate patches:
+      data = data.map(entry => {
+        return {
+          developer: entry.developer,
+          values: entry.values.map(time => {
+            const seconds = now - time;
+            return (seconds % this.modulo) / this.modulo;
+          })
+        };
+      });
+
+      let inner = new Array(this.buckets).fill(0);
+
+      data = data.map(entry => {
+        const outer = [...inner];
+        entry.values.forEach(time => {
+          outer[Math.floor(time * this.buckets)]++;
+        });
+        const out = {
+          developer: entry.developer,
+          values: outer.map((v, i) => {
+            return {
+              angle: i,
+              buckets: this.buckets,
+              inner: inner[i],
+              outer: outer[i],
+              developer: entry.developer,
+            };
+          })
+        }
+        inner = this.stacked
+          ? outer
+          : new Array(this.buckets).fill(0);
+
+        return out;
+      });
+
+      data = data.map(entry => entry.values).flat()
+      return data;
+    },
+
+    extent() {
+      return extent(
+        this.filteredData.map(e => e.outer)
+      );
+    },
+  },
+
+  mounted() {
+    this.initialize();
+  },
+
+  watch: {
+    developers: "developersChanged",
+    filteredData: "render",
+  },
+
+  methods: {
+    developersChanged() {
+      Promise.all(this.developers.map(async d => {
+        const response = await fetch(`./data/users/${d}.json`);
+        const data = await response.json();
+        return {
+          developer: d,
+          data: data,
+        }
+      })).then(data => {
+        this.data = data;
+      });
+    },
+
+    initialize() {
+      try {
+        this.svgWidth = this.$refs.container.clientWidth;
+        this.svgWidth = Math.min(this.svgWidth, 800);
+        this.svgWidth = Math.min(this.svgWidth, window.innerWidth * 0.8);
+        this.svgWidth = Math.min(this.svgWidth, window.innerHeight * 0.8);
+        this.svgHeight = this.svgWidth;
+      } catch (e) {
+        console.log(e);
+      }
+      this.developersChanged();
+      this.render();
+      window.addEventListener("resize", this.initialize);
+
+    },
+
+    render() {
+      select(this.$refs.svg)
+        .selectAll("g")
+        .attr("transform", `translate(${this.svgWidth/2}, ${this.svgHeight/2})`);
+
+      const innerRadius = Math.max(this.svgWidth, this.svgHeight) * 0.2;
+      const outerRadius = Math.max(this.svgWidth, this.svgHeight) * 0.5;
+
+      const x = scaleLinear()
+        .domain([0, this.buckets])
+        .range([0, 2 * Math.PI])
+
+      const y = scaleRadial()
+        .domain([0, this.extent[1]])
+        .range([innerRadius, outerRadius])
+
+      const Scale = data => {
+        return {
+          startAngle: x(data.angle),
+          endAngle: x(data.angle + 1.0),
+          padAngle: x(0.05),
+          innerRadius: y(data.inner),
+          outerRadius: y(data.outer),
+        }
+      };
+
+      const ArcInterpolator = function(a, b) {
+        return function(t) {
+          const current = {
+            startAngle: interpolate(a.startAngle, b.startAngle)(t),
+            endAngle: interpolate(a.endAngle, b.endAngle)(t),
+            innerRadius: interpolate(a.innerRadius, b.innerRadius)(t),
+            outerRadius: interpolate(a.outerRadius, b.outerRadius)(t),
+            padAngle: interpolate(a.padAngle, b.padAngle)(t),
+          };
+          currentState.set(this, current);
+          return MakeArc(current);
+        };
+      };
+
+      const MakeArc = arc()
+        .innerRadius(d => d.innerRadius)
+        .outerRadius(d => d.outerRadius)
+        .startAngle(d => -d.endAngle)
+        .endAngle(d => -d.startAngle)
+        .padAngle(d => d.padAngle)
+        .cornerRadius(d => d.padAngle * 1000)
+      ;
+
+      const arcs = select(this.$refs.arcs)
+        .selectAll("path")
+        .data(this.filteredData, d => `${d.developer}-${d.angle}-${d.buckets}`)
+        .join(
+          enter => {
+            return enter
+              .append("path")
+              .attr("fill", d => this.$color(d.developer))
+              .attr("d", d => MakeArc(Scale(d)))
+              .attr("opacity", 0)
+              .transition()
+              .duration(1000)
+              .attr("opacity", 0.5)
+              .attrTween('d', function (d) {
+                const previous = Scale({
+                  angle: d.angle,
+                  inner: 0,
+                  outer: 0,
+                });
+                const next = Scale(d)
+                return ArcInterpolator(previous, next);
+              })
+          },
+          update => {
+            return update
+              .transition()
+              .duration(1000)
+              .attr("opacity", 0.5)
+              .attrTween('d', function (d) {
+                const previous = currentState.get(this);
+                const next = Scale(d)
+                return ArcInterpolator(previous, next);
+              });
+          },
+          exit => {
+            return exit 
+              .transition()
+              .duration(1000)
+              .attr("opacity", 0)
+              .attrTween('d', function (d) {
+                const previous = currentState.get(this);
+                const next = Scale({
+                  angle: 0,
+                  padAngle: 0,
+                  inner: 0,
+                  outer: 0,
+                });
+                next.startAngle = previous.startAngle;
+                next.endAngle = previous.endAngle;
+                next.padAngle = previous.padAngle;
+                return ArcInterpolator(previous, next);
+              })
+              .remove(); 
+          }
+        )
+
+      const indicatorDataAll = [
+        {
+          data: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11",
+                 "12", "13", "14", "15", "16", "17", "18", "19", "20", "21",
+                 "22", "23"],
+        },
+        {
+          data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+        },
+        {
+          data: ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10",
+                 "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+                 "21", "22", "23", "24", "25", "26", "27", "28", "29", "30",
+                 "30"],
+        },
+        {
+          data: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
+                 "Oct", "Nov", "Dec"],
+        },
+      ];
+
+      const indicatorData = indicatorDataAll[this.hourlyParam].data.map((d, i) => {
+
+        const timezero = new Date("2000-01-03T00:00:00.000");
+        const dephasage = ((now - timezero) % this.modulo) / this.modulo;
+        const angle = i / indicatorDataAll[this.hourlyParam].data.length;
+        return {
+          text: d,
+          angle: (angle - dephasage - 0.25) * 360,
+        }
+      });
+
+      select(this.$refs.indicators)
+        .selectAll("text")
+        .data(indicatorData, d => `${d.text}-${d.angle}`)
+        .join(
+          enter => {
+            return enter
+              .append("text")
+              .attr("x", innerRadius * 0.5)
+              .attr("y", 0)
+              .attr("text-anchor", "end")
+              .attr("alignment-baseline", "middle")
+              .attr("opacity", 1)
+              .text(d => d.text)
+              .attr("transform", d => `rotate(${d.angle})`)
+              .transition()
+              .duration(1000)
+              .attr("font-size", innerRadius*0.1)
+              .attr("x", innerRadius * 0.9)
+              .attr("opacity", 0.5)
+            ;
+          },
+          update => {
+            return update
+              .transition()
+              .duration(1000)
+              .attr("font-size", innerRadius*0.1)
+              .attr("x", innerRadius * 0.9)
+              .attr("opacity", 0.5)
+          },
+          exit => {
+            return exit
+              .transition()
+              .duration(1000)
+              .attr("x", innerRadius * 1)
+              .attr("opacity", 0)
+              .remove();
+          }
+        )
+    }
+  }
+};
+</script>
+
+<style scoped>
+.svg-container {
+  width: 100%;
+  height:100%;
+  min-height:500px;
+}
+
+</style>

@@ -26,8 +26,6 @@ import {pointer} from "d3-selection";
 import {bisector} from "d3-array";
 import {hsv} from "d3-hsv";
 
-const color = scaleOrdinal(schemeCategory10);
-
 export default {
   props: {
     developers: { type: Array },
@@ -234,11 +232,11 @@ export default {
                   .attr("font-weight", "bold")
                   .attr("x", -10)
                   .attr("y", -10)
-                  .attr("fill", d => color(d.developer))
+                  .attr("fill", d => this.$color(d.developer))
                   .text(d => d.patch)
                 group.append("circle")
                   .attr("r", 3)
-                  .attr("fill", d => color(d.developer))
+                  .attr("fill", d => this.$color(d.developer))
                 return group;
               },
 
@@ -275,7 +273,7 @@ export default {
           .append("path")
           .attr("class", "line")
           .attr("fill", "none")
-          .attr("stroke", d => color(d.developer))
+          .attr("stroke", d => this.$color(d.developer))
           .attr("stroke-width", 0)
           .attr("d", d => valueZero(d.values))
           .transition(500)
@@ -321,7 +319,7 @@ export default {
               .append("text")
               .attr("font-size", "12px")
               .attr("font-weight", "bold")
-              .attr("fill", d => color(d.developer))
+              .attr("fill", d => this.$color(d.developer))
               .text(d => d.developer)
             return group;
           },

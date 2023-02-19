@@ -43,6 +43,17 @@
 
       <section class="section">
         <div class="container">
+          <h2 class="title">Count</h2>
+          <TimelineCount
+            :developers="developers"
+            :startDate="startDate"
+            :endDate="endDate"
+            /></TimelineCount>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
           <h2 class="title">Timeline</h2>
           <TimelineChart
             :developers="developers"
@@ -51,18 +62,60 @@
             :author="checkboxStates.includes('author')"
             :review="checkboxStates.includes('review')"
             :stacked="checkboxStates.includes('stacked')"
-            /></TimelineChart>
+            ></TimelineChart>
         </div>
       </section>
 
       <section class="section">
         <div class="container">
-          <h2 class="title">Count</h2>
-          <TimelineCount
+          <h2 class="title">Timeline wrapped</h2>
+          <b-field grouped>
+            <b-field
+              label="Modulo"
+              expanded
+              label-position="on-border"
+            >
+              <b-slider
+                v-model="hourlyParam"
+                :min="0"
+                :max="3"
+                aria-label="Fan"
+                :tooltip="false"
+                rounded
+              >
+                <b-slider-tick :value="0">Day</b-slider-tick>
+                <b-slider-tick :value="1">Week</b-slider-tick>
+                <b-slider-tick :value="2">Month</b-slider-tick>
+                <b-slider-tick :value="3">Year</b-slider-tick>
+              </b-slider>
+            </b-field>
+
+            <b-field
+              :label="'Buckets: ' + wrappedBuckets"
+              expanded
+              label-position="on-border"
+            >
+              <b-slider
+                v-model="wrappedBuckets"
+                :min="1"
+                :max="500"
+                aria-label="Buckets"
+                lazy
+                rounded
+              ></b-slider>
+            </b-field>
+          </b-field>
+
+          <TimelineWrappedChart
             :developers="developers"
             :startDate="startDate"
             :endDate="endDate"
-            /></TimelineCount>
+            :author="checkboxStates.includes('author')"
+            :review="checkboxStates.includes('review')"
+            :stacked="checkboxStates.includes('stacked')"
+            :hourlyParam="hourlyParam"
+            :buckets="wrappedBuckets"
+            /></TimelineWrappedChart>
         </div>
       </section>
 
@@ -84,6 +137,8 @@ export default {
       endDate: new Date(),
       developers: [],
       checkboxStates: ["author", "review"],
+      hourlyParam: 0,
+      wrappedBuckets: 100,
     };
   },
 
@@ -127,7 +182,7 @@ document.addEventListener('scroll', updateHasScrolled, { passive: true });
   width: 100%;
   z-index: 1000;
   backdrop-filter: blur(8px);
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.3);
   transition: background-color 0.2s ease-in-out;
   transition: all 0.1s ease-in-out;
 }

@@ -42,7 +42,7 @@ export default {
     methods: {
         computeDevelopersListFiltered(developer) {
             this.developerListFiltered = this.developerList.filter((option) => {
-                return option.indexOf(developer) >= 0;
+                return option.indexOf(developer) == 0;
             })
         },
 
