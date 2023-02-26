@@ -1,6 +1,7 @@
 <template>
     <b-field expanded>
         <b-taginput
+            ref="input"
             :value="value"
             @input="updateDevelopers"
             @typing="computeDevelopersListFiltered"
@@ -54,6 +55,13 @@ export default {
         updateDevelopers(developers) {
             this.developers = developers;
             this.$emit("input", this.developers);
+            setTimeout(() => {
+                let i = 0;
+                for(const element of this.$refs.input.$el.querySelectorAll(".tag")) {
+                    element.style.backgroundColor = this.$color(developers[i]);
+                    ++i;
+                }
+            }, 0);
         },
     },
 };

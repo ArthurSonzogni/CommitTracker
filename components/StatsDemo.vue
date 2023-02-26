@@ -2,22 +2,26 @@
   <section class="section">
     <div class="container">
       <h1 class="title">
-        <NuxtLink to="/timeline">
-        The timeline
+        <NuxtLink to="/stats">
+        Stats
         </NuxtLink>
       </h1>
 
       <div class="columns">
-        <div class="column is-two-fifths">
+        <div class="column is-5 content">
           <p>
-            The timeline page shows instantaneously the evolution of the
-            number of commits over time. You can filter by developer, authors,
-            reviewers and date.
+            You can filter by developer, authors, reviewers and date.
+            It shows instantaneously:
+            <ul>
+              <li>The evolution of commits authored/reviewed over time.</li>
+              <li>The evolution during the day/week/month/year.</li>
+              <li>The list of peers</li>
+            </ul>
           </p>
 
           <TimelineWrappedChart
             :developers="developers"
-            :startDate="new Date('2018-01-01')"
+            :startDate="new Date('2000-01-01')"
             :endDate="new Date('2030-01-01')"
             :author="true"
             :review="true"
@@ -27,15 +31,25 @@
             /></TimelineWrappedChart>
         </div>
 
-        <div class="column is-three-fifths">
+        <div class="column is-7">
           <TimelineChart
             :developers="developers"
-            :startDate="new Date('2018-01-01')"
+            :startDate="new Date('2000-01-01')"
             :endDate="new Date('2030-01-01')"
             :author="true"
             :review="true"
             :stacked="false"
             /></TimelineChart>
+
+          <PeersChart
+            :developers="developers"
+            :startDate="new Date('2000-01-01')"
+            :endDate="new Date('2030-01-01')"
+            :author="true"
+            :review="true"
+            :stacked="false"
+            :take_n="15"
+            /></PeersChart>
         </div>
 
 

@@ -57,17 +57,14 @@ export default {
   },
 
   methods: {
-    developersChanged() {
-      Promise.all(this.developers.map(async d => {
-        const response = await fetch(`./data/users/${d}.json`);
-        const data = await response.json();
+    async developersChanged() {
+      const data = await this.$chromeDataAll(this.developers);
+      this.data = data.map(d => {
         return {
-          developer:d,
-          author:Object.keys(data.author),
-          review:Object.keys(data.review),
+          developer: d.developer,
+          author: Object.keys(d.data.author),
+          review: Object.keys(d.data.review),
         };
-      })).then(data => {
-        this.data = data;
       });
     },
   }

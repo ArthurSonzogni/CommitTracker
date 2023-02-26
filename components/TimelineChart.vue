@@ -20,11 +20,8 @@ import {select} from "d3-selection";
 import {transition} from "d3-transition";
 import {line} from "d3-shape";
 import {interpolatePath} from "d3-interpolate-path";
-import {scaleOrdinal} from "d3-scale";
-import {schemeCategory10} from "d3-scale-chromatic";
 import {pointer} from "d3-selection";
 import {bisector} from "d3-array";
-import {hsv} from "d3-hsv";
 
 export default {
   props: {
@@ -123,17 +120,8 @@ export default {
   },
 
   methods: {
-    developersChanged() {
-      Promise.all(this.developers.map(async d => {
-        const response = await fetch(`./data/users/${d}.json`);
-        const data = await response.json();
-        return {
-          developer: d,
-          data: data,
-        }
-      })).then(data => {
-        this.data = data;
-      });
+    async developersChanged() {
+      this.data = await this.$chromeDataAll(this.developers);
     },
 
     initialize() {

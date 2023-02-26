@@ -4,10 +4,10 @@
 
     <section class="section">
       <div class="container">
-        <h1 class="title">User list</h1>
+        <h1 class="title">The API</h1>
         <p>
-          The API is made of static files stored on github. They are refreshed
-          every day.
+          This is a static server. All the responses are static JSON files. They
+          are refreshed every day by a bot running on Github actions.
         </p>
       </div>
     </section>
@@ -15,7 +15,9 @@
     <section class="section">
       <div class="container">
         <h2 class="title">User list</h2>
-        <code>/data/users.json</code>
+        <a href="./data/users.json">
+          <code>/data/users.json</code>
+        </a>
         <pre>
           <code>
 [
@@ -32,9 +34,9 @@
     <section class="section">
       <div class="container">
         <h2 class="title">User info</h2>
-        <p>
+        <a href="./data/users/arthursonzogni.json">
           <code>/data/users/${user}.json</code>
-        </p>
+        </a>
         <pre>
           <code>
 {

@@ -119,6 +119,20 @@
         </div>
       </section>
 
+      <section class="section">
+        <div class="container">
+          <h2 class="title">Peers</h2>
+          <PeersChart
+            :developers="developers"
+            :startDate="startDate"
+            :endDate="endDate"
+            :author="checkboxStates.includes('author')"
+            :review="checkboxStates.includes('review')"
+            :stacked="checkboxStates.includes('stacked')"
+            ></PeersChart>
+        </div>
+      </section>
+
       <section class="section sticky bottom">
         <b-field expanded>
           <Timeline @change="changeDate" ></Timeline>
@@ -181,8 +195,8 @@ document.addEventListener('scroll', updateHasScrolled, { passive: true });
   position: sticky;
   width: 100%;
   z-index: 1000;
-  backdrop-filter: blur(8px);
-  background-color: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(4px);
+  background-color: rgba(255, 255, 255, 0.5);
   transition: background-color 0.2s ease-in-out;
   transition: all 0.1s ease-in-out;
 }

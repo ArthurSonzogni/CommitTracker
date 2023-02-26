@@ -3,25 +3,17 @@
     <svg ref="svg" :width="svgWidth" :height="svgHeight">
       <g ref="arcs"></g>
       <g ref="indicators"></g>
+      <g ref="legend" />
     </svg>
   </div>
 </template>
 
 <script>
 
-import {axisBottom, axisLeft} from "d3-axis";
-import {extent, max} from "d3-array";
+import {max} from "d3-array";
 import {scaleLinear, scaleRadial} from "d3-scale";
 import {select} from "d3-selection";
 import {transition} from "d3-transition";
-import {line} from "d3-shape";
-import {interpolatePath} from "d3-interpolate-path";
-import {scaleOrdinal} from "d3-scale";
-import {schemeCategory10} from "d3-scale-chromatic";
-import {pointer} from "d3-selection";
-import {bisector} from "d3-array";
-import {hsv} from "d3-hsv";
-import {catmullRom} from "d3-shape";
 import {arc} from "d3-shape";
 import {interpolate} from "d3-interpolate";
 import {local} from "d3-selection";
@@ -61,6 +53,9 @@ export default {
     },
 
     filteredData() {
+      
+      const developers = this.data.map(d => d.developer);
+
       // Filter:
       let data = this.data.map(d => {
         const author = !this.author ? {} :
@@ -83,7 +78,6 @@ export default {
           values: values,
         }
       });
-
 
       // Accumulate patches:
       data = data.map(entry => {
@@ -123,12 +117,15 @@ export default {
       });
 
       data = data.map(entry => entry.values).flat()
-      return data;
+      return {
+        developers: developers,
+        arcs:data,
+      }
     },
 
-    extent() {
-      return extent(
-        this.filteredData.map(e => e.outer)
+    max() {
+      return max(
+        this.filteredData.arcs.map(e => e.outer)
       );
     },
   },
@@ -143,17 +140,8 @@ export default {
   },
 
   methods: {
-    developersChanged() {
-      Promise.all(this.developers.map(async d => {
-        const response = await fetch(`./data/users/${d}.json`);
-        const data = await response.json();
-        return {
-          developer: d,
-          data: data,
-        }
-      })).then(data => {
-        this.data = data;
-      });
+    async developersChanged() {
+      this.data = await this.$chromeDataAll(this.developers);
     },
 
     initialize() {
@@ -173,8 +161,9 @@ export default {
     },
 
     render() {
-      select(this.$refs.svg)
-        .selectAll("g")
+      select(this.$refs.arcs)
+        .attr("transform", `translate(${this.svgWidth/2}, ${this.svgHeight/2})`);
+      select(this.$refs.indicators)
         .attr("transform", `translate(${this.svgWidth/2}, ${this.svgHeight/2})`);
 
       const innerRadius = Math.max(this.svgWidth, this.svgHeight) * 0.2;
@@ -185,7 +174,7 @@ export default {
         .range([0, 2 * Math.PI])
 
       const y = scaleRadial()
-        .domain([0, this.extent[1]])
+        .domain([0, this.max])
         .range([innerRadius, outerRadius])
 
       const Scale = data => {
@@ -223,7 +212,8 @@ export default {
 
       const arcs = select(this.$refs.arcs)
         .selectAll("path")
-        .data(this.filteredData, d => `${d.developer}-${d.angle}-${d.buckets}`)
+        .data(this.filteredData.arcs,
+              d => `${d.developer}-${d.angle}-${d.buckets}`)
         .join(
           enter => {
             return enter
@@ -345,6 +335,50 @@ export default {
               .attr("x", innerRadius * 1)
               .attr("opacity", 0)
               .remove();
+          }
+        )
+      ;
+
+      select(this.$refs.legend)
+        .selectAll(".legend")
+        .data(this.filteredData.developers, d => d)
+        .join(
+          enter => {enter
+            const group = enter
+              .append("g")
+              .attr("class", "legend")
+
+            group
+              .attr("opacity", 0)
+              .attr("transform", (d, i) => `translate(100, ${i*20+20})`)
+              .transition()
+              .duration(500)
+              .attr("transform", (d, i) => `translate(10, ${i*20+20})`)
+              .attr("opacity", 1)
+
+            group
+              .append("text")
+              .attr("font-size", "12px")
+              .attr("font-weight", "bold")
+              .attr("fill", d => this.$color(d))
+              .text(d => d)
+            return group;
+          },
+          update => {
+            update
+              .transition()
+              .duration(1000)
+              .attr("transform", (d, i) => `translate(10, ${i*20+20})`)
+              .attr("opacity", 1)
+            return update;
+          },
+          exit => {
+            exit
+              .transition()
+              .duration(500)
+              .attr("transform", (d, i) => `translate(100, ${i*20+20})`)
+              .attr("opacity", 0)
+              .remove()
           }
         )
     }

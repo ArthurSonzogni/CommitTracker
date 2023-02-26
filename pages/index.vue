@@ -13,6 +13,7 @@
       </div>
     </section>
     <Navbar/>
-    <TimelineChartRoll/>
+    <StatsDemo/>
+    <CommunityMapDemo/>
   </div>
 </template>

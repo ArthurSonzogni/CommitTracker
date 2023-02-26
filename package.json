@@ -10,6 +10,7 @@
     "generate": "nuxt generate"
   },
   "dependencies": {
+    "@panzoom/panzoom": "^4.5.1",
     "core-js": "^3.25.3",
     "d3-array": "^3.2.2",
     "d3-axis": "^3.0.0",
