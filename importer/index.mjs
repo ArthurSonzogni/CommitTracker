@@ -3,7 +3,8 @@ import github from "@actions/github";
 import * as filesystem from "fs";
 
 const fs = filesystem.promises;
-const token = "none"
+// const token = core.getInput('token', { required: true });
+const token = process.env.github_token;;
 const octokit = new github.getOctokit(token);
 
 // const first_commit_hash = "a5068f5fa11005232bc4383c54f6af230f9392fb";

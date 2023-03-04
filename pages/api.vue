@@ -7,7 +7,7 @@
         <h1 class="title">The API</h1>
         <p>
           This is a static server. All the responses are static JSON files. They
-          are refreshed every day by a bot running on Github actions.
+          are refreshed every week by a bot running on Github actions.
         </p>
       </div>
     </section>
