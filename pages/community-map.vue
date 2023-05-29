@@ -24,6 +24,10 @@
             </option>
           </b-select>
         </b-field>
+        <b-field grouped>
+          <b-button @click="view" type="is-info"> View</b-button>
+          <b-button @click="download" type="is-info is-light"> Download </b-button>
+        </b-field>
         <b-field label="Zoom" label-position="on-border" expanded>
           <b-slider
             v-model="zoom"
@@ -73,6 +77,17 @@ export default {
       this.$refs.svg.width = Math.round(100*this.zoom) + "%";
       this.$refs.svg.height = Math.round(100*this.zoom) + "%";
     }
+  },
+  methods: {
+    view() {
+      location.href = this.objectSrc;
+    },
+    download() {
+      const a = document.createElement("a");
+      a.href = this.objectSrc;
+      a.download = this.dataset;
+      a.click();
+    },
   }
 }
 

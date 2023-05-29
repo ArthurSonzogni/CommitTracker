@@ -4,9 +4,7 @@
   "description": "data visualization for chrome commits",
   "main": "index.mjs",
   "scripts": {
-    "main": "node index.mjs",
-    "to_csv": "node to_csv.mjs",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "main": "node main.mjs"
   },
   "repository": {
     "type": "git",

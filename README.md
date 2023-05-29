@@ -8,6 +8,7 @@ show statistics about the Chrome repository.
 Install [yarn](https://yarnpkg.com/) and run:
 
 ```bash
+yarn
 yarn dev
 ```
 
