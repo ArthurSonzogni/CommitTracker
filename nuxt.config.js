@@ -31,6 +31,7 @@ export default {
   plugins: [
     "~/plugins/color.mjs",
     "~/plugins/chromeData.mjs",
+    "~/plugins/chromeGrep.mjs",
   ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components

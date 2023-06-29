@@ -31,7 +31,7 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Actions"
           git add static/data
-          git commit -m 'refresh data'
+          git commit -m 'refresh developer data'
 
       - name: Push changes
         uses: ad-m/github-push-action@master

@@ -4,7 +4,8 @@
   "description": "data visualization for chrome commits",
   "main": "index.mjs",
   "scripts": {
-    "main": "node main.mjs"
+    "main": "node main.mjs",
+    "grep": "node grep.mjs"
   },
   "repository": {
     "type": "git",

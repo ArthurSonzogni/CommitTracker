@@ -4,8 +4,8 @@
       <g ref="xAxis" />
       <g ref="yAxis" />
       <g ref="content">
-      <g ref="tooltip" />
-      <g ref="legend" />
+        <g ref="tooltip" />
+        <g ref="legend" />
       </g>
     </svg>
   </div>
