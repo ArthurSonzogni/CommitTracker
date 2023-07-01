@@ -8,14 +8,14 @@
         </template>
 
         <template #start>
-            <b-navbar-item tag="router-link" :to="{ path: '/stats' }">
-                Stats
+            <b-navbar-item tag="router-link" :to="{ path: '/commits' }">
+                Commits
             </b-navbar-item>
             <b-navbar-item tag="router-link" :to="{ path: '/community-map' }">
                 Community map
             </b-navbar-item>
-            <b-navbar-item tag="router-link" :to="{ path: '/grep' }">
-                Grep
+            <b-navbar-item tag="router-link" :to="{ path: '/treemap' }">
+                Treemap
             </b-navbar-item>
             <b-navbar-item tag="router-link" :to="{ path: '/api' }">
                 API

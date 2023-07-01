@@ -37,7 +37,7 @@ export default {
     },
 
     async fetch() {
-        const response = await fetch("./data/grep/entries.json");
+        const response = await fetch("./data/treemap/entries.json");
         const list = await response.json();
         this.entryList = list.map(e => e.name)
         this.entryListFiltered = this.entryList;

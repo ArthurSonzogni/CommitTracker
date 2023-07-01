@@ -5,7 +5,7 @@
   "main": "index.mjs",
   "scripts": {
     "main": "node main.mjs",
-    "grep": "node grep.mjs"
+    "treemap": "node treemap.mjs"
   },
   "repository": {
     "type": "git",

@@ -15,5 +15,6 @@
     <Navbar/>
     <StatsDemo/>
     <CommunityMapDemo/>
+    <TreemapDemo/>
   </div>
 </template>

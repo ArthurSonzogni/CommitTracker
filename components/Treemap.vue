@@ -10,18 +10,18 @@
 
 import {extent, max} from "d3-array";
 import {interpolateRgb} from "d3-interpolate";
-import {interpolateTurbo} from "d3-scale-chromatic";
 import {scaleLinear, scaleRadial} from "d3-scale";
 import {select} from "d3-selection";
 import {transition} from "d3-transition";
-import {treemap, treemapBinary, hierarchy} from "d3-hierarchy";
+import {treemap, treemapSquarify, hierarchy} from "d3-hierarchy";
 import {easeCubicInOut} from "d3-ease";
 
 export default {
 
   props: [
     "field_color",
-    "field_size"
+    "field_size",
+    "colormap"
   ],
 
   data() {
@@ -32,17 +32,6 @@ export default {
   },
 
   methods: {
-    initialize() {
-      try {
-        this.svgWidth = this.$refs.container.clientWidth;
-        this.svgHeight = this.svgWidth * 0.5;
-        this.refresh();
-      } catch (e) {
-        console.log(e);
-      }
-      window.addEventListener("resize", this.initialize);
-
-    },
 
     transition: function(d) {
       return d
@@ -76,46 +65,44 @@ export default {
 
     renderRect: function(rect, x, y) {
       return rect
+        .attr("rx", 7)
         .attr("stroke", "white")
-        .attr("stroke-width", "1px")
-        .attr("rx", 10)
+        .attr("stroke-width", 2)
         .attr('width', d => x(d.x1) - x(d.x0))
         .attr('height', d => y(d.y1) - y(d.y0))
         .style("fill", d => {
           const colorScale = scaleLinear()
             .range([0, 1])
-            .domain([0, 0.5])
+            .domain([0, 1])
           ;
           const color = this.getFieldColor(d.data);
           const size = this.getFieldSize(d.data);
           const c1 = "white";
-          const c2 = interpolateTurbo(colorScale(color / size));
+          const c2 = this.colormapFunc(colorScale(color / size));
           return interpolateRgb(c1, c2)(0.5);
         })
     },
 
-    renderText: function(text, x, y) {
+    renderText: function(text, index, x, y) {
       return text
         .attr("text-anchor", "start")
         .attr("alignment-baseline", "bottom")
         .attr("font-size", "12px")
-        //.attr("x", d => 0.5 * (x(d.x1) - x(d.x0)))
         .attr("x", 6)
-        .attr("y", 18)
+        .attr("y", 18 + index * 14)
+        .attr("fill", index == 0 ? "black" : "gray")
         .text(d => {
-          if ((y(d.y1) - y(d.y0) <= 20)) {
-            return "...";
-          }
-
-          if ((x(d.x1) - x(d.x0)) <= 8 * d.data.name.length) {
-            return "...";
-          }
 
           const name = d.data.name;
           const color = this.getFieldColor(d.data);
           const size = this.getFieldSize(d.data);
           const percent =  Math.floor(100 * color / size);
-          return `${name} (${percent}%) [${color}/${size}]`;
+          if (index == 0) {
+            return `${name}`;
+          }
+          else {
+            return `${color}/${size} = ${percent}%`;
+          }
         })
       ;
     },
@@ -126,20 +113,24 @@ export default {
           enter => {
             const group = enter.append("g");
             const rect = group.append("rect")
-            const text = group.append("text")
+            const text_1 = group.append("text")
+            const text_2 = group.append("text")
             this.renderGroup(group, x, y);
             this.renderRect(rect, x, y)
-            this.renderText(text, x, y);
+            this.renderText(text_1, 0, x, y);
+            this.renderText(text_2, 1, x, y);
             return group;
           },
 
           update => {
             const group = this.transition(update);
             const rect = this.transition(update.select("rect"));
-            const text = this.transition(update.select("text"));
+            const text = this.transition(update.selectAll("text"));
             this.renderGroup(group, x, y);
             this.renderRect(rect, x, y)
-            this.renderText(text, x, y)
+            text.each((d, i, nodes) => {
+              this.renderText(select(nodes[i]), i, x, y);
+            });
             return update;
           },
 
@@ -153,38 +144,25 @@ export default {
       )
       ;
 
-      child 
+      child
         .filter(d => d.children)
         .attr("cursor", "pointer")
-        .on("click", (event, d) => this.zoomin(data, d))
+        .on("click", (event, d) => this.zoomin(d))
       ;
     },
 
-    zoomin(data, d) {
+    zoomin(child) {
+      const old_data = this.getCurrentDataFromPath();
       // Find the associated child:
-      const name = d.data.name;
+      const name = child.data.name;
+      this.path.push(name);
+      history.pushState({path: this.path}, "", `treemap#${this.path.join("/")}`);
 
-      let index_treemap = 0;
-      for(let i = 0; i<data.children.length; ++i) {
-        if (data.children[i].data.name == name) {
-          index_treemap = i;
-          break;
-        }
-      }
-      const child = data.children[index_treemap];
+      const new_data = this.getCurrentDataFromPath();
+      this.zoom(old_data, new_data)
+    },
 
-      let index_data = 0;
-      for(let i = 0; i<this.data.children.length; ++i) {
-        if (this.data.children[i].name == name) {
-          index_data = i;
-          break;
-        }
-      }
-
-      console.log(index_treemap, index_data);
-      this.data = this.data.children[index_data];
-      console.log(this.data);
-
+    async zoom(data_old, data_new) {
       // Remove the previous content by fading them out.
       const old_content = select(this.$refs.content)
         .select('g')
@@ -192,43 +170,60 @@ export default {
         select(this.$refs.content)
         .append("g")
 
+      // Draw the old and new contents from the old content zoom.
       {
         const x = scaleLinear()
-          .domain([data.x0, data.x1])
+          .domain([data_old.x0, data_old.x1])
           .rangeRound([0, this.svgWidth])
         ;
         const y = scaleLinear()
-          .domain([data.y0, data.y1])
+          .domain([data_old.y0, data_old.y1])
           .rangeRound([0, this.svgHeight])
         ;
-        this.render(old_content, data, x, y)
-        this.render(new_content, child, x, y)
+        this.render(old_content, data_old, x, y)
+        this.render(new_content, data_new, x, y)
       }
 
+      // Wait for new content opacity transition from zero to one.
+      new_content.attr("opacity", 0)
+      this.transition(new_content).attr("opacity", 1.0)
+
+      // Draw the old and new contents from the new content zoom.
       {
         const x = scaleLinear()
-          .domain([child.x0, child.x1])
+          .domain([data_new.x0, data_new.x1])
           .rangeRound([0, this.svgWidth])
         ;
         const y = scaleLinear()
-          .domain([child.y0, child.y1])
+          .domain([data_new.y0, data_new.y1])
           .rangeRound([0, this.svgHeight])
         ;
-        this.render(old_content, data, x, y)
-        this.render(new_content, child , x, y)
+        this.render(old_content, data_old, x, y)
+        this.render(new_content, data_new , x, y)
 
-        new_content
-          .attr("opacity", 0)
-          .transition()
-          .duration(600)
+        old_content
           .attr("opacity", 1)
-        old_content 
           .transition()
           .duration(600)
+          .attr("opacity", 0)
           .remove()
-
-        setTimeout(this.refresh, 1500);
       }
+
+      const zoomin = (data_old.x1 - data_old.x0) > //
+                     (data_new.x1 - data_new.x0);
+      select(this.$refs.content)
+        .sort((a, b) => {
+          if (a == old_content.node()) {
+            return zoomin ? 1 : -1;
+          }
+
+          if (b == old_content.node()) {
+            return zoomin ? -1 : 1;
+          }
+
+          return 0;
+        })
+
 
       return;
     },
@@ -248,13 +243,16 @@ export default {
         })
       ;
 
-      const map = treemap();
+      const map = treemap()
+        .tile(treemapSquarify)
+        .size([this.svgWidth, this.svgHeight])
+        .round(true)
 
       return map(data_with_layout);
     },
 
     async fetchEntries() {
-      const response = await fetch("./data/grep/root.json");
+      const response = await fetch("./data/treemap/root.json");
       const data = await response.json();
 
       const propagate = entry => {
@@ -273,42 +271,91 @@ export default {
         }
       };
       propagate(data);
-      this.data = data;
+      this.fetchedData = data;
+    },
 
-      this.refresh();
+    popstate: function() {
+      console.log("popState")
+      const data_old = this.getCurrentDataFromPath();
+      this.path = window.location.hash
+        .replace("#", "")
+        .split("/")
+        .filter(e => e.length != 0)
+      const data_new = this.getCurrentDataFromPath();
+      this.zoom(data_old, data_new)
+    },
+
+    resize() {
+      try {
+        const aspect_ratio = window.innerHeight/ window.innerWidth;
+        this.svgWidth = this.$refs.container.clientWidth;
+        this.svgHeight = this.svgWidth * aspect_ratio - 100;
+      } catch (e) {
+        console.log(e);
+      }
+      this.paramsChanged()
+    },
+
+    getCurrentDataFromPath() {
+      let data = this.data;
+      for(const name of this.path) {
+        for(let child of data.children) {
+          if (child.data.name == name) {
+            data = child;
+            break;
+          }
+        }
+      }
+      return data;
     },
 
     refresh: function() {
+      this.colormapFunc = this.$getColormapList()[this.colormap];
 
       if (!select(this.$refs.content).select("g").node()) {
         select(this.$refs.content).append("g")
       }
 
+      const data = this.getCurrentDataFromPath();
+
       const group =
         select(this.$refs.content)
         .select("g")
 
-        const map = this.mytreemap(this.data);
-        const x = scaleLinear()
-          .domain([map.x0, map.x1])
-          .rangeRound([0, this.svgWidth])
-        ;
-        const y = scaleLinear()
-          .domain([map.y0, map.y1])
-          .rangeRound([0, this.svgHeight])
-        ;
-        this.render(group, map, x, y);
+      const x = scaleLinear()
+        .domain([data.x0, data.x1])
+        .rangeRound([0, this.svgWidth])
+      ;
+      const y = scaleLinear()
+        .domain([data.y0, data.y1])
+        .rangeRound([0, this.svgHeight])
+      ;
+      this.render(group, data, x, y);
+
+      this.current_data = data;
+    },
+
+    async paramsChanged() {
+      await this.fetchEntries();
+      this.data = this.mytreemap(this.fetchedData)
+      this.refresh();
     },
   },
 
   watch: {
-    field_size: "refresh",
-    field_color: "refresh",
+    field_size: "paramsChanged",
+    field_color: "paramsChanged",
+    colormap: "refresh"
   },
 
   mounted() {
-    this.initialize();
-    this.fetchEntries();
+    this.path = window.location.hash
+      .replace("#", "")
+      .split("/")
+      .filter(e => e.length != 0)
+    this.resize();
+    window.addEventListener("resize", this.resize);
+    window.addEventListener("popstate", this.popstate)
   },
 }
 </script>

@@ -11,7 +11,7 @@ const fs = filesystem.promises;
 //   file        : string,
 // }
 const ProcessEntry = async (root, entry) => {
-  
+
   await fs.writeFile("script.sh", `
     cd ./chromium;
     git grep "${entry.pattern}" \
@@ -40,7 +40,7 @@ const ProcessEntry = async (root, entry) => {
       while(true) {
         for(const child of current.children) {
           if (child.name == component) {
-            found = true; 
+            found = true;
             current = child;
           }
         }

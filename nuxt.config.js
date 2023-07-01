@@ -31,7 +31,7 @@ export default {
   plugins: [
     "~/plugins/color.mjs",
     "~/plugins/chromeData.mjs",
-    "~/plugins/chromeGrep.mjs",
+    "~/plugins/colormap.mjs",
   ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
@@ -49,7 +49,7 @@ export default {
   ],
 
   panzoom: {
-    addControls: true, // Add PanzoomControls component 
+    addControls: true, // Add PanzoomControls component
   },
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
