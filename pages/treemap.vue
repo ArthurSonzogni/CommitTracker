@@ -5,6 +5,7 @@
     <section class="section">
 
       <div class="columns">
+
         <div class="column">
           <TreemapInput v-model="field_size" placeholder="size"/>
         </div>
@@ -30,12 +31,28 @@
           </b-field>
 
         </div>
+
       </div>
+
+      <b-breadcrumb align="is-left">
+        <b-breadcrumb-item tag='a' href="treemap#" >
+          .
+        </b-breadcrumb-item>
+        <b-breadcrumb-item
+          tag='a'
+          v-for="(component, index) in path"
+          :href="'treemap#' + path.slice(0, index+1).join('/')"
+          >
+          {{component}}
+        </b-breadcrumb-item>
+      </b-breadcrumb>
+
 
       <Treemap
         :field_color="field_color"
         :field_size="field_size"
         :colormap="colormap"
+        @pathChanged="path = $event"
         />
 
     </section>
@@ -52,8 +69,15 @@ export default {
       field_size: ["raw_ptr"],
       colormap_list: Object.keys(this.$getColormapList()),
       colormap: "Turbo",
+      path: [],
     }
   },
 }
 
 </script>
+
+<style scoped>
+  section {
+    margin-top: -40px;
+  }
+</style>

@@ -24,6 +24,10 @@ export default {
     "colormap"
   ],
 
+  emits: [
+      "pathChanged"
+  ],
+
   data() {
     return {
       svgWidth: 600,
@@ -156,6 +160,7 @@ export default {
       // Find the associated child:
       const name = child.data.name;
       this.path.push(name);
+      this.$emit("pathChanged", this.path);
       history.pushState({path: this.path}, "", `treemap#${this.path.join("/")}`);
 
       const new_data = this.getCurrentDataFromPath();
@@ -274,13 +279,14 @@ export default {
       this.fetchedData = data;
     },
 
-    popstate: function() {
-      console.log("popState")
+    hashchange: function() {
+      console.log("hashchange")
       const data_old = this.getCurrentDataFromPath();
       this.path = window.location.hash
         .replace("#", "")
         .split("/")
         .filter(e => e.length != 0)
+      this.$emit("pathChanged", this.path);
       const data_new = this.getCurrentDataFromPath();
       this.zoom(data_old, data_new)
     },
@@ -289,7 +295,7 @@ export default {
       try {
         const aspect_ratio = window.innerHeight/ window.innerWidth;
         this.svgWidth = this.$refs.container.clientWidth;
-        this.svgHeight = this.svgWidth * aspect_ratio - 100;
+        this.svgHeight = this.svgWidth * aspect_ratio - 200;
       } catch (e) {
         console.log(e);
       }
@@ -353,9 +359,10 @@ export default {
       .replace("#", "")
       .split("/")
       .filter(e => e.length != 0)
+    this.$emit("pathChanged", this.path);
     this.resize();
     window.addEventListener("resize", this.resize);
-    window.addEventListener("popstate", this.popstate)
+    window.addEventListener("hashchange", this.hashchange)
   },
 }
 </script>

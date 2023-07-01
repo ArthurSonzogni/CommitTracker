@@ -18,6 +18,7 @@
           <Treemap
             :field_color="field_color"
             :field_size="field_size"
+            colormap="Turbo"
             />
         </div>
       </div>
