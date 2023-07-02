@@ -1,5 +1,4 @@
-<template>
-    <b-field expanded>
+<template> <b-field expanded>
         <b-taginput
             ref="input"
             :value="value"
@@ -39,7 +38,8 @@ export default {
     async fetch() {
         const response = await fetch("./data/treemap/entries.json");
         const list = await response.json();
-        this.entryList = list.map(e => e.name)
+        this.list = list;
+        this.entryList = list.map(e => e.file)
         this.entryListFiltered = this.entryList;
     },
 
@@ -50,14 +50,10 @@ export default {
             })
         },
 
-        removeDeveloper(name) {
-            this.name.splice(this.name.indexOf(name), 1);
-            this.$emit("input", this.name);
-        },
-
         updateInput(name) {
             this.name = name;
-            this.$emit("input", this.name);
+            this.$emit("input", name);
+
             setTimeout(() => {
                 let i = 0;
                 for(const element of this.$refs.input.$el.querySelectorAll(".tag")) {

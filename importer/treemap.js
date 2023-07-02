@@ -18,7 +18,7 @@ const ProcessEntry = async (root, entry) => {
       | cut -f1 -d':' \
       | grep -v "test" \
       | grep -v "codelabs" \
-      | grep -v "/test" \
+      | grep -v "/tools" \
       | grep "\\.h\\|\\.cc"
     cd ..
   `)
