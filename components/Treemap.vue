@@ -2,19 +2,30 @@
   <div ref="container" align="center">
     <svg :width="svgWidth" :height="svgHeight">
       <g ref="content"/>
+      <g ref="tooltip" :opacity="0">
+        <rect ref="tooltipBackground"/>
+        <text ref="tooltipTitle" x="0" y="0" >text</text>
+        <text ref="tooltipColor" x="0" y="25" >text</text>
+        <text ref="tooltipSize" x="0" y="45" >text</text>
+      </g>
     </svg>
   </div>
 </template>
 
 <script>
 
-import {extent, max} from "d3-array";
-import {interpolateRgb} from "d3-interpolate";
-import {scaleLinear, scaleRadial} from "d3-scale";
-import {select} from "d3-selection";
-import {transition} from "d3-transition";
-import {treemap, treemapSquarify, hierarchy} from "d3-hierarchy";
 import {easeCubicInOut} from "d3-ease";
+import {extent, max} from "d3-array";
+import {hierarchy} from "d3-hierarchy";
+import {interpolateRgb} from "d3-interpolate";
+import {pointer} from "d3-selection";
+import {scaleLinear} from "d3-scale";
+import {scaleRadial} from "d3-scale";
+import {select} from "d3-selection";
+import {selectAll} from "d3-selection";
+import {transition} from "d3-transition";
+import {treemapSquarify} from "d3-hierarchy";
+import {treemap} from "d3-hierarchy";
 
 export default {
 
@@ -25,7 +36,7 @@ export default {
   ],
 
   emits: [
-      "pathChanged"
+    "pathChanged"
   ],
 
   data() {
@@ -67,7 +78,7 @@ export default {
       ;
     },
 
-    renderRect: function(rect, x, y) {
+    renderRect: function(rect, x, y, hover) {
       return rect
         .attr("rx", 7)
         .attr("stroke", "white")
@@ -83,7 +94,7 @@ export default {
           const size = this.getFieldSize(d.data);
           const c1 = "white";
           const c2 = this.colormapFunc(colorScale(color / size));
-          return interpolateRgb(c1, c2)(0.5);
+          return interpolateRgb(c1, c2)(hover ? 0.5 : 0.6);
         })
     },
 
@@ -94,7 +105,7 @@ export default {
         .attr("font-size", "12px")
         .attr("x", 6)
         .attr("y", 18 + index * 14)
-        .attr("fill", index == 0 ? "black" : "gray")
+        .attr("fill", index == 0 ? "black" : "rgb(100, 100, 100)")
         .text(d => {
 
           const name = d.data.name;
@@ -120,7 +131,7 @@ export default {
             const text_1 = group.append("text")
             const text_2 = group.append("text")
             this.renderGroup(group, x, y);
-            this.renderRect(rect, x, y)
+            this.renderRect(rect, x, y, false)
             this.renderText(text_1, 0, x, y);
             this.renderText(text_2, 1, x, y);
             return group;
@@ -131,7 +142,7 @@ export default {
             const rect = this.transition(update.select("rect"));
             const text = this.transition(update.selectAll("text"));
             this.renderGroup(group, x, y);
-            this.renderRect(rect, x, y)
+            this.renderRect(rect, x, y, false)
             text.each((d, i, nodes) => {
               this.renderText(select(nodes[i]), i, x, y);
             });
@@ -153,6 +164,81 @@ export default {
         .attr("cursor", "pointer")
         .on("click", (event, d) => this.zoomin(d))
       ;
+
+      child
+        .on("mousemove", (event, d) => {
+          const rect = select(event.currentTarget).select("rect");
+          this.renderRect(rect, x, y, true)
+
+          const tooltip = select(this.$refs.tooltip);
+          const background = select(this.$refs.tooltipBackground)
+          const tooltipTitle = select(this.$refs.tooltipTitle)
+          const tooltipColor = select(this.$refs.tooltipColor)
+          const tooltipSize = select(this.$refs.tooltipSize)
+          const field_size = this.field_size.length >= 2 ? "size" : this.field_size[0];
+          const field_color = this.field_color.length >= 2 ? "color" : this.field_color[0];
+
+
+          tooltipTitle
+            .text(d.data.name)
+            .attr("font-size", "20px")
+
+          tooltipColor.text(field_color + " = " + this.getFieldColor(d.data))
+          tooltipSize.text(field_size + "  = " + this.getFieldSize(d.data))
+
+          let min_width = 0;
+          let min_height = 0;
+
+          selectAll([
+            this.$refs.tooltipTitle,
+            this.$refs.tooltipColor,
+            this.$refs.tooltipSize
+          ])
+          .each(function() {
+            const bbox = this.getBBox();
+            min_width = Math.max(min_width, bbox.x + bbox.width)
+            min_height = Math.max(min_height, bbox.y + bbox.height)
+          })
+
+          background
+            .attr("x", -10)
+            .attr("y", -20)
+            .attr("rx", 7)
+            .attr("fill", "white")
+            .attr("width", min_width + 20)
+            .attr("height", min_height + 30)
+            .attr("color", "black")
+            .attr("stroke", "black")
+            .attr("stroke-width", 1)
+
+
+          const mouse_x = x(d.x0) + pointer(event)[0];
+          const mouse_y = y(d.y0) + pointer(event)[1];
+
+          const pos_x_max = this.svgWidth - min_width - 20;
+          const pos_y_max = this.svgHeight - min_height - 30;
+
+          let pos_x = Math.min(mouse_x + 40, pos_x_max);
+          let pos_y = Math.min(mouse_y + 50, pos_y_max);
+
+          if (pos_x == pos_x_max && pos_y == pos_y_max) {
+            pos_x = mouse_x - min_width - 20;
+            pos_y = mouse_y - min_height - 20;
+          }
+
+          tooltip
+            .attr("opacity", 0.6)
+            .attr("transform", `translate(${pos_x}, ${pos_y})`)
+
+        })
+        .on("mouseleave", (event, d) => {
+          const rect = select(event.currentTarget).select("rect");
+          this.renderRect(rect, x, y, false)
+
+          const tooltip = select(this.$refs.tooltip);
+          tooltip
+            .attr("opacity", 0)
+        })
     },
 
     zoomin(child) {
@@ -215,7 +301,7 @@ export default {
       }
 
       const zoomin = (data_old.x1 - data_old.x0) > //
-                     (data_new.x1 - data_new.x0);
+        (data_new.x1 - data_new.x0);
       select(this.$refs.content)
         .sort((a, b) => {
           if (a == old_content.node()) {
@@ -280,7 +366,6 @@ export default {
     },
 
     hashchange: function() {
-      console.log("hashchange")
       const data_old = this.getCurrentDataFromPath();
       this.path = window.location.hash
         .replace("#", "")
@@ -350,7 +435,7 @@ export default {
 
   watch: {
     field_size: "paramsChanged",
-    field_color: "paramsChanged",
+      field_color: "paramsChanged",
     colormap: "refresh"
   },
 
