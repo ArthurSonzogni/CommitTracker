@@ -20,6 +20,7 @@
             <b-select
               placeholder="Colormap"
               v-model="colormap"
+              expanded
               >
               <option
                 v-for="option in colormap_list"
@@ -28,6 +29,11 @@
               {{ option }}
               </option>
             </b-select>
+          </b-field>
+
+          <b-field grouped>
+            <b-input v-model="colormapMin" size="is-small" placeholder="Min"></b-input>
+            <b-input v-model="colormapMax" size="is-small" placeholder="Max"></b-input>
           </b-field>
 
         </div>
@@ -51,10 +57,24 @@
       <Treemap
         :field_color="field_color"
         :field_size="field_size"
+        :colormapMin="colormapMin"
+        :colormapMax="colormapMax"
         :colormap="colormap"
         @pathChanged="path = $event"
         />
 
+    </section>
+
+    <section class="section">
+      <p>
+        Data is updated automatically every weeks. This is a self modifying git
+        repository.
+      </p>
+      <p>
+        New entries to track can be added by opening a PR against this
+        <a
+          href="https://github.com/ArthurSonzogni/ChromeCommitTracker/blob/main/static/data/treemap/entries.json">file</a>
+      </p>
     </section>
 
   </div>
@@ -70,6 +90,8 @@ export default {
       colormap_list: Object.keys(this.$getColormapList()),
       colormap: "Turbo",
       path: [],
+      colormapMin: 0.0,
+      colormapMax: 1.0,
     }
   },
 }

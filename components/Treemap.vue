@@ -5,8 +5,7 @@
       <g ref="tooltip" :opacity="0">
         <rect ref="tooltipBackground"/>
         <text ref="tooltipTitle" x="0" y="0" >text</text>
-        <text ref="tooltipColor" x="0" y="25" >text</text>
-        <text ref="tooltipSize" x="0" y="45" >text</text>
+        <g ref="tooltipData"/>
       </g>
     </svg>
   </div>
@@ -32,7 +31,9 @@ export default {
   props: [
     "field_color",
     "field_size",
-    "colormap"
+    "colormap",
+    "colormapMin",
+    "colormapMax",
   ],
 
   emits: [
@@ -87,8 +88,8 @@ export default {
         .attr('height', d => y(d.y1) - y(d.y0))
         .style("fill", d => {
           const colorScale = scaleLinear()
+            .domain([this.colormapMin || 0, this.colormapMax || 1])
             .range([0, 1])
-            .domain([0, 1])
           ;
           const color = this.getFieldColor(d.data);
           const size = this.getFieldSize(d.data);
@@ -173,27 +174,50 @@ export default {
           const tooltip = select(this.$refs.tooltip);
           const background = select(this.$refs.tooltipBackground)
           const tooltipTitle = select(this.$refs.tooltipTitle)
-          const tooltipColor = select(this.$refs.tooltipColor)
-          const tooltipSize = select(this.$refs.tooltipSize)
-          const field_size = this.field_size.length >= 2 ? "size" : this.field_size[0];
-          const field_color = this.field_color.length >= 2 ? "color" : this.field_color[0];
-
+          const tooltipData = select(this.$refs.tooltipData);
 
           tooltipTitle
             .text(d.data.name)
             .attr("font-size", "20px")
 
-          tooltipColor.text(field_color + " = " + this.getFieldColor(d.data))
-          tooltipSize.text(field_size + "  = " + this.getFieldSize(d.data))
+          tooltipData
+            .selectAll("text")
+            .data([]
+              .concat(this.field_size)
+              .concat(this.field_color)
+            )
+            .join(
+              enter => {
+                return enter
+                  .append("text")
+                  .attr("y", (d,i) => 40 + 20*i)
+                  .attr("font-size", 12)
+                  .text(field => {
+                    if (d.data[field] != undefined) {
+                      return field + " = " + d.data[field];
+                    }
+                    return "";
+                  })
+              },
+              update => {
+                return update
+                  .text(field => {
+                    if (d.data[field] != undefined) {
+                      return field + " = " + d.data[field];
+                    }
+                    return "";
+                  })
+              },
+              exit => {
+                return exit.remove();
+              }
+            )
+          ;
 
           let min_width = 0;
           let min_height = 0;
-
-          selectAll([
-            this.$refs.tooltipTitle,
-            this.$refs.tooltipColor,
-            this.$refs.tooltipSize
-          ])
+          tooltip
+          .selectAll("text")
           .each(function() {
             const bbox = this.getBBox();
             min_width = Math.max(min_width, bbox.x + bbox.width)
@@ -435,8 +459,10 @@ export default {
 
   watch: {
     field_size: "paramsChanged",
-      field_color: "paramsChanged",
-    colormap: "refresh"
+    field_color: "paramsChanged",
+    colormap: "refresh",
+    colormapMin: "refresh",
+    colormapMax: "refresh",
   },
 
   mounted() {
