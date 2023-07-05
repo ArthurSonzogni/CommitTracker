@@ -1,12 +1,12 @@
-name: importer
+name: importer-treemap
 
 on:
   schedule:
-    - cron:  '0 0 * * 0' # every week
+    - cron:  '0 0 * * 3' # every week on Thursday.
   workflow_dispatch:
 
 jobs:
-  importer:
+  importer-treemap:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,8 +21,9 @@ jobs:
       - name: Refresh files
         run: |
           cd importer
+          git clone --depth=1 https://github.com/chromium/chromium
           npm install
-          npm run main
+          npm run treemap
         env:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -31,7 +32,7 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Actions"
           git add static/data
-          git commit -m 'refresh developer data'
+          git commit -m 'refresh treemap data'
 
       - name: Push changes
         uses: ad-m/github-push-action@master
