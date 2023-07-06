@@ -1,12 +1,15 @@
 <template>
   <div ref="container" align="center">
+    <table class="tooltip" ref="tooltip">
+      <thead>
+        <td ref="componentName"> </td>
+        <td> . </td>
+        <td> .. </td>
+        <td> % </td>
+      </thead>
+    </table>
     <svg :width="svgWidth" :height="svgHeight">
       <g ref="content"/>
-      <g ref="tooltip" :opacity="0">
-        <rect ref="tooltipBackground"/>
-        <text ref="tooltipTitle" x="0" y="0" >text</text>
-        <g ref="tooltipData"/>
-      </g>
     </svg>
   </div>
 </template>
@@ -160,6 +163,7 @@ export default {
       )
       ;
 
+
       child
         .filter(d => d.children)
         .attr("cursor", "pointer")
@@ -171,97 +175,71 @@ export default {
           const rect = select(event.currentTarget).select("rect");
           this.renderRect(rect, x, y, true)
 
+          select(this.$refs.componentName).text(d.data.name);
+
           const tooltip = select(this.$refs.tooltip);
-          const background = select(this.$refs.tooltipBackground)
-          const tooltipTitle = select(this.$refs.tooltipTitle)
-          const tooltipData = select(this.$refs.tooltipData);
+          tooltip.style("opacity", 1.0)
 
-          tooltipTitle
-            .text(d.data.name)
-            .attr("font-size", "20px")
 
-          tooltipData
-            .selectAll("text")
+          const width = this.$refs.tooltip.offsetWidth;
+          const height = this.$refs.tooltip.offsetHeight;
+          const max_left = window.innerWidth - width - 20;
+          const max_top = window.innerHeight - height - 20;
+          let mouse_x = Math.min(event.pageX + 20, max_left);
+          let mouse_y = Math.min(event.pageY + 20, max_top);
+          if (mouse_x == max_left && mouse_y == max_top) {
+            mouse_x = event.pageX - width - 20;
+            mouse_y = event.pageY - height- 20;
+          }
+
+          tooltip
+            .style("left", `${mouse_x}px`)
+            .style("top", mouse_y + "px")
+
+          tooltip
+            .selectAll("tr")
             .data([]
               .concat(this.field_size)
               .concat(this.field_color)
             )
             .join(
               enter => {
-                return enter
-                  .append("text")
-                  .attr("y", (d,i) => 40 + 20*i)
-                  .attr("font-size", 12)
-                  .text(field => {
-                    if (d.data[field] != undefined) {
-                      return field + " = " + d.data[field];
-                    }
-                    return "";
-                  })
+                const row = enter.append("tr");
+                const v1 = row.append("td");
+                const v2 = row.append("td");
+                const v3 = row.append("td");
+                const v4 = row.append("td");
+                v1.attr("class", "v1");
+                v2.attr("class", "v2");
+                v3.attr("class", "v3");
+                v4.attr("class", "v4");
+                return row
               },
               update => {
-                return update
-                  .text(field => {
-                    if (d.data[field] != undefined) {
-                      return field + " = " + d.data[field];
-                    }
-                    return "";
-                  })
+                const v1 = update.select("td.v1");
+                const v2 = update.select("td.v2");
+                const v3 = update.select("td.v3");
+                const v4 = update.select("td.v4");
+                v1.text(field => field)
+                v2.text(field => d.data[field] || 0)
+                v3.text(field => data.data[field] || 0)
+                v4.text(field => {
+                  const value = d.data[field] || 0;
+                  const total = data.data[field] || 0;
+                  const percent = Math.floor(100 * value / total);
+                  return percent + "%";
+                });
+                return update;
               },
-              exit => {
-                return exit.remove();
-              }
+              exit => exit.remove(),
             )
-          ;
-
-          let min_width = 0;
-          let min_height = 0;
-          tooltip
-          .selectAll("text")
-          .each(function() {
-            const bbox = this.getBBox();
-            min_width = Math.max(min_width, bbox.x + bbox.width)
-            min_height = Math.max(min_height, bbox.y + bbox.height)
-          })
-
-          background
-            .attr("x", -10)
-            .attr("y", -20)
-            .attr("rx", 7)
-            .attr("fill", "white")
-            .attr("width", min_width + 20)
-            .attr("height", min_height + 30)
-            .attr("color", "black")
-            .attr("stroke", "black")
-            .attr("stroke-width", 1)
-
-
-          const mouse_x = x(d.x0) + pointer(event)[0];
-          const mouse_y = y(d.y0) + pointer(event)[1];
-
-          const pos_x_max = this.svgWidth - min_width - 20;
-          const pos_y_max = this.svgHeight - min_height - 30;
-
-          let pos_x = Math.min(mouse_x + 40, pos_x_max);
-          let pos_y = Math.min(mouse_y + 50, pos_y_max);
-
-          if (pos_x == pos_x_max && pos_y == pos_y_max) {
-            pos_x = mouse_x - min_width - 20;
-            pos_y = mouse_y - min_height - 20;
-          }
-
-          tooltip
-            .attr("opacity", 0.6)
-            .attr("transform", `translate(${pos_x}, ${pos_y})`)
-
         })
         .on("mouseleave", (event, d) => {
           const rect = select(event.currentTarget).select("rect");
           this.renderRect(rect, x, y, false)
 
           const tooltip = select(this.$refs.tooltip);
-          tooltip
-            .attr("opacity", 0)
+          tooltip.style("opacity", 0.0)
         })
     },
 
@@ -324,22 +302,6 @@ export default {
           .remove()
       }
 
-      const zoomin = (data_old.x1 - data_old.x0) > //
-        (data_new.x1 - data_new.x0);
-      select(this.$refs.content)
-        .sort((a, b) => {
-          if (a == old_content.node()) {
-            return zoomin ? 1 : -1;
-          }
-
-          if (b == old_content.node()) {
-            return zoomin ? -1 : 1;
-          }
-
-          return 0;
-        })
-
-
       return;
     },
 
@@ -350,11 +312,6 @@ export default {
             return 0;
           }
           return this.getFieldSize(d);
-        })
-        .sort((a,b) => {
-          return b.height - a.height ||
-            this.getFieldSize(b) - this.getFieldSize(a)
-          ;
         })
       ;
 
@@ -477,3 +434,47 @@ export default {
   },
 }
 </script>
+
+<style>
+
+.tooltip {
+  backdrop-filter: blur(10px);
+  position: absolute;
+  pointer-events: none;
+  color: black;
+  z-index:100;
+  opacity: 0;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.tooltip td {
+  border: 0.1px solid black;
+  padding: 5px;
+}
+
+.tooltip td {
+  text-align:right;
+}
+
+.tooltip thead td {
+  text-align:center;
+}
+
+.tooltip thead td {
+  background:rgba(255, 255, 255, 0.5);
+}
+
+.tooltip thead td:first-child {
+  border: 0;
+  background: rgba(255, 0, 255, 0.0);
+  font-weight: bold;
+}
+
+.tooltip tr:nth-child(even) {
+  background:rgba(220, 220, 220, 0.5);
+}
+.tooltip tr:nth-child(odd) {
+  background:rgba(255, 255, 255, 0.5);
+}
+
+</style>
