@@ -32,6 +32,7 @@ import {treemap} from "d3-hierarchy";
 export default {
 
   props: [
+    "path",
     "field_color",
     "field_size",
     "colormap",
@@ -40,7 +41,7 @@ export default {
   ],
 
   emits: [
-    "pathChanged"
+    "zoomin"
   ],
 
   data() {
@@ -244,15 +245,7 @@ export default {
     },
 
     zoomin(child) {
-      const old_data = this.getCurrentDataFromPath();
-      // Find the associated child:
-      const name = child.data.name;
-      this.path.push(name);
-      this.$emit("pathChanged", this.path);
-      history.pushState({path: this.path}, "", `treemap#${this.path.join("/")}`);
-
-      const new_data = this.getCurrentDataFromPath();
-      this.zoom(old_data, new_data)
+      this.$emit("zoomin", child.data.name)
     },
 
     async zoom(data_old, data_new) {
@@ -346,17 +339,6 @@ export default {
       this.fetchedData = data;
     },
 
-    hashchange: function() {
-      const data_old = this.getCurrentDataFromPath();
-      this.path = window.location.hash
-        .replace("#", "")
-        .split("/")
-        .filter(e => e.length != 0)
-      this.$emit("pathChanged", this.path);
-      const data_new = this.getCurrentDataFromPath();
-      this.zoom(data_old, data_new)
-    },
-
     resize() {
       try {
         const aspect_ratio = window.innerHeight/ window.innerWidth;
@@ -368,9 +350,9 @@ export default {
       this.paramsChanged()
     },
 
-    getCurrentDataFromPath() {
+    getCurrentDataFromPath(path) {
       let data = this.data;
-      for(const name of this.path) {
+      for(const name of path) {
         for(let child of data.children) {
           if (child.data.name == name) {
             data = child;
@@ -388,7 +370,7 @@ export default {
         select(this.$refs.content).append("g")
       }
 
-      const data = this.getCurrentDataFromPath();
+      const data = this.getCurrentDataFromPath(this.path);
 
       const group =
         select(this.$refs.content)
@@ -412,6 +394,17 @@ export default {
       this.data = this.mytreemap(this.fetchedData)
       this.refresh();
     },
+
+    pathChanged: function(new_path, old_path) {
+      console.log("pathChanged", new_path, old_path);
+      const data_old = this.getCurrentDataFromPath(old_path);
+      const data_new = this.getCurrentDataFromPath(new_path);
+      this.zoom(data_old, data_new)
+    },
+  },
+  
+  computed: {
+    path_wrapped: function() { return [...this.path];}
   },
 
   watch: {
@@ -420,17 +413,12 @@ export default {
     colormap: "refresh",
     colormapMin: "refresh",
     colormapMax: "refresh",
+    path_wrapped: "pathChanged",
   },
 
   mounted() {
-    this.path = window.location.hash
-      .replace("#", "")
-      .split("/")
-      .filter(e => e.length != 0)
-    this.$emit("pathChanged", this.path);
     this.resize();
     window.addEventListener("resize", this.resize);
-    window.addEventListener("hashchange", this.hashchange)
   },
 }
 </script>

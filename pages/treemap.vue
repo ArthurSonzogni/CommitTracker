@@ -41,13 +41,16 @@
       </div>
 
       <b-breadcrumb align="is-left">
-        <b-breadcrumb-item tag='a' href="treemap#" >
+        <b-breadcrumb-item
+          tag = 'a'
+          v-on:click.native = "path = []"
+        >
           .
         </b-breadcrumb-item>
         <b-breadcrumb-item
           tag='a'
           v-for="(component, index) in path"
-          :href="'treemap#' + path.slice(0, index+1).join('/')"
+          v-on:click.native="path = path.slice(0, index+1)"
           >
           {{component}}
         </b-breadcrumb-item>
@@ -55,12 +58,13 @@
 
 
       <Treemap
+        :path="path"
         :field_color="field_color"
         :field_size="field_size"
         :colormapMin="colormapMin"
         :colormapMax="colormapMax"
         :colormap="colormap"
-        @pathChanged="path = $event"
+        @zoomin="path.push($event)"
         />
 
     </section>
@@ -84,15 +88,88 @@
 
 export default {
   data() {
-    return {
-      field_color: ["DanglingUntriaged"],
-      field_size: ["raw_ptr"],
-      colormap_list: Object.keys(this.$getColormapList()),
-      colormap: "Turbo",
-      path: [],
-      colormapMin: 0.0,
-      colormapMax: 1.0,
+    let field_color = ["DanglingUntriaged"];
+    let field_size = ["raw_ptr"];
+    let colormap_list = Object.keys(this.$getColormapList());
+    let colormap = "Turbo";
+    let path = [];
+    let colormapMin = 0.0;
+    let colormapMax = 1.0;
+    try {
+      const url = new URL(window.location);
+      const search = new URLSearchParams(url.search)
+      const params = search.get("p")
+      const data = atob(params);
+      [
+        path,
+        colormap,
+        field_color,
+        field_size,
+        colormapMin,
+        colormapMax
+      ] = JSON.parse(data);
+    } catch (e) {
+      console.log(e);
     }
+    return {
+      path,
+      field_color,
+      field_size,
+      colormap_list,
+      colormap,
+      colormapMin,
+      colormapMax,
+    }
+  },
+
+  methods: {
+    popstate: function() {
+      try {
+        const url = new URL(window.location);
+        const search = new URLSearchParams(url.search);
+        [
+          this.path,
+          this.colormap,
+          this.field_color,
+          this.field_size,
+          this.colormapMin,
+          this.colormapMax,
+        ] = JSON.parse(atob(search.get("p")));
+      } catch (e) {
+        console.log(e);
+      }
+    },
+
+    pushState: function() {
+      const url = new URL(window.location);
+      const params = [
+          this.path,
+          this.colormap,
+          this.field_color,
+          this.field_size,
+          this.colormapMin,
+          this.colormapMax
+      ];
+      const search = new URLSearchParams(url.search)
+      search.set("p", btoa(JSON.stringify(params)))
+      url.search = search.toString();
+      if (url.search != window.location.search) {
+        history.pushState({}, "", url)
+      }
+    },
+  },
+
+  watch: {
+    colormap: "pushState",
+    colormapMax: "pushState",
+    colormapMin: "pushState",
+    field_color: "pushState",
+    field_size: "pushState",
+    path: "pushState",
+  },
+
+  mounted: function() {
+    window.addEventListener('popstate', this.popstate)
   },
 }
 

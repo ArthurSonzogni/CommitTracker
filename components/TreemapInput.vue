@@ -51,9 +51,11 @@ export default {
         },
 
         updateInput(name) {
-            this.name = name;
             this.$emit("input", name);
+            this.refreshColors(name);
+        },
 
+        refreshColors(name) {
             setTimeout(() => {
                 let i = 0;
                 for(const element of this.$refs.input.$el.querySelectorAll(".tag")) {
@@ -63,6 +65,10 @@ export default {
             }, 0);
         },
     },
+
+    mounted: function() {
+        this.refreshColors(this.value);
+    }
 };
 
 </script>
