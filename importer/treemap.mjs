@@ -75,7 +75,7 @@ const main = async () => {
     await ProcessEntry(root, entry);
   }
 
-  const filename = `../static/data/treemap/root.json`;
+  const filename = `../static/data/treemap/latest.json`;
 
   console.log(JSON.stringify(root, null, 2));
 

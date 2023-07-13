@@ -18,7 +18,10 @@
           <Treemap
             :field_color="field_color"
             :field_size="field_size"
+            path="[]"
             colormap="Turbo"
+            colormapMin="0"
+            colormapMax="1"
             />
         </div>
       </div>
