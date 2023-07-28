@@ -20,11 +20,11 @@
             <b-navbar-item tag="router-link" :to="{ path: '/api' }">
                 API
             </b-navbar-item>
-            <!--<b-navbar-dropdown label="Fun">-->
-                <!--<b-navbar-item tag="router-link" :to="{ path: '/usernames' }">-->
-                    <!--Usernames distribution-->
-                <!--</b-navbar-item>-->
-            <!--</b-navbar-dropdown>-->
+            <b-navbar-dropdown label="Fun">
+                <b-navbar-item tag="router-link" :to="{ path: '/usernames' }">
+                    Usernames distribution
+                </b-navbar-item>
+            </b-navbar-dropdown>
         </template>
 
         <template #end>
