@@ -24,6 +24,7 @@
 import {select} from "d3-selection";
 import {interpolate} from "d3-interpolate";
 import {linear} from "d3-ease";
+import {easeBackOut} from "d3-ease";
 import {transition} from "d3-transition";
 
 export default {
@@ -65,9 +66,11 @@ export default {
         const center = div.append("div")
         center.classed("center", true)
         center
+          .style("width", 0)
           .transition()
           .duration(d => 450)
-          .delay((d,i) => 120*(i-3))
+          .ease(easeBackOut)
+          .delay((d,i) => 100*(i-3))
           .style("width", d => (2 * (d != 0) + 79 * d / max) + "%")
 
         const right = div.append("div")
