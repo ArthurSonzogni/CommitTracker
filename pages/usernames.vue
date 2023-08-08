@@ -54,7 +54,8 @@ export default {
       .selectAll("div")
       .data(this.distribution)
       .join(enter => {
-        const div = enter.append("div");
+        const group = enter.append("div");
+        const div = group.append("div");
         div.classed("line", true);
 
         const left = div.append("div")
@@ -67,7 +68,7 @@ export default {
           .transition()
           .duration(d => 450)
           .delay((d,i) => 120*(i-3))
-          .style("width", d => 80 * d / max + "%")
+          .style("width", d => (2 * (d != 0) + 79 * d / max) + "%")
 
         const right = div.append("div")
         right.classed("right", true)
@@ -78,9 +79,25 @@ export default {
           .delay((d,i) => 120*(i-3))
           .textTween(d => t => interpolate(0,d)(t).toFixed(0));
 
-        return div;
+        center.on("click", function() {
+          this.parentNode.parentNode.lastChild.classList.toggle("hidden")
+        });
+        
+        const ul = group.append("ul");
+        ul.classed("usernameList", true);
+        ul.classed("hidden", true) 
+
+        return ul;
       })
-      ;
+      .selectAll("li")
+      .data((d,i) => data.filter(e => e.length === i))
+      .join(
+        enter => {
+          const li = enter.append("li");
+          li.text(d => d);
+          return li;
+        }
+      )
   },
 }
 
@@ -111,6 +128,22 @@ export default {
     opacity: 0.4;
   }
 
+  .usernameList {
+    color:black;
+    list-style-type: square; 
+    list-style-position: inside;
+    display:flex;
+    flex-wrap: wrap;
+    padding-left:100px;
+  }
+
+  .usernameList.hidden {
+    display:none;
+  }
+
+  .usernameList>* {
+    flex: 1 1 160px;
+  }
 
 </style>
 
