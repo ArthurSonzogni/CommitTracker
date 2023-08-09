@@ -24,6 +24,9 @@
                 <b-navbar-item tag="router-link" :to="{ path: '/usernames' }">
                     Usernames distribution
                 </b-navbar-item>
+                <b-navbar-item tag="router-link" :to="{ path: '/contributions-per-years' }">
+                    Contributions per years
+                </b-navbar-item>
             </b-navbar-dropdown>
         </template>
 

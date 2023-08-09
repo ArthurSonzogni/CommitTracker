@@ -5,6 +5,7 @@
   "main": "index.mjs",
   "scripts": {
     "main": "node main.mjs",
+    "users_info": "node users_info.mjs",
     "treemap": "node treemap.mjs"
   },
   "repository": {

@@ -23,6 +23,7 @@ jobs:
           cd importer
           npm install
           npm run main
+          npm run users_info
         env:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
