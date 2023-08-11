@@ -19,6 +19,8 @@ import {transition} from "d3-transition";
 
 export default {
   props: [
+    "what",
+    "display",
     "kind",
     "percentile",
     "individual",
@@ -32,7 +34,6 @@ export default {
 
   methods: {
     quantile: function(arr, q) {
-      console.log(q);
       const sorted = arr.sort((a,b) => (b - a))
       const pos = (sorted.length - 1) * q;
       const base = Math.floor(pos);
@@ -53,7 +54,79 @@ export default {
 
       let precision = 0;
       const per_year = {};
-      switch(this.kind) {
+      switch(this.what) {
+        case "contributors":
+          this.label = "Contributors";
+
+          if (this.kind == "author" || this.kind == "both") {
+            for(const user of Object.values(data)) {
+              for(const year in user.author.by_date) {
+                per_year[year] ||= 0;
+                per_year[year] += 1;
+              }
+            }
+          }
+
+          if (this.kind == "reviewer" || this.kind == "both") {
+            for(const user of Object.values(data)) {
+              for(const year in user.review.by_date) {
+                per_year[year] ||= 0;
+                per_year[year] += 1;
+              }
+            }
+          }
+          break;
+
+        case "first_commit":
+          this.label = "First time contributor";
+          for(const user of Object.values(data)) {
+            const years = [];
+            if (this.kind == "author" || this.kind == "both") {
+              if (user.author.first) {
+                years.push(user.author.first.substr(0, 4));
+              }
+            }
+            if (this.kind == "reviewer" || this.kind == "both") {
+              if (user.review.first) {
+                years.push(user.review.first.substr(0, 4));
+              }
+            }
+
+            if (years.length == 0) {
+              continue;
+            }
+
+            const year = years.sort()[0]
+            per_year[year] ||= 0;
+            per_year[year] += 1;
+          }
+          break;
+
+        case "last_commit":
+          this.label = "Last time contributor"
+          for(const user of Object.values(data)) {
+            const years = [];
+            if (this.kind == "author" || this.kind == "both") {
+              if (user.author.last) {
+                years.push(user.author.last.substr(0, 4));
+              }
+            }
+            if (this.kind == "reviewer" || this.kind == "both") {
+              if (user.review.last) {
+                years.push(user.review.last.substr(0, 4));
+              }
+            }
+
+            if (years.length == 0) {
+              continue;
+            }
+
+            const year = years.sort()[years.length - 1];
+            per_year[year] ||= 0;
+            per_year[year] += 1;
+          }
+          break;
+
         case "commit":
           this.label = "Commit";
           for(const user of Object.values(data)) {
@@ -64,227 +137,40 @@ export default {
           }
           break;
 
-        case "contributors":
-          this.label = "Contributors";
+        case "per_contributor":
+          this.label = "Contributions";
           for(const user of Object.values(data)) {
-            for(const year in user.author.by_date) {
-              per_year[year] ||= 0;
-              per_year[year] += 1;
+            if (this.kind == "author" || this.kind == "both") {
+              for(const year in user.author.by_date) {
+                per_year[year] ||= [];
+                per_year[year].push(user.author.by_date[year]);
+              }
+            }
+            if (this.kind == "reviewer" || this.kind == "both") {
+              for(const year in user.review.by_date) {
+                per_year[year] ||= [];
+                per_year[year].push(user.review.by_date[year]);
+              }
             }
           }
-          break;
 
-        case "author_first":
-          this.label = "First authored commit";
-          for(const user of Object.values(data)) {
-            if (!user.author.first) {
-              continue;
-            }
-            const year = user.author.first.substr(0, 4);
-            per_year[year] ||= 0;
-            per_year[year] += 1;
-          }
-          break;
-
-        case "review_first":
-          this.label = "First reviewed commit";
-          for(const user of Object.values(data)) {
-            if (!user.review.first) {
-              continue;
-            }
-            const year = user.review.first.substr(0, 4);
-            per_year[year] ||= 0;
-            per_year[year] += 1;
-          }
-          break;
-
-        case "both_first":
-          this.label = "First authored or reviewed commit";
-          for(const user of Object.values(data)) {
-            const year = [
-              (user.author.first || "9999").substr(0, 4),
-              (user.review.first || "9999").substr(0, 4),
-            ].sort()[0]
-            per_year[year] ||= 0;
-            per_year[year] += 1;
-          }
-          break;
-
-        case "author_last":
-          this.label = "last authored commit";
-          for(const user of Object.values(data)) {
-            if (!user.author.last) {
-              continue;
-            }
-            const year = user.author.last.substr(0, 4);
-            per_year[year] ||= 0;
-            per_year[year] += 1;
-          }
-          break;
-
-        case "review_last":
-          this.label = "last reviewed commit";
-          for(const user of Object.values(data)) {
-            if (!user.review.last) {
-              continue;
-            }
-            const year = user.review.last.substr(0, 4);
-            per_year[year] ||= 0;
-            per_year[year] += 1;
-          }
-          break;
-
-        case "both_last":
-          this.label = "Last authored or reviewed commit";
-          for(const user of Object.values(data)) {
-            const year = [
-              (user.author.last || "0000").substr(0, 4),
-              (user.review.last || "0000").substr(0, 4),
-            ].sort()[1]
-            per_year[year] ||= 0;
-            per_year[year] += 1;
-          }
-          break;
-
-        case "author_mean":
-          this.label = "Commit / contributor (mean)";
-          precision = 2;
-          for(const user of Object.values(data)) {
-            for(const year in user.author.by_date) {
-              per_year[year] ||= [];
-              per_year[year].push(user.author.by_date[year]);
-            }
-          }
-          for(const year in per_year) {
-            per_year[year] = per_year[year].reduce((a,b)=>a+b, 0) /
-                             per_year[year].length;
-          }
-          break;
-
-        case "review_mean":
-          this.label = "Review / contributor (mean)";
-          precision = 2;
-          for(const user of Object.values(data)) {
-            for(const year in user.review.by_date) {
-              per_year[year] ||= [];
-              per_year[year].push(user.review.by_date[year]);
-            }
-          }
-          for(const year in per_year) {
-            per_year[year] = per_year[year].reduce((a,b)=>a+b, 0) /
-                             per_year[year].length;
-          }
-          break;
-
-        case "both_mean":
-          this.label = "(Commit + Review) / contributor (mean)";
-          precision = 2;
-          for(const user of Object.values(data)) {
-            for(const year in user.author.by_date) {
-              per_year[year] ||= [];
-              per_year[year].push(user.author.by_date[year]);
-            }
-            for(const year in user.review.by_date) {
-              per_year[year] ||= [];
-              per_year[year].push(user.review.by_date[year]);
-            }
-          }
-          for(const year in per_year) {
-            per_year[year] = per_year[year].reduce((a,b)=>a+b, 0) /
-                             per_year[year].length;
-          }
-          break;
-
-
-        case "author_percentile":
-          this.label = "Commit / contributor (top percentile)";
-          precision = 2;
-          for(const user of Object.values(data)) {
-            for(const year in user.author.by_date) {
-              per_year[year] ||= [];
-              per_year[year].push(user.author.by_date[year]);
-            }
-          }
-          for(const year in per_year) {
-            per_year[year] = this.quantile(per_year[year], this.percentile / 100);
-          }
-          break;
-
-        case "review_percentile":
-          this.label = "Review / contributor (top percentile)";
-          precision = 2;
-          for(const user of Object.values(data)) {
-            for(const year in user.review.by_date) {
-              per_year[year] ||= [];
-              per_year[year].push(user.review.by_date[year]);
-            }
-          }
-          for(const year in per_year) {
-            per_year[year] = this.quantile(per_year[year], this.percentile / 100);
-          }
-          break;
-
-        case "both_percentile":
-          this.label = "(Commit + Review) / contributor (top percentile)";
-          precision = 2;
-          for(const user of Object.values(data)) {
-            for(const year in user.author.by_date) {
-              per_year[year] ||= [];
-              per_year[year].push(user.author.by_date[year]);
-            }
-            for(const year in user.review.by_date) {
-              per_year[year] ||= [];
-              per_year[year].push(user.review.by_date[year]);
-            }
-          }
-          for(const year in per_year) {
-            per_year[year] = this.quantile(per_year[year], this.percentile / 100);
-          }
-          break;
-
-        case "author_individual":
-          this.label = "Commit / contributor (top individual)";
-          precision = 2;
-          for(const user of Object.values(data)) {
-            for(const year in user.author.by_date) {
-              per_year[year] ||= [];
-              per_year[year].push(user.author.by_date[year]);
-            }
-          }
-          for(const year in per_year) {
-            per_year[year] = this.top(per_year[year], this.individual)
-          }
-          break;
-
-        case "review_individual":
-          this.label = "Review / contributor (top individual)";
-          precision = 2;
-          for(const user of Object.values(data)) {
-            for(const year in user.review.by_date) {
-              per_year[year] ||= [];
-              per_year[year].push(user.review.by_date[year]);
-            }
-          }
-          for(const year in per_year) {
-            per_year[year] = this.top(per_year[year], this.individual)
-          }
-          break;
-
-        case "both_individual":
-          this.label = "(Commit + Review) / contributor (top individual)";
-          precision = 2;
-          for(const user of Object.values(data)) {
-            for(const year in user.author.by_date) {
-              per_year[year] ||= [];
-              per_year[year].push(user.author.by_date[year]);
-            }
-            for(const year in user.review.by_date) {
-              per_year[year] ||= [];
-              per_year[year].push(user.review.by_date[year]);
-            }
-          }
-          for(const year in per_year) {
-            per_year[year] = this.top(per_year[year], this.individual);
+          switch (this.display) {
+            case "average":
+              for(const year in per_year) {
+                per_year[year] = per_year[year].reduce((a,b)=>a+b, 0) /
+                                 per_year[year].length;
+              }
+              break;
+            case "percentile":
+              for(const year in per_year) {
+                per_year[year] = this.quantile(per_year[year], this.percentile / 100);
+              }
+              break;
+            case "individual":
+              for(const year in per_year) {
+                per_year[year] = this.top(per_year[year], this.individual)
+              }
+              break;
           }
           break;
 
@@ -364,6 +250,8 @@ export default {
   },
 
   watch: {
+    what: "refresh",
+    display: "refresh",
     kind: "refresh",
     percentile: "refresh",
     individual: "refresh",

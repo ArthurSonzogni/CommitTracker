@@ -4,7 +4,7 @@
 
     <section class="section">
       <div class="container">
-        <h1 class="title">Contribution </h1>
+        <h1 class="title">Contributions</h1>
 
         <p>
           <strong>What?</strong>
@@ -54,11 +54,14 @@
               Average
             </b-radio-button>
             <b-radio-button name="display" v-model="display" native-value="percentile">
-              Top percentile
+              Top {{sliderTransform(percentile).toFixed(2)}} %
             </b-radio-button>
             <b-radio-button name="display" v-model="display" native-value="individual">
-              Top individual
+              Top {{individual}} individual
             </b-radio-button>
+
+            <b-field style="width:15px">
+            </b-field>
 
             <b-slider
               v-model="percentile"
@@ -69,6 +72,7 @@
               :custom-formatter="(val) => this.sliderTransform(val).toFixed(2) + '%'"
               :tooltip="false"
               indicator
+              lazy
               ></b-slider>
             
             <b-slider
@@ -78,6 +82,7 @@
               :max=1000
               :step=1
               :tooltip="false"
+              lazy
               indicator
               ></b-slider>
             </b-field>
@@ -104,9 +109,11 @@
 
 
         <Contributions
-          :kind="kind"
           :percentile="this.sliderTransform(percentile)"
           :individual="individual"
+          :what="what"
+          :display="display"
+          :kind="kind"
           />
       </div>
     </section>
@@ -124,6 +131,7 @@
 
     <section class="section">
       <div class="container">
+        <h1 class="title">Contributor lookup</h1>
         <DevelopersInput v-model="developers" ></DevelopersInput>
       </div>
     </section>
@@ -140,6 +148,7 @@ export default {
       kind: "both",
       percentile: 0.7071,
       individual: 300,
+      developers: [],
     };
   },
 
