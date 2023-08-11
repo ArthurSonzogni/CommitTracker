@@ -6,125 +6,108 @@
       <div class="container">
         <h1 class="title">Contribution </h1>
 
-        <div class="block">
+        <p>
+          <strong>What?</strong>
+        </p>
+
+        <b-field>
+          <b-radio-button
+            name="what"
+            v-model="what"
+            native-value="contributors">
+            Contributors
+          </b-radio-button>
+          <b-radio-button
+            name="what"
+            v-model="what"
+            native-value="first_commit">
+            New contributors
+          </b-radio-button>
+          <b-radio-button
+            name="what"
+            v-model="what"
+            native-value="last_commit">
+            Leaving contributors
+          </b-radio-button>
+        </b-field>
+        <b-field>
+          <b-radio-button
+            name="what"
+            v-model="what"
+            native-value="commit">
+            Commits
+          </b-radio-button>
+          <b-radio-button
+            name="what"
+            v-model="what"
+            native-value="per_contributor">
+            Commits per developer 
+          </b-radio-button>
+        </b-field>
+
+        <div v-if="what == 'per_contributor'">
           <p>
-            Sum
+            <strong>Display: </strong>
           </p>
           <b-field>
-            <b-radio name="kind" v-model="kind" native-value="commit">
-              Commit
-            </b-radio>
-            <b-radio name="kind" v-model="kind" native-value="contributors">
-              Contributors
-            </b-radio>
-          </b-field>
+            <b-radio-button name="display" v-model="display" native-value="average">
+              Average
+            </b-radio-button>
+            <b-radio-button name="display" v-model="display" native-value="percentile">
+              Top percentile
+            </b-radio-button>
+            <b-radio-button name="display" v-model="display" native-value="individual">
+              Top individual
+            </b-radio-button>
 
-          <p>
-            First patch:
-          </p>
-          <b-field>
-            <b-radio name="kind" v-model="kind" native-value="author_first">
-              authored 
-            </b-radio>
-            <b-radio name="kind" v-model="kind" native-value="review_first">
-              reviewed
-            </b-radio>
-            <b-radio name="kind" v-model="kind" native-value="both_first">
-              both 
-            </b-radio>
+            <b-slider
+              v-model="percentile"
+              v-if="display == 'percentile'"
+              :min=0
+              :max=1
+              :step=0.001
+              :custom-formatter="(val) => this.sliderTransform(val).toFixed(2) + '%'"
+              :tooltip="false"
+              indicator
+              ></b-slider>
+            
+            <b-slider
+              v-model="individual"
+              v-if="display == 'individual'"
+              :min=1
+              :max=1000
+              :step=1
+              :tooltip="false"
+              indicator
+              ></b-slider>
+            </b-field>
           </b-field>
-
-          <p>
-            Last patch:
-          </p>
-          <b-field>
-            <b-radio name="kind" v-model="kind" native-value="author_last">
-              authored 
-            </b-radio>
-            <b-radio name="kind" v-model="kind" native-value="review_last">
-              reviewed
-            </b-radio>
-            <b-radio name="kind" v-model="kind" native-value="both_last">
-              both 
-            </b-radio>
-          </b-field>
-
-          <b-field>
-          </b-field>
-
-          <p>
-            Average # developer contribution:
-          </p>
-          <b-field>
-            <b-radio name="kind" v-model="kind" native-value="author_mean">
-              Author
-            </b-radio>
-            <b-radio name="kind" v-model="kind" native-value="review_mean">
-              Review
-            </b-radio>
-            <b-radio name="kind" v-model="kind" native-value="both_mean">
-              Both 
-            </b-radio>
-          </b-field>
-
-          <p>
-            # Developer contribution (Top {{sliderTransform(percentile).toFixed(2)}}% percentile)
-          </p>
-          </b-field>
-          <b-field>
-            <b-radio name="kind" v-model="kind" native-value="author_percentile">
-              Author
-            </b-radio>
-            <b-radio name="kind" v-model="kind" native-value="review_percentile">
-              Review
-            </b-radio>
-            <b-radio name="kind" v-model="kind" native-value="both_percentile">
-              Both 
-            </b-radio>
-          </b-field>
-          <b-slider
-            v-model="percentile"
-            :min=0
-            :max=1
-            :step=0.001
-            :custom-formatter="(val) => this.sliderTransform(val).toFixed(2) + '%'"
-            :tooltip="false"
-            indicator
-            :disabled="slider_percentil_disabled"
-          ></b-slider>
-
-          <p>
-            # Developer contribution (Top {{individual}} individual)
-          </p>
-          </b-field>
-          <b-field>
-            <b-radio name="kind" v-model="kind" native-value="author_individual">
-              Author
-            </b-radio>
-            <b-radio name="kind" v-model="kind" native-value="review_individual">
-              Review
-            </b-radio>
-            <b-radio name="kind" v-model="kind" native-value="both_individual">
-              Both 
-            </b-radio>
-          </b-field>
-          <b-slider
-            v-model="individual"
-            :min=1
-            :max=1000
-            :step=1
-            :tooltip="false"
-            indicator
-            :disabled="slider_individual_disabled"
-          ></b-slider>
-
         </div>
+
+
+        <div v-if="what != 'commit'">
+          <p>
+            <strong>As: </strong>
+          </p>
+          <b-field>
+            <b-radio-button name="kind" v-model="kind" native-value="author">
+              author
+            </b-radio-button>
+            <b-radio-button name="kind" v-model="kind" native-value="reviewer">
+              reviewer
+            </b-radio-button>
+            <b-radio-button name="kind" v-model="kind" native-value="both">
+              both
+            </b-radio-button>
+          </b-field>
+        </div>
+
 
         <Contributions
           :kind="kind"
           :percentile="this.sliderTransform(percentile)"
           :individual="individual"
-        />
+          />
       </div>
     </section>
 
@@ -133,13 +116,15 @@
         <p class="update_info">
           Fixme: Review prior to 2017 are ignored.
         </p>
-      </div>
-    </section>
-    <section class="section">
-      <div class="container">
         <p class="update_info">
           The data are updated weekly, automatically.
         </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <DevelopersInput v-model="developers" ></DevelopersInput>
       </div>
     </section>
   </div>
@@ -150,7 +135,9 @@
 export default {
   data() {
     return {
-      kind: "commit",
+      what: "commit",
+      display: "average",
+      kind: "both",
       percentile: 0.7071,
       individual: 300,
     };
