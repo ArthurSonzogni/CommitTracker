@@ -146,10 +146,16 @@
 
 export default {
   data() {
+    let developers = [];
+    try {
+      const url = new URL(window.location);
+      const search = new URLSearchParams(url.search)
+      developers = search.get("developers").split("~")
+    } catch (e) {}
     return {
       startDate: new Date(),
       endDate: new Date(),
-      developers: [],
+      developers: developers,
       checkboxStates: ["author", "review"],
       hourlyParam: 0,
       wrappedBuckets: 100,
@@ -167,6 +173,20 @@ export default {
       this.startDate = first;
       this.endDate = end;
     },
+
+    pushState: function() {
+      const url = new URL(window.location);
+      const search = new URLSearchParams(url.search)
+      search.set("developers", this.developers.join('~'));
+      url.search = search.toString();
+      if (url.search != window.location.search) {
+        history.pushState({}, "", url)
+      }
+    },
+  },
+
+  watch: {
+    developers: "pushState",
   },
 };
 

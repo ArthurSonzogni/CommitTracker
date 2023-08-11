@@ -33,7 +33,16 @@
 
     <section class="section">
       <div class="container">
-        <h2 class="title">User info</h2>
+        <h2 class="title">Users summary</h2>
+        <a href="./data/users_info.json">
+          <code>/data/users_info.json</code>
+        </a>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <h2 class="title">User commits</h2>
         <a href="./data/users/arthursonzogni.json">
           <code>/data/users/${user}.json</code>
         </a>

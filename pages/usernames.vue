@@ -97,7 +97,9 @@ export default {
       .join(
         enter => {
           const li = enter.append("li");
-          li.text(d => d);
+          const a = li.append("a");
+          a.text(d => d);
+          a.attr("href", d => `commits?developers=${d}`);
           return li;
         }
       )

@@ -38,6 +38,8 @@ export default {
         const response = await fetch("./data/users.json");
         const list = await response.json();
         this.developerList = list;
+        const value = this.value.filter(v => list.includes(v));
+        this.updateDevelopers(value);
     },
 
     methods: {
@@ -55,11 +57,15 @@ export default {
         updateDevelopers(developers) {
             this.developers = developers;
             this.$emit("input", this.developers);
+            this.colorizeDevelopers();
+        },
+
+        colorizeDevelopers() {
             setTimeout(() => {
                 let i = 0;
                 for(const element of this.$refs.input.$el.querySelectorAll(".tag")) {
-                    element.style.backgroundColor = this.$color(developers[i]);
-                    ++i;
+                  element.style.backgroundColor = this.$color(this.developers[i]);
+                  ++i;
                 }
             }, 0);
         },
