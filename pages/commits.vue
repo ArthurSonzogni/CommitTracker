@@ -5,7 +5,9 @@
     <div>
       <section class="section sticky top">
         <b-field grouped>
-          <DevelopersInput v-model="developers" ></DevelopersInput>
+          <b-field expanded>
+            <DevelopersInput v-model="developers" ></DevelopersInput>
+          </b-field>
 
           <b-field>
             <b-checkbox-button

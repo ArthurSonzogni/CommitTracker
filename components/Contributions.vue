@@ -16,6 +16,7 @@ import {interpolate} from "d3-interpolate";
 import {linear} from "d3-ease";
 import {easeBackOut} from "d3-ease";
 import {transition} from "d3-transition";
+import {format} from "d3-format";
 
 export default {
   props: [
@@ -24,6 +25,7 @@ export default {
     "kind",
     "percentile",
     "individual",
+    "developers",
   ],
 
   data() {
@@ -48,127 +50,168 @@ export default {
       return 0;
     },
 
+    rank: function(arr, target) {
+      const sorted = arr.sort((a,b) => (b - a))
+      for(let index = 0; index < sorted.length; ++index) {
+        if (target >= sorted[index]) {
+          return index + 1;
+        }
+      }
+      return sorted.length;
+    },
+
+    merge: function(a,b) {
+      return Object.entries(b).reduce((acc, [key, value]) => 
+        ({ ...acc, [key]: (acc[key] || 0) + value })
+        , { ...a });
+    },
+
+
     async refresh() {
       const response = await fetch("./data/users_info.json");
       const data = await response.json();
 
-      let precision = 0;
-      const per_year = {};
+      for(const user in data) {
+        data[user].both = {
+          total: data[user].author.total + 
+                 data[user].review.total,
+          by_date: this.merge(data[user].author.by_date,
+                              data[user].review.by_date),
+        };
+      }
+
+      let formatter = format(",d");
+      let per_year = {};
+      let postfix = () => "";
       switch(this.what) {
         case "contributors":
           this.label = "Contributors";
+          postfix = (year) => ' 🧍';
 
-          if (this.kind == "author" || this.kind == "both") {
-            for(const user of Object.values(data)) {
-              for(const year in user.author.by_date) {
-                per_year[year] ||= 0;
-                per_year[year] += 1;
-              }
+          for(const user in data) {
+            const by_date = data[user][this.kind]?.by_date || {};
+            for(const year in by_date) {
+              by_date[year] = 1;
             }
-          }
-
-          if (this.kind == "reviewer" || this.kind == "both") {
-            for(const user of Object.values(data)) {
-              for(const year in user.review.by_date) {
-                per_year[year] ||= 0;
-                per_year[year] += 1;
-              }
-            }
+            per_year = this.merge(per_year, by_date);
           }
           break;
 
         case "first_commit":
           this.label = "First time contributor";
-          for(const user of Object.values(data)) {
-            const years = [];
-            if (this.kind == "author" || this.kind == "both") {
-              if (user.author.first) {
-                years.push(user.author.first.substr(0, 4));
-              }
-            }
-            if (this.kind == "reviewer" || this.kind == "both") {
-              if (user.review.first) {
-                years.push(user.review.first.substr(0, 4));
-              }
-            }
+          postfix = (year) => ' 🧍';
 
-            if (years.length == 0) {
-              continue;
+          for(const user in data) {
+            const by_date = data[user][this.kind]?.by_date || {};
+            const min_year = Math.min(...Object.keys(by_date));
+            if (isFinite(min_year)) {
+              per_year[min_year] ||= 0;
+              per_year[min_year] ++
             }
-
-            const year = years.sort()[0]
-            per_year[year] ||= 0;
-            per_year[year] += 1;
           }
           break;
 
         case "last_commit":
           this.label = "Last time contributor"
-          for(const user of Object.values(data)) {
-            const years = [];
-            if (this.kind == "author" || this.kind == "both") {
-              if (user.author.last) {
-                years.push(user.author.last.substr(0, 4));
-              }
+          postfix = (year) => ' 🧍';
+          for(const user in data) {
+            const by_date = data[user][this.kind]?.by_date || {};
+            const max_year = Math.max(...Object.keys(by_date));
+            if (isFinite(max_year)) {
+              per_year[max_year] ||= 0;
+              per_year[max_year] ++
             }
-            if (this.kind == "reviewer" || this.kind == "both") {
-              if (user.review.last) {
-                years.push(user.review.last.substr(0, 4));
-              }
-            }
-
-            if (years.length == 0) {
-              continue;
-            }
-
-            const year = years.sort()[years.length - 1];
-            per_year[year] ||= 0;
-            per_year[year] += 1;
           }
           break;
 
         case "commit":
           this.label = "Commit";
-          for(const user of Object.values(data)) {
-            for(const year in user.author.by_date) {
-              per_year[year] ||= 0;
-              per_year[year] += user.author.by_date[year];
-            }
+          postfix = (year) => ' ⚙️';
+
+          for(const user in data) {
+            const by_date = data[user].author.by_date || {};
+            per_year = this.merge(per_year, by_date)
           }
           break;
 
         case "per_contributor":
           this.label = "Contributions";
-          for(const user of Object.values(data)) {
-            if (this.kind == "author" || this.kind == "both") {
-              for(const year in user.author.by_date) {
-                per_year[year] ||= [];
-                per_year[year].push(user.author.by_date[year]);
-              }
-            }
-            if (this.kind == "reviewer" || this.kind == "both") {
-              for(const year in user.review.by_date) {
-                per_year[year] ||= [];
-                per_year[year].push(user.review.by_date[year]);
-              }
+          postfix = (year) => ' ⚙️';
+          for(const user in data) {
+            const by_date = data[user][this.kind]?.by_date || {};
+            for(const year in by_date) {
+              per_year[year] ||= [];
+              per_year[year].push(by_date[year]);
             }
           }
 
           switch (this.display) {
             case "average":
+              formatter = format(".2f");
               for(const year in per_year) {
                 per_year[year] = per_year[year].reduce((a,b)=>a+b, 0) /
                                  per_year[year].length;
               }
               break;
+
             case "percentile":
               for(const year in per_year) {
                 per_year[year] = this.quantile(per_year[year], this.percentile / 100);
               }
               break;
+
             case "individual":
               for(const year in per_year) {
                 per_year[year] = this.top(per_year[year], this.individual)
+              }
+              break;
+
+            case "someone":
+              for(const year in per_year) {
+                let sum = 0;
+                for(const user of this.developers) {
+                  sum += data[user][this.kind]?.by_date[year] || 0;
+                }
+                per_year[year] = sum;
+              }
+              break;
+
+            case "someone_rank":
+              this.label = "rank"
+              postfix = () => ' 🏆';
+              for(const year in per_year) {
+                let sum = 0;
+                for(const user of this.developers) {
+                  if (this.kind == "author" || this.kind == "both") {
+                    sum += data[user].author.by_date[year] || 0;
+                  }
+                  if (this.kind == "review" || this.kind == "both") {
+                    sum += data[user].review.by_date[year] || 0;
+                  }
+                }
+                per_year[year] = sum == 0
+                  ? 0
+                  : this.rank(per_year[year], sum);
+              }
+              break;
+
+            case "someone_rank_percent":
+              this.label = "rank (%)"
+              formatter = format(",.2");
+              postfix = () => '% 🏆';
+              for(const year in per_year) {
+                let sum = 0;
+                for(const user of this.developers) {
+                  if (this.kind == "author" || this.kind == "both") {
+                    sum += data[user].author.by_date[year] || 0;
+                  }
+                  if (this.kind == "review" || this.kind == "both") {
+                    sum += data[user].review.by_date[year] || 0;
+                  }
+                }
+                per_year[year] = sum == 0
+                  ? 0
+                  : 100 * this.rank(per_year[year], sum) / per_year[year].length;
               }
               break;
           }
@@ -178,7 +221,7 @@ export default {
           this.label = "unimplemented";
       }
 
-      let max = 0;
+      let max = 1;
       for(const year in per_year) {
         max = Math.max(max, per_year[year]);
       }
@@ -193,7 +236,7 @@ export default {
           .transition()
           .duration(d => 450)
           .ease(easeBackOut)
-          .style("width", year => (70 * per_year[year] / max) + "%")
+          .style("width", year => (70 * (per_year[year] || 0) / max) + "%")
       };
 
       const updateRight = async right => {
@@ -201,9 +244,9 @@ export default {
           .transition()
           .duration(d => 350)
           .textTween(function(year) {
-            const previous = select(this).text();
-            const interpolator = interpolate(previous, per_year[year]);
-            return t => interpolator(t).toFixed(precision);
+            const previous = parseFloat(select(this).text());
+            const interpolator = interpolate(previous, per_year[year] || 0);
+            return t => formatter(interpolator(t));
           })
       };
 
@@ -229,13 +272,19 @@ export default {
             right.text(0)
             updateRight(right);
 
+            const right_right = div.append("div")
+            right_right.classed("right_right", true)
+            right_right.text(d => postfix(d));
+
             return div;
           },
           update => {
             const center = update.select(".center");
             const right = update.select(".right")
+            const right_right = update.select(".right_right")
             updateCenter(center);
             updateRight(right);
+            right_right.text(d => postfix(d));
             return update;
           },
           exit => {
@@ -255,6 +304,7 @@ export default {
     kind: "refresh",
     percentile: "refresh",
     individual: "refresh",
+    developers: "refresh",
   },
 
   mounted() {

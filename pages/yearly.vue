@@ -59,9 +59,21 @@
             <b-radio-button name="display" v-model="display" native-value="individual">
               Top {{individual}} individual
             </b-radio-button>
+            <b-radio-button name="display" v-model="display"
+              native-value="someone">
+              Someone
+            </b-radio-button>
+            <b-radio-button name="display" v-model="display"
+              native-value="someone_rank">
+              Someone (rank)
+            </b-radio-button>
 
-            <b-field style="width:15px">
-            </b-field>
+            <b-radio-button name="display" v-model="display"
+              native-value="someone_rank_percent">
+              Someone (rank %)
+            </b-radio-button>
+          </b-field>
+          <b-field>
 
             <b-slider
               v-model="percentile"
@@ -86,7 +98,11 @@
               indicator
               ></b-slider>
             </b-field>
+
+            <DevelopersInput v-if="display.startsWith('someone')"
+            v-model="developers"></DevelopersInput>
           </b-field>
+
         </div>
 
 
@@ -98,7 +114,7 @@
             <b-radio-button name="kind" v-model="kind" native-value="author">
               author
             </b-radio-button>
-            <b-radio-button name="kind" v-model="kind" native-value="reviewer">
+            <b-radio-button name="kind" v-model="kind" native-value="review">
               reviewer
             </b-radio-button>
             <b-radio-button name="kind" v-model="kind" native-value="both">
@@ -114,6 +130,7 @@
           :what="what"
           :display="display"
           :kind="kind"
+          :developers="developers"
           />
       </div>
     </section>
@@ -129,12 +146,6 @@
       </div>
     </section>
 
-    <section class="section">
-      <div class="container">
-        <h1 class="title">Contributor lookup</h1>
-        <DevelopersInput v-model="developers" ></DevelopersInput>
-      </div>
-    </section>
   </div>
 </template>
 

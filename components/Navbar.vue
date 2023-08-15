@@ -8,7 +8,7 @@
         </template>
 
         <template #start>
-            <b-navbar-item tag="router-link" :to="{ path: '/contributions-per-years' }">
+            <b-navbar-item tag="router-link" :to="{ path: '/yearly' }">
                 Yearly stats
             </b-navbar-item>
             <b-navbar-item tag="router-link" :to="{ path: '/commits' }">
