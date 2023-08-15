@@ -143,6 +143,7 @@ const main = async () => {
         if (commit.commit.author.email.includes("roller") ||
             commit.commit.author.email.includes("autoroll") ||
             commit.commit.author.email.includes("mdb.") ||
+            commit.commit.author.email.includes("chrome-") ||
             commit.commit.author.email.includes("rebaseline")) {
             commit.commit.author.email.includes("-bot") ||
             commit.commit.author.email.includes("+robot") {

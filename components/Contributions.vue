@@ -221,7 +221,7 @@ export default {
           this.label = "unimplemented";
       }
 
-      let max = 1;
+      let max = 20;
       for(const year in per_year) {
         max = Math.max(max, per_year[year]);
       }
