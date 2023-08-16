@@ -4,8 +4,28 @@
     <section class="section">
       <div class="container">
         <h1 class="title">Usernames length distribution</h1>
+
         <p>
-          Approximatively <strong>{{sum}}</strong> developers contributed to chromium.
+          <strong>Repositories?</strong>
+        </p>
+        <b-field>
+          <b-radio-button
+            name="repositories"
+            v-model="repositories"
+            native-value="chrome">
+            Chrome
+          </b-radio-button>
+          <b-radio-button
+            name="repositories"
+            v-model="repositories"
+            native-value="dawn">
+            Dawn
+          </b-radio-button>
+        </b-field>
+
+        <p>
+          Approximatively <strong>{{sum}}</strong> developers contributed to
+          {{repositories}} repository.
         </p>
 
         <div class="line">
@@ -30,80 +50,115 @@ import {transition} from "d3-transition";
 export default {
   data() {
     return {
+      repositories: "dawn",
       sum: 0,
       distribution: [],
     }
   },
 
-  mounted: async function() {
-    const response = await fetch("./data/chrome/users.json");
-    const data = await response.json();
-    this.sum = data.length;
-    for(const developer of data) {
-      const size = developer.length;
-      this.distribution[size] ||= 0;
-      this.distribution[size]++;
-    }
+  methods: {
+    async refresh() {
 
-    for(let i = 0; i<this.distribution.length; ++i) {
-      this.distribution[i] ||= 0;
-    }
+      const response = await fetch(`./data/${this.repositories}/users.json`);
+      const data = await response.json();
+      this.sum = data.length;
+      this.distribution = [];
+      for(const developer of data) {
+        const size = developer.length;
+        this.distribution[size] ||= 0;
+        this.distribution[size]++;
+      }
 
-    const max = Math.max(...this.distribution);
+      for(let i = 0; i<this.distribution.length; ++i) {
+        this.distribution[i] ||= 0;
+      }
 
-    select(this.$refs.histogram)
-      .selectAll("div")
-      .data(this.distribution)
-      .join(enter => {
-        const group = enter.append("div");
-        const div = group.append("div");
-        div.classed("line", true);
+      const max = Math.max(...this.distribution);
 
-        const left = div.append("div")
-        left.classed("left", true)
-        left.text((d,i) => i);
-
-        const center = div.append("div")
-        center.classed("center", true)
+      const updateCenter = center => {
         center
-          .style("width", 0)
           .transition()
           .duration(d => 450)
           .ease(easeBackOut)
-          .delay((d,i) => 100*(i-3))
           .style("width", d => (2 * (d != 0) + 79 * d / max) + "%")
+      };
 
-        const right = div.append("div")
-        right.classed("right", true)
+      const updateRight = right => {
         right
-          .text(0)
           .transition()
           .duration(d => 450)
-          .delay((d,i) => 120*(i-3))
           .textTween(d => t => interpolate(0,d)(t).toFixed(0));
+      };
 
-        center.on("click", function() {
-          this.parentNode.parentNode.lastChild.classList.toggle("hidden")
-        });
-        
-        const ul = group.append("ul");
-        ul.classed("usernameList", true);
-        ul.classed("hidden", true) 
+      select(this.$refs.histogram)
+        .selectAll(".group")
+        .data(this.distribution)
+        .join(
+          enter => {
+            const group = enter.append("div");
+            group.classed("group", true);
 
-        return ul;
-      })
-      .selectAll("li")
-      .data((d,i) => data.filter(e => e.length === i))
-      .join(
-        enter => {
-          const li = enter.append("li");
-          const a = li.append("a");
-          a.text(d => d);
-          a.attr("href", d => `commits?developers=${d}`);
-          return li;
-        }
-      )
+            const div = group.append("div");
+            div.classed("line", true);
+
+            const left = div.append("div")
+            left.classed("left", true)
+            left.text((d,i) => i);
+
+            const center = div.append("div")
+            center.classed("center", true)
+            center.style("width", 0)
+            updateCenter(center);
+
+            const right = div.append("div")
+            right.classed("right", true)
+            right.text(0)
+            updateRight(right);
+
+            center.on("click", function() {
+              this.parentNode.parentNode.lastChild.classList.toggle("hidden")
+            });
+
+            const ul = group.append("ul");
+            ul.classed("usernameList", true);
+            ul.classed("hidden", true)
+
+            return group;
+          },
+          update => {
+            update
+              .select("ul")
+              .classed("hidden", true);
+            updateCenter(update.select(".center"));
+            updateRight(update.select(".right"));
+            return update;
+          },
+          exit => exit.remove(),
+        )
+        .select("ul")
+        .selectAll("li")
+        .data((d,i) => data.filter(e => e.length === i))
+        .join(
+          enter => {
+            const li = enter.append("li");
+            const a = li.append("a");
+            a.text(d => d);
+            a.attr("href", d => `commits?developers=${d}`);
+            return li;
+          },
+          update => update,
+          exit => exit.remove(),
+        )
+    },
   },
+
+  mounted() {
+    this.refresh();
+  },
+
+  watch: {
+    repositories: "refresh",
+  }
 }
 
 </script>
@@ -135,7 +190,7 @@ export default {
 
   .usernameList {
     color:black;
-    list-style-type: square; 
+    list-style-type: square;
     list-style-position: inside;
     display:flex;
     flex-wrap: wrap;

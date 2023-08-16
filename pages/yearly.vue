@@ -7,6 +7,24 @@
         <h1 class="title">Contributions</h1>
 
         <p>
+          <strong>Repositories?</strong>
+        </p>
+        <b-field>
+          <b-radio-button
+            name="repositories"
+            v-model="repositories"
+            native-value="chrome">
+            Chrome
+          </b-radio-button>
+          <b-radio-button
+            name="repositories"
+            v-model="repositories"
+            native-value="dawn">
+            Dawn
+          </b-radio-button>
+        </b-field>
+
+        <p>
           <strong>What?</strong>
         </p>
 
@@ -41,7 +59,7 @@
             name="what"
             v-model="what"
             native-value="per_contributor">
-            Commits per developer 
+            Commits per developer
           </b-radio-button>
         </b-field>
 
@@ -86,7 +104,7 @@
               indicator
               lazy
               ></b-slider>
-            
+
             <b-slider
               v-model="individual"
               v-if="display == 'individual'"
@@ -125,6 +143,7 @@
 
 
         <Contributions
+          :repositories="repositories"
           :percentile="this.sliderTransform(percentile)"
           :individual="individual"
           :what="what"
@@ -154,6 +173,7 @@
 export default {
   data() {
     return {
+      repositories: "chrome",
       what: "commit",
       display: "average",
       kind: "both",

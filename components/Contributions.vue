@@ -20,6 +20,7 @@ import {format} from "d3-format";
 
 export default {
   props: [
+    "repositories",
     "what",
     "display",
     "kind",
@@ -61,19 +62,19 @@ export default {
     },
 
     merge: function(a,b) {
-      return Object.entries(b).reduce((acc, [key, value]) => 
+      return Object.entries(b).reduce((acc, [key, value]) =>
         ({ ...acc, [key]: (acc[key] || 0) + value })
         , { ...a });
     },
 
 
     async refresh() {
-      const response = await fetch("./data/chrome/users_info.json");
+      const response = await fetch(`./data/${this.repositories}/users_info.json`);
       const data = await response.json();
 
       for(const user in data) {
         data[user].both = {
-          total: data[user].author.total + 
+          total: data[user].author.total +
                  data[user].review.total,
           by_date: this.merge(data[user].author.by_date,
                               data[user].review.by_date),
@@ -183,10 +184,10 @@ export default {
                 let sum = 0;
                 for(const user of this.developers) {
                   if (this.kind == "author" || this.kind == "both") {
-                    sum += data[user].author.by_date[year] || 0;
+                    sum += data[user]?.author.by_date[year] || 0;
                   }
                   if (this.kind == "review" || this.kind == "both") {
-                    sum += data[user].review.by_date[year] || 0;
+                    sum += data[user]?.review.by_date[year] || 0;
                   }
                 }
                 per_year[year] = sum == 0
@@ -203,10 +204,10 @@ export default {
                 let sum = 0;
                 for(const user of this.developers) {
                   if (this.kind == "author" || this.kind == "both") {
-                    sum += data[user].author.by_date[year] || 0;
+                    sum += data[user]?.author.by_date[year] || 0;
                   }
                   if (this.kind == "review" || this.kind == "both") {
-                    sum += data[user].review.by_date[year] || 0;
+                    sum += data[user]?.review.by_date[year] || 0;
                   }
                 }
                 per_year[year] = sum == 0
@@ -299,6 +300,7 @@ export default {
   },
 
   watch: {
+    repositories: "refresh",
     what: "refresh",
     display: "refresh",
     kind: "refresh",
