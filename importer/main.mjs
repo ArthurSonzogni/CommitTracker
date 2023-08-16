@@ -3,61 +3,75 @@ import github from "@actions/github";
 import * as filesystem from "fs";
 
 const fs = filesystem.promises;
-// const token = core.getInput('token', { required: true });
-const token = process.env.github_token;;
+const token = process.env.github_token;
 const octokit = new github.getOctokit(token);
 
-// const first_commit_hash = "a5068f5fa11005232bc4383c54f6af230f9392fb";
-const first_commit_hash = "c14d891d44f0afff64e56ed7c9702df1d807b1ee";
+const repositories_file = "../static/data/repositories.json";
 
-const last_file = "../static/data/chrome/last.json";
-const user_file = "../static/data/chrome/users.json";
-const user_dir = "../static/data/chrome/users";
+const processRepository = async (repository) => {
 
-const writeUsers = async (users) => {
-  await fs.writeFile(user_file, JSON.stringify(users));
-};
+  const repository_dir = `../static/data/${repository.dirname}`;
 
-const readUsers = async () => {
-  try {
-    const users = await fs.readFile(user_file, "utf8");
-    return JSON.parse(users);
-  } catch (error) {
-    writeUsers([]);
-    return [];
-  }
-};
+  // Setup the directory structures, in case this is the first time we are
+  // running this.
+  await fs.mkdir(repository_dir, { recursive: true });
 
-const readUser = async user => {
-  try {
-    const data = await fs.readFile(`${user_dir}/${user}.json`, "utf8");
-    return JSON.parse(data);
-  } catch (error) {
-    return {
-      author: {},
-      review: {},
+  const last_file = `${repository_dir}/last.json`;
+  const user_file = `${repository_dir}/users.json`;
+  const user_dir = `${repository_dir}/users`;
+
+  // Write users to database. This is a list of all users that have ever
+  // contributed to the repository.
+  const writeUsers = async (users) => {
+    await fs.writeFile(user_file, JSON.stringify(users));
+  };
+
+  // Read users from database. This is a list of all users that have ever
+  // contributed to the repository.
+  const readUsers = async () => {
+    try {
+      const users = await fs.readFile(user_file, "utf8");
+      return JSON.parse(users);
+    } catch (error) {
+      writeUsers([]);
+      return [];
+    }
+  };
+
+  // Read user data from database. This is all the informations we can gather
+  // about one particular user.
+  const readUser = async user => {
+    try {
+      const data = await fs.readFile(`${user_dir}/${user}.json`, "utf8");
+      return JSON.parse(data);
+    } catch (error) {
+      return {
+        author: {},
+        review: {},
+      }
     }
   }
-}
 
-const writeLastSha = async (last_sha) => {
-  console.log("writeLastSha", last_sha);
-  await fs.writeFile(last_file, JSON.stringify({sha:last_sha}));
-};
+  // Write last sha to database. This is the last commit that was processed.
+  // This is used to resume the process.
+  const writeLastSha = async (last_sha) => {
+    console.log("writeLastSha", last_sha);
+    await fs.writeFile(last_file, JSON.stringify({sha:last_sha}));
+  };
 
-const readLastSha = async () => {
-  try {
-    const last_sha = await fs.readFile(last_file, "utf8");
-    console.log(last_sha);
-    return JSON.parse(last_sha).sha;
-  } catch (error) {
-    const last_sha = first_commit_hash;
-    writeLastSha(last_sha);
-    return last_sha;
+  // Read last sha from database. This is the last commit that was processed.
+  const readLastSha = async () => {
+    try {
+      const last_sha = await fs.readFile(last_file, "utf8");
+      console.log(last_sha);
+      return JSON.parse(last_sha).sha;
+    } catch (error) {
+      const last_sha = repository.first_commit_hash;
+      writeLastSha(last_sha);
+      return last_sha;
+    }
   }
-}
 
-const main = async () => {
   const last_sha = await readLastSha();
   let sha = "main"
   let new_last_sha = last_sha;
@@ -102,7 +116,8 @@ const main = async () => {
   };
 
   try {
-    let max_page = 1000;
+    let max_page = 3000;
+    let index = 0;
     process:
     while (true) {
       max_page--;
@@ -112,19 +127,22 @@ const main = async () => {
       const response = await octokit.request(
         "GET /repos/{owner}/{repo}/commits",
         {
-          owner: "chromium",
-          repo: "chromium",
+          owner: repository.owner,
+          repo: repository.repository,
           sha: sha,
           per_page: 100,
         }
       );
+
+      //await new Promise((resolve) => setTimeout(resolve, 1000));
 
       for (const commit of response.data) {
         if (sha === "main") {
           new_last_sha = commit.sha;
         }
 
-        console.log(commit.sha, last_sha, (commit.sha === last_sha));
+        index += 1;
+        console.log(index, commit.sha, last_sha, (commit.sha === last_sha));
         if (commit.sha === last_sha) {
           break process;
         }
@@ -141,12 +159,12 @@ const main = async () => {
 
         // Skip some bots:
         if (commit.commit.author.email.includes("roller") ||
-            commit.commit.author.email.includes("autoroll") ||
-            commit.commit.author.email.includes("mdb.") ||
-            commit.commit.author.email.includes("chrome-") ||
-            commit.commit.author.email.includes("rebaseline")) {
-            commit.commit.author.email.includes("-bot") ||
-            commit.commit.author.email.includes("+robot") {
+          commit.commit.author.email.includes("autoroll") ||
+          commit.commit.author.email.includes("mdb.") ||
+          commit.commit.author.email.includes("chrome-") ||
+          commit.commit.author.email.includes("rebaseline") ||
+          commit.commit.author.email.includes("-bot") ||
+          commit.commit.author.email.includes("+robot")) {
           continue;
         }
 
@@ -185,6 +203,13 @@ const main = async () => {
 
   await save();
 };
+
+const main = async () => {
+  const repositories = JSON.parse(await fs.readFile(repositories_file, "utf8"));
+  for (const repository of repositories) {
+    await processRepository(repository);
+  }
+}
 
 // Call the main function to run the action
 main();

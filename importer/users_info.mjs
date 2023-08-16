@@ -1,6 +1,8 @@
 import * as filesystem from "fs";
 const fs = filesystem.promises;
 
+const repositories_file = "../static/data/repositories.json";
+
 const group_by_date = list => {
   const out = {};
   list.forEach(item => {
@@ -11,12 +13,15 @@ const group_by_date = list => {
   return out;
 }
 
-const main = async () => {
+const processRepository = async (repository) => {
+  const repository_dir = `../static/data/${repository.dirname}`;
+  const users_filename = `${repository_dir}/users.json`;
+  const users_info_filename = `${repository_dir}/users_info.json`;
+
   const out = {};
-  const users_filename = "../static/data/chrome/users.json";
   const users = JSON.parse(await fs.readFile(users_filename, "utf8"));
   for(const user of users) {
-    const user_filename = `../static/data/chrome/users/${user}.json`;
+    const user_filename = `${repository_dir}/users/${user}.json`;
     const info = JSON.parse(await fs.readFile(user_filename, "utf8"));
 
     const date_author = Object.keys(info.author).sort();
@@ -39,8 +44,14 @@ const main = async () => {
     out[user] = user_out;
   }
 
-  const users_info_filename = "../static/data/chrome/users_info.json";
   await fs.writeFile(users_info_filename, JSON.stringify(out));
+}
+
+const main = async () => {
+  const repositories = JSON.parse(await fs.readFile(repositories_file, "utf8"));
+  for (const repository of repositories) {
+    await processRepository(repository);
+  }
 }
 
 main();
