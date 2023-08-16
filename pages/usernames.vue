@@ -50,7 +50,7 @@ import {transition} from "d3-transition";
 export default {
   data() {
     return {
-      repositories: "dawn",
+      repositories: "chrome",
       sum: 0,
       distribution: [],
     }
