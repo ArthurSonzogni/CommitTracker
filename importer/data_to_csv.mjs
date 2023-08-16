@@ -1,8 +1,8 @@
 import * as filesystem from "fs";
 const fs = filesystem.promises;
 
-const user_file = "../static/data/users.json";
-const user_dir = "../static/data/users";
+const user_file = "../static/data/chrome/users.json";
+const user_dir = "../static/data/chrome/users";
 
 const users = JSON.parse(await fs.readFile(user_file, "utf8"));
 const date_after = new Date("2022-01-01");

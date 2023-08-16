@@ -77,7 +77,7 @@
       <p>
         New entries to track can be added by opening a PR against this
         <a
-          href="https://github.com/ArthurSonzogni/ChromeCommitTracker/blob/main/static/data/treemap/entries.json">file</a>
+          href="https://github.com/ArthurSonzogni/ChromeCommitTracker/blob/main/static/data/chrome/treemap/entries.json">file</a>
       </p>
     </section>
 

@@ -127,7 +127,7 @@ export default {
   methods: {
     developersChanged() {
       Promise.all(this.developers.map(async d => {
-        const response = await fetch(`./data/users/${d}.json`);
+        const response = await fetch(`./data/chrome/users/${d}.json`);
         const data = await response.json();
         return {
           developer: d,

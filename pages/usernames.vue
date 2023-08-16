@@ -36,7 +36,7 @@ export default {
   },
 
   mounted: async function() {
-    const response = await fetch("./data/users.json");
+    const response = await fetch("./data/chrome/users.json");
     const data = await response.json();
     this.sum = data.length;
     for(const developer of data) {

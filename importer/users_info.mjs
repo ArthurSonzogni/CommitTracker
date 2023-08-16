@@ -13,10 +13,10 @@ const group_by_date = list => {
 
 const main = async () => {
   const out = {};
-  const users_filename = "../static/data/users.json";
+  const users_filename = "../static/data/chrome/users.json";
   const users = JSON.parse(await fs.readFile(users_filename, "utf8"));
   for(const user of users) {
-    const user_filename = `../static/data/users/${user}.json`;
+    const user_filename = `../static/data/chrome/users/${user}.json`;
     const info = JSON.parse(await fs.readFile(user_filename, "utf8"));
 
     const date_author = Object.keys(info.author).sort();
@@ -39,7 +39,7 @@ const main = async () => {
     out[user] = user_out;
   }
 
-  const users_info_filename = "../static/data/users_info.json";
+  const users_info_filename = "../static/data/chrome/users_info.json";
   await fs.writeFile(users_info_filename, JSON.stringify(out));
 }
 

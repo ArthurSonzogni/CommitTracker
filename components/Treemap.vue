@@ -317,7 +317,7 @@ export default {
     },
 
     async fetchEntries() {
-      const response = await fetch("./data/treemap/latest.json");
+      const response = await fetch("./data/chrome/treemap/latest.json");
       const data = await response.json();
 
       const propagate = entry => {

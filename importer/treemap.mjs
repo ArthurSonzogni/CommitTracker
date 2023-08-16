@@ -69,13 +69,13 @@ const main = async () => {
     children: [],
   }
 
-  const entries_filename= "../static/data/treemap/entries.json"
+  const entries_filename= "../static/data/chrome/treemap/entries.json"
   const entries = JSON.parse(await fs.readFile(entries_filename, "utf8"));
   for (const entry of entries) {
     await ProcessEntry(root, entry);
   }
 
-  const filename = `../static/data/treemap/latest.json`;
+  const filename = `../static/data/chrome/treemap/latest.json`;
 
   console.log(JSON.stringify(root, null, 2));
 

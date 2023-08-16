@@ -1,7 +1,7 @@
 const cache = new Map();
 
 const fetchData = async user => {
-  const response = await fetch(`./data/users/${user}.json`);
+  const response = await fetch(`./data/chrome/users/${user}.json`);
   const data = await response.json();
 
   // Remove developers reviewing themselves:

@@ -15,8 +15,8 @@
     <section class="section">
       <div class="container">
         <h2 class="title">User list</h2>
-        <a href="./data/users.json">
-          <code>/data/users.json</code>
+        <a href="./data/chrome/users.json">
+          <code>/data/chrome/users.json</code>
         </a>
         <pre>
           <code>
@@ -34,7 +34,7 @@
     <section class="section">
       <div class="container">
         <h2 class="title">Users summary</h2>
-        <a href="./data/users_info.json">
+        <a href="./data/chrome/users_info.json">
           <code>/data/users_info.json</code>
         </a>
       </div>

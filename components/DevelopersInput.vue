@@ -34,7 +34,7 @@ export default {
     },
 
     async fetch() {
-        const response = await fetch("./data/users.json");
+        const response = await fetch("./data/chrome/users.json");
         const list = await response.json();
         this.developerList = list;
         const value = this.value.filter(v => list.includes(v));

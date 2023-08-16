@@ -36,7 +36,7 @@ export default {
     },
 
     async fetch() {
-        const response = await fetch("./data/treemap/entries.json");
+        const response = await fetch("./data/chrome/treemap/entries.json");
         const list = await response.json();
         this.list = list;
         this.entryList = list.map(e => e.file)

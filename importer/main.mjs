@@ -10,9 +10,9 @@ const octokit = new github.getOctokit(token);
 // const first_commit_hash = "a5068f5fa11005232bc4383c54f6af230f9392fb";
 const first_commit_hash = "c14d891d44f0afff64e56ed7c9702df1d807b1ee";
 
-const last_file = "../static/data/last.json";
-const user_file = "../static/data/users.json";
-const user_dir = "../static/data/users";
+const last_file = "../static/data/chrome/last.json";
+const user_file = "../static/data/chrome/users.json";
+const user_dir = "../static/data/chrome/users";
 
 const writeUsers = async (users) => {
   await fs.writeFile(user_file, JSON.stringify(users));
