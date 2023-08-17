@@ -61,6 +61,7 @@ export default {
 
       const response = await fetch(`./data/${this.repositories}/users.json`);
       const data = await response.json();
+      console.log(JSON.stringify(data, null, 2));
       this.sum = data.length;
       this.distribution = [];
       for(const developer of data) {
@@ -137,7 +138,7 @@ export default {
         )
         .select("ul")
         .selectAll("li")
-        .data((d,i) => data.filter(e => e.length === i))
+        .data((d,i) => data.filter(e => e.length === i), d => d)
         .join(
           enter => {
             const li = enter.append("li");
