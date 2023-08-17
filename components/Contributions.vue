@@ -171,7 +171,9 @@ export default {
               for(const year in per_year) {
                 let sum = 0;
                 for(const user of this.developers) {
-                  sum += data[user][this.kind]?.by_date[year] || 0;
+                  if (data[user]) {
+                    sum += data[user][this.kind]?.by_date[year] || 0;
+                  }
                 }
                 per_year[year] = sum;
               }

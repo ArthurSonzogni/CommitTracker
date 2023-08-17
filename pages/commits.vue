@@ -68,6 +68,13 @@
               name="repositories"
               v-model="repositories"
               size="is-medium"
+              native-value="angle">
+              Angle
+            </b-radio-button>
+            <b-radio-button
+              name="repositories"
+              v-model="repositories"
+              size="is-medium"
               native-value="dawn">
               Dawn
             </b-radio-button>

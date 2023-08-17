@@ -31,6 +31,12 @@
           <b-radio-button
             name="repositories"
             v-model="repositories"
+            native-value="angle">
+            Angle
+          </b-radio-button>
+          <b-radio-button
+            name="repositories"
+            v-model="repositories"
             native-value="dawn">
             Dawn
           </b-radio-button>
