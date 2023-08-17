@@ -73,7 +73,7 @@ const processRepository = async (repository) => {
   }
 
   const last_sha = await readLastSha();
-  let sha = "main"
+  let sha = repository.head;
   let new_last_sha = last_sha;
 
   // Setup the directory structures:
@@ -137,7 +137,7 @@ const processRepository = async (repository) => {
       //await new Promise((resolve) => setTimeout(resolve, 1000));
 
       for (const commit of response.data) {
-        if (sha === "main") {
+        if (sha === repository.head) {
           new_last_sha = commit.sha;
         }
 

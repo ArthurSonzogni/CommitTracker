@@ -39,6 +39,12 @@
             native-value="dawn">
             Dawn
           </b-radio-button>
+          <b-radio-button
+            name="repositories"
+            v-model="repositories"
+            native-value="webrtc">
+            WebRTC
+          </b-radio-button>
         </b-field>
 
         <p>
