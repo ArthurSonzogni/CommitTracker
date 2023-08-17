@@ -18,6 +18,12 @@
           <b-radio-button
             name="repositories"
             v-model="repositories"
+            native-value="v8">
+            V8
+          </b-radio-button>
+          <b-radio-button
+            name="repositories"
+            v-model="repositories"
             native-value="dawn">
             Dawn
           </b-radio-button>
