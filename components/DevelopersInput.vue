@@ -38,9 +38,11 @@ export default {
         const response_chrome = await fetch("./data/chrome/users.json");
         const response_v8 = await fetch("./data/v8/users.json");
         const response_dawn = await fetch("./data/dawn/users.json");
+        const response_skia = await fetch("./data/dawn/users.json");
         const list = [...new Set([
             ...await response_chrome.json(),
             ...await response_dawn.json(),
+            ...await response_skia.json(),
             ...await response_v8.json(),
         ])];
             

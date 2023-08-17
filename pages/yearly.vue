@@ -25,6 +25,12 @@
           <b-radio-button
             name="repositories"
             v-model="repositories"
+            native-value="skia">
+            Skia
+          </b-radio-button>
+          <b-radio-button
+            name="repositories"
+            v-model="repositories"
             native-value="dawn">
             Dawn
           </b-radio-button>
