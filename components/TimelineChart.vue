@@ -25,6 +25,7 @@ import {bisector} from "d3-array";
 
 export default {
   props: {
+    repositories: { type:String, default: "chrome",},
     developers: { type: Array },
     startDate: { type: Date },
     endDate: { type: Date },
@@ -117,11 +118,12 @@ export default {
     review: "render",
     stacked: "render",
     developers: "developersChanged",
+    repositories: "developersChanged",
   },
 
   methods: {
     async developersChanged() {
-      this.data = await this.$chromeDataAll(this.developers);
+      this.data = await this.$chromeDataAll(this.repositories, this.developers);
     },
 
     initialize() {

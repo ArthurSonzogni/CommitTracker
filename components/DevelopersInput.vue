@@ -34,8 +34,14 @@ export default {
     },
 
     async fetch() {
-        const response = await fetch("./data/chrome/users.json");
-        const list = await response.json();
+
+        const response_chrome = await fetch("./data/chrome/users.json");
+        const response_dawn = await fetch("./data/dawn/users.json");
+        const list = [...new Set([
+            ...await response_chrome.json(),
+            ...await response_dawn.json(),
+        ])];
+            
         this.developerList = list;
         const value = this.value.filter(v => list.includes(v));
         this.updateDevelopers(value);
@@ -44,7 +50,7 @@ export default {
     methods: {
         computeDevelopersListFiltered(developer) {
             this.developerListFiltered = this.developerList.filter((option) => {
-                return option.indexOf(developer) == 0;
+                return option.toLowerCase().indexOf(developer.toLowerCase()) == 0;
             })
         },
 

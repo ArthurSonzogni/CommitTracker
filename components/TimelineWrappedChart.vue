@@ -23,6 +23,7 @@ const now = new Date();
 
 export default {
   props: {
+    repositories: { type:String, default: "chrome",},
     developers: { type: Array },
     startDate: { type: Date },
     endDate: { type: Date },
@@ -136,12 +137,13 @@ export default {
 
   watch: {
     developers: "developersChanged",
+    repositories: "developersChanged",
     filteredData: "render",
   },
 
   methods: {
     async developersChanged() {
-      this.data = await this.$chromeDataAll(this.developers);
+      this.data = await this.$chromeDataAll(this.repositories, this.developers);
     },
 
     initialize() {

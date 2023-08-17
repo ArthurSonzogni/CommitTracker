@@ -1,8 +1,10 @@
 const cache = new Map();
 
-const fetchData = async user => {
-  const response = await fetch(`./data/chrome/users/${user}.json`);
-  const data = await response.json();
+const fetchData = async (repo, user) => {
+  const response = await fetch(`./data/${repo}/users/${user}.json`);
+  const data = response.status == 200
+    ? await response.json()
+    : {author: {}, review: {}};
 
   // Remove developers reviewing themselves:
   for(const date in data.review) {
@@ -26,14 +28,17 @@ const fetchData = async user => {
   }
 }
 
-const chromeData = async user => {
-  if (!cache.has(user)) {
-    cache.set(user, fetchData(user));
+const chromeData = async (repo, user) => {
+  const key = repo +  user;
+  if (!cache.has(key)) {
+    cache.set(key, fetchData(repo, user));
   }
-  return await cache.get(user);
+  return await cache.get(key);
 }
 
-const chromeDataAll = users => Promise.all(users.map(chromeData));
+const chromeDataAll = (repo, users) => Promise.all(users.map(user => {
+  return chromeData(repo, user);
+}));
 
 export default (context, inject) => {
   inject('chromeData', chromeData)

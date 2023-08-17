@@ -23,6 +23,7 @@ const now = new Date();
 
 export default {
   props: {
+    repositories: { type:String, default: "chrome",},
     developers: { type: Array },
     startDate: { type: Date },
     endDate: { type: Date },
@@ -131,13 +132,14 @@ export default {
   },
 
   watch: {
+    repositories: "developersChanged",
     developers: "developersChanged",
     filteredData: "render",
   },
 
   methods: {
     async developersChanged() {
-      this.data = await this.$chromeDataAll(this.developers);
+      this.data = await this.$chromeDataAll(this.repositories, this.developers);
     },
 
     initialize() {
@@ -169,6 +171,24 @@ export default {
       select(this.$refs.authors)
         .attr("transform", `translate(130, 50)`)
 
+
+      const updateGroup = group => {
+        group
+          .transition()
+          .duration(500)
+          .attr("opacity", 1)
+          .attr("transform", (d, i) => `translate(0, ${i * 20})`);
+      }
+
+      const updateRect = rect => {
+        rect
+          .transition()
+          .duration(500)
+          .attr("opacity", 0.5)
+          .attr("x", d => scale(d.left))
+          .attr("width", d => scale(d.right - d.left))
+      }
+
       select(this.$refs.authors)
         .selectAll("g")
         .data(this.filteredData, d => d.peer)
@@ -177,11 +197,8 @@ export default {
             const group = enter.append("g");
             group
               .attr("opacity", 0)
-              .attr("transform", (d, i) => `translate(-100, ${i * 20})`)
-              .transition()
-              .duration(500)
-              .attr("opacity", 1)
-              .attr("transform", (d, i) => `translate(0, ${i * 20})`);
+              .attr("transform", (d, i) => `translate(-100, ${i * 20})`);
+            updateGroup(group);
 
             const peer = group.append("text");
             peer 
@@ -204,15 +221,12 @@ export default {
           },
           update => {
             const group = update;
-            group
-              .transition()
-              .duration(1500)
-              .attr("transform", (d, i) => `translate(0, ${i * 20})`)
+            updateGroup(group);
 
             const value = group.select(".value");
             value
               .transition()
-              .duration(1000)
+              .duration(500)
               .attr("x", d => scale(d.max))
               .textTween((d, i, nodes) => {
                 const previous = select(nodes[i]).text();
@@ -245,18 +259,13 @@ export default {
               .attr("width", d => scale(d.right - d.left))
               .attr("height", 19)
               .attr("fill", d => this.$color(d.developer))
-              .transition()
-              .duration(500)
-              .attr("opacity", 0.5)
+            ;
+            updateRect(rect);
             return rect;
           },
           update => {
             const rect = update;
-            rect
-              .transition()
-              .duration(1000)
-              .attr("x", d => scale(d.left))
-              .attr("width", d => scale(d.right - d.left))
+            updateRect(rect);
             return rect;
           },
           exit => {

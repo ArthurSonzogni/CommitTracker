@@ -3,8 +3,11 @@
     <Navbar/>
 
     <div>
+
       <section class="section sticky top">
+
         <b-field grouped>
+
           <b-field expanded>
             <DevelopersInput v-model="developers" ></DevelopersInput>
           </b-field>
@@ -36,7 +39,24 @@
               >
               Stacked
             </b-checkbox-button>
+          </b-field>
 
+          <b-field>
+            <b-radio-button
+              name="repositories"
+              v-model="repositories"
+              size="is-medium"
+              native-value="chrome"
+              >
+              Chrome
+            </b-radio-button>
+            <b-radio-button
+              name="repositories"
+              v-model="repositories"
+              size="is-medium"
+              native-value="dawn">
+              Dawn
+            </b-radio-button>
           </b-field>
 
         </b-field>
@@ -47,6 +67,7 @@
         <div class="container">
           <h2 class="title">Count</h2>
           <TimelineCount
+            :repositories="repositories"
             :developers="developers"
             :startDate="startDate"
             :endDate="endDate"
@@ -58,6 +79,7 @@
         <div class="container">
           <h2 class="title">Timeline</h2>
           <TimelineChart
+            :repositories="repositories"
             :developers="developers"
             :startDate="startDate"
             :endDate="endDate"
@@ -109,6 +131,7 @@
           </b-field>
 
           <TimelineWrappedChart
+            :repositories="repositories"
             :developers="developers"
             :startDate="startDate"
             :endDate="endDate"
@@ -125,6 +148,7 @@
         <div class="container">
           <h2 class="title">Peers</h2>
           <PeersChart
+            :repositories="repositories"
             :developers="developers"
             :startDate="startDate"
             :endDate="endDate"
@@ -152,8 +176,13 @@ export default {
     try {
       const url = new URL(window.location);
       const search = new URLSearchParams(url.search)
-      developers = search.get("developers").split("~")
+      developers = 
+          search
+            .get("developers")
+            .split("~")
+            .filter(x => x)
     } catch (e) {}
+
     return {
       startDate: new Date(),
       endDate: new Date(),
@@ -161,13 +190,8 @@ export default {
       checkboxStates: ["author", "review"],
       hourlyParam: 0,
       wrappedBuckets: 100,
+      repositories: "chrome",
     };
-  },
-
-  async fetch() {
-    const response = await fetch("./data/users.json");
-    const list = await response.json();
-    this.developerList = list;
   },
 
   methods: {

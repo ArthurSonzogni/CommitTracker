@@ -30,6 +30,7 @@ const color = scaleOrdinal(schemeCategory10);
 
 export default {
   props: {
+    repositories: { type:String, default: "chrome",},
     developers: { type: Array },
     startDate: { type: Date },
     endDate: { type: Date },
@@ -115,6 +116,7 @@ export default {
   },
 
   watch: {
+    repositories: "render",
     data: "render",
     startDate: "render",
     endDate: "render",
@@ -127,7 +129,7 @@ export default {
   methods: {
     developersChanged() {
       Promise.all(this.developers.map(async d => {
-        const response = await fetch(`./data/chrome/users/${d}.json`);
+        const response = await fetch(`./data/${repositories}/users/${d}.json`);
         const data = await response.json();
         return {
           developer: d,

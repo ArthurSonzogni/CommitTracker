@@ -19,15 +19,15 @@ import {transition} from "d3-transition";
 import {format} from "d3-format";
 
 export default {
-  props: [
-    "repositories",
-    "what",
-    "display",
-    "kind",
-    "percentile",
-    "individual",
-    "developers",
-  ],
+  props: {
+    repositories: { type:String, default: "chrome",},
+    what: {},
+    display: {},
+    kind: {},
+    percentile: {},
+    individual: {},
+    developers: {},
+  },
 
   data() {
     return {
@@ -334,10 +334,6 @@ export default {
   opacity: 0.2;
   margin: 0px 10px 0px 0px;
   border-radius: 5px;
-}
-
-.center:hover {
-  opacity: 0.4;
 }
 
 </style>
