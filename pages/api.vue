@@ -16,7 +16,7 @@
       <div class="container">
         <h2 class="title">User list</h2>
         <a href="./data/chrome/users.json">
-          <code>/data/chrome/users.json</code>
+          <code>/data/${repository}/users.json</code>
         </a>
         <pre>
           <code>
@@ -35,7 +35,7 @@
       <div class="container">
         <h2 class="title">Users summary</h2>
         <a href="./data/chrome/users_info.json">
-          <code>/data/users_info.json</code>
+          <code>/data/${repository}/users_info.json</code>
         </a>
       </div>
     </section>
@@ -43,8 +43,8 @@
     <section class="section">
       <div class="container">
         <h2 class="title">User commits</h2>
-        <a href="./data/users/arthursonzogni.json">
-          <code>/data/users/${user}.json</code>
+        <a href="./data/chrome/users/arthursonzogni.json">
+          <code>/data/${chrome}/users/${user}.json</code>
         </a>
         <pre>
           <code>
