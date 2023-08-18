@@ -4,6 +4,7 @@ import * as filesystem from "fs";
 
 const fs = filesystem.promises;
 const token = process.env.github_token;
+
 const octokit = new github.getOctokit(token);
 
 const repositories_file = "../static/data/repositories.json";
@@ -133,8 +134,6 @@ const processRepository = async (repository) => {
           per_page: 100,
         }
       );
-
-      //await new Promise((resolve) => setTimeout(resolve, 1000));
 
       for (const commit of response.data) {
         if (sha === repository.head) {

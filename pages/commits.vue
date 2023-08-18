@@ -6,6 +6,7 @@
 
       <section class="section sticky top">
 
+        <RepositorySelector v-model="repositories" size="is-medium"/>
         <b-field grouped>
 
           <b-field expanded>
@@ -41,54 +42,7 @@
             </b-checkbox-button>
           </b-field>
 
-          <b-field>
-            <b-radio-button
-              name="repositories"
-              v-model="repositories"
-              size="is-medium"
-              native-value="chrome"
-              >
-              Chrome
-            </b-radio-button>
-            <b-radio-button
-              name="repositories"
-              v-model="repositories"
-              size="is-medium"
-              native-value="v8">
-              V8
-            </b-radio-button>
-            <b-radio-button
-              name="repositories"
-              v-model="repositories"
-              size="is-medium"
-              native-value="skia">
-              Skia
-            </b-radio-button>
-            <b-radio-button
-              name="repositories"
-              v-model="repositories"
-              size="is-medium"
-              native-value="angle">
-              Angle
-            </b-radio-button>
-            <b-radio-button
-              name="repositories"
-              v-model="repositories"
-              size="is-medium"
-              native-value="dawn">
-              Dawn
-            </b-radio-button>
-            <b-radio-button
-              name="repositories"
-              v-model="repositories"
-              size="is-medium"
-              native-value="webrtc">
-              WebRTC
-            </b-radio-button>
-          </b-field>
-
         </b-field>
-
       </section>
 
       <section class="section">

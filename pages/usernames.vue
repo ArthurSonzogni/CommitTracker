@@ -8,44 +8,7 @@
         <p>
           <strong>Repositories?</strong>
         </p>
-        <b-field>
-          <b-radio-button
-            name="repositories"
-            v-model="repositories"
-            native-value="chrome">
-            Chrome
-          </b-radio-button>
-          <b-radio-button
-            name="repositories"
-            v-model="repositories"
-            native-value="v8">
-            V8
-          </b-radio-button>
-          <b-radio-button
-            name="repositories"
-            v-model="repositories"
-            native-value="skia">
-            Skia
-          </b-radio-button>
-          <b-radio-button
-            name="repositories"
-            v-model="repositories"
-            native-value="angle">
-            Angle
-          </b-radio-button>
-          <b-radio-button
-            name="repositories"
-            v-model="repositories"
-            native-value="dawn">
-            Dawn
-          </b-radio-button>
-          <b-radio-button
-            name="repositories"
-            v-model="repositories"
-            native-value="webrtc">
-            WebRTC
-          </b-radio-button>
-        </b-field>
+        <RepositorySelector v-model="repositories"/>
 
         <p>
           Approximatively <strong>{{sum}}</strong> developers contributed to
