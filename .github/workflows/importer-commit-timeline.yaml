@@ -14,9 +14,9 @@ jobs:
         uses: actions/checkout@master
 
       - name: Setup node env
-        uses: actions/setup-node@v2.1.2
+        uses: actions/setup-node@v3
         with:
-          node-version: 14
+          node-version: '16'
 
       - name: Refresh files
         run: |
