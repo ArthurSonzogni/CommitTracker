@@ -1,6 +1,6 @@
 # ChromeCommitTracker
 
-An [web application](http://arthursonzogni.github.io/ChromeCommitTracker/) to
+An [web application](https://chrome-commit-tracker.arthursonzogni.com) to
 show statistics about the Chrome repository.
 
 ### Running the server locally.
