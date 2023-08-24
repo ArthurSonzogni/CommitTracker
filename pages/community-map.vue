@@ -64,9 +64,7 @@ export default {
     }
   },
   computed: {
-    objectSrc() {
-      return "/ChromeCommitTracker/community-map/" + this.dataset;
-    }
+    objectSrc() { return "/community-map/" + this.dataset; }
   },
   mounted() {
     this.$refs.svg.width = Math.round(100*this.zoom) + "%";
