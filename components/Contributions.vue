@@ -69,7 +69,7 @@ export default {
 
 
     async refresh() {
-      const response = await fetch(`./data/${this.repositories}/users_info.json`);
+      const response = await fetch(`/data/${this.repositories}/users_info.json`);
       const data = await response.json();
 
       for(const user in data) {

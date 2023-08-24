@@ -42,7 +42,7 @@ export default {
             "v8",
             "webrtc",
         ];
-        const fetch_as_json = x => fetch(`./data/${x}/users.json`).then(r => r.json());
+        const fetch_as_json = x => fetch(`/data/${x}/users.json`).then(r => r.json());
         const jsons  = await Promise.all(repo.map(fetch_as_json));
         const merged = jsons.reduce((acc, json) => acc.concat(json), []);
         const list = [...new Set(merged)]

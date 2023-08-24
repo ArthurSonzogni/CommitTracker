@@ -67,7 +67,7 @@ export default {
   },
 
   async fetch() {
-    const response = await fetch("./data/chrome/users.json");
+    const response = await fetch("/data/chrome/users.json");
     this.developerList = await response.json();
     this.getRandom();
   },
@@ -80,7 +80,7 @@ export default {
 
       const index = Math.floor(Math.random() * this.developerList.length);
       const developer = this.developerList[index];
-      const response = await fetch(`./data/chrome/users/${developer}.json`);
+      const response = await fetch(`/data/chrome/users/${developer}.json`);
       const data = await response.json();
 
       for(let i = 0; i<2; ++i) {

@@ -46,7 +46,7 @@ export default {
   methods: {
     async refresh() {
 
-      const response = await fetch(`./data/${this.repositories}/users.json`);
+      const response = await fetch(`/data/${this.repositories}/users.json`);
       const data = await response.json();
       console.log(JSON.stringify(data, null, 2));
       this.sum = data.length;
