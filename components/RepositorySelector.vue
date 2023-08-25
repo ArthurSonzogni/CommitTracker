@@ -1,12 +1,12 @@
 <template>
   <b-field>
-    <b-radio-button :size="size" name="repositories" v-model="value" native-value="chrome"> Chrome </b-radio-button>
-    <b-radio-button :size="size" name="repositories" v-model="value" native-value="v8"> V8 </b-radio-button>
-    <b-radio-button :size="size" name="repositories" v-model="value" native-value="skia"> Skia </b-radio-button>
-    <b-radio-button :size="size" name="repositories" v-model="value" native-value="angle"> Angle </b-radio-button>
-    <b-radio-button :size="size" name="repositories" v-model="value" native-value="dawn"> Dawn </b-radio-button>
-    <b-radio-button :size="size" name="repositories" v-model="value" native-value="webrtc"> WebRTC </b-radio-button>
-    <b-radio-button :size="size" name="repositories" v-model="value" native-value="pdfium"> PDFium</b-radio-button>
+    <b-radio-button :size="size" name="repositories" :value="value" @input="update" native-value="chrome"> Chrome </b-radio-button>
+    <b-radio-button :size="size" name="repositories" :value="value" @input="update" native-value="v8"> V8 </b-radio-button>
+    <b-radio-button :size="size" name="repositories" :value="value" @input="update" native-value="skia"> Skia </b-radio-button>
+    <b-radio-button :size="size" name="repositories" :value="value" @input="update" native-value="angle"> Angle </b-radio-button>
+    <b-radio-button :size="size" name="repositories" :value="value" @input="update" native-value="dawn"> Dawn </b-radio-button>
+    <b-radio-button :size="size" name="repositories" :value="value" @input="update" native-value="webrtc"> WebRTC </b-radio-button>
+    <b-radio-button :size="size" name="repositories" :value="value" @input="update" native-value="pdfium"> PDFium</b-radio-button>
   </b-field>
 </template>
 
@@ -25,10 +25,11 @@ export default {
       required: true
     }
   },
-  watch: {
-    value() {
-      this.$emit('input', this.value);
-    }
+
+  methods: {
+    update(value) {
+      this.$emit('input', value);
+    },
   }
 }
 

@@ -21,7 +21,6 @@ jobs:
       - name: Refresh files
         run: |
           cd importer
-          git clone --depth=1 https://github.com/chromium/chromium
           npm install
           npm run treemap
         env:

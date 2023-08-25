@@ -7,12 +7,15 @@
       <div class="columns">
 
         <div class="column">
-          <TreemapInput v-model="field_size" placeholder="size"/>
+          <b-field>
+            <RepositorySelector v-model="repositories" size="is-medium"/>
+          </b-field>
+          <b-field>
+            <TreemapInput v-model="field_size" placeholder="size"/>
+            <TreemapInput v-model="field_color" placeholder="color"/>
+          </b-field>
         </div>
 
-        <div class="column">
-          <TreemapInput v-model="field_color" placeholder="color"/>
-        </div>
 
         <div class="column is-narrow">
 
@@ -58,6 +61,7 @@
 
 
       <Treemap
+        :repositories="repositories"
         :path="path"
         :field_color="field_color"
         :field_size="field_size"
@@ -95,12 +99,14 @@ export default {
     let path = [];
     let colormapMin = 0.0;
     let colormapMax = 1.0;
+    let repositories = "chrome"
     try {
       const url = new URL(window.location);
       const search = new URLSearchParams(url.search)
       const params = search.get("p")
       const data = atob(params);
       [
+        repositories,
         path,
         colormap,
         field_color,
@@ -112,6 +118,7 @@ export default {
       console.log(e);
     }
     return {
+      repositories,
       path,
       field_color,
       field_size,
@@ -127,7 +134,9 @@ export default {
       try {
         const url = new URL(window.location);
         const search = new URLSearchParams(url.search);
+        console.log("popupState");
         [
+          this.repositories,
           this.path,
           this.colormap,
           this.field_color,
@@ -135,6 +144,7 @@ export default {
           this.colormapMin,
           this.colormapMax,
         ] = JSON.parse(atob(search.get("p")));
+        console.log("popupState (endc)");
       } catch (e) {
         console.log(e);
       }
@@ -143,6 +153,7 @@ export default {
     pushState: function() {
       const url = new URL(window.location);
       const params = [
+          this.repositories,
           this.path,
           this.colormap,
           this.field_color,
@@ -160,6 +171,7 @@ export default {
   },
 
   watch: {
+    repositories: "pushState",
     colormap: "pushState",
     colormapMax: "pushState",
     colormapMin: "pushState",

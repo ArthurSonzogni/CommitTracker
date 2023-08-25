@@ -3,6 +3,54 @@ import * as filesystem from "fs";
 
 const fs = filesystem.promises;
 
+async function processRepositories() {
+  const repositories_file = "../static/data/repositories.json";
+  const repositories = JSON.parse(await fs.readFile(repositories_file, "utf8"));
+  for (const repository of repositories) {
+    await processRepository(repository);
+  }
+}
+
+async function processRepository(repo) {
+  // Git clone
+  {
+    await fs.writeFile("script.sh", `
+      rm -rf ${repo.dirname}
+      git clone https://github.com/${repo.owner}/${repo.repository} ${repo.dirname}
+    `) 
+    const shell = spawn("sh", ["./script.sh"]);
+    shell.on("message", console.log);
+    shell.stderr.on("data", chunk => console.error(chunk.toString()));
+    shell.stdout.on("data", chunk => console.log(chunk.toString()));
+    await new Promise(r => shell.on("close", r));
+  }
+
+  const root = {
+    name: "/",
+    children: [],
+  }
+
+  const entries_filename= `../static/data/chrome/treemap/entries.json`;
+  const entries = JSON.parse(await fs.readFile(entries_filename, "utf8"));
+  for (const entry of entries) {
+    await ProcessEntry(repo, root, entry);
+  }
+
+  await fs.mkdir(`../static/data/${repo.dirname}/treemap/`, { recursive: true });
+  const filename = `../static/data/${repo.dirname}/treemap/latest.json`;
+
+  await fs.writeFile(filename, JSON.stringify(root));
+
+  // Remove git repository
+  {
+    await fs.writeFile("script.sh", `
+      rm -rf ${repo.dirname}
+    `)
+    const shell = spawn("sh", ["./script.sh"]);
+    await new Promise(r => shell.on("close", r));
+  }
+}
+
 // Entry layout:
 // {
 //   name        : string,
@@ -10,10 +58,10 @@ const fs = filesystem.promises;
 //   pattern     : string,
 //   file        : string,
 // }
-const ProcessEntry = async (root, entry) => {
+async function ProcessEntry(repo, root, entry) {
 
   await fs.writeFile("script.sh", `
-    cd ./chromium;
+    cd ./${repo.dirname};
     git grep "${entry.pattern}" \
       | cut -f1 -d':' \
       | grep -v "test" \
@@ -26,9 +74,10 @@ const ProcessEntry = async (root, entry) => {
   let output = "";
   const shell = spawn("sh", ["./script.sh"]);
   shell.on("message", console.log);
-  shell.stderr.on("data", console.error);
+  shell.stderr.on("data", chunk => console.error(chunk.toString()));
   shell.stdout.on("data", chunk => {
     output += chunk.toString();
+    console.log(chunk.toString());
   });
   await new Promise(r => shell.on("close", r));
 
@@ -63,23 +112,4 @@ const ProcessEntry = async (root, entry) => {
   });
 }
 
-const main = async () => {
-  const root = {
-    name: "/",
-    children: [],
-  }
-
-  const entries_filename= "../static/data/chrome/treemap/entries.json"
-  const entries = JSON.parse(await fs.readFile(entries_filename, "utf8"));
-  for (const entry of entries) {
-    await ProcessEntry(root, entry);
-  }
-
-  const filename = `../static/data/chrome/treemap/latest.json`;
-
-  console.log(JSON.stringify(root, null, 2));
-
-  await fs.writeFile(filename, JSON.stringify(root));
-}
-
-main();
+processRepositories();
