@@ -8,9 +8,18 @@
       </h1>
 
       <div class="columns">
-        <div class="column is-5 content">
+        <div class="column is-8 content">
+          <NuxtLink to="/community-map">
+            <img src="/community-map/illustration.jpg"/>
+          </NuxtLink>
+        </div>
+        <div class="column is-4 content">
           <p>
-            Work in progress
+            (Work in progress)
+          </p>
+          <p>
+            A very large graphs of developers's interactions. Find out what are
+            the differents clusters.
           </p>
         </div>
       </div>
