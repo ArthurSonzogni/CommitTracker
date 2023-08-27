@@ -46,7 +46,7 @@ export default {
         const jsons  = await Promise.all(repo.map(fetch_as_json));
         const merged = jsons.reduce((acc, json) => acc.concat(json), []);
         const list = [...new Set(merged)]
-            
+
         this.developerList = list;
         const value = this.value.filter(v => list.includes(v));
         this.updateDevelopers(value);
@@ -54,9 +54,15 @@ export default {
 
     methods: {
         computeDevelopersListFiltered(developer) {
+            developer = developer.trim().toLowerCase();
             this.developerListFiltered = this.developerList.filter((option) => {
-                return option.toLowerCase().indexOf(developer.toLowerCase()) == 0;
+                return option.toLowerCase().indexOf(developer) == 0;
+                return option.toLowerCase().includes(developer);
             })
+            this.developerListFiltered.sort((a,b) => {
+                return a.toLowerCase().indexOf(developer) -
+                    b.toLowerCase().indexOf(developer);
+            });
         },
 
         removeDeveloper(developer) {
