@@ -16,12 +16,9 @@ async function processRepository(repo) {
   {
     await fs.writeFile("script.sh", `
       rm -rf ${repo.dirname}
-      git clone https://github.com/${repo.owner}/${repo.repository} ${repo.dirname}
-    `) 
+      git clone --depth=1 --branch ${repo.head} --single-branch https://github.com/${repo.owner}/${repo.repository} ${repo.dirname}
+    `)
     const shell = spawn("sh", ["./script.sh"]);
-    shell.on("message", console.log);
-    shell.stderr.on("data", chunk => console.error(chunk.toString()));
-    shell.stdout.on("data", chunk => console.log(chunk.toString()));
     await new Promise(r => shell.on("close", r));
   }
 
@@ -73,16 +70,12 @@ async function ProcessEntry(repo, root, entry) {
 
   let output = "";
   const shell = spawn("sh", ["./script.sh"]);
-  shell.on("message", console.log);
-  shell.stderr.on("data", chunk => console.error(chunk.toString()));
   shell.stdout.on("data", chunk => {
     output += chunk.toString();
-    console.log(chunk.toString());
   });
   await new Promise(r => shell.on("close", r));
 
   output.split('\n').forEach(line => {
-    console.log(line);
     let current = root;
     for(const component of line.split('/')) {
       let found = false;
