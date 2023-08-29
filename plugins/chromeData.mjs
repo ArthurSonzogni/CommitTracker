@@ -1,7 +1,7 @@
 const cache = new Map();
 
 const fetchData = async (repo, user) => {
-  const response = await fetch(`./data/${repo}/users/${user}.json`);
+  const response = await fetch(`/data/${repo}/users/${user}.json`);
   const data = response.status == 200
     ? await response.json()
     : {author: {}, review: {}};
