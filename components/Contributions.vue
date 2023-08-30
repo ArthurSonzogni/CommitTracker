@@ -62,22 +62,37 @@ export default {
     },
 
     merge: function(a,b) {
-      return Object.entries(b).reduce((acc, [key, value]) =>
-        ({ ...acc, [key]: (acc[key] || 0) + value })
-        , { ...a });
+      for(const key in b) {
+        a[key] = (a[key] || 0) + b[key];
+      }
     },
-
 
     async refresh() {
       const response = await fetch(`/data/${this.repositories}/users_info.json`);
       const data = await response.json();
 
       for(const user in data) {
+        for(const kind of ["author", "review"]) {
+          const old_data = data[user][kind].by_date
+          const new_data = {}
+          for(const key in old_data) {
+            const new_key = key.substr(0,7);
+            new_data[new_key] |= 0;
+            new_data[new_key] += old_data[key]
+          }
+          data[user][kind].by_date = new_data;
+        }
+      }
+
+      for(const user in data) {
+        let merged = {};
+        this.merge(merged, data[user].author.by_date);
+        this.merge(merged, data[user].review.by_date);
+
         data[user].both = {
           total: data[user].author.total +
                  data[user].review.total,
-          by_date: this.merge(data[user].author.by_date,
-                              data[user].review.by_date),
+          by_date: merged,
         };
       }
 
@@ -94,7 +109,7 @@ export default {
             for(const year in by_date) {
               by_date[year] = 1;
             }
-            per_year = this.merge(per_year, by_date);
+            this.merge(per_year, by_date);
           }
           break;
 
@@ -104,8 +119,8 @@ export default {
 
           for(const user in data) {
             const by_date = data[user][this.kind]?.by_date || {};
-            const min_year = Math.min(...Object.keys(by_date));
-            if (isFinite(min_year)) {
+            const min_year = Object.keys(by_date).sort()[0];
+            if (min_year) {
               per_year[min_year] ||= 0;
               per_year[min_year] ++
             }
@@ -117,8 +132,8 @@ export default {
           postfix = (year) => ' 🧍';
           for(const user in data) {
             const by_date = data[user][this.kind]?.by_date || {};
-            const max_year = Math.max(...Object.keys(by_date));
-            if (isFinite(max_year)) {
+            const max_year = Object.keys(by_date).sort().reverse()[0];
+            if (max_year) {
               per_year[max_year] ||= 0;
               per_year[max_year] ++
             }
@@ -131,7 +146,7 @@ export default {
 
           for(const user in data) {
             const by_date = data[user].author.by_date || {};
-            per_year = this.merge(per_year, by_date)
+            this.merge(per_year, by_date)
           }
           break;
 
@@ -229,11 +244,6 @@ export default {
         max = Math.max(max, per_year[year]);
       }
 
-      // Fill holes with zeroes:
-      for(let i = 2008; i<2024; ++i) {
-        per_year[i] ||= 0;
-      }
-
       const updateCenter = center => {
         center
           .transition()
@@ -255,7 +265,7 @@ export default {
 
       select(this.$refs.histogram)
         .selectAll(".line")
-        .data(Object.keys(per_year), d => d)
+        .data(Object.keys(per_year).sort(), d => d)
         .join(
           enter => {
             const div = enter.append("div");
@@ -327,7 +337,7 @@ export default {
 .left {
   text-align:right;
   margin-right:10px;
-  width:48px;
+  width:64px;
 }
 
 .center {

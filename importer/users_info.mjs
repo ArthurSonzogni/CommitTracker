@@ -6,7 +6,7 @@ const repositories_file = "../static/data/repositories.json";
 const group_by_date = list => {
   const out = {};
   list.forEach(item => {
-    const year = item.substring(0, 4);
+    const year = item.substring(0, 7);
     out[year] ||= 0;
     out[year] ++;
   })
