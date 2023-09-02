@@ -1,5 +1,5 @@
 <template>
-  <b-field>
+  <b-field :label="label">
     <b-radio-button :size="size" name="repositories" :value="value" @input="update" native-value="chrome"> Chrome </b-radio-button>
     <b-radio-button :size="size" name="repositories" :value="value" @input="update" native-value="v8"> V8 </b-radio-button>
     <b-radio-button :size="size" name="repositories" :value="value" @input="update" native-value="skia"> Skia </b-radio-button>
@@ -23,7 +23,13 @@ export default {
       default: "is-small",
       type: String,
       required: true
-    }
+    },
+
+    label: {
+      default: "",
+      type: String,
+      required: true
+    },
   },
 
   methods: {

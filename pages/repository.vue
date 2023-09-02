@@ -6,50 +6,45 @@
       <div class="container">
         <h1 class="title">Contributions</h1>
 
-        <p>
-          <strong>Repositories?</strong>
-        </p>
+        <RepositorySelector label="Repositories" size="is-medium" v-model="repositories"/>
 
-        <RepositorySelector size="is-medium" v-model="repositories"/>
-
-        <p>
-          <strong>What?</strong>
-        </p>
-
-        <b-field>
-          <b-radio-button
-            name="what"
-            v-model="what"
-            native-value="contributors">
-            Contributors
-          </b-radio-button>
-          <b-radio-button
-            name="what"
-            v-model="what"
-            native-value="first_commit">
-            New contributors
-          </b-radio-button>
-          <b-radio-button
-            name="what"
-            v-model="what"
-            native-value="last_commit">
-            Leaving contributors
-          </b-radio-button>
+        <b-field label="What?" grouped group-multiline>
+          <b-field>
+            <b-radio-button
+              name="what"
+              v-model="what"
+              native-value="contributors">
+              Contributors
+            </b-radio-button>
+            <b-radio-button
+              name="what"
+              v-model="what"
+              native-value="first_commit">
+              New contributors
+            </b-radio-button>
+            <b-radio-button
+              name="what"
+              v-model="what"
+              native-value="last_commit">
+              Leaving contributors
+            </b-radio-button>
+          </b-field>
+          <b-field>
+            <b-radio-button
+              name="what"
+              v-model="what"
+              native-value="commit">
+              Commits
+            </b-radio-button>
+            <b-radio-button
+              name="what"
+              v-model="what"
+              native-value="per_contributor">
+              Commits per developer
+            </b-radio-button>
+          </b-field>
         </b-field>
-        <b-field>
-          <b-radio-button
-            name="what"
-            v-model="what"
-            native-value="commit">
-            Commits
-          </b-radio-button>
-          <b-radio-button
-            name="what"
-            v-model="what"
-            native-value="per_contributor">
-            Commits per developer
-          </b-radio-button>
-        </b-field>
+
 
         <div v-if="what == 'per_contributor'">
           <p>
@@ -113,10 +108,7 @@
 
 
         <div v-if="what != 'commit'">
-          <p>
-            <strong>As: </strong>
-          </p>
-          <b-field>
+          <b-field label="As:">
             <b-radio-button name="kind" v-model="kind" native-value="author">
               author
             </b-radio-button>
@@ -129,11 +121,33 @@
           </b-field>
         </div>
 
+        <b-field label="Grouping:">
+          <b-radio-button
+            name="grouping"
+            v-model="grouping"
+            native-value="yearly">
+            Yearly
+          </b-radio-button>
+          <b-radio-button
+            name="grouping"
+            v-model="grouping"
+            native-value="quarterly">
+            Quarterly
+          </b-radio-button>
+          <b-radio-button
+            name="grouping"
+            v-model="grouping"
+            native-value="monthly">
+            Monthly
+          </b-radio-button>
+        </b-field>
+
 
         <Contributions
           :repositories="repositories"
           :percentile="this.sliderTransform(percentile)"
           :individual="individual"
+          :grouping="grouping"
           :what="what"
           :display="display"
           :kind="kind"
@@ -163,6 +177,7 @@ export default {
     return {
       repositories: "chrome",
       what: "commit",
+      grouping: "yearly",
       display: "average",
       kind: "both",
       percentile: 0.7071,

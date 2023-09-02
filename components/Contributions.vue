@@ -21,6 +21,7 @@ import {format} from "d3-format";
 export default {
   props: {
     repositories: { type:String, default: "chrome",},
+    grouping: { type:String, default: "yearly"},
     what: {},
     display: {},
     kind: {},
@@ -71,12 +72,44 @@ export default {
       const response = await fetch(`/data/${this.repositories}/users_info.json`);
       const data = await response.json();
 
+      let grouping = x => x;
+      switch(this.grouping) {
+        case "yearly":
+          grouping = x => x.substr(0,4);
+          break;
+        case "quarterly":
+          grouping = x => {
+            const year = x.substr(0,4)
+            const month = x.substr(5,2);
+            const quarter = Math.floor((month - 1) / 3) + 1;
+            return `${year}Q${quarter}`;
+          }
+          break;
+        case "monthly":
+          grouping = x => x.substr(0,7);
+          break;
+      }
+
+      // Filter users with low activity.
+      for(const user in data) {
+        let total = 0;
+        for(const kind of ["author", "review"]) {
+          const by_date = data[user][kind].by_date;
+          for(const key in by_date) {
+            total += by_date[key];
+          }
+        }
+        if (total <= 3) {
+          delete data[user];
+        }
+      }
+
       for(const user in data) {
         for(const kind of ["author", "review"]) {
           const old_data = data[user][kind].by_date
           const new_data = {}
           for(const key in old_data) {
-            const new_key = key.substr(0,7);
+            const new_key = grouping(key);
             new_data[new_key] |= 0;
             new_data[new_key] += old_data[key]
           }
@@ -301,11 +334,7 @@ export default {
             return update;
           },
           exit => {
-            return exit
-              .transition()
-              .duration(350)
-              .style("opacity", 0)
-              .remove();
+            return exit.remove();
           }
         )
     },
@@ -314,6 +343,7 @@ export default {
   watch: {
     repositories: "refresh",
     what: "refresh",
+    grouping: "refresh",
     display: "refresh",
     kind: "refresh",
     percentile: "refresh",

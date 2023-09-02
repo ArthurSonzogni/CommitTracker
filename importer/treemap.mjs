@@ -56,17 +56,24 @@ async function processRepository(repo) {
 //   file        : string,
 // }
 async function ProcessEntry(repo, root, entry) {
-
-  await fs.writeFile("script.sh", `
-    cd ./${repo.dirname};
-    git grep "${entry.pattern}" \
-      | cut -f1 -d':' \
-      | grep -v "test" \
-      | grep -v "codelabs" \
-      | grep -v "/tools" \
-      | grep "\\.h\\|\\.cc"
-    cd ..
-  `)
+  //if (repo.script) {
+    //await fs.writeFile("script.sh", `
+      //cd ./${repo.dirname};
+      //../../static/data/chrome/treemap/scripts/${repo.script};
+      //cd ..;
+    //`)
+  //} else {
+    await fs.writeFile("script.sh", `
+      cd ./${repo.dirname};
+      git grep "${entry.pattern}" \
+        | cut -f1 -d':' \
+        | grep -v "test" \
+        | grep -v "codelabs" \
+        | grep -v "/tools" \
+        | grep "\\.h\\|\\.cc"
+      cd ..
+    `)
+  //}
 
   let output = "";
   const shell = spawn("sh", ["./script.sh"]);

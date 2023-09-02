@@ -28,14 +28,10 @@ const processRepository = async (repository) => {
     const date_review = Object.keys(info.review).sort();
     const user_out = {
       author: {
-        first: date_author[0],
-        last: date_author[date_author.length - 1],
         total: date_author.length,
         by_date: group_by_date(date_author),
       },
       review: {
-        first: date_review[0],
-        last: date_review[date_review.length - 1],
         total: date_review.length,
         by_date: group_by_date(date_review),
       },

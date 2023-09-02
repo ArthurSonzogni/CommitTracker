@@ -8,11 +8,11 @@
         </template>
 
         <template #start>
-            <b-navbar-item tag="router-link" :to="{ path: '/yearly' }">
-                Yearly stats
+            <b-navbar-item tag="router-link" :to="{ path: '/repository' }">
+                Repository stats
             </b-navbar-item>
-            <b-navbar-item tag="router-link" :to="{ path: '/commits' }">
-                Commits
+            <b-navbar-item tag="router-link" :to="{ path: '/individuals' }">
+                Individuals
             </b-navbar-item>
             <b-navbar-item tag="router-link" :to="{ path: '/community-map' }">
                 Community map
@@ -32,7 +32,7 @@
 
         <template #end>
             <b-navbar-item class="is-dark"
-                href="https://github.com/ArthurSonzogni/ChromeCommitTracker/">
+                href="https://github.com/ArthurSonzogni/Chrome/">
                 source
             </b-navbar-item>
         </template>
