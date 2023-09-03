@@ -367,7 +367,7 @@ export default {
 .left {
   text-align:right;
   margin-right:10px;
-  width:64px;
+  width:72px;
 }
 
 .center {
