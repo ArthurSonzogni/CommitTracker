@@ -47,7 +47,7 @@
 
       <section class="section">
         <div class="container">
-          <h2 class="title">Count</h2>
+          <h2 class="title">1. Count</h2>
           <TimelineCount
             :repositories="repositories"
             :developers="developers"
@@ -59,7 +59,7 @@
 
       <section class="section">
         <div class="container">
-          <h2 class="title">Timeline</h2>
+          <h2 class="title">2. Timeline</h2>
           <TimelineChart
             :repositories="repositories"
             :developers="developers"
@@ -74,7 +74,7 @@
 
       <section class="section">
         <div class="container">
-          <h2 class="title">Timeline wrapped</h2>
+          <h2 class="title">3. Timeline wrapped</h2>
           <b-field grouped>
             <b-field
               label="Modulo"
@@ -128,7 +128,7 @@
 
       <section class="section">
         <div class="container">
-          <h2 class="title">Peers</h2>
+          <h2 class="title">4. Peers</h2>
           <PeersChart
             :repositories="repositories"
             :developers="developers"
