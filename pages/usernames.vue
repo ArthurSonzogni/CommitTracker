@@ -131,7 +131,7 @@ export default {
             const li = enter.append("li");
             const a = li.append("a");
             a.text(d => d);
-            a.attr("href", d => `/commits?developers=${d}`);
+            a.attr("href", d => `/individuals?developers=${d}`);
             return li;
           },
           update => update,
