@@ -7,7 +7,7 @@
 <script>
 export default {
   props: {
-    repositories: { type:String, default: "chrome",},
+    repositories: { type:Array[String], default: "chrome",},
     developers: { type: Array },
     startDate: { type: Date },
     endDate: { type: Date },
@@ -60,7 +60,7 @@ export default {
 
   methods: {
     async developersChanged() {
-      const data = await this.$chromeDataAll(this.repositories, this.developers);
+      const data = await this.$chromeDataAll(this.repositories[0], this.developers);
       this.data = data.map(d => {
         return {
           developer: d.developer,

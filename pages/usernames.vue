@@ -8,11 +8,15 @@
         <p>
           <strong>Repositories?</strong>
         </p>
-        <RepositorySelector v-model="repositories"/>
+        <RepositorySelector
+          v-model="repositories"
+          size="medium"
+          :allowMultiple="false"
+        />
 
         <p>
           Approximatively <strong>{{sum}}</strong> developers contributed to
-          {{repositories}} repository.
+          {{repositories.join(", ")}} repository.
         </p>
 
         <div class="line">
@@ -37,7 +41,7 @@ import {transition} from "d3-transition";
 export default {
   data() {
     return {
-      repositories: "chrome",
+      repositories: ["chrome"],
       sum: 0,
       distribution: [],
     }
@@ -46,9 +50,8 @@ export default {
   methods: {
     async refresh() {
 
-      const response = await fetch(`/data/${this.repositories}/users.json`);
+      const response = await fetch(`/data/${this.repositories[0]}/users.json`);
       const data = await response.json();
-      console.log(JSON.stringify(data, null, 2));
       this.sum = data.length;
       this.distribution = [];
       for(const developer of data) {

@@ -99,7 +99,7 @@ export default {
     let path = [];
     let colormapMin = 0.0;
     let colormapMax = 1.0;
-    let repositories = "chrome"
+    let repositories = ["chrome"];
     try {
       const url = new URL(window.location);
       const search = new URLSearchParams(url.search)

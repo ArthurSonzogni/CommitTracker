@@ -6,7 +6,12 @@
       <div class="container">
         <h1 class="title">Contributions</h1>
 
-        <RepositorySelector label="Repositories" size="is-medium" v-model="repositories"/>
+        <RepositorySelector
+          label="Repositories"
+          size="is-medium"
+          :allowMultiple="false"
+          v-model="repositories"
+        />
 
         <b-field label="What?" grouped group-multiline>
           <b-field>
@@ -175,7 +180,7 @@
 export default {
   data() {
     return {
-      repositories: "chrome",
+      repositories: ["chrome"],
       what: "commit",
       grouping: "yearly",
       display: "average",

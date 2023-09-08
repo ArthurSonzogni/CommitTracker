@@ -32,7 +32,7 @@ import {treemap} from "d3-hierarchy";
 export default {
 
   props: {
-    repositories: { type:String, default: "chrome",},
+    repositories: { type:Array[String], default: ["chrome"],},
     path: {},
     field_color: {},
     field_size: {},
@@ -318,7 +318,7 @@ export default {
     },
 
     async fetchEntries() {
-      const response = await fetch(`/data/${this.repositories}/treemap/latest.json`);
+      const response = await fetch(`/data/${this.repositories[0]}/treemap/latest.json`);
       const data = await response.json();
 
       const propagate = entry => {

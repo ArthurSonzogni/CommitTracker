@@ -1,12 +1,23 @@
 <template>
-  <b-field :label="label">
-    <b-radio-button :size="size" name="repositories" :value="value" @input="update" native-value="chrome"> Chrome </b-radio-button>
-    <b-radio-button :size="size" name="repositories" :value="value" @input="update" native-value="v8"> V8 </b-radio-button>
-    <b-radio-button :size="size" name="repositories" :value="value" @input="update" native-value="skia"> Skia </b-radio-button>
-    <b-radio-button :size="size" name="repositories" :value="value" @input="update" native-value="angle"> Angle </b-radio-button>
-    <b-radio-button :size="size" name="repositories" :value="value" @input="update" native-value="dawn"> Dawn </b-radio-button>
-    <b-radio-button :size="size" name="repositories" :value="value" @input="update" native-value="webrtc"> WebRTC </b-radio-button>
-    <b-radio-button :size="size" name="repositories" :value="value" @input="update" native-value="pdfium"> PDFium</b-radio-button>
+  <b-field grouped>
+    <b-field :label="label">
+      <b-checkbox-button
+        name="repositories"
+        v-for="item in items"
+        :size="size"
+        :value="value"
+        @input="update(item.toLowerCase())"
+        :native-value="item.toLowerCase()">{{item}}</b-checkbox-button>
+    </b-field>
+
+    <b-checkbox
+      v-if="allowMultiple"
+      :size="size"
+      name="multiple"
+      v-model="multiple"
+      >
+      Multiple
+    </b-checkbox>
   </b-field>
 </template>
 
@@ -15,8 +26,14 @@
 export default {
   props: {
     value: {
-      type: String,
+      type: Array[String],
       required: true
+    },
+
+    allowMultiple: {
+      type: Boolean,
+      required: false,
+      default: false,
     },
 
     size: {
@@ -28,13 +45,41 @@ export default {
     label: {
       default: "",
       type: String,
-      required: true
+      required: false
     },
   },
 
+  data() {
+    return {
+      multiple: false,
+      items: [
+        "Chrome",
+        "V8",
+        "Skia",
+        "Angle",
+        "Dawn",
+        "WebRTC",
+        "PDFium",
+      ],
+    };
+  },
+
+
   methods: {
-    update(value) {
-      this.$emit('input', value);
+    update(item) {
+      if (this.multiple) {
+        const newValue = [...this.value];
+        const index = newValue.indexOf(item);
+        if (index === -1) {
+          newValue.push(item);
+        } else {
+          newValue.splice(index, 1);
+        }
+        console.log(newValue);
+        this.$emit('input', newValue.sort());
+      } else {
+        this.$emit('input', [item]);
+      }
     },
   }
 }

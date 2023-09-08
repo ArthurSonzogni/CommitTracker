@@ -172,7 +172,7 @@ export default {
       checkboxStates: ["author", "review"],
       hourlyParam: 0,
       wrappedBuckets: 100,
-      repositories: "chrome",
+      repositories: ["chrome"],
     };
   },
 

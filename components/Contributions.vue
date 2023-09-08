@@ -20,7 +20,7 @@ import {format} from "d3-format";
 
 export default {
   props: {
-    repositories: { type:String, default: "chrome",},
+    repositories: { type:Array[String], default: ["chrome"],},
     grouping: { type:String, default: "yearly"},
     what: {},
     display: {},
@@ -69,7 +69,7 @@ export default {
     },
 
     async refresh() {
-      const response = await fetch(`/data/${this.repositories}/users_info.json`);
+      const response = await fetch(`/data/${this.repositories[0]}/users_info.json`);
       const data = await response.json();
 
       let grouping = x => x;
