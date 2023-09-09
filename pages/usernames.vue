@@ -11,7 +11,7 @@
         <RepositorySelector
           v-model="repositories"
           size="medium"
-          :allowMultiple="false"
+          :allowMultiple="true"
         />
 
         <p>
@@ -50,8 +50,11 @@ export default {
   methods: {
     async refresh() {
 
-      const response = await fetch(`/data/${this.repositories[0]}/users.json`);
-      const data = await response.json();
+      const responses = await Promise.all(this.repositories.map(repo => 
+        fetch(`/data/${repo}/users.json`)
+      ))
+      const arrays = await Promise.all(responses.map(r => r.json()))
+      const data = [... new Set(arrays.flat())];
       this.sum = data.length;
       this.distribution = [];
       for(const developer of data) {
@@ -78,7 +81,13 @@ export default {
         right
           .transition()
           .duration(d => 450)
-          .textTween(d => t => interpolate(0,d)(t).toFixed(0));
+          .textTween((d, i, nodes) => {
+            const previous = select(nodes[i]).text();
+            const interpolator = interpolate(previous, d);
+            return t => {
+              return Math.round(interpolator(t));
+            }
+          });
       };
 
       select(this.$refs.histogram)

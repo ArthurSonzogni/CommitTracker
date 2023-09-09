@@ -75,7 +75,6 @@ export default {
         } else {
           newValue.splice(index, 1);
         }
-        console.log(newValue);
         this.$emit('input', newValue.sort());
       } else {
         this.$emit('input', [item]);
