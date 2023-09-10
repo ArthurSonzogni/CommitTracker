@@ -27,14 +27,8 @@ const processRepository = async (repository) => {
     const date_author = Object.keys(info.author).sort();
     const date_review = Object.keys(info.review).sort();
     const user_out = {
-      author: {
-        total: date_author.length,
-        by_date: group_by_date(date_author),
-      },
-      review: {
-        total: date_review.length,
-        by_date: group_by_date(date_review),
-      },
+      author: group_by_date(date_author),
+      review: group_by_date(date_review),
     }
 
     out[user] = user_out;

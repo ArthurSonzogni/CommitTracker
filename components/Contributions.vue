@@ -13,7 +13,7 @@
 
 import {select} from "d3-selection";
 import {interpolate} from "d3-interpolate";
-import {linear} from "d3-ease";
+import {easeCircleOut} from "d3-ease";
 import {easeBackOut} from "d3-ease";
 import {transition} from "d3-transition";
 import {format} from "d3-format";
@@ -68,208 +68,335 @@ export default {
       }
     },
 
-    async refresh() {
-      const response = await fetch(`/data/${this.repositories[0]}/users_info.json`);
-      const data = await response.json();
-
-      let grouping = x => x;
+    groupingFunction: function() {
       switch(this.grouping) {
         case "yearly":
-          grouping = x => x.substr(0,4);
-          break;
+          return x => x.substr(0,4);
+
         case "quarterly":
-          grouping = x => {
+          return x => {
             const year = x.substr(0,4)
             const month = x.substr(5,2);
             const quarter = Math.floor((month - 1) / 3) + 1;
             return `${year}Q${quarter}`;
           }
-          break;
+
         case "monthly":
-          grouping = x => x.substr(0,7);
-          break;
+          return x => x.substr(0,7);
       }
 
-      // Filter users with low activity.
-      for(const user in data) {
-        let total = 0;
-        for(const kind of ["author", "review"]) {
-          const by_date = data[user][kind].by_date;
-          for(const key in by_date) {
-            total += by_date[key];
+      return x => x;
+    },
+
+    traits: function() {
+      if (this.what == "contributors") {
+        return {
+          label: "Contributors",
+          formatter: format(",d"),
+          postfix: (year) => ' 🧍',
+          solidify: data => {
+            const acc = {};
+            for(const user in data) {
+              const by_date = data[user];
+              for(const year in by_date) {
+                by_date[year] = 1;
+              }
+              this.merge(acc, by_date);
+            }
+            return acc;
           }
         }
-        if (total <= 3) {
-          delete data[user];
-        }
       }
 
-      for(const user in data) {
-        for(const kind of ["author", "review"]) {
-          const old_data = data[user][kind].by_date
-          const new_data = {}
-          for(const key in old_data) {
-            const new_key = grouping(key);
-            new_data[new_key] |= 0;
-            new_data[new_key] += old_data[key]
+      if (this.what == "first_commit") {
+        return {
+          label: "First time contributor",
+          postfix: (year) => ' 🧍',
+          formatter: format(",d"),
+          solidify: data => {
+            const acc = {}
+            for(const user in data) {
+              const min_year = Object.keys(data[user]).sort()[0];
+              if (min_year) {
+                acc[min_year] ||= 0;
+                acc[min_year] ++
+              }
+            }
+            return acc;
           }
-          data[user][kind].by_date = new_data;
         }
       }
 
-      for(const user in data) {
-        let merged = {};
-        this.merge(merged, data[user].author.by_date);
-        this.merge(merged, data[user].review.by_date);
+      if (this.what == "last_commit") {
+        return {
+          label: "Last time contributor",
+          postfix: (year) => ' 🧍',
+          formatter: format(",d"),
+          solidify: data => {
+            const acc = {}
+            for(const user in data) {
+              const max_year = Object.keys(data[user]).sort().reverse()[0];
+              if (max_year) {
+                acc[max_year] ||= 0;
+                acc[max_year] ++
+              }
+            }
+            return acc;
+          }
+        }
+      }
 
-        data[user].both = {
-          total: data[user].author.total +
-                 data[user].review.total,
-          by_date: merged,
+      if (this.what == "commit") {
+        return {
+          label: "Commit",
+          postfix: (year) => ' ⚙️',
+          formatter: format(",d"),
+          solidify: data => {
+            const acc = {}
+            for(const user in data) {
+              this.merge(acc, data[user])
+            }
+            return acc;
+          }
+        }
+      }
+
+      if (this.what == "per_contributor") {
+        return this.traitsPerContributor()
+      }
+
+      console.log("reached unreacheable code");
+    },
+
+    traitsPerContributor() {
+      const contributionPerYear = (data, map) => {
+        const contributions = {}
+        for(const user in data) {
+          const by_date = data[user] || {};
+          for(const year in by_date) {
+            contributions[year] ||= [];
+            contributions[year].push(by_date[year]);
+          }
+        }
+        for (const year in contributions) {
+          contributions[year] = map(contributions[year]);
+        }
+        return contributions;
+      }
+
+      if (this.display == "average") {
+        return {
+          label: "Contribution",
+          formatter: format(".2f"),
+          postfix: (year) => ' ⚙️',
+          solidify: data => {
+            return contributionPerYear(data, c => {
+              return c.reduce((a,b) => a+b, 0) / c.length;
+            });
+          }
         };
       }
 
-      let formatter = format(",d");
-      let per_year = {};
-      let postfix = () => "";
+      if (this.display == "percentile") {
+        return {
+          label: "Contribution",
+          formatter: format(",d"),
+          postfix: (year) => ' ⚙️',
+          solidify: data => {
+            return contributionPerYear(data, c => {
+              return this.quantile(c, this.percentile / 100);
+            });
+          }
+        };
+      }
+
+      if (this.display == "individual") {
+        return {
+          label: "Contribution",
+          formatter: format(",d"),
+          postfix: (year) => ' ⚙️',
+          solidify: data => {
+            return contributionPerYear(data, c => {
+              return this.top(c, this.individual)
+            });
+          }
+        };
+      }
+
+      if (this.display == "someone") {
+        return {
+          label: "Contribution",
+          formatter: format(",d"),
+          postfix: (year) => ' ⚙️',
+          solidify: data => {
+            const acc = {};
+            for(const user of this.developers) {
+              for(const year in data[user]) {
+                acc[year] ||= 0;
+                acc[year] += data[user][year];
+              }
+            }
+            return acc;
+          }
+        };
+      }
+
+      if (this.display == "someone_rank") {
+        return {
+          label: "Rank",
+          formatter: format(",d"),
+          postfix: () => ' 🏆',
+          solidify: data => {
+            const contributions = contributionPerYear(data, x => x);
+
+            const contribution_users = {};
+            for(const user of this.developers) {
+              for(const year in data[user]) {
+                contribution_users[year] ||= 0;
+                contribution_users[year] += data[user][year];
+              }
+            }
+
+            const acc = {}
+            for(const year in contribution_users) {
+              acc[year] = contribution_users[year] == 0
+                ? 0
+                : this.rank(contributions[year], contribution_users[year]);
+            }
+            return acc;
+          }
+        };
+      }
+
+      if (this.display == "someone_rank_percent") {
+        return {
+          label: "Rank (%)",
+          formatter: format(".2f"),
+          postfix: () => ' % 🏆',
+          solidify: data => {
+            const contributions = contributionPerYear(data, x => x);
+
+            const contribution_users = {};
+            for(const user of this.developers) {
+              for(const year in data[user]) {
+                contribution_users[year] ||= 0;
+                contribution_users[year] += data[user][year];
+              }
+            }
+
+            const acc = {}
+            for(const year in contribution_users) {
+              acc[year] = contribution_users[year] == 0
+                ? 0
+                : 100 * this.rank(contributions[year], contribution_users[year])
+                      / contributions[year].length;
+            }
+            return acc;
+          }
+        };
+      }
+
+      console.log("reached unreacheable code");
+    },
+
+    async dataForRepository(repository) {
+      const response = await fetch(`/data/${repository}/users_info.json`);
+      const data = await response.json();
+
+      // Select author/review/both
       switch(this.what) {
-        case "contributors":
-          this.label = "Contributors";
-          postfix = (year) => ' 🧍';
-
-          for(const user in data) {
-            const by_date = data[user][this.kind]?.by_date || {};
-            for(const year in by_date) {
-              by_date[year] = 1;
-            }
-            this.merge(per_year, by_date);
-          }
-          break;
-
-        case "first_commit":
-          this.label = "First time contributor";
-          postfix = (year) => ' 🧍';
-
-          for(const user in data) {
-            const by_date = data[user][this.kind]?.by_date || {};
-            const min_year = Object.keys(by_date).sort()[0];
-            if (min_year) {
-              per_year[min_year] ||= 0;
-              per_year[min_year] ++
-            }
-          }
-          break;
-
-        case "last_commit":
-          this.label = "Last time contributor"
-          postfix = (year) => ' 🧍';
-          for(const user in data) {
-            const by_date = data[user][this.kind]?.by_date || {};
-            const max_year = Object.keys(by_date).sort().reverse()[0];
-            if (max_year) {
-              per_year[max_year] ||= 0;
-              per_year[max_year] ++
-            }
-          }
-          break;
-
         case "commit":
-          this.label = "Commit";
-          postfix = (year) => ' ⚙️';
-
           for(const user in data) {
-            const by_date = data[user].author.by_date || {};
-            this.merge(per_year, by_date)
-          }
-          break;
-
-        case "per_contributor":
-          this.label = "Contributions";
-          postfix = (year) => ' ⚙️';
-          for(const user in data) {
-            const by_date = data[user][this.kind]?.by_date || {};
-            for(const year in by_date) {
-              per_year[year] ||= [];
-              per_year[year].push(by_date[year]);
-            }
-          }
-
-          switch (this.display) {
-            case "average":
-              formatter = format(".2f");
-              for(const year in per_year) {
-                per_year[year] = per_year[year].reduce((a,b)=>a+b, 0) /
-                                 per_year[year].length;
-              }
-              break;
-
-            case "percentile":
-              for(const year in per_year) {
-                per_year[year] = this.quantile(per_year[year], this.percentile / 100);
-              }
-              break;
-
-            case "individual":
-              for(const year in per_year) {
-                per_year[year] = this.top(per_year[year], this.individual)
-              }
-              break;
-
-            case "someone":
-              for(const year in per_year) {
-                let sum = 0;
-                for(const user of this.developers) {
-                  if (data[user]) {
-                    sum += data[user][this.kind]?.by_date[year] || 0;
-                  }
-                }
-                per_year[year] = sum;
-              }
-              break;
-
-            case "someone_rank":
-              this.label = "rank"
-              postfix = () => ' 🏆';
-              for(const year in per_year) {
-                let sum = 0;
-                for(const user of this.developers) {
-                  if (this.kind == "author" || this.kind == "both") {
-                    sum += data[user]?.author.by_date[year] || 0;
-                  }
-                  if (this.kind == "review" || this.kind == "both") {
-                    sum += data[user]?.review.by_date[year] || 0;
-                  }
-                }
-                per_year[year] = sum == 0
-                  ? 0
-                  : this.rank(per_year[year], sum);
-              }
-              break;
-
-            case "someone_rank_percent":
-              this.label = "rank (%)"
-              formatter = format(",.2");
-              postfix = () => '% 🏆';
-              for(const year in per_year) {
-                let sum = 0;
-                for(const user of this.developers) {
-                  if (this.kind == "author" || this.kind == "both") {
-                    sum += data[user]?.author.by_date[year] || 0;
-                  }
-                  if (this.kind == "review" || this.kind == "both") {
-                    sum += data[user]?.review.by_date[year] || 0;
-                  }
-                }
-                per_year[year] = sum == 0
-                  ? 0
-                  : 100 * this.rank(per_year[year], sum) / per_year[year].length;
-              }
-              break;
+            data[user] = data[user].author;
           }
           break;
 
         default:
-          this.label = "unimplemented";
+          switch(this.kind) {
+            case "author":
+              for(const user in data) {
+                data[user] = data[user].author;
+              }
+              break;
+
+            case "review":
+              for(const user in data) {
+                data[user] = data[user].review;
+              }
+              break;
+
+            case "both":
+              for(const user in data) {
+                let merged = {};
+                this.merge(merged, data[user].author);
+                this.merge(merged, data[user].review);
+                data[user] = merged
+              }
+              break;
+          }
+      }
+
+      // Group dates togethers.
+      const group = this.groupingFunction();
+      for(const user in data) {
+        const old_data = data[user];
+        const new_data = {}
+        for(const key in old_data) {
+          const new_key = group(key);
+          new_data[new_key] |= 0;
+          new_data[new_key] += old_data[key]
+        }
+        data[user] = new_data;
+      }
+
+      return data;
+    },
+
+    async refresh() {
+      const traits = this.traits();
+      const formatter = traits.formatter;
+      const postfix = traits.postfix;
+
+      const data = {};
+      const summable = (
+        this.what == "commit" ||
+        (
+          this.what == "per_contributor" && this.display == "someone"
+        )
+      )
+      if (summable) {
+        const data_repositories = {}
+        for(const benoit of this.repositories) {
+          const d = traits.solidify(await this.dataForRepository(benoit));
+          data_repositories[benoit] = d;
+          for (const year in d) {
+            data[year] = []
+          }
+        }
+
+        for(const year in data) {
+          for(const arthur of this.repositories) {
+            data[year].push(data_repositories[arthur][year] || 0)
+          }
+        }
+      } else {
+        const data_users = {}
+        for(const repo of this.repositories) {
+          const data_repo = await this.dataForRepository(repo)
+          for(const user in data_repo) {
+            data_users[user] ||= {};
+            this.merge(data_users[user], data_repo[user])
+          }
+        }
+        const solidified = traits.solidify(data_users);
+        for(const year in solidified) {
+          data[year] = [solidified[year]];
+        }
+      }
+
+      const per_year = {}
+      for(const year in data) {
+        per_year[year] = data[year].reduce((a,b) => a+b, 0);
       }
 
       let max = 20;
@@ -282,7 +409,20 @@ export default {
           .transition()
           .duration(d => 450)
           .ease(easeBackOut)
-          .style("width", year => (70 * (per_year[year] || 0) / max) + "%")
+          .style("width", year => (70 * per_year[year] / max) + "%")
+      };
+
+      const updateBox = repository => {
+        repository
+          .transition()
+          .duration(d => 450)
+          .ease(easeCircleOut)
+          .style("flex-grow", d => d)
+          .style("background-color", (d, i) => {
+            return summable || this.repositories.length == 1
+              ? this.$color(this.repositories[i])
+              : "gray"
+          });
       };
 
       const updateRight = async right => {
@@ -290,11 +430,17 @@ export default {
           .transition()
           .duration(d => 350)
           .textTween(function(year) {
-            const previous = parseFloat(select(this).text());
-            const interpolator = interpolate(previous, per_year[year] || 0);
+            const previous = parseFloat(
+              select(this)
+              .text()
+              .replace(',', '')
+              .replace('.', '')
+            );
+            const interpolator = interpolate(previous, per_year[year]);
             return t => formatter(interpolator(t));
           })
       };
+
 
       select(this.$refs.histogram)
         .selectAll(".line")
@@ -303,14 +449,30 @@ export default {
           enter => {
             const div = enter.append("div");
             div.classed("line", true);
+            div
+              .style("filter", "blur(4px)")
+              .style("height", "0px")
+              .style("opacity", 0.3)
+              .style("transform", "translate(-32px, 0)")
+              .transition()
+              .duration((d,i) => 450 + 30*Math.sqrt(i))
+              .ease(easeBackOut)
+              .style("height", "24px")
+              .style("transform", "translate(0px, 0)")
+              .style("filter", "blur(0px)")
+              .transition()
+              .duration(d => 450)
+              .ease(easeBackOut)
+              .style("filter", "none")
+              .style("opacity", 1.0)
+              .style("filter", "none")
 
             const left = div.append("div")
             left.classed("left", true)
             left.text(year => year);
 
             const center = div.append("div")
-            center.classed("center", true)
-            center.style("width", 0)
+            center.classed("center", true);
             updateCenter(center);
 
             const right = div.append("div")
@@ -325,17 +487,58 @@ export default {
             return div;
           },
           update => {
-            const center = update.select(".center");
-            const right = update.select(".right")
-            const right_right = update.select(".right_right")
+            const center = update.select(".center")
             updateCenter(center);
+            const right = update.select(".right")
             updateRight(right);
+            const right_right = update.select(".right_right")
             right_right.text(d => postfix(d));
             return update;
           },
           exit => {
-            return exit.remove();
+            exit
+              .transition()
+              .duration((d,i) => 350)
+              .delay((d,i) => 500-30*Math.sqrt(i))
+              .ease(easeCircleOut)
+              .style("opacity", "0.2")
+              .style("filter", "blur(1px)")
+              .duration((d,i) => 200)
+              .delay((d,i) => 500-30*Math.sqrt(i))
+              .ease(easeCircleOut)
+              .style("filter", "blur(2px)")
+              .transition()
+              .duration((d,i) => 150)
+              .ease(easeCircleOut)
+              .style("transform", "translate(64px, 0)")
+              .style("height", "0px")
+              .style("opacity", "0")
+              .remove()
           }
+        )
+        .select(".center")
+        .selectAll(".repository")
+        .data(year => data[year], (d,i) => this.repositories[i])
+        .join(
+          enter => {
+            const repository = enter.append("div")
+            repository.classed("repository", true);
+            repository.style("flex-grow", 0);
+            updateBox(repository);
+            return repository;
+          },
+          update => {
+            updateBox(update);
+            return update;
+          },
+          exit => {
+            return exit
+              .transition()
+              .duration(d => 450)
+              .ease(easeCircleOut)
+              .style("flex-grow", 0)
+              .remove();
+          },
         )
     },
   },
@@ -361,21 +564,27 @@ export default {
 <style>
 .line {
   display:flex;
-  margin:1px;
+  justify-content: flex-start;
+  align-items:stretch;
+  gap:5px;
+  padding:1px;
+  overflow: hidden;
 }
 
 .left {
   text-align:right;
-  margin-right:10px;
   width:72px;
 }
 
 .center {
-  color: black;
-  background: rgba(0,128,255);
-  opacity: 0.2;
-  margin: 0px 10px 0px 0px;
+  display:flex;
+  justify-content: flex-start;
+  align-items:stretch;
+
   border-radius: 5px;
+  background: rgba(0,128,255);
+  overflow:hidden;
+  opacity:0.3;
 }
 
 </style>

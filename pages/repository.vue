@@ -6,10 +6,12 @@
       <div class="container">
         <h1 class="title">Contributions</h1>
 
+        <p>
+          <strong>Repositories?</strong>
+        </p>
         <RepositorySelector
-          label="Repositories"
-          size="is-medium"
-          :allowMultiple="false"
+          size="medium"
+          :allowMultiple="true"
           v-model="repositories"
         />
 
@@ -181,10 +183,10 @@ export default {
   data() {
     return {
       repositories: ["chrome"],
-      what: "commit",
+      what: "contributors",
       grouping: "yearly",
       display: "average",
-      kind: "both",
+      kind: "author",
       percentile: 0.7071,
       individual: 300,
       developers: [],

@@ -32,7 +32,7 @@
 
         <template #end>
             <b-navbar-item class="is-dark"
-                href="https://github.com/ArthurSonzogni/Chrome/">
+                href="https://github.com/ArthurSonzogni/ChromeCommitTracker">
                 source
             </b-navbar-item>
         </template>
