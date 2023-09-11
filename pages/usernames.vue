@@ -40,17 +40,27 @@ import {transition} from "d3-transition";
 
 export default {
   data() {
+    let repositories = ["chrome"];
+    if(this.$route.query.repositories) {
+      repositories = this.$route.query.repositories.split(",");
+    }
+
     return {
-      repositories: ["chrome"],
+      repositories,
       sum: 0,
-      distribution: [],
+      distribution: []
     }
   },
 
   methods: {
     async refresh() {
+      this.$router.push({
+        query: {
+          repositories: this.repositories.join(",")
+        }
+      });
 
-      const responses = await Promise.all(this.repositories.map(repo => 
+      const responses = await Promise.all(this.repositories.map(repo =>
         fetch(`/data/${repo}/users.json`)
       ))
       const arrays = await Promise.all(responses.map(r => r.json()))
@@ -158,6 +168,7 @@ export default {
 
   watch: {
     repositories: "refresh",
+
   }
 }
 

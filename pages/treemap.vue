@@ -93,36 +93,39 @@
 export default {
   data() {
     let field_color = ["DanglingUntriaged"];
+    if (this.$route.query.field_color) {
+      field_color = this.$route.query.field_color.split(",");
+    }
     let field_size = ["raw_ptr"];
-    let colormap_list = Object.keys(this.$getColormapList());
+    if (this.$route.query.field_size) {
+      field_size = this.$route.query.field_size.split(",");
+    }
     let colormap = "Turbo";
+    if (this.$route.query.colormap) {
+      colormap = this.$route.query.colormap;
+    }
     let path = [];
+    if (this.$route.query.path) {
+      path = this.$route.query.path.split(",");
+    }
     let colormapMin = 0.0;
+    if (this.$route.query.colormapMin) {
+      colormapMin = parseFloat(this.$route.query.colormapMin);
+    }
     let colormapMax = 1.0;
+    if (this.$route.query.colormapMax) {
+      colormapMax = parseFloat(this.$route.query.colormapMax);
+    }
     let repositories = ["chrome"];
-    try {
-      const url = new URL(window.location);
-      const search = new URLSearchParams(url.search)
-      const params = search.get("p")
-      const data = atob(params);
-      [
-        repositories,
-        path,
-        colormap,
-        field_color,
-        field_size,
-        colormapMin,
-        colormapMax
-      ] = JSON.parse(data);
-    } catch (e) {
-      console.log(e);
+    if (this.$route.query.repositories) {
+      repositories = this.$route.query.repositories.split(",");
     }
     return {
       repositories,
       path,
       field_color,
       field_size,
-      colormap_list,
+      colormap_list: Object.keys(this.$getColormapList()),
       colormap,
       colormapMin,
       colormapMax,
@@ -130,58 +133,28 @@ export default {
   },
 
   methods: {
-    popstate: function() {
-      try {
-        const url = new URL(window.location);
-        const search = new URLSearchParams(url.search);
-        console.log("popupState");
-        [
-          this.repositories,
-          this.path,
-          this.colormap,
-          this.field_color,
-          this.field_size,
-          this.colormapMin,
-          this.colormapMax,
-        ] = JSON.parse(atob(search.get("p")));
-        console.log("popupState (endc)");
-      } catch (e) {
-        console.log(e);
+    updateUrl() {
+      const query = {
+        repositories: this.repositories.join(","),
+        path: this.path.join(","),
+        field_color: this.field_color.join(","),
+        field_size: this.field_size.join(","),
+        colormap: this.colormap,
+        colormapMin: this.colormapMin,
+        colormapMax: this.colormapMax,
       }
-    },
-
-    pushState: function() {
-      const url = new URL(window.location);
-      const params = [
-          this.repositories,
-          this.path,
-          this.colormap,
-          this.field_color,
-          this.field_size,
-          this.colormapMin,
-          this.colormapMax
-      ];
-      const search = new URLSearchParams(url.search)
-      search.set("p", btoa(JSON.stringify(params)))
-      url.search = search.toString();
-      if (url.search != window.location.search) {
-        history.pushState({}, "", url)
-      }
+      this.$router.replace({query});
     },
   },
 
   watch: {
-    repositories: "pushState",
-    colormap: "pushState",
-    colormapMax: "pushState",
-    colormapMin: "pushState",
-    field_color: "pushState",
-    field_size: "pushState",
-    path: "pushState",
-  },
-
-  mounted: function() {
-    window.addEventListener('popstate', this.popstate)
+    repositories: "updateUrl",
+    colormap: "updateUrl",
+    colormapMax: "updateUrl",
+    colormapMin: "updateUrl",
+    field_color: "updateUrl",
+    field_size: "updateUrl",
+    path: "updateUrl",
   },
 }
 

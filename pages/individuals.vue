@@ -154,54 +154,81 @@
 
 export default {
   data() {
-    let developers = [];
-    try {
-      const url = new URL(window.location);
-      const search = new URLSearchParams(url.search)
-      developers = 
-          search
-            .get("developers")
-            .split("~")
-            .filter(x => x)
-    } catch (e) {}
+    let startDate =  new Date();
+    if (this.$route.query.startDate) {
+      startDate = new Date(this.$route.query.startDate);
+    }
+    let endDate =  new Date();
+    if (this.$route.query.endDate) {
+      endDate = new Date(this.$route.query.endDate);
+    }
+    let developers =  [];
+    if (this.$route.query.developers) {
+      developers = this.$route.query.developers.split(',');
+    }
+    let checkboxStates =  ["author", "review"];
+    if (this.$route.query.checkboxStates) {
+      checkboxStates = this.$route.query.checkboxStates.split(',');
+    }
+    let hourlyParam =  0;
+    if (this.$route.query.hourlyParam) {
+      hourlyParam = parseInt(this.$route.query.hourlyParam);
+    }
+    let wrappedBuckets =  100;
+    if (this.$route.query.wrappedBuckets) {
+      wrappedBuckets = parseInt(this.$route.query.wrappedBuckets);
+    }
+    let repositories =  ["chrome"];
+    if (this.$route.query.repositories) {
+      repositories = this.$route.query.repositories.split(',');
+    }
 
     return {
-      startDate: new Date(),
-      endDate: new Date(),
-      developers: developers,
-      checkboxStates: ["author", "review"],
-      hourlyParam: 0,
-      wrappedBuckets: 100,
-      repositories: ["chrome"],
+      startDate,
+      endDate,
+      developers,
+      checkboxStates,
+      hourlyParam,
+      wrappedBuckets,
+      repositories,
     };
   },
 
   methods: {
-    changeDate(first, end) {
+    changeDate(first, endDate) {
       this.startDate = first;
-      this.endDate = end;
+      this.endDate = endDate;
     },
 
-    pushState: function() {
-      const url = new URL(window.location);
-      const search = new URLSearchParams(url.search)
-      search.set("developers", this.developers.join('~'));
-      url.search = search.toString();
-      if (url.search != window.location.search) {
-        history.pushState({}, "", url)
-      }
+    updateUrl() {
+      const query = {
+        startDate: this.startDate.toISOString().split('T')[0],
+        endDate: this.endDate.toISOString().split('T')[0],
+        developers: this.developers.join(','),
+        checkboxStates: this.checkboxStates.join(','),
+        hourlyParam: this.hourlyParam,
+        wrappedBuckets: this.wrappedBuckets,
+        repositories: this.repositories.join(','),
+      };
+      this.$router.push({ query });
     },
   },
 
   watch: {
-    developers: "pushState",
+    startDate: "updateUrl",
+    endDate: "updateUrl",
+    developers: "updateUrl",
+    checkboxStates: "updateUrl",
+    hourlyParam: "updateUrl",
+    wrappedBuckets: "updateUrl",
+    repositories: "updateUrl",
   },
 };
 
 const updateHasScrolled = () => {
   const maxScroll = Math.max(
     document.body.scrollHeight,
-    document.body.offsetHeight, 
+    document.body.offsetHeight,
     document.documentElement.clientHeight,
     document.documentElement.scrollHeight,
     document.documentElement.offsetHeight

@@ -181,19 +181,79 @@
 
 export default {
   data() {
+    let repositories = ["chrome"];
+    if (this.$route.query.repositories) {
+      repositories = this.$route.query.repositories.split(",");
+    }
+    let what = "contributors";
+    if (this.$route.query.what) {
+      what = this.$route.query.what;
+    }
+    let grouping = "yearly";
+    if (this.$route.query.grouping) {
+      grouping = this.$route.query.grouping;
+    }
+    let display = "average";
+    if (this.$route.query.display) {
+      display = this.$route.query.display;
+    }
+    let kind = "author";
+    if (this.$route.query.kind) {
+      kind = this.$route.query.kind;
+    }
+    let percentile = 0.7071;
+    if (this.$route.query.percentile) {
+      percentile = this.$route.query.percentile;
+    }
+    let individual = 300;
+    if (this.$route.query.individual) {
+      individual = this.$route.query.individual;
+    }
+    let developers = [];
+    if (this.$route.query.developers) {
+      developers = this.$route.query.developers.split(",");
+    }
+
     return {
-      repositories: ["chrome"],
-      what: "contributors",
-      grouping: "yearly",
-      display: "average",
-      kind: "author",
-      percentile: 0.7071,
-      individual: 300,
-      developers: [],
+      repositories,
+      what,
+      grouping,
+      display,
+      kind,
+      percentile,
+      individual,
+      developers
+
     };
   },
 
+  watch: {
+    repositories: "updateUrl",
+    what: "updateUrl",
+    grouping: "updateUrl",
+    display: "updateUrl",
+    kind: "updateUrl",
+    percentile: "updateUrl",
+    individual: "updateUrl",
+    developers: "updateUrl",
+  },
+
   methods: {
+    updateUrl() {
+      this.$router.replace({
+        query: {
+          repositories: this.repositories.join(","),
+          what: this.what,
+          grouping: this.grouping,
+          display: this.display,
+          kind: this.kind,
+          percentile: this.percentile,
+          individual: this.individual,
+          developers: this.developers.join(","),
+        }
+      });
+    },
+
     sliderTransform(value) {
       return 100 * value * value;
     }
