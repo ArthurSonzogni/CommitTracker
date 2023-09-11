@@ -1,60 +1,56 @@
 import * as filesystem from "fs";
 const fs = filesystem.promises;
 
-const user_file = "../static/data/chrome/users.json";
-const user_dir = "../static/data/chrome/users";
+const repositories_file = "../static/data/repositories.json";
 
-const users = JSON.parse(await fs.readFile(user_file, "utf8"));
-const date_after = new Date("2022-01-01");
-const date_before = new Date("2023-01-01");
+const date_min = new Date("2000-01-01");
+const date_max = new Date("2024-01-01");
 
-const output = {};
-
-for(const user of users) {
-  if (output[user] === undefined) {
-    output[user] = {};
+async function Main() {
+  const repositories = JSON.parse(await fs.readFile(repositories_file, "utf8"));
+  const output = {};
+  for (const repository of repositories) {
+    await ProcessRepository(repository, output);
   }
-  const data = JSON.parse(await fs.readFile(`${user_dir}/${user}.json`, "utf8"));
-  for(const time in data.author) {
-    if (new Date(time) > date_after && new Date(time) < date_before) {
+
+  // Delete users with no reviewers
+  for(const user in output) {
+    if (Object.keys(output[user]).length === 0) {
+      delete output[user];
+    }
+  }
+
+  // Print it out for gephi:
+  console.log("Source,Target,Weight")
+  for(const user in output) {
+    for(const reviewer in output[user]) {
+      console.log(`${user},${reviewer},${output[user][reviewer]}`);
+    }
+  }
+}
+
+async function ProcessRepository(repository, output) {
+  const user_file = `../static/data/${repository.dirname}/users.json`;
+  const user_dir = `../static/data/${repository.dirname}/users`;
+  const users = JSON.parse(await fs.readFile(user_file, "utf8"));
+
+  for(const user of users) {
+    output[user] ||= {};
+
+    const json = await fs.readFile(`${user_dir}/${user}.json`, "utf8")
+    const data = JSON.parse(json)
+    for(const time in data.author) {
+
+      if (new Date(time) < date_min) continue;
+      if (new Date(time) > date_max) continue;
+
       for(const reviewer of data.author[time]) {
-        if (output[user][reviewer] === undefined) {
-          output[user][reviewer] = 0;
-        }
-        output[user][reviewer]++;
+        output[user][reviewer] ||= 0;
+        output[user][reviewer] ++;
       }
     }
   }
 }
 
-// Delete users with no reviewers
-for(const user in output) {
-  if (Object.keys(output[user]).length === 0) {
-    delete output[user];
-  }
-}
-
-// For every users, filter out the 5% of the commits from the least active
-// reviewers.
-for(const user in output) {
-  const reviewers = Object.entries(output[user]).sort((a, b) => b[1] - a[1]);
-  let sum = 0;
-  reviewers.forEach(([_, count]) => sum += count);
-  sum *= 0.95;
-  output[user] = reviewers.filter(([reviewer, count]) => {
-    sum -= count;
-    return sum > 0;
-  });
-}
-
-// Print it out for gephi:
-console.log("Source,Target")
-for(const user in output) {
-  for(const reviewer of output[user]) {
-    if (reviewer[1] > 2) {
-      for(let i = 0; i < reviewer[1]; i++) {
-        console.log(`${user},${reviewer[0]}`)
-      }
-    }
-  }
-}
+// Call the Main function to run the action
+Main();
