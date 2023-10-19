@@ -1,6 +1,15 @@
 name: cd
 
-on: [push, pull_request, workflow_dispatch]
+on: 
+  push:
+  pull_request:
+  workflow_dispatch:
+  workflow_run:
+    workflows: 
+      - "importer-commit-timeline"
+      - "importer-treemap"
+    types:
+      - completed
 
 jobs:
   cd:
