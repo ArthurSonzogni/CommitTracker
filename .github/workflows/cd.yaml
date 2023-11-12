@@ -26,6 +26,15 @@ jobs:
       - name: Install dependencies
         run: yarn
 
+      - name: Fetch community map SVGs
+        run: |
+          cd static/community-map
+          git clone --depth=1 -b community-map https://github.com/ArthurSonzogni/ChromeCommitTracker.git
+          cd ChromeCommitTracker
+          cp *.svg ..
+          cd ..
+          rm -rf ChromeCommitTracker
+
       - name: Generate
         run: yarn generate
 
