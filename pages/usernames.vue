@@ -12,6 +12,7 @@
           v-model="repositories"
           size="medium"
           :allowMultiple="true"
+          :allowAll="true"
         />
 
         <p>

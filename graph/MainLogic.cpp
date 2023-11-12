@@ -278,7 +278,7 @@ void MainLogic::Planarize() {
     std::normal_distribution<float> exploration(0.0, exploration_length);
 
     // Renormalize the positions to better fit the screen.
-    RenormalizePositions();
+    //RenormalizePositions();
 
     // Progressively cut weight when the distance to the neighbours it too big.
     {

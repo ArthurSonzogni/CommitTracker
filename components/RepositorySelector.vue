@@ -2,6 +2,16 @@
   <b-field grouped>
     <b-field :label="label">
       <b-checkbox-button
+        v-if="allowAll"
+        :size="size"
+        name="all"
+        v-model="all"
+        @input="updateAll()"
+        type="is-warning"
+        >
+        All
+      </b-checkbox-button>
+      <b-checkbox-button
         name="repositories"
         v-for="item in items"
         :size="size"
@@ -18,6 +28,7 @@
       >
       Multiple
     </b-checkbox>
+
   </b-field>
 </template>
 
@@ -31,6 +42,12 @@ export default {
     },
 
     allowMultiple: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+
+    allowAll: {
       type: Boolean,
       required: false,
       default: false,
@@ -50,23 +67,43 @@ export default {
   },
 
   data() {
+    const items = [
+      "Chrome",
+      "V8",
+      "Skia",
+      "Angle",
+      "Dawn",
+      "WebRTC",
+      "PDFium",
+    ];
+    const multiple = this.value.length > 1;
+    const all = !(items.length == this.value.length);
     return {
-      multiple: false,
-      items: [
-        "Chrome",
-        "V8",
-        "Skia",
-        "Angle",
-        "Dawn",
-        "WebRTC",
-        "PDFium",
-      ],
+      multiple,
+      all,
+      items,
     };
   },
 
 
   methods: {
+    updateAll() {
+      if (this.all) {
+        this.$emit('input', []);
+      } else {
+        this.multiple = true;
+        this.$emit('input', this.items.map(item => item.toLowerCase()));
+      }
+    },
     update(item) {
+      if (!this.all) {
+        this.all = true;
+        this.$emit('input', [item]);
+        return;
+      }
+
+      this.multiple &= this.allowMultiple;
+
       if (this.multiple) {
         const newValue = [...this.value];
         const index = newValue.indexOf(item);
@@ -76,9 +113,10 @@ export default {
           newValue.splice(index, 1);
         }
         this.$emit('input', newValue.sort());
-      } else {
-        this.$emit('input', [item]);
+        return;
       }
+
+      this.$emit('input', [item]);
     },
   }
 }

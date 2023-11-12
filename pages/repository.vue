@@ -10,11 +10,11 @@
           <strong>Repositories?</strong>
         </p>
         <RepositorySelector
+          v-model="repositories"
           size="medium"
           :allowMultiple="true"
-          v-model="repositories"
+          :allowAll="true"
         />
-
         <b-field label="What?" grouped group-multiline>
           <b-field>
             <b-radio-button
