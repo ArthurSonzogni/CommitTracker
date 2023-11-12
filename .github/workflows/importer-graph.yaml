@@ -1,0 +1,44 @@
+name: importer-graph
+
+on:
+  schedule:
+    - cron:  '0 0 * * 0' # every week
+  workflow_dispatch:
+
+jobs:
+  importer-commit-timeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install OpenMP
+        run: sudo apt-get install libomp-dev libomp5
+
+      - name: Configure the C++ project
+        uses: threeal/cmake-action@v1.3.0
+        with:
+          source-dir: graph
+          build-dir: graph/build
+          args: -DCMAKE_BUILD_TYPE:STRING=Release
+          run-build: true
+
+      - name: Build svg files
+        run: |
+          cd importer
+          npm install
+          npm run graph
+          cd ..
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./static/community-map/
+          publish_branch: community-map
