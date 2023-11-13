@@ -3,7 +3,7 @@
 #include <cmath>
 #include <glm/glm.hpp>
 
-DensityGrid::DensityGrid(int size) : grid_size_(10 * std::pow(size, 0.5)) {
+DensityGrid::DensityGrid(int size) : grid_size_(8 * std::pow(size, 0.7)) {
   // The density is progressively higher close to the [0,1] border to avoid
   // nodes to exit.
   for (int i = 0; i < grid_size_; ++i) {
@@ -15,7 +15,7 @@ DensityGrid::DensityGrid(int size) : grid_size_(10 * std::pow(size, 0.5)) {
       const float d = std::pow(1 - distance_x * distance_y, 2.0);
       const float dab = 20 * d - 19;
       const float dd = std::pow(std::max(0.f, dab), 40.0);
-      density_[i][j] = std::max(0.f, dd);
+      density_[i][j] = 100 * std::max(0.f, dd);
     }
   }
 

@@ -25,7 +25,7 @@ namespace {
 
 // Filter out users with invalid characters. Those characters might corrupt the
 // SVG document.
-bool FilterUser(const std::string& user) {
+bool FilterUserName(const std::string& user) {
   return std::any_of(user.begin(), user.end(), [](char c) {
     return c == '<' || c == '>' || c == ',' || c < 0;
   });
@@ -46,6 +46,7 @@ std::vector<glm::vec2> RandomPositions(size_t n) {
   return positions;
 }
 
+// The font-size of each users to display:
 std::vector<float> LabelSize(const std::vector<std::vector<Weight>>& weights) {
   std::vector<float> label_size;
   // The size of every label is the sum of the weights of the edges.
@@ -76,6 +77,7 @@ std::vector<float> LabelSize(const std::vector<std::vector<Weight>>& weights) {
   return label_size;
 }
 
+// The thickness of each edges to display:
 std::vector<std::vector<Weight>> EdgesThickness(
     const std::vector<std::vector<Weight>>& w) {
   std::vector<std::vector<Weight>> thickness = w;
@@ -99,6 +101,8 @@ std::vector<std::vector<Weight>> EdgesThickness(
   return thickness;
 }
 
+// How much the users repulse each other. The absolute value is not important,
+// but the relative values are.
 std::vector<float> UserRepulsions(
     const std::vector<std::vector<Weight>>& weights) {
   std::vector<float> user_repulsion;
@@ -202,7 +206,7 @@ int MainLogic::Main(const std::string& input, const std::string& output) {
     assert(row.size() == 3);
     const std::string& user1 = row[0];
     const std::string& user2 = row[1];
-    if (FilterUser(user1) || FilterUser(user2) || user1 == user2) {
+    if (FilterUserName(user1) || FilterUserName(user2) || user1 == user2) {
       return;
     }
 
@@ -227,7 +231,7 @@ int MainLogic::Main(const std::string& input, const std::string& output) {
   density = InitializeDensity(positions, user_repulsion);
 
   Planarize();
-  AdjustPositions();
+  //AdjustPositions();
   Render(density.get(), labels, positions, label_size, colors,
          EdgesThickness(weights_incoming), output);
 
@@ -239,7 +243,7 @@ void MainLogic::Planarize() {
   // reproducible.
   std::mt19937 generator(42);
 
-  const int max_iteration = 300;
+  const int max_iteration = 100;
   for (int iteration = 0; iteration < max_iteration; ++iteration) {
     const float time_step = 1.0f / float(max_iteration);
     const float time = (iteration + 1) / float(max_iteration);
@@ -270,9 +274,9 @@ void MainLogic::Planarize() {
         time);
 
     const float attractiveness = params.y;
+    const float typical_distance = 15.0 / std::pow(labels.size(), 0.5);
     const float exploration_length =
-        std::min<float>(0.5f, 20.f * params.z / std::pow(labels.size(), 0.45));
-    // std::min<float>(0.5f, 100.f * params.z / std::pow(labels.size(), 0.5));
+        std::min<float>(0.5f, params.z * 10.0 * typical_distance);
     const float weight_decay = params.w * 0.5f;
 
     std::normal_distribution<float> exploration(0.0, exploration_length);
