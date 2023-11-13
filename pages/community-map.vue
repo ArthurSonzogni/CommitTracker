@@ -8,15 +8,21 @@
         size="small"
         :allowMultiple="false"
         :allowAll="true"
-      />
+        />
 
       <TimeRangeSelector
         v-model="time"
         size="small"
-      />
+        />
 
       <b-field grouped>
         <b-field grouped>
+          <b-button
+            label="Readme"
+            @click="displayReadme = !displayReadme"
+            type="is-warning"
+            />
+          </b-button>
           <b-button @click="view" type="is-info"> View</b-button>
           <b-button @click="download" type="is-info is-light"> Download </b-button>
         </b-field>
@@ -34,10 +40,59 @@
       </b-field>
     </section>
 
+    <section class="section">
+      <div class="container">
+        <b-message
+          title="Readme"
+          v-model="displayReadme"
+          aria-close-label="Close message"
+          >
+          <div class="content">
+            <ul>
+              <li>
+                Data is refreshed <strong>weekly</strong>, and
+                <strong>automatically</strong>. See <a
+                  href="https://github.com/ArthurSonzogni/ChromeCommitTracker/actions/workflows/importer-graph.yaml">Job</a>
+              </li>
+              <li>
+                <strong>Label height</strong> is proportional to the number
+                contributions square root (author + review). The goal is to make
+                the surface used to draw one characters proportional to the
+                number of commits.
+              </li>
+              <li>
+                <strong>Edge thickness</strong> is proportional to the number
+                of commit flowing from one author to a reviewer. We ignore long
+                distance edges with a low number of commit. To be precise, there
+                is a "commit" / "length" threshold. The "real" graph is extremly
+                dense and difficult to interpret.
+              </li>
+              <li>
+                <strong>Edge orientation</strong> helps understanding who is the
+                author and who is the reviewer. The edge turn left when going
+                from the author to the reviewer.
+              </li>
+              <li>
+                <strong>Colors</strong> represent different communities who
+                strongly interact together, and do not outside Often, the number
+                of communities is high when considering small range of time
+                (small project), and low when considering large range of time
+                (large product). We are using the
+                <a href="https://en.wikipedia.org/wiki/Louvain_method">
+                Louvain algorithm
+                </a>.
+              <li>
+                <strong>Code reviews before 2017 are not included.</strong>,
+                the data wasn't part of the commit description before.
+              </li>
+            </ul>
+          </div>
+        </b-message>
+      </div>
+    </section>
+
     <div class="zoomable">
-      <svg>
-        <text x="0" y="15" fill="red">I love SVG!</text>
-      </svg>
+      <svg></svg>
     </div>
   </div>
 </template>
@@ -49,7 +104,7 @@ export default {
     if (this.$route.query.repositories) {
       repositories = this.$route.query.repositories.split(",");
     }
-    let time = ["1y"];
+    let time = ["forever"];
     if (this.$route.query.time) {
       time = this.$route.query.time.split(",");
     }
@@ -61,11 +116,8 @@ export default {
       repositories,
       time,
       zoom,
+      displayReadme: false,
     }
-  },
-
-  mounted() {
-    this.updateUrl();
   },
 
   computed: {
@@ -79,6 +131,10 @@ export default {
     objectSrc() {
       return "/community-map/" + this.dataset;
     }
+  },
+
+  mounted() {
+    this.updateUrl();
   },
 
   methods: {
@@ -123,7 +179,6 @@ export default {
     time: "updateUrl",
     zoom: "updateUrl",
     repositories: "updateUrl",
-    zoom: "updateZoom",
   },
 
 }
@@ -172,7 +227,7 @@ svg {
 }
 
 html {
-scroll-behavior: smooth;
+  scroll-behavior: smooth;
 }
 
 .zoom {

@@ -165,15 +165,38 @@
 
     <section class="section">
       <div class="container">
-        <p class="update_info">
-          Fixme: Review prior to 2017 are ignored.
-        </p>
-        <p class="update_info">
-          The data are updated weekly, automatically.
-        </p>
+        <b-message
+          title="Readme"
+          v-model="displayReadme"
+          aria-close-label="Close message"
+          >
+          <div class="content">
+            <ul>
+              <li>
+              Data are refreshed <strong>weekly</strong>, and
+              <strong>automatically</strong>. See <a
+                href="https://github.com/ArthurSonzogni/ChromeCommitTracker/actions/workflows/importer-commit-timeline.yaml">Jobs</a>
+            </li>
+            <li>
+              Chrome's <strong>reviewers data before 2017 are missing</strong>.
+              This informations wasn't part of the commit description before.
+            </li>
+            <li>
+              <strong>Leaving contributors:</strong>: Every contributor increase
+              the bucket representing their last commit.
+              This is normal to see a huge increase in the last bucket, or in
+              the second to last.
+            </li>
+            <li>
+              <strong>New Contributors:</strong> Every contributor increase the
+              bucket representing their first commit. This is normal to see a
+              relative small number at the end, as the year is not completed yet.
+              </li>
+            </ul>
+          </div>
+        </b-message>
       </div>
     </section>
-
   </div>
 </template>
 
@@ -222,8 +245,8 @@ export default {
       kind,
       percentile,
       individual,
-      developers
-
+      developers,
+      displayReadme: true,
     };
   },
 

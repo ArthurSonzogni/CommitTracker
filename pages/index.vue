@@ -13,8 +13,9 @@
       </div>
     </section>
     <Navbar/>
-    <StatsDemo/>
     <CommunityMapDemo/>
+    <StatsDemo/>
+    <RepositoryDemo/>
     <TreemapDemo/>
   </div>
 </template>

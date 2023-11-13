@@ -3,7 +3,7 @@
     <div class="container">
       <h1 class="title">
         <NuxtLink to="/treemap">
-        Treemap
+        4. Treemap
         </NuxtLink>
       </h1>
 

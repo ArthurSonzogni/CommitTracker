@@ -2,21 +2,23 @@
   <section class="section">
     <div class="container">
       <h1 class="title">
-        <NuxtLink to="/stats">
-        Stats
+        <NuxtLink to="/individuals">
+        2. Individual statistics
         </NuxtLink>
       </h1>
 
       <div class="columns">
         <div class="column is-5 content">
           <p>
-            You can filter by developer, authors, reviewers and date.
             It shows instantaneously:
             <ul>
               <li>The evolution of commits authored/reviewed over time.</li>
               <li>The evolution during the day/week/month/year.</li>
               <li>The list of peers</li>
             </ul>
+            <br/>
+            You can dynamically filter by developer, authors, reviewers and
+            date.
           </p>
 
           <TimelineWrappedChart

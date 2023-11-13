@@ -3,7 +3,7 @@
     <div class="container">
       <h1 class="title">
         <NuxtLink to="/community-map">
-          Community map
+          1. Community map
         </NuxtLink>
       </h1>
 
@@ -15,11 +15,9 @@
         </div>
         <div class="column is-4 content">
           <p>
-            (Work in progress)
-          </p>
-          <p>
-            A very large graphs of developers's interactions. Find out what are
-            the differents clusters.
+            A data visualization of the interactions between developers. Find
+            out what are the differents communities, and how they evolved over
+            the years.
           </p>
         </div>
       </div>
