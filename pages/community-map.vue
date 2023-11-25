@@ -40,7 +40,7 @@
       </b-field>
     </section>
 
-    <section class="section">
+    <section class="section" v-if="displayReadme">
       <div class="container">
         <b-message
           title="Readme"
@@ -79,12 +79,12 @@
                 (small project), and low when considering large range of time
                 (large product). We are using the
                 <a href="https://en.wikipedia.org/wiki/Louvain_method">
-                Louvain algorithm
+                  Louvain algorithm
                 </a>.
-              <li>
-                <strong>Code reviews before 2017 are not included.</strong>,
-                the data wasn't part of the commit description before.
-              </li>
+                <li>
+                  <strong>Code reviews before 2017 are not included.</strong>,
+                  the data wasn't part of the commit description before.
+                </li>
             </ul>
           </div>
         </b-message>
@@ -164,14 +164,16 @@ export default {
       if (!svg) {
         return;
       }
-      svg.setAttribute("preserveAspectRatio", "xMinYMin meet");
       document.querySelector("svg").replaceWith(svg);
+      svg.setAttribute("preserveAspectRatio", "xMinYMin meet");
+      svg.setAttribute("margin", "auto")
       this.updateZoom();
     },
 
     updateZoom() {
       const svg = document.querySelector("svg");
-      svg.setAttribute("width", this.zoom * 90 + "vw");
+      svg.setAttribute("width", this.zoom * 95 + "vw");
+      svg.setAttribute("height", this.zoom * 95 * 0.5 + "vw");
     }
   },
 
