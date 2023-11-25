@@ -231,7 +231,7 @@ int MainLogic::Main(const std::string& input, const std::string& output) {
   density = InitializeDensity(positions, user_repulsion);
 
   Planarize();
-  //AdjustPositions();
+  AdjustPositions();
   Render(density.get(), labels, positions, label_size, colors,
          EdgesThickness(weights_incoming), output);
 
@@ -253,10 +253,10 @@ void MainLogic::Planarize() {
     const auto params = Interpolate(
         {
             // Initial contractions
-            {0.0f, 1.0f, 0.000f, 0.01f},
-            {0.1f, 1.0f, 0.1f, 0.1f},
-            {0.1f, 0.99f, 0.005f, 0.4f},
-            {0.2f, 0.05f, 0.005f, 0.4f},
+            {0.0f, 1.0f, 0.000f, 0.00f},
+            {0.1f, 1.0f, 0.1f, 0.0f},
+            {0.1f, 0.99f, 0.005f, 0.0f},
+            {0.2f, 0.05f, 0.005f, 0.0f},
 
             // Alternate phase of contractions and expansions.
             {0.3f, 0.99f, 0.005f, 0.5f},
@@ -267,9 +267,9 @@ void MainLogic::Planarize() {
             {0.8f, 0.05f, 0.01f, 0.9f},
 
             // Finalize
-            {0.8f, 0.30f, 0.01f, 4.0f},
-            {0.9f, 1.0f, 0.001f, 4.0f},
-            {1.0f, 0.0f, 0.01f, 4.0f},
+            {0.8f, 0.30f, 0.003f, 4.0f},
+            {0.9f, 1.00f, 0.003f, 4.0f},
+            {1.0f, 0.10f, 0.005f, 4.0f},
         },
         time);
 

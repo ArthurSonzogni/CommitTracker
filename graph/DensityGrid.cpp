@@ -22,8 +22,8 @@ DensityGrid::DensityGrid(int size) : grid_size_(8 * std::pow(size, 0.7)) {
   // Pattern is a pyramid.
   for (int i = 0; i < radius_ * 2 + 1; ++i) {
     for (int j = 0; j < radius_ * 2 + 1; ++j) {
-      pattern_[i][j] = std::pow(1 - std::abs(i - radius_) / float(radius_), 2) *
-                       std::pow(1 - std::abs(j - radius_) / float(radius_), 2);
+      pattern_[i][j] = std::pow(1 - std::abs(i - radius_) / float(radius_), 1.5) *
+                       std::pow(1 - std::abs(j - radius_) / float(radius_), 1.5);
     }
   }
 }

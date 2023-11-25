@@ -16,7 +16,7 @@ class DensityGrid {
 
  private:
   const int grid_size_;
-  const int radius_ = grid_size_ / 10;
+  const int radius_ = std::pow(grid_size_, 0.9) / 5;
 
   using Line = std::vector<float>;
   using Grid = std::vector<Line>;

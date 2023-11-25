@@ -69,9 +69,8 @@ void Render(DensityGrid* density_grid,
       const float typical_distance = 15.0 / std::pow(labels.size(), 0.5);
       const float malus =
           1.0 / (1.0 + std::pow(distance / typical_distance, 3));
-      // thickness *= malus;
 
-      if (thickness * malus < 0.0001) {
+      if (thickness * malus < 0.00013) {
         continue;
       }
 
@@ -81,7 +80,7 @@ void Render(DensityGrid* density_grid,
       output << fmt::format(
                     R"(<path )"
                     R"(d="M{:.3f} {:.3f} Q{:.3f} {:.3f} {:.3f} {:.3f}" )"
-                    R"_(stroke="hsl({:.1f},100%,45%)" )_"
+                    R"_(stroke="hsl({:.1f},100%,35%)" )_"
                     R"(stroke-width="{:.5f}")"
                     R"(></path>)",
                     2.0 * start.x, start.y,    //
