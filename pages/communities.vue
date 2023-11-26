@@ -117,6 +117,7 @@ export default {
       time,
       zoom,
       displayReadme: false,
+      cachedObjectSrc: null,
     }
   },
 
@@ -134,7 +135,7 @@ export default {
   },
 
   mounted() {
-    this.updateUrl();
+    this.updateSVG();
   },
 
   methods: {
@@ -147,15 +148,12 @@ export default {
       a.download = this.dataset;
       a.click();
     },
-    async updateUrl() {
-      this.$router.push({
-        query: {
-          time: this.time.join(","),
-          zoom: this.zoom,
-          repositories: this.repositories.join(","),
-        }
-      });
 
+    async fetchSVG() {
+      if (this.objectSrc == this.cachedObjectSrc) {
+        return;
+      }
+      this.cachedObjectSrc = this.objectSrc;
       const response = await fetch(this.objectSrc)
       const text = await response.text();
       const parser = new DOMParser();
@@ -165,15 +163,30 @@ export default {
         return;
       }
       document.querySelector("svg").replaceWith(svg);
-      svg.setAttribute("preserveAspectRatio", "xMinYMin meet");
-      svg.setAttribute("margin", "auto")
+    },
+
+    updateUrl() {
+      this.$router.replace({
+        query: {
+          time: this.time.join(","),
+          zoom: this.zoom,
+          repositories: this.repositories.join(","),
+        }
+      });
+      this.updateSVG();
+    },
+
+    async updateSVG() {
+      await this.fetchSVG();
       this.updateZoom();
     },
 
     updateZoom() {
       const svg = document.querySelector("svg");
+      svg.setAttribute("preserveAspectRatio", "xMinYMin meet");
+      svg.setAttribute("margin", "auto")
+      svg.setAttribute("aspect-ratio", "2")
       svg.setAttribute("width", this.zoom * 95 + "vw");
-      svg.setAttribute("height", this.zoom * 95 * 0.5 + "vw");
     }
   },
 
@@ -190,7 +203,7 @@ export default {
 <style scope>
 
 svg {
-  transition: width 0.5s, height 0.5s;
+  transition: width 0.5s ease-in-out,
 }
 
 .fullscreenFlexbox {

@@ -54,7 +54,7 @@ export default {
     },
 
     filteredData() {
-      
+
       const developers = this.data.map(d => d.developer);
 
       // Filter:
@@ -151,7 +151,8 @@ export default {
         this.svgWidth = this.$refs.container.clientWidth;
         this.svgWidth = Math.min(this.svgWidth, 800);
         this.svgWidth = Math.min(this.svgWidth, window.innerWidth * 0.8);
-        this.svgWidth = Math.min(this.svgWidth, window.innerHeight * 0.8);
+        this.svgWidth = Math.min(this.svgWidth,
+          Math.max(0, (window.innerHeight - 300) * 0.9));
         this.svgHeight = this.svgWidth;
       } catch (e) {
         console.log(e);
@@ -248,7 +249,7 @@ export default {
               });
           },
           exit => {
-            return exit 
+            return exit
               .transition()
               .duration(1000)
               .attr("opacity", 0)
@@ -265,7 +266,7 @@ export default {
                 next.padAngle = previous.padAngle;
                 return ArcInterpolator(previous, next);
               })
-              .remove(); 
+              .remove();
           }
         )
 

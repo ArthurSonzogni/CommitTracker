@@ -1,14 +1,14 @@
 <template>
   <div>
     <section class="hero is-primary">
-      <div class="container">
-        <div class="hero-body">
-          <p class="title">
+      <div class="hero-body">
+        <div class="container">
+          <h1 class="title">
             ChromeCommitTracker
-          </p>
-          <p class="subtitle">
+          </h1>
+          <h2 class="subtitle">
             By @arthursonzogni
-          </p>
+          </h2>
         </div>
       </div>
     </section>

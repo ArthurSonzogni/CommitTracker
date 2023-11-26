@@ -129,6 +129,9 @@ export default {
     initialize() {
       try {
         this.svgWidth = this.$refs.container.clientWidth;
+        // this.svgWidth = Math.min(this.svgWidth, window.innerWidth * 0.8);
+        this.svgWidth = Math.min(this.svgWidth,
+          Math.max(0, 2.0 * (window.innerHeight - 300)));
         this.svgHeight = this.svgWidth * 0.5;
       } catch (e) {
         console.log(e);
@@ -233,7 +236,7 @@ export default {
               update => update
               .attr("transform", d => `translate(${x(d.time)}, ${y(d.patch)})`)
               .select("text")
-              .text(d => d.patch), 
+              .text(d => d.patch),
               exit => exit
               .attr("opacity", 1)
               .transition()

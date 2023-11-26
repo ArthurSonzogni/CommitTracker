@@ -23,7 +23,7 @@ const now = new Date();
 
 export default {
   props: {
-    repositories: { type:Array[String], default: ["chrome"],},
+    repositories: { type:Array[String], default: () => ["chrome"],},
     developers: { type: Array },
     startDate: { type: Date },
     endDate: { type: Date },
@@ -201,7 +201,7 @@ export default {
             updateGroup(group);
 
             const peer = group.append("text");
-            peer 
+            peer
               .attr("class", "peer")
               .text(d => d.peer)
               .attr("text-anchor", "end")

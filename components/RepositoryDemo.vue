@@ -2,8 +2,8 @@
   <section class="section">
     <div class="container">
       <h1 class="title">
-        <NuxtLink to="/repository">
-        3. Repository statistics
+        <NuxtLink to="/repositories">
+        3. Repositories statistics
         </NuxtLink>
       </h1>
 

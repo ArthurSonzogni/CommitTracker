@@ -2,14 +2,14 @@
   <section class="section">
     <div class="container">
       <h1 class="title">
-        <NuxtLink to="/community-map">
-          1. Community map
+        <NuxtLink to="/communities">
+          1. Community graph
         </NuxtLink>
       </h1>
 
       <div class="columns">
         <div class="column is-8 content">
-          <NuxtLink to="/community-map">
+          <NuxtLink to="/communities">
             <img src="/community-map/illustration.jpg"/>
           </NuxtLink>
         </div>

@@ -28,6 +28,7 @@ export default {
     percentile: {},
     individual: {},
     developers: {},
+    min_contributions: { type:Number, default: 0},
   },
 
   data() {
@@ -352,6 +353,19 @@ export default {
       return data;
     },
 
+    removeMinCommit(data) {
+      for(const user in data) {
+        let sum = 0;
+        for(const year in data[user]) {
+          sum += data[user][year];
+        }
+        if (sum < this.min_contributions) {
+          delete data[user];
+        }
+      }
+      return data;
+    },
+
     async refresh() {
       const traits = this.traits();
       const formatter = traits.formatter;
@@ -366,9 +380,13 @@ export default {
       )
       if (summable) {
         const data_repositories = {}
-        for(const benoit of this.repositories) {
-          const d = traits.solidify(await this.dataForRepository(benoit));
-          data_repositories[benoit] = d;
+        for(const repo of this.repositories) {
+          const d = traits.solidify(
+            this.removeMinCommit(
+              await this.dataForRepository(repo)
+            )
+          );
+          data_repositories[repo] = d;
           for (const year in d) {
             data[year] = []
           }
@@ -388,7 +406,7 @@ export default {
             this.merge(data_users[user], data_repo[user])
           }
         }
-        const solidified = traits.solidify(data_users);
+        const solidified = traits.solidify(this.removeMinCommit(data_users));
         for(const year in solidified) {
           data[year] = [solidified[year]];
         }
@@ -434,9 +452,11 @@ export default {
               select(this)
               .text()
               .replace(',', '')
-              .replace('.', '')
             );
-            const interpolator = interpolate(previous, per_year[year]);
+            const interpolator = interpolate(
+              previous,
+              per_year[year]
+            );
             return t => formatter(interpolator(t));
           })
       };
@@ -552,6 +572,7 @@ export default {
     percentile: "refresh",
     individual: "refresh",
     developers: "refresh",
+    min_contributions: "refresh",
   },
 
   mounted() {
