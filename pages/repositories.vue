@@ -145,13 +145,8 @@
             </b-radio-button>
           </b-field>
 
-          <b-field label="Min total contributions:"
-            v-if="what != 'per_contributor' || (
-              display != 'someone' &&
-              display != 'someone_rank' &&
-              display != 'someone_rank_percent'
-            )"
-          >
+          <b-field label="Developer min total contributions:"
+                   v-if="min_contributions_enabled" >
             <b-numberinput
               v-model="min_contributions"
               controls-position="compact"
@@ -168,44 +163,51 @@
           :display="display"
           :kind="kind"
           :developers="developers"
-          :min_contributions="parseInt(min_contributions)"
+          :min_contributions="min_contributions_enabled ? min_contributions : 0"
           />
       </div>
     </section>
 
     <section class="section">
-      <div class="container">
-        <b-message
-          title="Readme"
-          v-model="displayReadme"
-          aria-close-label="Close message"
-          >
-          <div class="content">
-            <ul>
-              <li>
-                Data are refreshed <strong>weekly</strong>, and
-                <strong>automatically</strong>. See <a
-                  href="https://github.com/ArthurSonzogni/ChromeCommitTracker/actions/workflows/importer-commit-timeline.yaml">Jobs</a>
-              </li>
-              <li>
-                Chrome's <strong>reviewers data before 2017 are missing</strong>.
-                This informations wasn't part of the commit description before.
-              </li>
-              <li>
-                <strong>Leaving contributors:</strong>: Every contributor increase
-                the bucket representing their last commit.
-                This is normal to see a huge increase in the last bucket, or in
-                the second to last.
-              </li>
-              <li>
-                <strong>New Contributors:</strong> Every contributor increase the
-                bucket representing their first commit. This is normal to see a
-                relative small number at the end, as the year is not completed yet.
-              </li>
-            </ul>
-          </div>
-        </b-message>
-      </div>
+      <b-field
+        <b-button
+          v-if="!displayReadme"
+          label="Readme"
+          @click="displayReadme = true"
+          type="is-warning"
+          />
+        </b-button>
+      </b-field>
+      <b-message
+        title="Readme"
+        v-model="displayReadme"
+        aria-close-label="Close message"
+        >
+        <div class="content">
+          <ul>
+            <li>
+              Data are refreshed <strong>weekly</strong>, and
+              <strong>automatically</strong>. See <a
+                href="https://github.com/ArthurSonzogni/ChromeCommitTracker/actions/workflows/importer-commit-timeline.yaml">Jobs</a>
+            </li>
+            <li>
+              Chrome's <strong>reviewers data before 2017 are missing</strong>.
+              This informations wasn't part of the commit description before.
+            </li>
+            <li>
+              <strong>Leaving contributors:</strong>: Every contributor increase
+              the bucket representing their last commit.
+              This is normal to see a huge increase in the last bucket, or in
+              the second to last.
+            </li>
+            <li>
+              <strong>New Contributors:</strong> Every contributor increase the
+              bucket representing their first commit. This is normal to see a
+              relative small number at the end, as the year is not completed yet.
+            </li>
+          </ul>
+        </div>
+      </b-message>
     </section>
   </div>
 </template>
@@ -261,7 +263,7 @@ export default {
       individual,
       developers,
       min_contributions,
-      displayReadme: true,
+      displayReadme: false,
     };
   },
 
@@ -314,6 +316,13 @@ export default {
         this.kind === "review_individual" ||
         this.kind === "both_individual"
       );
+    },
+    min_contributions_enabled: function() {
+      return this.what != 'per_contributor' || (
+        this.display != 'someone' &&
+        this.display != 'someone_rank' &&
+        this.display != 'someone_rank_percent'
+      )
     }
   }
 }

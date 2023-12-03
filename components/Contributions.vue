@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="line">
-      <div class="left"><strong>Year</strong></div>
+      <div class="left"><strong>{{timeLabel}}</strong></div>
       <div class="right"><strong># {{label}}</strong></div>
     </div>
     <div ref="histogram"></div>
@@ -38,6 +38,19 @@ export default {
   },
 
   methods: {
+    sortRepositories: function(a,b) {
+      const items = [
+        "chrome",
+        "v8",
+        "skia",
+        "angle",
+        "dawn",
+        "webrtc",
+        "pdfium",
+      ];
+      return items.indexOf(a.repo) - items.indexOf(b.repo);
+    },
+
     quantile: function(arr, q) {
       const sorted = arr.sort((a,b) => (b - a))
       const pos = (sorted.length - 1) * q;
@@ -368,9 +381,10 @@ export default {
 
     async refresh() {
       const traits = this.traits();
+      this.label = traits.label;
+
       const formatter = traits.formatter;
       const postfix = traits.postfix;
-
       const data = {};
       const summable = (
         this.what == "commit" ||
@@ -379,22 +393,18 @@ export default {
         )
       )
       if (summable) {
-        const data_repositories = {}
         for(const repo of this.repositories) {
           const d = traits.solidify(
             this.removeMinCommit(
               await this.dataForRepository(repo)
             )
           );
-          data_repositories[repo] = d;
           for (const year in d) {
-            data[year] = []
-          }
-        }
-
-        for(const year in data) {
-          for(const arthur of this.repositories) {
-            data[year].push(data_repositories[arthur][year] || 0)
+            data[year] ||= [];
+            data[year].push({
+              repo: repo,
+              value: d[year],
+            })
           }
         }
       } else {
@@ -408,13 +418,19 @@ export default {
         }
         const solidified = traits.solidify(this.removeMinCommit(data_users));
         for(const year in solidified) {
-          data[year] = [solidified[year]];
+          data[year] = [{
+            repo: "solidified",
+            value: solidified[year],
+          }]
         }
       }
 
       const per_year = {}
       for(const year in data) {
-        per_year[year] = data[year].reduce((a,b) => a+b, 0);
+        per_year[year] = 0;
+        for(const d in data[year]) {
+          per_year[year] += data[year][d].value;
+        }
       }
 
       let max = 20;
@@ -433,12 +449,12 @@ export default {
       const updateBox = repository => {
         repository
           .transition()
-          .duration(d => 450)
+          .duration(450)
           .ease(easeCircleOut)
-          .style("flex-grow", d => d)
-          .style("background-color", (d, i) => {
+          .style("flex-grow", d => d.value)
+          .style("background-color", d => {
             return summable || this.repositories.length == 1
-              ? this.$color(this.repositories[i])
+              ? this.$color(d.repo)
               : "gray"
           });
       };
@@ -538,7 +554,7 @@ export default {
         )
         .select(".center")
         .selectAll(".repository")
-        .data(year => data[year], (d,i) => this.repositories[i])
+        .data(year => data[year].sort(this.sortRepositories), d => d.repo)
         .join(
           enter => {
             const repository = enter.append("div")
@@ -554,13 +570,23 @@ export default {
           exit => {
             return exit
               .transition()
-              .duration(d => 450)
+              .duration(450)
               .ease(easeCircleOut)
               .style("flex-grow", 0)
               .remove();
           },
         )
     },
+  },
+
+  computed: {
+    timeLabel() {
+      switch(this.grouping) {
+        case "yearly": return "Year";
+        case "quarterly": return "Quarter";
+        case "monthly": return "Month";
+      }
+    }
   },
 
   watch: {
