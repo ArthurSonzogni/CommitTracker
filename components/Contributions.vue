@@ -11,12 +11,14 @@
 
 <script>
 
-import {select} from "d3-selection";
-import {interpolate} from "d3-interpolate";
-import {easeCircleOut} from "d3-ease";
 import {easeBackOut} from "d3-ease";
-import {transition} from "d3-transition";
+import {easeCircleOut} from "d3-ease";
 import {format} from "d3-format";
+import {interpolate} from "d3-interpolate";
+import {scaleOrdinal} from "d3-scale";
+import {schemeCategory10} from "d3-scale-chromatic";
+import {select} from "d3-selection";
+import {transition} from "d3-transition";
 
 export default {
   props: {
@@ -380,6 +382,15 @@ export default {
     },
 
     async refresh() {
+      const color = scaleOrdinal(schemeCategory10);
+      color("chrome");
+      color("v8");
+      color("skia");
+      color("angle");
+      color("dawn");
+      color("webrtc");
+      color("pdfium");
+
       const traits = this.traits();
       this.label = traits.label;
 
@@ -454,7 +465,7 @@ export default {
           .style("flex-grow", d => d.value)
           .style("background-color", d => {
             return summable || this.repositories.length == 1
-              ? this.$color(d.repo)
+              ? color(d.repo)
               : "gray"
           });
       };

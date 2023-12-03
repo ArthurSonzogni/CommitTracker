@@ -268,8 +268,8 @@ void MainLogic::Planarize() {
 
             // Finalize
             {0.8f, 0.30f, 0.003f, 4.0f},
-            {0.9f, 1.00f, 0.003f, 4.0f},
-            {1.0f, 0.10f, 0.005f, 4.0f},
+            {0.9f, 0.20f, 0.001f, 4.0f},
+            {1.0f, 0.10f, 0.002f, 4.0f},
         },
         time);
 
@@ -320,7 +320,6 @@ void MainLogic::Planarize() {
 
       for (int i = 0; i < 2; ++i) {
         glm::vec2 new_position = position;
-        new_position += (i * 0.5f) * (centroid - new_position);
         new_position +=
             glm::vec2(exploration(generator), exploration(generator));
 
