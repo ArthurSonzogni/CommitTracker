@@ -33,6 +33,11 @@ void Colorize(const std::vector<std::vector<Weight>>& weights,
     if (previous_size == new_size) {
       break;
     }
+
+    // Exit if the number of groups is already too low.
+    if (new_size * 200 < weights.size()) {
+      break;
+    }
   }
 
   // Print the number of clusters:
