@@ -464,9 +464,13 @@ export default {
           .ease(easeCircleOut)
           .style("flex-grow", d => d.value)
           .style("background-color", d => {
-            return summable || this.repositories.length == 1
-              ? color(d.repo)
-              : "gray"
+            if (this.repositories.length == 1) {
+              return color(this.repositories[0]);
+            }
+            if (summable) {
+              return color(d.repo)
+            }
+            return "gray";
           });
       };
 
