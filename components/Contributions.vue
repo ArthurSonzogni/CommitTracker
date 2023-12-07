@@ -49,6 +49,7 @@ export default {
         "dawn",
         "webrtc",
         "pdfium",
+        "devtool-frontend",
       ];
       return items.indexOf(a.repo) - items.indexOf(b.repo);
     },
