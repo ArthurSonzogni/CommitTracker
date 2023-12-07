@@ -390,6 +390,7 @@ export default {
       color("dawn");
       color("webrtc");
       color("pdfium");
+      color("devtool-frontend");
 
       const traits = this.traits();
       this.label = traits.label;

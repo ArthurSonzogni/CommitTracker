@@ -75,6 +75,7 @@ export default {
       "Dawn",
       "WebRTC",
       "PDFium",
+      "Devtool-Frontend",
     ];
     const multiple = this.value.length > 1;
     const all = !(items.length == this.value.length);
