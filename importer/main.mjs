@@ -163,7 +163,9 @@ const processRepository = async (repository) => {
           commit.commit.author.email.includes("chrome-") ||
           commit.commit.author.email.includes("rebaseline") ||
           commit.commit.author.email.includes("-bot") ||
-          commit.commit.author.email.includes("+robot")) {
+          commit.commit.author.email.includes("+robot") ||
+          commit.commit.author.email.includes("buildbot") ||
+          commit.commit.author.email.includes("commit-queue")) {
           continue;
         }
 
