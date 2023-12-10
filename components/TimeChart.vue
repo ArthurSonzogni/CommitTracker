@@ -247,7 +247,7 @@ export default {
               update => update
               .attr("transform", d => `translate(${x(d.time)}, ${y(d.patch)})`)
               .select("text")
-              .text(d => d.patch), 
+              .text(d => d.patch),
               exit => exit
               .attr("opacity", 1)
               .transition()
@@ -348,12 +348,3 @@ export default {
   }
 };
 </script>
-
-<style scoped>
-.svg-container {
-  width: 100%;
-  height:100%;
-  min-height:500px;
-}
-
-</style>
