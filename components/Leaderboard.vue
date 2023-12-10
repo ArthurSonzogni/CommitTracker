@@ -1,9 +1,57 @@
 <template>
   <div ref="container" align="center">
-    <svg ref="svg_axis" :width="svgWidth" :height="31" class="sticky-top"/>
-    <svg ref="svg" :width="svgWidth" :height="svgHeight"/>
-    <svg ref="svg_title" :width="svgWidth" :height="80" class="sticky-bottom">
-    </svg>
+    <b-field grouped group-multiline label="time">
+      <b-field>
+      </b-field>
+      <b-field>
+        <b-select v-model="dateIndex">
+          <option v-for="(d, i) in date" :key="i" :value="i">{{ d }} </option>
+        </b-select>
+      </b-field>
+      <b-field grouped>
+        <b-button
+          @click="dateIndex = Math.max(0, dateIndex - 1)"
+          :disabled="dateIndex == 0"
+          >
+          Previous
+        </b-button>
+        <b-button
+          @click="dateIndex = Math.min(date.length - 1, dateIndex + 1)"
+          :disabled="dateIndex == date.length - 1"
+          >
+          Next
+        </b-button>
+      </b-field>
+      <b-field v-if="!is_animating">
+        <b-button
+          @click="animate(false)"
+          :class="'is-success'"
+          >
+          Animate
+        </b-button>
+      </b-field>
+      <b-field v-if="!is_animating">
+        <b-button
+          @click="animate(true)"
+          :class="'is-warning'"
+          >
+          Animate with accumulation
+        </b-button>
+      </b-field>
+
+      <b-field v-if="is_animating">
+        <b-button
+          @click="stop"
+          :class="'is-danger'"
+          >
+          Stop
+        </b-button>
+      </b-field>
+    </b-field>
+
+    <svg ref="svg_axis" :width="svgWidth" :height="31" class="sticky-top"></svg>
+    <svg ref="svg" :width="svgWidth" :height="svgHeight"></svg>
+    <svg ref="svg_title" :width="svgWidth" :height="80" class="sticky-bottom"> </svg>
   </div>
 </template>
 
@@ -29,8 +77,12 @@ export default {
   data() {
     this.take_n = 100;
     return {
+      animateWithAccu: 'instant',
       svgWidth: 300,
       svgHeight: 300,
+      date: [],
+      dateIndex: 0,
+      is_animating: false,
     }
   },
 
@@ -177,7 +229,8 @@ export default {
           dateSet.add(date);
         }
       }
-      for(const date of dateSet) {
+      this.date = Array.from(dateSet).sort();
+      for(const date of this.date) {
         const entry = {
           date: date,
           users: [],
@@ -188,13 +241,14 @@ export default {
           }
         }
         entry.users.sort((a,b) => b[1] - a[1]);
-        entry.users.splice(this.take_n);
+        entry.users.splice(this.take_n * 2);
         out.push(entry);
       }
       return out;
     },
 
     async fetchData() {
+      this.is_animating = false;
       const async_data = this.repositories.map(this.$usersInfo);
       const data = await Promise.all(async_data);
       const filtered_data = data.map(this.filterKind);
@@ -204,7 +258,9 @@ export default {
       ordered.sort((a,b) => b.date > a.date ? -1 : 1);
 
       const t = transition().duration(500);
-      this.render(ordered[ordered.length - 1], t);
+
+      this.dateIndex = Math.min(Math.max(this.dateIndex, 0), ordered.length - 1);
+      this.render(ordered[this.dateIndex], t);
     },
 
     axis(svg) {
@@ -244,6 +300,8 @@ export default {
       const g = svg.append("g")
 
       return (x, y, frame, transition) => {
+        const max_users = frame.users.length;
+
         const updateRect = rect => {
           return rect
             .transition(transition)
@@ -302,53 +360,53 @@ export default {
           .selectAll("g")
           .data(frame.users.slice(0, this.take_n), (d, i) => d[0])
           .join(enter => {
-              const group = enter.append("g")
-              group
-                .attr("transform", `translate(0, ${y(this.take_n)})`)
-                .attr("opacity", 0)
-                .transition(transition)
-                .attr("opacity", 1)
-                .attr("transform", (d, i) => `translate(0, ${y(i)})`)
+            const group = enter.append("g")
+            group
+              .attr("transform", `translate(0, ${y(max_users)})`)
+              .attr("opacity", 0)
+              .transition(transition)
+              .attr("opacity", 1)
+              .attr("transform", (d, i) => `translate(0, ${y(i)})`)
 
-              const rect = group.append("rect")
-              rect
-                .attr("fill", d => this.$color(d[0]))
-                .attr("opacity", 0.5)
-                .attr("x", x(0))
-                .attr("height", y.bandwidth())
-                .call(updateRect)
+            const rect = group.append("rect")
+            rect
+              .attr("fill", d => this.$color(d[0]))
+              .attr("opacity", 0.5)
+              .attr("x", x(0))
+              .attr("height", y.bandwidth())
+              .call(updateRect)
 
-              const index = group.append("text")
-              index
-                .classed("index", true)
-                .attr("fill", "black")
-                .attr("dy", "0.35em")
-                .attr("dx", 0)
-                .attr("dy", y.bandwidth() / 2)
-                .attr("alignment-baseline", "middle")
-                .call(updateIndex)
+            const index = group.append("text")
+            index
+              .classed("index", true)
+              .attr("fill", "black")
+              .attr("dy", "0.35em")
+              .attr("dx", 0)
+              .attr("dy", y.bandwidth() / 2)
+              .attr("alignment-baseline", "middle")
+              .call(updateIndex)
 
-              const name = group.append("text")
-              name
-                .classed("name", true)
-                .attr("fill", "black")
-                .attr("dy", "0.35em")
-                .attr("dx", 5)
-                .attr("y", 10)
-                .call(updateName)
+            const name = group.append("text")
+            name
+              .classed("name", true)
+              .attr("fill", "black")
+              .attr("dy", "0.35em")
+              .attr("dx", 5)
+              .attr("y", 10)
+              .call(updateName)
 
-              const commit = group.append("text")
-              commit
-                .classed("commit", true)
-                .attr("fill", "gray")
-                .attr("dy", "0.35em")
-                .attr("dx", 5)
-                .attr("y", 30)
-                .text(0)
-                .call(updateCommit)
+            const commit = group.append("text")
+            commit
+              .classed("commit", true)
+              .attr("fill", "gray")
+              .attr("dy", "0.35em")
+              .attr("dx", 5)
+              .attr("y", 30)
+              .text(0)
+              .call(updateCommit)
 
-              return group;
-            },
+            return group;
+          },
             update => {
               const group = update;
               group
@@ -366,17 +424,18 @@ export default {
               const group = exit;
               exit
                 .transition(transition)
-                .attr("transform", `translate(0, ${y(this.take_n)})`)
+                .attr("transform", `translate(0, ${y(max_users)})`)
                 .attr("opacity", 0)
                 .remove()
               return group;
             }
           )
-          ;
+        ;
       }
     },
 
     render(frame, transition) {
+
       // Update the title:
       select(this.$refs.svg_title)
         .selectAll("text")
@@ -409,6 +468,7 @@ export default {
           }
         );
 
+      const max_users = frame.users.length;
       const max_commit = Math.max(...frame.users.map(d => d[1]));
 
       const x = scaleLinear()
@@ -424,6 +484,101 @@ export default {
       this.updateAxis(x, transition);
       this.updateAxisSticky(x, transition);
     },
+
+    // Multiply the number of frames by 10 to add a transition between each frame.
+    addFrames(frames, n = 10) {
+      const out = [];
+      for(let i = 0; i < frames.length; i++) {
+        out.push(frames[i]);
+        if(i >= frames.length - 1) {
+          continue;
+        }
+        const before = {}
+        const after = {};
+        for(const [user, value] of frames[i].users) {
+          before[user] = value;
+        }
+        for(const [user, value] of frames[i+1].users) {
+          after[user] = value;
+        }
+        const userList = new Set([
+          ...Object.keys(before),
+          ...Object.keys(after)],
+        );
+        for(let j = 1; j < n; j++) {
+          const users = [];
+          for(const user of userList) {
+            users.push([
+              user,
+              ((n - j) / n) * (before[user] || 0) +
+              ((0  + j) / n) * (after[user] || 0),
+            ]);
+          }
+          users.sort((a,b) => b[1] - a[1]);
+          out.push({
+            date: frames[i].date,
+            users: users,
+          });
+        }
+      }
+      return out;
+    },
+
+    accumulate(data) {
+      console.log("accumulate", data);
+      const accu = {};
+      for(const frame of data) {
+        for(const [user, value] of frame.users) {
+          accu[user] ||= 0;
+          accu[user] += value;
+        }
+        frame.users = [];
+        for(const [user, value] of Object.entries(accu)) {
+          frame.users.push([user, value]);
+        }
+        frame.users.sort((a,b) => b[1] - a[1]);
+      }
+    },
+
+    stop() {
+      this.is_animating = false;
+    },
+
+    async animate(accumulate = false) {
+      if (this.is_animating) {
+        this.is_animating = false;
+        return;
+      }
+      const async_data = this.repositories.map(this.$usersInfo);
+      const data = await Promise.all(async_data);
+      const filtered_data = data.map(this.filterKind);
+      const merged = this.mergeDataForRepositories(filtered_data);
+      const grouped = this.groupByDate(merged);
+      const ordered = this.orderByDate(grouped).splice(this.dateIndex);
+      if (accumulate) {
+        this.accumulate(ordered);
+      }
+      ordered.sort((a,b) => b.date > a.date ? -1 : 1);
+      let dateIndex = 0
+
+      const n = 5;
+      const ordered_with_added_frames = this.addFrames(ordered, n);
+      dateIndex *= n;
+
+      this.is_animating = true;
+      while(dateIndex < ordered_with_added_frames.length - 1 && this.is_animating) {
+        dateIndex++;
+        const t = transition()
+          .duration(2000 / n)
+          .ease(easeLinear);
+
+        const frame = ordered_with_added_frames[dateIndex];
+        this.render(ordered_with_added_frames[dateIndex], t);
+        await t.end();
+      }
+
+      this.is_animating = false;
+    },
   },
 
   mounted() {
@@ -432,8 +587,9 @@ export default {
 
   watch: {
     "repositories": "fetchData",
-    "grouping": "fetchData",
-    "kind": "fetchData",
+      "grouping": "fetchData",
+      "kind": "fetchData",
+      "dateIndex": "fetchData",
   },
 }
 
