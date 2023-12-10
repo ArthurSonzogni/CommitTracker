@@ -4,46 +4,34 @@
       <b-field>
       </b-field>
       <b-field>
-        <b-select v-model="dateIndex">
+        <b-select
+          :value="Math.min(Math.max(0, timeIndex), date.length - 1)"
+          @input="n => $emit('timeIndexChanged', n)"
+          >
           <option v-for="(d, i) in date" :key="i" :value="i">{{ d }} </option>
         </b-select>
       </b-field>
       <b-field grouped>
-        <b-button
-          @click="dateIndex = Math.max(0, dateIndex - 1)"
-          :disabled="dateIndex == 0"
-          >
+        <b-button @click="previous" :disabled="timeIndex == 0">
           Previous
         </b-button>
-        <b-button
-          @click="dateIndex = Math.min(date.length - 1, dateIndex + 1)"
-          :disabled="dateIndex == date.length - 1"
-          >
+        <b-button @click="next" :disabled="timeIndex == date.length - 1">
           Next
         </b-button>
       </b-field>
-      <b-field v-if="!is_animating">
-        <b-button
-          @click="animate(false)"
-          :class="'is-success'"
-          >
+      <b-field v-if="!is_animating && grouping != 'forever' && timeIndex < date.length - 1">
+        <b-button @click="animate(false)" class="is-success" >
           Animate
         </b-button>
       </b-field>
-      <b-field v-if="!is_animating">
-        <b-button
-          @click="animate(true)"
-          :class="'is-warning'"
-          >
+      <b-field v-if="!is_animating && grouping != 'forever' && timeIndex < date.length - 1">
+        <b-button @click="animate(true)" class="is-warning">
           Animate with accumulation
         </b-button>
       </b-field>
 
       <b-field v-if="is_animating">
-        <b-button
-          @click="stop"
-          :class="'is-danger'"
-          >
+        <b-button @click="stop" class="is-danger" >
           Stop
         </b-button>
       </b-field>
@@ -72,6 +60,7 @@ export default {
     repositories: { type:Array[String], default: ["chrome"]},
     grouping: { type:String, default: "yearly"},
     kind: { type:String, default: "author"},
+    timeIndex: { type:Number, default: 0},
   },
 
   data() {
@@ -81,7 +70,6 @@ export default {
       svgWidth: 300,
       svgHeight: 300,
       date: [],
-      dateIndex: 0,
       is_animating: false,
     }
   },
@@ -230,6 +218,9 @@ export default {
         }
       }
       this.date = Array.from(dateSet).sort();
+      if (this.timeIndex >= this.date.length) {
+        this.$emit("timeIndexChange", this.date.length - 1);
+      }
       for(const date of this.date) {
         const entry = {
           date: date,
@@ -259,8 +250,11 @@ export default {
 
       const t = transition().duration(500);
 
-      this.dateIndex = Math.min(Math.max(this.dateIndex, 0), ordered.length - 1);
-      this.render(ordered[this.dateIndex], t);
+      const timeIndex = Math.min(Math.max(this.timeIndex, 0), ordered.length - 1);
+      if (timeIndex != this.timeIndex) {
+        this.$emit("timeIndexChange", timeIndex);
+      }
+      this.render(ordered[timeIndex], t);
     },
 
     axis(svg) {
@@ -435,6 +429,9 @@ export default {
     },
 
     render(frame, transition) {
+      if (!frame) {
+        return;
+      }
 
       // Update the title:
       select(this.$refs.svg_title)
@@ -540,6 +537,18 @@ export default {
       }
     },
 
+    previous() {
+      if(this.timeIndex > 0) {
+        this.$emit("timeIndexChanged", this.timeIndex - 1);
+      }
+    },
+
+    next() {
+      if (this.timeIndex < this.date.length - 1) {
+        this.$emit("timeIndexChanged", this.timeIndex + 1);
+      }
+    },
+
     stop() {
       this.is_animating = false;
     },
@@ -554,26 +563,26 @@ export default {
       const filtered_data = data.map(this.filterKind);
       const merged = this.mergeDataForRepositories(filtered_data);
       const grouped = this.groupByDate(merged);
-      const ordered = this.orderByDate(grouped).splice(this.dateIndex);
+      const ordered = this.orderByDate(grouped).splice(this.timeIndex);
       if (accumulate) {
         this.accumulate(ordered);
       }
       ordered.sort((a,b) => b.date > a.date ? -1 : 1);
-      let dateIndex = 0
+      let timeIndex = 0
 
       const n = 5;
       const ordered_with_added_frames = this.addFrames(ordered, n);
-      dateIndex *= n;
+      timeIndex *= n;
 
       this.is_animating = true;
-      while(dateIndex < ordered_with_added_frames.length - 1 && this.is_animating) {
-        dateIndex++;
+      while(timeIndex < ordered_with_added_frames.length - 1 && this.is_animating) {
+        timeIndex++;
         const t = transition()
           .duration(2000 / n)
           .ease(easeLinear);
 
-        const frame = ordered_with_added_frames[dateIndex];
-        this.render(ordered_with_added_frames[dateIndex], t);
+        const frame = ordered_with_added_frames[timeIndex];
+        this.render(ordered_with_added_frames[timeIndex], t);
         await t.end();
       }
 
@@ -589,7 +598,7 @@ export default {
     "repositories": "fetchData",
       "grouping": "fetchData",
       "kind": "fetchData",
-      "dateIndex": "fetchData",
+      "timeIndex": "fetchData",
   },
 }
 
