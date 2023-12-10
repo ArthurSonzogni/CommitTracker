@@ -12,19 +12,19 @@
         </b-select>
       </b-field>
       <b-field grouped>
-        <b-button @click="previous" :disabled="timeIndex == 0">
+        <b-button @click="previous" :disabled="timeIndex == date.length - 1">
           Previous
         </b-button>
-        <b-button @click="next" :disabled="timeIndex == date.length - 1">
+        <b-button @click="next" :disabled="timeIndex == 0">
           Next
         </b-button>
       </b-field>
-      <b-field v-if="!is_animating && grouping != 'forever' && timeIndex < date.length - 1">
+      <b-field v-if="!is_animating && grouping != 'forever' && timeIndex > 0">
         <b-button @click="animate(false)" class="is-success" >
           Animate
         </b-button>
       </b-field>
-      <b-field v-if="!is_animating && grouping != 'forever' && timeIndex < date.length - 1">
+      <b-field v-if="!is_animating && grouping != 'forever' && timeIndex > 0">
         <b-button @click="animate(true)" class="is-warning">
           Animate with accumulation
         </b-button>
@@ -80,6 +80,8 @@ export default {
         return "Forever";
       } else if (this.grouping == "yearly") {
         return "Year";
+      } else if (this.grouping == "decennial") {
+        return "Decade";
       } else if (this.grouping == "quarterly") {
         return "Quarter";
       } else if (this.grouping == "monthly") {
@@ -167,6 +169,9 @@ export default {
         case "yearly":
           return x => x.substr(0,4);
 
+        case "decennial":
+          return x => x.substr(0,3) + "0s";
+
         case "quarterly":
           return x => {
             const year = x.substr(0,4)
@@ -217,7 +222,7 @@ export default {
           dateSet.add(date);
         }
       }
-      this.date = Array.from(dateSet).sort();
+      this.date = Array.from(dateSet).sort((a,b) => a < b ? 1 : -1);
       if (this.timeIndex >= this.date.length) {
         this.$emit("timeIndexChange", this.date.length - 1);
       }
@@ -254,7 +259,7 @@ export default {
       if (timeIndex != this.timeIndex) {
         this.$emit("timeIndexChange", timeIndex);
       }
-      this.render(ordered[timeIndex], t);
+      this.render(ordered[ordered.length - timeIndex - 1], t);
     },
 
     axis(svg) {
@@ -356,7 +361,7 @@ export default {
           .join(enter => {
             const group = enter.append("g")
             group
-              .attr("transform", `translate(0, ${y(max_users)})`)
+              .attr("transform", `translate(1, ${y.bandwidth() * max_users})`)
               .attr("opacity", 0)
               .transition(transition)
               .attr("opacity", 1)
@@ -418,7 +423,7 @@ export default {
               const group = exit;
               exit
                 .transition(transition)
-                .attr("transform", `translate(0, ${y(max_users)})`)
+                .attr("transform", `translate(1, ${y.bandwidth() * max_users})`)
                 .attr("opacity", 0)
                 .remove()
               return group;
@@ -485,11 +490,8 @@ export default {
     // Multiply the number of frames by 10 to add a transition between each frame.
     addFrames(frames, n = 10) {
       const out = [];
-      for(let i = 0; i < frames.length; i++) {
+      for(let i = 0; i < frames.length - 1; i++) {
         out.push(frames[i]);
-        if(i >= frames.length - 1) {
-          continue;
-        }
         const before = {}
         const after = {};
         for(const [user, value] of frames[i].users) {
@@ -518,11 +520,11 @@ export default {
           });
         }
       }
+      out.push(frames[frames.length - 1]);
       return out;
     },
 
     accumulate(data) {
-      console.log("accumulate", data);
       const accu = {};
       for(const frame of data) {
         for(const [user, value] of frame.users) {
@@ -538,14 +540,14 @@ export default {
     },
 
     previous() {
-      if(this.timeIndex > 0) {
-        this.$emit("timeIndexChanged", this.timeIndex - 1);
+      if (this.timeIndex < this.date.length - 1) {
+        this.$emit("timeIndexChanged", this.timeIndex + 1);
       }
     },
 
     next() {
-      if (this.timeIndex < this.date.length - 1) {
-        this.$emit("timeIndexChanged", this.timeIndex + 1);
+      if(this.timeIndex > 0) {
+        this.$emit("timeIndexChanged", this.timeIndex - 1);
       }
     },
 
@@ -563,11 +565,13 @@ export default {
       const filtered_data = data.map(this.filterKind);
       const merged = this.mergeDataForRepositories(filtered_data);
       const grouped = this.groupByDate(merged);
-      const ordered = this.orderByDate(grouped).splice(this.timeIndex);
+      const ordered = this.orderByDate(grouped)
+      ordered.sort((a,b) => a.date > b.date ? -1 : 1);
+      ordered.length = Math.min(ordered.length, Math.max(2, this.timeIndex + 1));
+      ordered.sort((a,b) => a.date < b.date ? -1 : 1);
       if (accumulate) {
         this.accumulate(ordered);
       }
-      ordered.sort((a,b) => b.date > a.date ? -1 : 1);
       let timeIndex = 0
 
       const n = 5;
