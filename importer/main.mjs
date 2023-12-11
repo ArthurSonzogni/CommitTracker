@@ -1,5 +1,6 @@
 import core from "@actions/core";
 import github from "@actions/github";
+import { mailMap } from "./mailmap.mjs";
 import * as filesystem from "fs";
 
 const fs = filesystem.promises;
@@ -175,7 +176,7 @@ const processRepository = async (repository) => {
           continue;
         }
 
-        const author = email.substring(0, email.indexOf("@"));
+        const author = mailMap(email.substring(0, email.indexOf("@")));
         addUser(author);
 
         const date = commit.commit.author.date;
@@ -189,7 +190,7 @@ const processRepository = async (repository) => {
             if (a == -1 || b == -1) {
               continue;
             }
-            const reviewer = line.substring(a + 1, b);
+            const reviewer = mailMap(line.substring(a + 1, b));
             addUser(reviewer);
             data[reviewer].review[date] = author;
             reviewers.push(reviewer);
