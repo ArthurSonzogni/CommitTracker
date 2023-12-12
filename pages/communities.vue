@@ -23,8 +23,13 @@
             type="is-warning"
             />
           </b-button>
-          <b-button @click="view" type="is-info"> View</b-button>
-          <b-button @click="download" type="is-info is-light"> Download </b-button>
+          <b-button @click="view" type="is-info" v-if="!displayPlaceholder">
+            View
+          </b-button>
+          <b-button @click="download" type="is-info is-light"
+            v-if="!displayPlaceholder">
+            Download
+          </b-button>
         </b-field>
         <b-field label="Zoom" label-position="on-border" expanded>
           <b-slider
@@ -91,9 +96,17 @@
       </div>
     </section>
 
-    <div class="zoomable">
+    <div class="zoomable" v-if="!displayPlaceholder">
       <svg></svg>
     </div>
+
+    <p v-if="displayPlaceholder" class="container">
+      No data for this selection. Try to select a larger time range, or a different repository.<br/>
+
+      Please note that this relies on the commit description. If the commit
+      description doesn't contains some `Reviewed-by` or tags, the data will be
+      incomplete.
+    </p>
   </div>
 </template>
 
@@ -117,6 +130,7 @@ export default {
       time,
       zoom,
       displayReadme: false,
+      displayPlaceholder: false,
       cachedObjectSrc: null,
     }
   },
@@ -155,14 +169,19 @@ export default {
       }
       this.cachedObjectSrc = this.objectSrc;
       const response = await fetch(this.objectSrc)
-      const text = await response.text();
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(text, "image/svg+xml");
-      const svg = doc.querySelector("svg");
-      if (!svg) {
-        return;
+      if (response.ok) {
+        this.displayPlaceholder = false;
+        const text = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(text, "image/svg+xml");
+        const svg = doc.querySelector("svg");
+        if (!svg) {
+          return;
+        }
+        document.querySelector("svg").replaceWith(svg);
+      } else {
+        this.displayPlaceholder = true;
       }
-      document.querySelector("svg").replaceWith(svg);
     },
 
     updateUrl() {
