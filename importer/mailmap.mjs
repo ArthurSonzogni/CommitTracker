@@ -23,7 +23,7 @@ for (const entry of data) {
   // Take the username out of the email:
   const old_username = entry.old.split("@")[0];
   const new_username = entry.new.split("@")[0];
-  map.set(old_username, new_username);
+  map.set(old_username.toLowerCase(), new_username.toLowerCase());
 }
 
 export function mailMap(username) {

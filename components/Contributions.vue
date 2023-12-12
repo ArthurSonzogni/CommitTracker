@@ -40,8 +40,8 @@ export default {
   },
 
   methods: {
-    sortRepositories: function(a,b) {
-      const items = [
+    getItem() {
+      return [
         "chrome",
         "v8",
         "skia",
@@ -50,7 +50,12 @@ export default {
         "webrtc",
         "pdfium",
         "devtool-frontend",
+        "llvm",
       ];
+    },
+
+    sortRepositories: function(a,b) {
+      const items = this.getItem();
       return items.indexOf(a.repo) - items.indexOf(b.repo);
     },
 
@@ -384,14 +389,7 @@ export default {
 
     async refresh() {
       const color = scaleOrdinal(schemeCategory10);
-      color("chrome");
-      color("v8");
-      color("skia");
-      color("angle");
-      color("dawn");
-      color("webrtc");
-      color("pdfium");
-      color("devtool-frontend");
+      this.getItem().map(color);
 
       const traits = this.traits();
       this.label = traits.label;

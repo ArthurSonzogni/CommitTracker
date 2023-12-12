@@ -76,6 +76,7 @@ export default {
       "WebRTC",
       "PDFium",
       "Devtool-Frontend",
+      "LLVM"
     ];
     const multiple = this.value.length > 1;
     const all = !(items.length == this.value.length);

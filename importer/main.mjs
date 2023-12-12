@@ -118,7 +118,7 @@ const processRepository = async (repository) => {
   };
 
   try {
-    let max_page = 3000;
+    let max_page = 5000;
     let index = 0;
     process:
     while (true) {

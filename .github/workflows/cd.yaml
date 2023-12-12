@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
   workflow_run:
     workflows:
-      - "importer-commit-timeline"
+      - "importer-commit-graph"
       - "importer-treemap"
     types:
       - completed

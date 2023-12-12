@@ -1,9 +1,12 @@
 name: importer-graph
 
 on:
-  schedule:
-    - cron:  '0 0 * * 0' # every week
   workflow_dispatch:
+  workflow_run:
+    workflows:
+      - "importer-commit-timeline"
+    types:
+      - completed
 
 jobs:
   importer-commit-timeline:
