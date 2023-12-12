@@ -43,6 +43,7 @@ export default {
             "webrtc",
             "pdfium",
             "devtool-frontend",
+            "gn",
             "llvm"
         ];
         const fetch_as_json = x => fetch(`/data/${x}/users.json`).then(r => r.json());

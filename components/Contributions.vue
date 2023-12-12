@@ -50,6 +50,7 @@ export default {
         "webrtc",
         "pdfium",
         "devtool-frontend",
+        "gn",
         "llvm",
       ];
     },
