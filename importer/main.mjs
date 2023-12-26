@@ -5,7 +5,6 @@ import * as filesystem from "fs";
 
 const fs = filesystem.promises;
 const token = process.env.github_token;
-
 const octokit = new github.getOctokit(token);
 
 const repositories_file = "../static/data/repositories.json";
@@ -74,10 +73,6 @@ const processRepository = async (repository) => {
     }
   }
 
-  const last_sha = await readLastSha();
-  let sha = repository.head;
-  let new_last_sha = last_sha;
-
   // Setup the directory structures:
   await fs.mkdir(user_dir, { recursive: true });
 
@@ -101,6 +96,7 @@ const processRepository = async (repository) => {
     data[user] = await readUser(user);
   }
 
+  let new_last_sha = last_sha;
   const save = async () => {
     // Write users.
     Object.keys(data).forEach((user) => users.add(user));
@@ -117,90 +113,98 @@ const processRepository = async (repository) => {
     writeLastSha(new_last_sha);
   };
 
-  try {
-    let max_page = 5000;
-    let index = 0;
-    process:
-    while (true) {
-      max_page--;
-      if (max_page <= 0) {
-        break process;
-      }
-      const response = await octokit.request(
-        "GET /repos/{owner}/{repo}/commits",
-        {
-          owner: repository.owner,
-          repo: repository.repository,
-          sha: sha,
-          per_page: 100,
-        }
-      );
+  //const last_sha = await readLastSha();
+  const last_sha = await readLastSha();
+  for(const head of [
+    repository.head,
+  ]) {
+    let sha = head;
 
-      for (const commit of response.data) {
-        if (sha === repository.head) {
-          new_last_sha = commit.sha;
-        }
-
-        index += 1;
-        console.log(index, commit.sha, last_sha, (commit.sha === last_sha));
-        if (commit.sha === last_sha) {
+    try {
+      let max_page = 5000;
+      let index = 0;
+      process:
+      while (true) {
+        max_page--;
+        if (max_page <= 0) {
           break process;
         }
-
-        if (commit.parents.length == 0) {
-          break process;
-        }
-        sha = commit.parents[0].sha;
-
-        // Skip automated commits.
-        if (commit.commit.author.email.includes("gserviceaccount")) {
-          continue;
-        }
-
-        // Skip some bots:
-        if (commit.commit.author.email.includes("roller") ||
-          commit.commit.author.email.includes("autoroll") ||
-          commit.commit.author.email.includes("mdb.") ||
-          commit.commit.author.email.includes("chrome-") ||
-          commit.commit.author.email.includes("rebaseline") ||
-          commit.commit.author.email.includes("-bot") ||
-          commit.commit.author.email.includes("+robot") ||
-          commit.commit.author.email.includes("buildbot") ||
-          commit.commit.author.email.includes("commit-queue")) {
-          continue;
-        }
-
-        // Skip authors with no emails.
-        const email = commit.commit.author.email;
-        if (email.indexOf("@") == -1) {
-          continue;
-        }
-
-        const author = mailMap(email.substring(0, email.indexOf("@")));
-        addUser(author);
-
-        const date = commit.commit.author.date;
-        const reviewers = [];
-
-        // Parse reviewers:
-        for (const line of commit.commit.message.split("\n")) {
-          if (line.startsWith("Reviewed-by:")) {
-            const a = line.indexOf("<");
-            const b = line.indexOf("@");
-            if (a == -1 || b == -1) {
-              continue;
-            }
-            const reviewer = mailMap(line.substring(a + 1, b));
-            addUser(reviewer);
-            data[reviewer].review[date] = author;
-            reviewers.push(reviewer);
+        const response = await octokit.request(
+          "GET /repos/{owner}/{repo}/commits",
+          {
+            owner: repository.owner,
+            repo: repository.repository,
+            sha: sha,
+            per_page: 100,
           }
+        );
+
+        for (const commit of response.data) {
+          if (sha === repository.head) {
+            new_last_sha = commit.sha;
+          }
+
+          index += 1;
+          console.log(index, commit.sha, last_sha, (commit.sha === last_sha));
+          if (commit.sha === last_sha) {
+            break process;
+          }
+
+          if (commit.parents.length == 0) {
+            break process;
+          }
+          sha = commit.parents[0].sha;
+
+          // Skip automated commits.
+          if (commit.commit.author.email.includes("gserviceaccount")) {
+            continue;
+          }
+
+          // Skip some bots:
+          if (commit.commit.author.email.includes("roller") ||
+            commit.commit.author.email.includes("autoroll") ||
+            commit.commit.author.email.includes("mdb.") ||
+            commit.commit.author.email.includes("chrome-") ||
+            commit.commit.author.email.includes("rebaseline") ||
+            commit.commit.author.email.includes("-bot") ||
+            commit.commit.author.email.includes("+robot") ||
+            commit.commit.author.email.includes("buildbot") ||
+            commit.commit.author.email.includes("commit-queue")) {
+            continue;
+          }
+
+          // Skip authors with no emails.
+          const email = commit.commit.author.email;
+          if (email.indexOf("@") == -1) {
+            continue;
+          }
+
+          const author = mailMap(email.substring(0, email.indexOf("@")));
+          addUser(author);
+
+          const date = commit.commit.author.date;
+          const reviewers = [];
+
+          // Parse reviewers:
+          for (const line of commit.commit.message.split("\n")) {
+            if (line.startsWith("Reviewed-by:")) {
+              const a = line.indexOf("<");
+              const b = line.indexOf("@");
+              if (a == -1 || b == -1) {
+                continue;
+              }
+              const reviewer = mailMap(line.substring(a + 1, b));
+              addUser(reviewer);
+              data[reviewer].review[date] = author;
+              reviewers.push(reviewer);
+            }
+          }
+          data[author].author[date] = reviewers;
         }
-        data[author].author[date] = reviewers;
       }
+    } catch (error) {
+      console.log(error);
     }
-  } catch (error) {
-    console.log(error);
   }
 
   await save();

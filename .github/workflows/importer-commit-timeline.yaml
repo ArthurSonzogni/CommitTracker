@@ -3,6 +3,7 @@ name: importer-commit-timeline
 on:
   schedule:
     - cron:  '0 0 * * 0' # every week
+  push:
   workflow_dispatch:
 
 jobs:

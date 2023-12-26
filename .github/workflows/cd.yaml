@@ -1,12 +1,10 @@
 name: cd
 
 on:
-  push:
-  pull_request:
   workflow_dispatch:
   workflow_run:
     workflows:
-      - "importer-commit-graph"
+      - "importer-graph"
       - "importer-treemap"
     types:
       - completed

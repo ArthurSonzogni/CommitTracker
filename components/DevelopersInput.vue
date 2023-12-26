@@ -36,6 +36,7 @@ export default {
     async fetch() {
         const repo = [
             "chrome",
+            "chromeos",
             "v8",
             "skia",
             "angle",
@@ -44,7 +45,7 @@ export default {
             "pdfium",
             "devtool-frontend",
             "gn",
-            "llvm"
+            "llvm",
         ];
         const fetch_as_json = x => fetch(`/data/${x}/users.json`).then(r => r.json());
         const jsons  = await Promise.all(repo.map(fetch_as_json));

@@ -16,7 +16,7 @@ import {easeCircleOut} from "d3-ease";
 import {format} from "d3-format";
 import {interpolate} from "d3-interpolate";
 import {scaleOrdinal} from "d3-scale";
-import {schemeCategory10} from "d3-scale-chromatic";
+import {schemePaired} from "d3-scale-chromatic";
 import {select} from "d3-selection";
 import {transition} from "d3-transition";
 
@@ -43,6 +43,7 @@ export default {
     getItem() {
       return [
         "chrome",
+        "chromeos",
         "v8",
         "skia",
         "angle",
@@ -389,7 +390,7 @@ export default {
     },
 
     async refresh() {
-      const color = scaleOrdinal(schemeCategory10);
+      const color = scaleOrdinal(schemePaired);
       this.getItem().map(color);
 
       const traits = this.traits();

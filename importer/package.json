@@ -8,7 +8,8 @@
     "users_info": "node users_info.mjs",
     "treemap": "node treemap.mjs",
     "graph": "node graph.mjs",
-    "fixmailmap": "node fixmailmap.mjs"
+    "fixmailmap": "node fixmailmap.mjs",
+    "commit_per_hour": "node commit_per_hour.mjs"
   },
   "repository": {
     "type": "git",

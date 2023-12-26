@@ -1,6 +1,6 @@
 <template>
   <b-field grouped>
-    <b-field :label="label">
+    <b-field :label="label" class="xscrollable">
       <b-checkbox-button
         v-if="allowAll"
         :size="size"
@@ -69,6 +69,7 @@ export default {
   data() {
     const items = [
       "Chrome",
+      "ChromeOS",
       "V8",
       "Skia",
       "Angle",
@@ -77,7 +78,7 @@ export default {
       "PDFium",
       "Devtool-Frontend",
       "GN",
-      "LLVM"
+      "LLVM",
     ];
     const multiple = this.value.length > 1;
     const all = !(items.length == this.value.length);
@@ -125,3 +126,12 @@ export default {
 }
 
 </script>
+
+<style scoped>
+
+.xscrollable {
+  width: 100%;
+  overflow-x: auto;
+}
+
+</style>
