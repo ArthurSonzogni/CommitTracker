@@ -96,7 +96,9 @@ const processRepository = async (repository) => {
     data[user] = await readUser(user);
   }
 
+  const last_sha = await readLastSha();
   let new_last_sha = last_sha;
+
   const save = async () => {
     // Write users.
     Object.keys(data).forEach((user) => users.add(user));
@@ -113,8 +115,6 @@ const processRepository = async (repository) => {
     writeLastSha(new_last_sha);
   };
 
-  //const last_sha = await readLastSha();
-  const last_sha = await readLastSha();
   for(const head of [
     repository.head,
   ]) {

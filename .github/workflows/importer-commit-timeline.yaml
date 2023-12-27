@@ -28,14 +28,9 @@ jobs:
         env:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create commit
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Actions"
-          git add static/data
-          git commit -m 'refresh developer data'
-
-      - name: Push changes
-        uses: ad-m/github-push-action@master
+      - name: Push data
+        uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./static/data/
+          publish_branch: data
