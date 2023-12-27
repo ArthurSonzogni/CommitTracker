@@ -13,8 +13,31 @@ jobs:
   cd:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@master
+      - name: Checkout main repository
+        uses: actions/checkout@v4
+        with:
+          repository: ArthurSonzogni/ChromeCommitTracker
+          ref: main
+
+      - name: Remove data and community-map
+        run: |
+          cd static
+          rm -rf data
+          rm -rf community_map
+
+      - name: Checkout data
+        uses: actions/checkout@v4
+        with:
+          repository: ArthurSonzogni/ChromeCommitTracker
+          ref: data
+          path: static/data
+
+      - name: Checkout community-map
+        uses: actions/checkout@v4
+        with:
+          repository: ArthurSonzogni/ChromeCommitTracker
+          ref: community-map
+          path: static/community-map
 
       - name: Setup node env
         uses: actions/setup-node@v3
@@ -24,15 +47,6 @@ jobs:
       - name: Install dependencies
         run: yarn
 
-      - name: Fetch community map SVGs
-        run: |
-          cd static/community-map
-          git clone --depth=1 -b community-map https://github.com/ArthurSonzogni/ChromeCommitTracker.git
-          cd ChromeCommitTracker
-          cp *.svg ..
-          cd ..
-          rm -rf ChromeCommitTracker
-
       - name: Generate
         run: yarn generate
 
@@ -41,3 +55,5 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
+          publish_branch: gh-pages
+          force_orphan: true
