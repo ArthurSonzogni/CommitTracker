@@ -249,7 +249,7 @@ document.addEventListener('scroll', updateHasScrolled, { passive: true });
 .sticky {
   position: sticky;
   width: 100%;
-  z-index: 1000;
+  z-index: 1;
   backdrop-filter: blur(4px);
   background-color: rgba(255, 255, 255, 0.5);
   transition: background-color 0.2s ease-in-out;
