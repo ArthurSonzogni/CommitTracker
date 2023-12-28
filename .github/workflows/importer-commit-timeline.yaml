@@ -13,34 +13,16 @@ jobs:
     steps:
       - name: Checkout main repository
         uses: actions/checkout@v4
-        with:
-          repository: ArthurSonzogni/ChromeCommitTracker
-          ref: main
-
-      - name: Remove data and community-map
-        run: |
-          cd static
-          rm -rf data
-          rm -rf community_map
-
-      - name: Checkout data
-        uses: actions/checkout@v4
-        with:
-          repository: ArthurSonzogni/ChromeCommitTracker
-          ref: data
-          path: static/data
-
-      - name: Checkout community-map
-        uses: actions/checkout@v4
-        with:
-          repository: ArthurSonzogni/ChromeCommitTracker
-          ref: community-map
-          path: static/community-map
 
       - name: Setup node env
         uses: actions/setup-node@v3
         with:
           node-version: '16'
+
+      - name: Pull data
+        run: |
+          yarn
+          yarn pull-data
 
       - name: Refresh files
         run: |
