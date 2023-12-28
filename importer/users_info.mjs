@@ -1,7 +1,7 @@
 import * as filesystem from "fs";
 const fs = filesystem.promises;
 
-const repositories_file = "../static/data/repositories.json";
+const repositories_file = "../static/repositories.json";
 
 const group_by_date = list => {
   const out = {};

@@ -7,8 +7,6 @@ const fs = filesystem.promises;
 const token = process.env.github_token;
 const octokit = new github.getOctokit(token);
 
-const repositories_file = "../static/data/repositories.json";
-
 const processRepository = async (repository) => {
 
   const repository_dir = `../static/data/${repository.dirname}`;
@@ -211,8 +209,10 @@ const processRepository = async (repository) => {
 };
 
 const main = async () => {
-  const repositories = JSON.parse(await fs.readFile(repositories_file, "utf8"));
-  for (const repository of repositories) {
+  const file_content = await fs.readFile("../static/repositories.json", "utf8");
+  await fs.writeFile("../static/data/repositories.json", file_content);
+
+  for (const repository of JSON.parse(file_content)) {
     await processRepository(repository);
   }
 }

@@ -2,7 +2,7 @@ import * as filesystem from "fs";
 import { execSync } from "child_process";
 const fs = filesystem.promises;
 
-const repositories_file = "../static/data/repositories.json";
+const repositories_file = "../static/repositories.json";
 
 const RelativeDate = days => {
   let date = new Date();

@@ -1,0 +1,88 @@
+[
+  {
+    "dirname": "chrome",
+    "owner": "chromium",
+    "repository": "chromium",
+    "head": "main",
+    "first_commit_hash": "c14d891d44f0afff64e56ed7c9702df1d807b1ee"
+  },
+
+  {
+    "dirname": "v8",
+    "owner": "v8",
+    "repository": "v8",
+    "head": "main",
+    "first_commit_hash": "33f2fb0e53d135f0ee17cfccd9d993eb2a6f47de"
+  },
+
+  {
+    "dirname": "skia",
+    "owner": "google",
+    "repository": "skia",
+    "head": "main",
+    "first_commit_hash": "586101c79b0490b50623e76c71a5fd67d8d92b08"
+  },
+
+  {
+    "dirname": "angle",
+    "owner": "google",
+    "repository": "angle",
+    "head": "main",
+    "first_commit_hash": "eff14256dba77b6dcd65a1d3425c4f06b0de39f4"
+  },
+
+  {
+    "dirname": "dawn",
+    "owner": "ArthurSonzogni",
+    "repository": "dawn",
+    "head": "main",
+    "first_commit_hash": "f07e3bd4c9553e7cd2af058fb6b8482721e4e486"
+  },
+
+  {
+    "dirname": "webrtc",
+    "owner": "maitrungduc1410",
+    "repository": "webrtc",
+    "head": "master",
+    "first_commit_hash": "a24fc54e854f44c5132a7f649be088c78f24f5d5"
+  },
+
+  {
+    "dirname": "pdfium",
+    "owner": "chromium",
+    "repository": "pdfium",
+    "head": "main",
+    "first_commit_hash": "76b563d2feed92ed328afb1f15e3466a9536b11b"
+  },
+
+  {
+    "dirname": "devtool-frontend",
+    "owner": "ChromeDevTools",
+    "repository": "devtools-frontend",
+    "head": "main",
+    "first_commit_hash": "4c46d0969f10f460f2a27116f4896f20f65d0989"
+  },
+  {
+    "dirname": "gn",
+    "owner": "ArthurSonzogni",
+    "repository": "gn",
+    "head": "main",
+    "first_commit_hash": "95374957437b818e9addc26c83340b27a1b38202"
+  },
+
+  {
+    "dirname": "llvm",
+    "owner": "llvm",
+    "repository": "llvm-project",
+    "head": "main",
+    "first_commit_hash": "97724f18c79c7cc81ced24239eb5e883bf1398ef"
+  },
+
+  {
+    "dirname": "chromeos",
+    "owner": "ArthurSonzogni",
+    "repository": "chromiumos-platform2",
+    "head": "main",
+    "first_commit_hash": "97724f18c79c7cc81ced24239eb5e883bf1398ef"
+  }
+]
