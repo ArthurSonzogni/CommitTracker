@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "pull-data": "sh ./pull-data.sh",
     "dev": "nuxt",
     "build": "nuxt build",
     "start": "nuxt start",
