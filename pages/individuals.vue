@@ -6,7 +6,7 @@
 
       <section class="section sticky top">
 
-        <RepositorySelector v-model="repositories" size="is-medium"/>
+        <RepositorySelector v-model="repositories" size="medium"/>
         <b-field grouped>
 
           <b-field expanded>

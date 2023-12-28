@@ -301,6 +301,13 @@ export default {
       return (x, y, frame, transition) => {
         const max_users = frame.users.length;
 
+        const updateGroup = group => {
+          return group
+            .transition(transition)
+            .attr("transform", (d, i) => `translate(0, ${y(i)})`)
+            .attr("opacity", 1)
+        };
+
         const updateRect = rect => {
           return rect
             .transition(transition)
@@ -363,9 +370,7 @@ export default {
             group
               .attr("transform", `translate(1, ${y.bandwidth() * max_users})`)
               .attr("opacity", 0)
-              .transition(transition)
-              .attr("opacity", 1)
-              .attr("transform", (d, i) => `translate(0, ${y(i)})`)
+              .call(updateGroup)
 
             const rect = group.append("rect")
             rect
@@ -408,10 +413,8 @@ export default {
           },
             update => {
               const group = update;
-              group
-                .transition(transition)
-                .attr("transform", (d, i) => `translate(0, ${y(i)})`)
 
+              group.call(updateGroup)
               update.select("rect").call(updateRect)
               update.select(".index").call(updateIndex)
               update.select(".name").call(updateName)
