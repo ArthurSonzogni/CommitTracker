@@ -18,6 +18,8 @@
 
 <script>
 
+import repositories from 'static/repositories.json'
+
 export default {
     props: [
         "value",
@@ -34,19 +36,7 @@ export default {
     },
 
     async fetch() {
-        const repo = [
-            "chrome",
-            "chromeos",
-            "v8",
-            "skia",
-            "angle",
-            "dawn",
-            "webrtc",
-            "pdfium",
-            "devtool-frontend",
-            "gn",
-            "llvm",
-        ];
+        const repo = repositories.map(item => item.dirname);
         const fetch_as_json = x => fetch(`/data/${x}/users.json`).then(r => r.json());
         const jsons  = await Promise.all(repo.map(fetch_as_json));
         const merged = jsons.reduce((acc, json) => acc.concat(json), []);

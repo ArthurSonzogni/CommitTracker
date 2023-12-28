@@ -5,19 +5,23 @@
         v-if="allowAll"
         :size="size"
         name="all"
-        v-model="all"
+        :value="!all"
         @input="updateAll()"
         type="is-warning"
         >
         All
       </b-checkbox-button>
       <b-checkbox-button
+        style="background-color: #f5f5f5"
         name="repositories"
-        v-for="item in items"
+        v-for="(item, index) in items"
         :size="size"
         :value="value"
-        @input="update(item.toLowerCase())"
-        :native-value="item.toLowerCase()">{{item}}</b-checkbox-button>
+        @input="update(repositories[index].dirname)"
+        :native-value="repositories[index].dirname"
+      >
+          {{repositories[index].name}}
+      </b-checkbox-button>
     </b-field>
 
     <b-checkbox
@@ -33,6 +37,8 @@
 </template>
 
 <script>
+
+import repositories from 'static/repositories.json'
 
 export default {
   props: {
@@ -67,24 +73,11 @@ export default {
   },
 
   data() {
-    const items = [
-      "Chrome",
-      "ChromeOS",
-      "V8",
-      "Skia",
-      "Angle",
-      "Dawn",
-      "WebRTC",
-      "PDFium",
-      "Devtool-Frontend",
-      "GN",
-      "LLVM",
-    ];
+    const items = repositories.map(item => item.dirname);
     const multiple = this.value.length > 1;
-    const all = !(items.length == this.value.length);
     return {
+      repositories,
       multiple,
-      all,
       items,
     };
   },
@@ -95,25 +88,21 @@ export default {
       if (this.all) {
         this.$emit('input', []);
       } else {
-        this.multiple = true;
+        this.multiple = this.allowMultiple
         this.$emit('input', this.items.map(item => item.toLowerCase()));
       }
     },
     update(item) {
-      if (!this.all) {
-        this.all = true;
-        this.$emit('input', [item]);
-        return;
-      }
-
       this.multiple &= this.allowMultiple;
 
       if (this.multiple) {
         const newValue = [...this.value];
         const index = newValue.indexOf(item);
         if (index === -1) {
+          console.log("not found")
           newValue.push(item);
         } else {
+          console.log("found")
           newValue.splice(index, 1);
         }
         this.$emit('input', newValue.sort());
@@ -122,7 +111,13 @@ export default {
 
       this.$emit('input', [item]);
     },
-  }
+  },
+
+  computed: {
+    all() {
+      return this.value.length == this.items.length;
+    },
+  },
 }
 
 </script>
@@ -130,8 +125,6 @@ export default {
 <style scoped>
 
 .xscrollable {
-  width: 100%;
-  overflow-x: auto;
 }
 
 </style>

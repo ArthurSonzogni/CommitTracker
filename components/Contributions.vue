@@ -15,10 +15,9 @@ import {easeBackOut} from "d3-ease";
 import {easeCircleOut} from "d3-ease";
 import {format} from "d3-format";
 import {interpolate} from "d3-interpolate";
-import {scaleOrdinal} from "d3-scale";
-import {schemePaired} from "d3-scale-chromatic";
 import {select} from "d3-selection";
 import {transition} from "d3-transition";
+import repositories from 'static/repositories.json'
 
 export default {
   props: {
@@ -34,6 +33,11 @@ export default {
   },
 
   data() {
+    this.colorMap = new Map();
+    for(const repo of repositories) {
+      this.colorMap.set(repo.dirname, repo.color);
+    }
+
     return {
       label: "label",
     }
@@ -41,19 +45,7 @@ export default {
 
   methods: {
     getItem() {
-      return [
-        "chrome",
-        "chromeos",
-        "v8",
-        "skia",
-        "angle",
-        "dawn",
-        "webrtc",
-        "pdfium",
-        "devtool-frontend",
-        "gn",
-        "llvm",
-      ];
+      return repositories.map(item => item.dirname);
     },
 
     sortRepositories: function(a,b) {
@@ -390,9 +382,6 @@ export default {
     },
 
     async refresh() {
-      const color = scaleOrdinal(schemePaired);
-      this.getItem().map(color);
-
       const traits = this.traits();
       this.label = traits.label;
 
@@ -467,10 +456,10 @@ export default {
           .style("flex-grow", d => d.value)
           .style("background-color", d => {
             if (this.repositories.length == 1) {
-              return color(this.repositories[0]);
+              return this.colorMap.get(this.repositories[0]);
             }
             if (summable) {
-              return color(d.repo)
+              return this.colorMap.get(d.repo);
             }
             return "gray";
           });

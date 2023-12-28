@@ -1,6 +1,8 @@
 [
   {
+    "name": "Chrome",
     "dirname": "chrome",
+    "color": "#1f77b4",
     "owner": "chromium",
     "repository": "chromium",
     "head": "main",
@@ -8,7 +10,19 @@
   },
 
   {
+    "name": "ChromeOS",
+    "dirname": "chromeos",
+    "color": "#002d9c",
+    "owner": "ArthurSonzogni",
+    "repository": "chromiumos-platform2",
+    "head": "main",
+    "first_commit_hash": "97724f18c79c7cc81ced24239eb5e883bf1398ef"
+  },
+
+  {
+    "name": "V8",
     "dirname": "v8",
+    "color": "#2ca02c",
     "owner": "v8",
     "repository": "v8",
     "head": "main",
@@ -16,7 +30,9 @@
   },
 
   {
+    "name": "Skia",
     "dirname": "skia",
+    "color": "#d62728",
     "owner": "google",
     "repository": "skia",
     "head": "main",
@@ -24,7 +40,9 @@
   },
 
   {
+    "name": "Angle",
     "dirname": "angle",
+    "color": "#9467bd",
     "owner": "google",
     "repository": "angle",
     "head": "main",
@@ -32,7 +50,9 @@
   },
 
   {
+    "name": "Dawn",
     "dirname": "dawn",
+    "color": "#8c564b",
     "owner": "ArthurSonzogni",
     "repository": "dawn",
     "head": "main",
@@ -40,7 +60,9 @@
   },
 
   {
+    "name": "WebRTC",
     "dirname": "webrtc",
+    "color": "#e377c2",
     "owner": "maitrungduc1410",
     "repository": "webrtc",
     "head": "master",
@@ -48,7 +70,9 @@
   },
 
   {
+    "name": "PDFium",
     "dirname": "pdfium",
+    "color": "#7f7f7f",
     "owner": "chromium",
     "repository": "pdfium",
     "head": "main",
@@ -56,14 +80,18 @@
   },
 
   {
+    "name": "DevTool-frontend",
     "dirname": "devtool-frontend",
+    "color": "#bcbd22",
     "owner": "ChromeDevTools",
     "repository": "devtools-frontend",
     "head": "main",
     "first_commit_hash": "4c46d0969f10f460f2a27116f4896f20f65d0989"
   },
   {
+    "name": "GN",
     "dirname": "gn",
+    "color": "#17becf",
     "owner": "ArthurSonzogni",
     "repository": "gn",
     "head": "main",
@@ -71,17 +99,11 @@
   },
 
   {
+    "name": "LLVM",
     "dirname": "llvm",
+    "color": "#ff7f0e",
     "owner": "llvm",
     "repository": "llvm-project",
-    "head": "main",
-    "first_commit_hash": "97724f18c79c7cc81ced24239eb5e883bf1398ef"
-  },
-
-  {
-    "dirname": "chromeos",
-    "owner": "ArthurSonzogni",
-    "repository": "chromiumos-platform2",
     "head": "main",
     "first_commit_hash": "97724f18c79c7cc81ced24239eb5e883bf1398ef"
   }
