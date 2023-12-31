@@ -30,6 +30,9 @@
         <b-navbar-item tag="router-link" :to="{ path: '/leaderboard' }">
           Leaderboard
         </b-navbar-item>
+        <b-navbar-item tag="router-link" :to="{ path: '/repo-info' }">
+          Repositories tracking info
+        </b-navbar-item>
       </b-navbar-dropdown>
     </template>
 
