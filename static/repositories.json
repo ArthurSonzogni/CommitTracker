@@ -99,6 +99,16 @@
   },
 
   {
+    "name": "ClusterFuzz",
+    "dirname": "clusterfuzz",
+    "color": "#E26310",
+    "owner": "google",
+    "repository": "clusterfuzz",
+    "head": "master",
+    "first_commit_hash": "88570c94040477eb46e50a6669abb537cecae8a6"
+  },
+
+  {
     "name": "LLVM",
     "dirname": "llvm",
     "color": "#ff7f0e",
