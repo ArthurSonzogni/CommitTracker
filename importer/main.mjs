@@ -127,15 +127,17 @@ const processRepository = async (repository) => {
         if (max_page <= 0) {
           break process;
         }
+        const params = {
+          owner: repository.owner,
+          repo: repository.repository,
+          sha: sha,
+          per_page: 100,
+        }
+        if (repository.cone) {
+          params.path = repository.cone;
+        }
         const response = await octokit.request(
-          "GET /repos/{owner}/{repo}/commits",
-          {
-            owner: repository.owner,
-            repo: repository.repository,
-            sha: sha,
-            per_page: 100,
-          }
-        );
+          "GET /repos/{owner}/{repo}/commits", params);
 
         for (const commit of response.data) {
           if (sha === repository.head) {

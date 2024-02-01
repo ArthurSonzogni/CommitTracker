@@ -10,6 +10,30 @@
   },
 
   {
+    "name": "Blink",
+    "dirname": "blink",
+    "color": "#ccde92",
+    "owner": "chromium",
+    "repository": "chromium",
+    "cone": "third_party/blink",
+    "parent": "chromium",
+    "head": "main",
+    "first_commit_hash": "099ede7736b5b7c11aaaabdefb02bb6ab2faf187"
+  },
+
+  {
+    "name": "PartitionAlloc",
+    "dirname": "partition_alloc",
+    "color": "#d09db9",
+    "owner": "chromium",
+    "repository": "chromium",
+    "cone": "base/allocator/partition_allocator",
+    "parent": "chromium",
+    "head": "main",
+    "first_commit_hash": "a988c5022f9bc4fb75ac0b86dda8005ee57ff357"
+  },
+
+  {
     "name": "ChromeOS",
     "dirname": "chromeos",
     "color": "#002d9c",

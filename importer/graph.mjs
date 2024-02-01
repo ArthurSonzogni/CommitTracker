@@ -29,7 +29,9 @@ async function Main() {
   let task_repo = { all: [] };
   for(const repository of repositories) {
     task_repo[repository.dirname] = [repository];
-    task_repo["all"].push(repository);
+    if (repository.cone == undefined) {
+      task_repo["all"].push(repository);
+    }
   }
 
   for(const repos in task_repo) {
