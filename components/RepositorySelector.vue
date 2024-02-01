@@ -1,6 +1,6 @@
 <template>
-  <b-field grouped>
-    <b-field :label="label" class="xscrollable">
+  <b-field>
+    <b-field :label="label" grouped group-multiline id="arthur">
       <b-checkbox-button
         v-if="allowAll"
         :size="size"
@@ -12,15 +12,15 @@
         All
       </b-checkbox-button>
       <b-checkbox-button
-        style="background-color: #f5f5f5"
+        style="margin-right: -0.02rem; margin-left: 0"
         name="repositories"
         v-for="(item, index) in items"
         :size="size"
         :value="value"
         @input="update(repositories[index].dirname)"
         :native-value="repositories[index].dirname"
-      >
-          {{repositories[index].name}}
+        >
+        {{repositories[index].name}}
       </b-checkbox-button>
     </b-field>
 
@@ -121,10 +121,3 @@ export default {
 }
 
 </script>
-
-<style scoped>
-
-.xscrollable {
-}
-
-</style>
