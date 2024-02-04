@@ -5,8 +5,9 @@
     "color": "#1f77b4",
     "owner": "chromium",
     "repository": "chromium",
-    "head": "main",
-    "first_commit_hash": "c14d891d44f0afff64e56ed7c9702df1d807b1ee"
+    "branches" : [
+      "main"
+     ]
   },
 
   {
@@ -17,8 +18,9 @@
     "repository": "chromium",
     "cone": "third_party/blink",
     "parent": "chromium",
-    "head": "main",
-    "first_commit_hash": "099ede7736b5b7c11aaaabdefb02bb6ab2faf187"
+    "branches" : [
+      "main"
+     ]
   },
 
   {
@@ -29,8 +31,9 @@
     "repository": "chromium",
     "cone": "base/allocator/partition_allocator",
     "parent": "chromium",
-    "head": "main",
-    "first_commit_hash": "a988c5022f9bc4fb75ac0b86dda8005ee57ff357"
+    "branches" : [
+      "main"
+     ]
   },
 
   {
@@ -39,8 +42,9 @@
     "color": "#002d9c",
     "owner": "ArthurSonzogni",
     "repository": "chromiumos-platform2",
-    "head": "main",
-    "first_commit_hash": "97724f18c79c7cc81ced24239eb5e883bf1398ef"
+    "branches" : [
+      "main"
+     ]
   },
 
   {
@@ -49,8 +53,9 @@
     "color": "#2ca02c",
     "owner": "v8",
     "repository": "v8",
-    "head": "main",
-    "first_commit_hash": "33f2fb0e53d135f0ee17cfccd9d993eb2a6f47de"
+    "branches" : [
+      "main"
+     ]
   },
 
   {
@@ -59,8 +64,31 @@
     "color": "#d62728",
     "owner": "google",
     "repository": "skia",
-    "head": "main",
-    "first_commit_hash": "586101c79b0490b50623e76c71a5fd67d8d92b08"
+    "branches" : [
+      "main"
+     ]
+  },
+
+  {
+    "name": "Dawn",
+    "dirname": "dawn",
+    "color": "#8c564b",
+    "owner": "google",
+    "repository": "dawn",
+    "branches" : [
+      "main",
+     ]
+  },
+
+  {
+    "name": "GN",
+    "dirname": "gn",
+    "color": "#17becf",
+    "owner": "ArthurSonzogni",
+    "repository": "gn",
+    "branches" : [
+      "main"
+     ]
   },
 
   {
@@ -69,18 +97,9 @@
     "color": "#9467bd",
     "owner": "google",
     "repository": "angle",
-    "head": "main",
-    "first_commit_hash": "eff14256dba77b6dcd65a1d3425c4f06b0de39f4"
-  },
-
-  {
-    "name": "Dawn",
-    "dirname": "dawn",
-    "color": "#8c564b",
-    "owner": "ArthurSonzogni",
-    "repository": "dawn",
-    "head": "main",
-    "first_commit_hash": "f07e3bd4c9553e7cd2af058fb6b8482721e4e486"
+    "branches" : [
+      "main"
+     ]
   },
 
   {
@@ -89,8 +108,9 @@
     "color": "#e377c2",
     "owner": "maitrungduc1410",
     "repository": "webrtc",
-    "head": "master",
-    "first_commit_hash": "a24fc54e854f44c5132a7f649be088c78f24f5d5"
+    "branches": [
+      "master"
+     ]
   },
 
   {
@@ -99,8 +119,9 @@
     "color": "#7f7f7f",
     "owner": "chromium",
     "repository": "pdfium",
-    "head": "main",
-    "first_commit_hash": "76b563d2feed92ed328afb1f15e3466a9536b11b"
+    "branches" : [
+      "main"
+     ]
   },
 
   {
@@ -109,17 +130,9 @@
     "color": "#bcbd22",
     "owner": "ChromeDevTools",
     "repository": "devtools-frontend",
-    "head": "main",
-    "first_commit_hash": "4c46d0969f10f460f2a27116f4896f20f65d0989"
-  },
-  {
-    "name": "GN",
-    "dirname": "gn",
-    "color": "#17becf",
-    "owner": "ArthurSonzogni",
-    "repository": "gn",
-    "head": "main",
-    "first_commit_hash": "95374957437b818e9addc26c83340b27a1b38202"
+    "branches" : [
+      "main"
+     ]
   },
 
   {
@@ -128,8 +141,9 @@
     "color": "#E26310",
     "owner": "google",
     "repository": "clusterfuzz",
-    "head": "master",
-    "first_commit_hash": "88570c94040477eb46e50a6669abb537cecae8a6"
+    "branches": [
+      "master"
+     ]
   },
 
   {
@@ -138,7 +152,8 @@
     "color": "#ff7f0e",
     "owner": "llvm",
     "repository": "llvm-project",
-    "head": "main",
-    "first_commit_hash": "97724f18c79c7cc81ced24239eb5e883bf1398ef"
+    "branches" : [
+      "main"
+    ]
   }
 ]

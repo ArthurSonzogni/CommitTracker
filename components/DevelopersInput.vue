@@ -18,7 +18,7 @@
 
 <script>
 
-import repositories from 'static/repositories.json'
+import repositories from 'static/data/repositories.json'
 
 export default {
     props: [
@@ -37,7 +37,7 @@ export default {
 
     async fetch() {
         const repo = repositories.map(item => item.dirname);
-        const fetch_as_json = x => fetch(`/data/${x}/users.json`).then(r => r.json());
+        const fetch_as_json = x => fetch(`/data/${x}/usernames.json`).then(r => r.json());
         const jsons  = await Promise.all(repo.map(fetch_as_json));
         const merged = jsons.reduce((acc, json) => acc.concat(json), []);
         const list = [...new Set(merged)]

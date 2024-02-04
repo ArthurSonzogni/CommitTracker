@@ -69,7 +69,7 @@ export default {
   },
 
   async fetch() {
-    const response = await fetch("/data/chrome/users.json");
+    const response = await fetch("/data/chrome/usernames.json");
     this.developerList = await response.json();
     this.getRandom();
   },

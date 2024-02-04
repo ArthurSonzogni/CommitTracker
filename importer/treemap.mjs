@@ -1,11 +1,12 @@
 import { spawn } from "child_process"
 import * as filesystem from "fs";
+import JSON5 from "json5";
 
 const fs = filesystem.promises;
 
 async function processRepositories() {
-  const repositories_file = "../static/repositories.json";
-  const repositories = JSON.parse(await fs.readFile(repositories_file, "utf8"));
+  const repositories_file = "../repositories.json5";
+  const repositories = JSON5.parse(await fs.readFile(repositories_file, "utf8"));
   for (const repository of repositories) {
     await processRepository(repository);
   }

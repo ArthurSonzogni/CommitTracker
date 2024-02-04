@@ -62,10 +62,11 @@ export default {
       });
 
       const responses = await Promise.all(this.repositories.map(repo =>
-        fetch(`/data/${repo}/users.json`)
+        fetch(`/data/${repo}/usernames.json`)
       ))
       const arrays = await Promise.all(responses.map(r => r.json()))
-      const data = [... new Set(arrays.flat())];
+      const data= [... new Set(arrays.flat())];
+
       this.sum = data.length;
       this.distribution = [];
       for(const developer of data) {

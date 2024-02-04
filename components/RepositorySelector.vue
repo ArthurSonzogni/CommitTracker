@@ -38,7 +38,7 @@
 
 <script>
 
-import repositories from 'static/repositories.json'
+import repositories from 'static/data/repositories.json'
 
 export default {
   props: {

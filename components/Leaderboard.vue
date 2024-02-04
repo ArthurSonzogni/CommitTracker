@@ -245,7 +245,7 @@ export default {
 
     async fetchData() {
       this.is_animating = false;
-      const async_data = this.repositories.map(this.$usersInfo);
+      const async_data = this.repositories.map(this.$usernamesSummary);
       const data = await Promise.all(async_data);
       const filtered_data = data.map(this.filterKind);
       const merged = this.mergeDataForRepositories(filtered_data);
@@ -563,7 +563,7 @@ export default {
         this.is_animating = false;
         return;
       }
-      const async_data = this.repositories.map(this.$usersInfo);
+      const async_data = this.repositories.map(this.$usernamesSummary);
       const data = await Promise.all(async_data);
       const filtered_data = data.map(this.filterKind);
       const merged = this.mergeDataForRepositories(filtered_data);

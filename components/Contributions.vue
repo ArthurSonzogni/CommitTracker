@@ -17,7 +17,7 @@ import {format} from "d3-format";
 import {interpolate} from "d3-interpolate";
 import {select} from "d3-selection";
 import {transition} from "d3-transition";
-import repositories from 'static/repositories.json'
+import repositories from 'static/data/repositories.json'
 
 export default {
   props: {
@@ -316,7 +316,7 @@ export default {
     },
 
     async dataForRepository(repository) {
-      const response = await fetch(`/data/${repository}/users_info.json`);
+      const response = await fetch(`/data/${repository}/usernames_summary.json`);
       const data = await response.json();
 
       // Select author/review/both

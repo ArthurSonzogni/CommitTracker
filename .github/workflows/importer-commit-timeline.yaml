@@ -17,7 +17,7 @@ jobs:
       - name: Setup node env
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '20'
 
       - name: Pull data
         run: |
@@ -27,9 +27,8 @@ jobs:
       - name: Refresh files
         run: |
           cd importer
-          npm install
-          npm run main
-          npm run users_info
+          yarn install
+          yarn run main
         env:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 

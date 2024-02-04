@@ -1,8 +1,9 @@
 import * as filesystem from "fs";
 import { execSync } from "child_process";
+import JSON5 from "json5";
 const fs = filesystem.promises;
 
-const repositories_file = "../static/repositories.json";
+const repositories_file = "../repositories.json5";
 
 const RelativeDate = days => {
   let date = new Date();
@@ -24,7 +25,7 @@ const task_time = {
 }
 
 async function Main() {
-  const repositories = JSON.parse(await fs.readFile(repositories_file, "utf8"));
+  const repositories = JSON5.parse(await fs.readFile(repositories_file, "utf8"));
 
   let task_repo = { all: [] };
   for(const repository of repositories) {
@@ -49,7 +50,7 @@ async function Main() {
           output);
       }
 
-      // Delete users with low number of reviewers.
+      // Delete username with low number of reviewers.
       for(const user in output) {
         if (Object.keys(output[user]).length <= 2) {
           delete output[user];
@@ -89,14 +90,14 @@ async function Main() {
 }
 
 async function ProcessRepository(repository, date_min, date_max, output) {
-  const user_file = `../static/data/${repository.dirname}/users.json`;
-  const user_dir = `../static/data/${repository.dirname}/users`;
-  const users = JSON.parse(await fs.readFile(user_file, "utf8"));
+  const usernames_file = `../static/data/${repository.dirname}/usernames.json`;
+  const usernames_dir = `../static/data/${repository.dirname}/usernames`;
+  const username = JSON.parse(await fs.readFile(usernames_file, "utf8"));
 
-  for(const user of users) {
+  for(const user of username) {
     output[user] ||= {};
 
-    const json = await fs.readFile(`${user_dir}/${user}.json`, "utf8")
+    const json = await fs.readFile(`${usernames_dir}/${user}.json`, "utf8")
     const data = JSON.parse(json)
     for(const time in data.author) {
 

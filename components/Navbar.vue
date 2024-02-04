@@ -11,18 +11,29 @@
       <b-navbar-item tag="router-link" :to="{ path: '/repositories' }">
         Repositories
       </b-navbar-item>
+
       <b-navbar-item tag="router-link" :to="{ path: '/individuals' }">
         Individuals
       </b-navbar-item>
+
       <b-navbar-item tag="router-link" :to="{ path: '/communities' }">
         Community graph
       </b-navbar-item>
+
       <b-navbar-item tag="router-link" :to="{ path: '/treemap' }">
         Treemap
       </b-navbar-item>
+
       <b-navbar-item tag="router-link" :to="{ path: '/api' }">
         API
       </b-navbar-item>
+
+      <b-navbar-dropdown label="Organizations">
+        <b-navbar-item tag="router-link" :to="{ path: '/organizations/emails' }">
+          Emails
+        </b-navbar-item>
+      </b-navbar-dropdown>
+
       <b-navbar-dropdown label="Misc">
         <b-navbar-item tag="router-link" :to="{ path: '/usernames' }">
           Usernames distribution

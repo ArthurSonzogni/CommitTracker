@@ -9,36 +9,48 @@
         <div class="columns is-multiline">
           <div class="column is-full-mobile is-half-desktop is-one-third-widescreen"
                v-for="repo in repositories">
-            <div class="card"
-                 >
+            <div class="card">
               <div class="card-header">
                 <div class="card-header-title"
-                 :style='{
-                   backgroundColor: repo.color + "66",
-                 }
-                 '>
+                     :style='{
+                     backgroundColor: repo.color + "66",
+                     }
+                     '>
                   {{repo.name}}
                 </div>
               </div>
 
               <div class="card-content">
-                 <b-field>
-                   <b-tag icon="source-branch">{{repo.head}}</b-tag>
-                 </b-field>
 
-                 <b-field>
-                   <b-tag icon="source-commit">
-                     <a
-                      :href="'https://github.com' + '/' + repo.owner + '/' +
-                      repo.repository + '/commit/' + repo.last_commit">
-                       {{repo.last_commit}}
-                     </a>
-                   </b-tag>
-                 </b-field>
+                <b-field>
+                  <b-icon icon="github">
+                  </b-icon>
+                    <a :href="`https://github.com/${repo.owner}/${repo.repository}`">
+                      {{repo.owner}}/{{repo.repository}}
+                    </a>
+                </b-field>
 
-                   <a :href="'https://github.com' + '/' + repo.owner + '/' + repo.repository">
-                     {{repo.owner}}/{{repo.repository}}
-                   </a>
+                <b-field>
+                  <b-icon icon="subdirectory-arrow-right">
+                  </b-icon>
+                  <a
+                    :href="`https://github.com/${repo.owner}/${repo.repository}/tree/${repo.branches[0]}/${repo.cone || '/'}`">
+                    {{repo.cone || '/'}}
+                  </a>
+                </b-field>
+
+                <b-field v-for="(branch, i) in repo.branches" :key="branch">
+                  <b-icon icon="source-branch"></b-icon>
+                  <a :href="`https://github.com/${repo.owner}/${repo.repository}/tree/${branch}/${repo.cone || '/'}`">
+                    {{branch}}
+                  </a>
+
+                  :
+
+                  <a :href="`https://github.com/${repo.owner}/${repo.repository}/commit/${repo.last_commit ? repo.last_commit[i] : branch}`">
+                    {{repo.last_commit ? repo.last_commit[i] : '...'}}
+                  </a>
+                </b-field>
               </div>
             </div>
           </div>
@@ -56,7 +68,7 @@
           Download
         </a>
         <a class="button is-small is-primary"
-           href="https://github.com/ArthurSonzogni/ChromeCommitTracker/tree/main/static/repositories.json">
+           href="https://github.com/ArthurSonzogni/ChromeCommitTracker/tree/main/repositories.json5">
           Source
         </a>
         <pre class="content">{{json}}</pre>
@@ -66,23 +78,24 @@
 </template>
 
 <script>
-import repositories from 'static/repositories.json'
+import repositories from 'static/data/repositories.json'
 
 export default {
   data() {
     const json = JSON.stringify(repositories, null, 2);
     for(let repo of repositories) {
-      repo.last_commit = "...";
-      repo.last_commit_date = 0;
+      repo.last_commit = [];
     }
     return {
       json,
-      repositories: repositories,
+      repositories,
     }
   },
 
   mounted() {
-    this.fetchRepositories();
+    setTimeout(() => {
+      this.fetchRepositories();
+    }, 100);
   },
 
   methods: {
@@ -95,9 +108,18 @@ export default {
     async fetchRepository(repo) {
       const response = await fetch(`/data/${repo.dirname}/last.json`);
       const json = await response.json();
-      repo.last_commit = json.sha;
+      for(let branch in repo.branches) {
+        repo.last_commit.push(json[repo.branches[branch]])
+      }
+      console.log(repo);
     },
   },
 }
 
 </script>
+
+<style scoped>
+.cone {
+  font-size: 0.8em !important;
+}
+</style>

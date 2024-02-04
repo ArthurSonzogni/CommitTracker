@@ -1,7 +1,7 @@
 const cache = new Map();
 
 const fetchData = async (repo) => {
-  const response = await fetch(`/data/${repo}/users_info.json`);
+  const response = await fetch(`/data/${repo}/usernames_summary.json`);
   if (response.status != 200) {
     return {}
   }
@@ -16,5 +16,5 @@ const usersInfo = async repo => {
 }
 
 export default (context, inject) => {
-  inject('usersInfo', usersInfo)
+  inject('usernamesSummary', usersInfo)
 }
