@@ -21,6 +21,8 @@ org_list.split("\n").forEach(line => {
   }
   org[org_email.toLowerCase()] = org_name;
 });
+const organizations_list = [...new Set(Object.values(org))].sort();
+await fs.writeFile("../static/data/organizations.json", JSON.stringify(organizations_list, null, 1));
 
 // -----------------------------------------------------------------------------
 

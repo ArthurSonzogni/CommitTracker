@@ -13,14 +13,14 @@
       </b-checkbox-button>
       <b-checkbox-button
         style="margin-right: -0.02rem; margin-left: 0"
-        name="repositories"
+        name="organizations"
         v-for="(item, index) in items"
         :size="size"
         :value="value"
-        @input="update(repositories[index].dirname)"
-        :native-value="repositories[index].dirname"
+        @input="update(item)"
+        :native-value="item"
         >
-        {{repositories[index].name}}
+        {{item}}
       </b-checkbox-button>
     </b-field>
 
@@ -38,7 +38,7 @@
 
 <script>
 
-import repositories from 'static/data/repositories.json'
+import organizations from 'static/data/organizations.json'
 
 export default {
   props: {
@@ -73,10 +73,10 @@ export default {
   },
 
   data() {
-    const items = repositories.map(item => item.dirname);
-    const multiple = this.value.length > 1;
+    const items = organizations;
+    const multiple = (this.value.length > 1) && this.allowMultiple;
     return {
-      repositories,
+      organizations,
       multiple,
       items,
     };
@@ -86,28 +86,27 @@ export default {
   methods: {
     updateAll() {
       if (this.all) {
+        this.multiple = false;
         this.$emit('input', []);
       } else {
         this.multiple = this.allowMultiple
-        this.$emit('input', this.items.map(item => item.toLowerCase()));
+        this.$emit('input', this.items)
       }
     },
     update(item) {
-      if (this.multiple) {
-        const newValue = [...this.value];
-        const index = newValue.indexOf(item);
-        if (index === -1) {
-          console.log("not found")
-          newValue.push(item);
-        } else {
-          console.log("found")
-          newValue.splice(index, 1);
-        }
-        this.$emit('input', newValue.sort());
+      if (!this.multiple) {
+        this.$emit('input', [item]);
         return;
       }
 
-      this.$emit('input', [item]);
+      const newValue = [...this.value];
+      const index = newValue.indexOf(item);
+      if (index === -1) {
+        newValue.push(item);
+      } else {
+        newValue.splice(index, 1);
+      }
+      this.$emit('input', newValue.sort());
     },
   },
 

@@ -29,6 +29,9 @@
       </b-navbar-item>
 
       <b-navbar-dropdown label="Organizations">
+        <b-navbar-item tag="router-link" :to="{ path: '/organizations/commits' }">
+          Commits
+        </b-navbar-item>
         <b-navbar-item tag="router-link" :to="{ path: '/organizations/emails' }">
           Emails
         </b-navbar-item>
