@@ -4,7 +4,12 @@
       <div class="left"><strong>{{timeLabel}}</strong></div>
       <div class="right"><strong># commit</strong></div>
     </div>
-    <div ref="histogram"></div>
+    <div ref="tooltip" class="tooltip">
+      <div class="tooltip-inner">Test</div>
+      <div class="tooltip-arrow"></div>
+    </div>
+    <div ref="histogram">
+    </div>
 
   </div>
 </template>
@@ -17,6 +22,7 @@ import {format} from "d3-format";
 import {interpolate} from "d3-interpolate";
 import {select} from "d3-selection";
 import {transition} from "d3-transition";
+import {mouse} from "d3-selection";
 import repositories from 'static/data/repositories.json'
 
 export default {
@@ -28,6 +34,8 @@ export default {
   },
 
   data() {
+    this.init();
+
     this.colorMap = new Map();
     for(const repo of repositories) {
       this.colorMap.set(repo.dirname, repo.color);
@@ -193,6 +201,18 @@ export default {
       return data;
     },
 
+    init() {
+      const histogram = select(this.$refs.histogram);
+      const tooltip = select(this.$refs.tooltip);
+      histogram.on("mouseout", () => {
+        tooltip
+          .transition()
+          .duration(600)
+          .delay(1000)
+          .style("opacity", 0)
+      })
+    },
+
     async refresh() {
       const traits = this.traits();
       this.label = traits.label;
@@ -265,6 +285,7 @@ export default {
           })
       };
 
+      const tooltip = select(this.$refs.tooltip);
 
       select(this.$refs.histogram)
         .selectAll(".line")
@@ -349,6 +370,21 @@ export default {
             repository.classed("repository", true);
             repository.style("flex-grow", 0);
             updateBox(repository);
+            repository.on("mouseover", function(event, d) {
+              const that = select(this);
+              const box = that.node().getBoundingClientRect();
+              const tooltip_inner = tooltip.select(".tooltip-inner");
+              tooltip
+                .transition()
+                .duration(200)
+                .ease(easeCircleOut)
+                .style("opacity", 1.0)
+                .style("left", (box.left + box.width / 2) + "px")
+                .style("top", (box.top) + "px")
+
+              tooltip_inner
+                .text(d.repo + ": " + formatter(d.value));
+            })
             return repository;
           },
           update => {
@@ -385,6 +421,7 @@ export default {
   },
 
   mounted() {
+    this.init();
     this.refresh();
   }
 }
@@ -415,6 +452,40 @@ export default {
   background: rgba(0,128,255);
   overflow:hidden;
   opacity:0.3;
+}
+
+.tooltip {
+  position: fixed;
+  color: white;
+  text-align: center;
+  border-radius: 6px;
+  font-size: 12px;
+  z-index: 10;
+  transform: translate(-50%, -125%);
+  opacity: 0;
+}
+
+.tooltip-inner {
+  margin: 0;
+  padding: 5px;
+  font-size: 1rem;
+  background-color: #333;
+  border-radius: 8px;
+}
+
+.tooltip-arrow {
+  width: 0;
+  height: 0;
+  border-style: solid;
+  margin: 0;
+  padding: 0;
+  border-width: 10px;
+  border-color: #333 transparent transparent transparent;
+  transform: translateX(-50%);
+  position: absolute;
+  top: 98%;
+  left: 50%;
+  z-index: 9;
 }
 
 </style>

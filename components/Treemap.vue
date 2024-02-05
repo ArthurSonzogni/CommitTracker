@@ -425,7 +425,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 
 .tooltip {
   backdrop-filter: blur(10px);

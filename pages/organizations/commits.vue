@@ -10,17 +10,17 @@
         </p>
         <RepositorySelector
           v-model="repositories"
-          size="medium"
+          size="small"
           :allowMultiple="true"
           :allowAll="true"
           />
 
         <p>
-          <strong>Organizations?</strong>
+          <strong>Organizations:</strong>
         </p>
         <OrganizationsSelector
           v-model="organizations"
-          size="medium"
+          size="small"
           :allowMultiple="true"
           :allowAll="true"
           />
