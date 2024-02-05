@@ -57,7 +57,7 @@ import {interpolate} from "d3-interpolate";
 
 export default {
   props: {
-    repositories: { type:Array[String], default: ["chromium"]},
+    repositories: { type:Array[String], default: () => ["chromium"]},
     grouping: { type:String, default: "yearly"},
     kind: { type:String, default: "author"},
     timeIndex: { type:Number, default: 0},

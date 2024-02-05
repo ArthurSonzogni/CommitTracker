@@ -25,7 +25,7 @@ import {bisector} from "d3-array";
 
 export default {
   props: {
-    repositories: { type:Array[String], default: "chromium",},
+    repositories: { type:Array[String], default: () => ["chromium"],},
     developers: { type: Array },
     startDate: { type: Date },
     endDate: { type: Date },
@@ -123,6 +123,7 @@ export default {
 
   methods: {
     async developersChanged() {
+      console.log("Developers changed");
       this.data = await this.$chromeDataAll(this.repositories[0], this.developers);
     },
 

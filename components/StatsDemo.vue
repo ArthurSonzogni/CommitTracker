@@ -82,7 +82,7 @@ export default {
 
       const index = Math.floor(Math.random() * this.developerList.length);
       const developer = this.developerList[index];
-      const response = await fetch(`/data/chromium/users/${developer}.json`);
+      const response = await fetch(`/data/chromium/usernames/${developer}.json`);
       const data = await response.json();
 
       for(let i = 0; i<2; ++i) {

@@ -129,7 +129,7 @@ export default {
   methods: {
     developersChanged() {
       Promise.all(this.developers.map(async d => {
-        const response = await fetch(`/data/${this.repositories[0]}/users/${d}.json`);
+        const response = await fetch(`/data/${this.repositories[0]}/usernames/${d}.json`);
         const data = await response.json();
         return {
           developer: d,

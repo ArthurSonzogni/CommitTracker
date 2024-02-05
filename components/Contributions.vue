@@ -21,7 +21,7 @@ import repositories from 'static/data/repositories.json'
 
 export default {
   props: {
-    repositories: { type:Array[String], default: ["chromium"],},
+    repositories: { type:Array[String], default: () => ["chromium"],},
     grouping: { type:String, default: "yearly"},
     what: {},
     display: {},
