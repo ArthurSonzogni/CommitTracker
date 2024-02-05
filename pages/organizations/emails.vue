@@ -65,7 +65,7 @@
 
 export default {
   data() {
-    let repositories = ["dawn"];
+    let repositories = ["chrome"];
     if(this.$route.query.repositories) {
       repositories = this.$route.query.repositories.split(",");
     }
