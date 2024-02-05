@@ -40,7 +40,7 @@
 
 export default {
   data() {
-    let repositories = ["chrome"];
+    let repositories = ["chromium"];
     let what = "contributors";
     let grouping = "yearly";
     let display = "average";

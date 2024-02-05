@@ -41,7 +41,7 @@ import {transition} from "d3-transition";
 
 export default {
   data() {
-    let repositories = ["chrome"];
+    let repositories = ["chromium"];
     if(this.$route.query.repositories) {
       repositories = this.$route.query.repositories.split(",");
     }

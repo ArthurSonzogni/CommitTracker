@@ -27,17 +27,17 @@
 
           <li>
             <ul>
-              <li> <a href="/data/chrome/emails.json">
+              <li> <a href="/data/chromium/emails.json">
                   <code>/data/${repository}/emails.json</code>
                 </a>
               </li>
 
-              <li> <a href="/data/chrome/emails_summary.json">
+              <li> <a href="/data/chromium/emails_summary.json">
                   <code>/data/${repository}/emails_summary.json</code>
                 </a>
               </li>
 
-              <li> <a href="/data/chrome/emails/arthursonzogni@chromium.org.json">
+              <li> <a href="/data/chromium/emails/arthursonzogni@chromium.org.json">
                   <code>/data/${repository}/emails/${email}.json</code>
                 </a>
               </li>
@@ -46,17 +46,17 @@
 
           <li>
             <ul>
-              <li> <a href="/data/chrome/usernames.json">
+              <li> <a href="/data/chromium/usernames.json">
                   <code>/data/${repository}/usernames.json</code>
                 </a>
               </li>
 
-              <li> <a href="/data/chrome/usernames_summary.json">
+              <li> <a href="/data/chromium/usernames_summary.json">
                   <code>/data/${repository}/usernames_summary.json</code>
                 </a>
               </li>
 
-              <li> <a href="/data/chrome/usernames/arthursonzogni.json">
+              <li> <a href="/data/chromium/usernames/arthursonzogni.json">
                   <code>/data/${repository}/usernames/${username}.json</code>
                 </a>
               </li>
@@ -66,17 +66,17 @@
           <li>
             <ul>
 
-              <li> <a href="/data/chrome/organizations.json">
+              <li> <a href="/data/chromium/organizations.json">
                   <code>/data/${repository}/organizations.json</code>
                 </a>
               </li>
 
-              <li> <a href="/data/chrome/organizations_summary.json">
+              <li> <a href="/data/chromium/organizations_summary.json">
                   <code>/data/${repository}/organizations_summary.json</code>
                 </a>
               </li>
 
-              <li> <a href="/data/chrome/organizations/Intel.json">
+              <li> <a href="/data/chromium/organizations/Intel.json">
                   <code>/data/${repository}/organizations/${organization}.json</code>
                 </a>
               </li>

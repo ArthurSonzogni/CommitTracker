@@ -178,7 +178,7 @@ export default {
     if (this.$route.query.wrappedBuckets) {
       wrappedBuckets = parseInt(this.$route.query.wrappedBuckets);
     }
-    let repositories =  ["chrome"];
+    let repositories =  ["chromium"];
     if (this.$route.query.repositories) {
       repositories = this.$route.query.repositories.split(',');
     }

@@ -81,7 +81,7 @@
       <p>
         New entries to track can be added by opening a PR against this
         <a
-          href="https://github.com/ArthurSonzogni/ChromeCommitTracker/blob/main/static/data/chrome/treemap/entries.json">file</a>
+          href="https://github.com/ArthurSonzogni/ChromeCommitTracker/blob/main/static/data/chromium/treemap/entries.json">file</a>
       </p>
     </section>
 
@@ -116,7 +116,7 @@ export default {
     if (this.$route.query.colormapMax) {
       colormapMax = parseFloat(this.$route.query.colormapMax);
     }
-    let repositories = ["chrome"];
+    let repositories = ["chromium"];
     if (this.$route.query.repositories) {
       repositories = this.$route.query.repositories.split(",");
     }

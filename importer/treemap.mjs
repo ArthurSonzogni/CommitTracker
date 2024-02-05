@@ -28,7 +28,7 @@ async function processRepository(repo) {
     children: [],
   }
 
-  const entries_filename= `../static/data/chrome/treemap/entries.json`;
+  const entries_filename= `../static/data/chromium/treemap/entries.json`;
   const entries = JSON.parse(await fs.readFile(entries_filename, "utf8"));
   for (const entry of entries) {
     await ProcessEntry(repo, root, entry);
@@ -60,7 +60,7 @@ async function ProcessEntry(repo, root, entry) {
   //if (repo.script) {
     //await fs.writeFile("script.sh", `
       //cd ./${repo.dirname};
-      //../../static/data/chrome/treemap/scripts/${repo.script};
+      //../../static/data/chromium/treemap/scripts/${repo.script};
       //cd ..;
     //`)
   //} else {

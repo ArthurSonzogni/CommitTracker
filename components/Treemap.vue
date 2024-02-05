@@ -32,7 +32,7 @@ import {treemap} from "d3-hierarchy";
 export default {
 
   props: {
-    repositories: { type:Array[String], default: () => ["chrome"],},
+    repositories: { type:Array[String], default: () => ["chromium"],},
     path: {},
     field_color: {},
     field_size: {},

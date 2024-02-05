@@ -30,7 +30,7 @@ const color = scaleOrdinal(schemeCategory10);
 
 export default {
   props: {
-    repositories: { type:Array[String], default: ["chrome"],},
+    repositories: { type:Array[String], default: ["chromium"],},
     developers: { type: Array },
     startDate: { type: Date },
     endDate: { type: Date },
