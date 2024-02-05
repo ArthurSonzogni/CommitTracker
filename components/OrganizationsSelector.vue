@@ -75,22 +75,25 @@ export default {
   data() {
     const items = organizations;
     const multiple = (this.value.length > 1) && this.allowMultiple;
+    const all = this.value.length == items.length;
     return {
       organizations,
       multiple,
       items,
+      all,
     };
   },
 
 
   methods: {
     updateAll() {
+      this.all = !this.all;
       if (this.all) {
-        this.multiple = false;
-        this.$emit('input', []);
-      } else {
         this.multiple = this.allowMultiple
         this.$emit('input', this.items)
+      } else {
+        this.multiple = false;
+        this.$emit('input', []);
       }
     },
     update(item) {

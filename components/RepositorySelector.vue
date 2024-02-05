@@ -75,39 +75,55 @@ export default {
   data() {
     const items = repositories.map(item => item.dirname);
     const multiple = this.value.length > 1;
+    const all = this.value.length == items.length;
     return {
       repositories,
       multiple,
       items,
+      all,
     };
   },
 
 
   methods: {
     updateAll() {
-      if (this.all) {
+      this.all = !this.all;
+      if (!this.all) {
         this.$emit('input', []);
-      } else {
-        this.multiple = this.allowMultiple
-        this.$emit('input', this.items.map(item => item.toLowerCase()));
-      }
-    },
-    update(item) {
-      if (this.multiple) {
-        const newValue = [...this.value];
-        const index = newValue.indexOf(item);
-        if (index === -1) {
-          console.log("not found")
-          newValue.push(item);
-        } else {
-          console.log("found")
-          newValue.splice(index, 1);
-        }
-        this.$emit('input', newValue.sort());
         return;
       }
 
-      this.$emit('input', [item]);
+      this.multiple = this.allowMultiple
+      const all = this.items
+        .map(item => item.toLowerCase())
+        .filter(item => {
+          for(const repo of this.repositories) {
+            if (repo.dirname.toLowerCase() === item) {
+              return repo.parent == undefined;
+            }
+          }
+          return false;
+        })
+      this.$emit('input', all);
+    },
+    update(item) {
+      if (!this.multiple) {
+        this.$emit('input', [item]);
+        return;
+      }
+
+      const newValue = [...this.value];
+      const index = newValue.indexOf(item);
+      if (index === -1) {
+        newValue.push(item);
+      } else {
+        newValue.splice(index, 1);
+      }
+
+      // Tweak to avoid including twice the same repository.
+
+      this.$emit('input', newValue.sort());
+      return;
     },
   },
 
