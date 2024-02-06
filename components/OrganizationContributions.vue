@@ -27,8 +27,9 @@ import repositories from 'static/data/repositories.json'
 
 export default {
   props: {
-    repositories: { type:Array[String], default: ["chromium"],},
-    organizations: { type:Array[String], default: ["Google"],},
+    repositories: { type:Array[String], default: () => ["chromium"],},
+    organizations: { type:Array[String], default: () => ["Google"],},
+    colors: { type:String, default: "repositories"},
     grouping: { type:String, default: "yearly"},
     kind: {},
   },
@@ -40,45 +41,17 @@ export default {
     for(const repo of repositories) {
       this.colorMap.set(repo.dirname, repo.color);
     }
-
-    return {
-      label: "label",
+    for(const organization of this.organizations) {
+      this.colorMap.set(organization, `hsl(${Math.random() * 360}, 100%, 50%)`);
     }
+
+    return {};
   },
 
   methods: {
-    getItem() {
-      return repositories.map(item => item.dirname);
-    },
-
     sortRepositories: function(a,b) {
-      const items = this.getItem();
-      return items.indexOf(a.repo) - items.indexOf(b.repo);
-    },
-
-    quantile: function(arr, q) {
-      const sorted = arr.sort((a,b) => (b - a))
-      const pos = (sorted.length - 1) * q;
-      const base = Math.floor(pos);
-      return sorted[base];
-    },
-
-    top: function(arr, q) {
-      const sorted = arr.sort((a,b) => (b - a))
-      if (q <= sorted.length) {
-        return sorted[q-1];
-      }
-      return 0;
-    },
-
-    rank: function(arr, target) {
-      const sorted = arr.sort((a,b) => (b - a))
-      for(let index = 0; index < sorted.length; ++index) {
-        if (target >= sorted[index]) {
-          return index + 1;
-        }
-      }
-      return sorted.length;
+      const items = repositories.map(item => item.dirname);
+      return items.indexOf(a.label) - items.indexOf(b.label);
     },
 
     merge: function(a,b) {
@@ -105,21 +78,6 @@ export default {
       }
 
       return x => x;
-    },
-
-    traits: function() {
-      return {
-        label: "Commit",
-        postfix: (year) => ' ⚙️',
-        formatter: format(",d"),
-        solidify: data => {
-          const acc = {}
-          for(const organization in data) {
-            this.merge(acc, data[organization])
-          }
-          return acc;
-        }
-      }
     },
 
     traitsPerContributor() {
@@ -191,16 +149,6 @@ export default {
       return data;
     },
 
-    removeMinCommit(data) {
-      for(const organization in data) {
-        let sum = 0;
-        for(const year in data[organization]) {
-          sum += data[organization][year];
-        }
-      }
-      return data;
-    },
-
     init() {
       const histogram = select(this.$refs.histogram);
       const tooltip = select(this.$refs.tooltip);
@@ -214,24 +162,41 @@ export default {
     },
 
     async refresh() {
-      const traits = this.traits();
-      this.label = traits.label;
-
-      const formatter = traits.formatter;
-      const postfix = traits.postfix;
       const data = {};
-      for(const repo of this.repositories) {
-        const d = traits.solidify(
-          this.removeMinCommit(
-            await this.dataForRepository(repo)
-          )
-        );
-        for (const year in d) {
-          data[year] ||= [];
-          data[year].push({
-            repo: repo,
-            value: d[year],
-          })
+
+      if (this.colors == "repositories") {
+        for(const repo of this.repositories) {
+          const repo_data = await this.dataForRepository(repo);
+          const organization_data = {};
+          for(const organization in repo_data) {
+            this.merge(organization_data, repo_data[organization]);
+          }
+          for (const year in organization_data) {
+            data[year] ||= [];
+            data[year].push({
+              label: repo,
+              value: organization_data[year],
+            })
+          }
+        }
+      } else {
+        const repo_data = {}
+        for(const repo of this.repositories) {
+          repo_data[repo] = await this.dataForRepository(repo);
+        }
+
+        for(const organization of this.organizations) {
+          const organization_data = {};
+          for(const repo in repo_data) {
+            this.merge(organization_data, repo_data[repo][organization]);
+          }
+          for (const year in organization_data) {
+            data[year] ||= [];
+            data[year].push({
+              label: organization,
+              value: organization_data[year],
+            })
+          }
         }
       }
 
@@ -242,6 +207,7 @@ export default {
           per_year[year] += data[year][d].value;
         }
       }
+
 
       let max = 20;
       for(const year in per_year) {
@@ -263,7 +229,7 @@ export default {
           .ease(easeCircleOut)
           .style("flex-grow", d => d.value)
           .style("background-color", (d,i) => {
-            return this.colorMap.get(d.repo);
+            return this.colorMap.get(d.label);
           });
       };
 
@@ -281,7 +247,7 @@ export default {
               previous,
               per_year[year]
             );
-            return t => formatter(interpolator(t));
+            return t => format(",d")(interpolator(t));
           })
       };
 
@@ -327,7 +293,7 @@ export default {
 
             const right_right = div.append("div")
             right_right.classed("right_right", true)
-            right_right.text(d => postfix(d));
+            right_right.text(' ⚙️')
 
             return div;
           },
@@ -337,7 +303,7 @@ export default {
             const right = update.select(".right")
             updateRight(right);
             const right_right = update.select(".right_right")
-            right_right.text(d => postfix(d));
+            right_right.text(' ⚙️')
             return update;
           },
           exit => {
@@ -363,7 +329,7 @@ export default {
         )
         .select(".center")
         .selectAll(".repository")
-        .data(year => data[year].sort(this.sortRepositories), d => d.repo)
+        .data(year => data[year].sort(this.sortRepositories), d => d.label)
         .join(
           enter => {
             const repository = enter.append("div")
@@ -383,7 +349,7 @@ export default {
                 .style("top", (box.top) + "px")
 
               tooltip_inner
-                .text(d.repo + ": " + formatter(d.value));
+                .text(d.label+ ": " + format(",d")(d.value))
             })
             return repository;
           },
@@ -416,6 +382,7 @@ export default {
   watch: {
     repositories: "refresh",
     grouping: "refresh",
+    colors: "refresh",
     kind: "refresh",
     organizations: "refresh",
   },

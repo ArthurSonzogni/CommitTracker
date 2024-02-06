@@ -58,11 +58,27 @@
               Monthly
             </b-radio-button>
           </b-field>
+
+          <b-field label="Colors:">
+            <b-radio-button
+              name="colors"
+              v-model="colors"
+              native-value="repositories">
+              Repositories
+            </b-radio-button>
+            <b-radio-button
+              name="colors"
+              v-model="colors"
+              native-value="organizations">
+              Organizations
+            </b-radio-button>
+          </b-field>
         </b-field>
 
         <OrganizationContributions
           :repositories="repositories"
           :grouping="grouping"
+          :colors="colors"
           :kind="kind"
           :organizations="organizations"
           />
@@ -96,9 +112,15 @@ export default {
       kind = this.$route.query.kind;
     }
 
+    let colors = "repositories";
+    if (this.$route.query.colors) {
+      colors = this.$route.query.colors;
+    }
+
     return {
       repositories,
       grouping,
+      colors,
       kind,
       organizations,
     }
@@ -111,6 +133,7 @@ export default {
           repositories: this.repositories.join(","),
           organizations: this.organizations.join(","),
           grouping: this.grouping,
+          colors: this.colors,
           kind: this.kind,
         }
       });
@@ -121,8 +144,8 @@ export default {
     repositories: "updateUrl",
     organizations: "updateUrl",
     grouping: "updateUrl",
+    colors: "updateUrl",
     kind: "updateUrl",
-
   }
 }
 
