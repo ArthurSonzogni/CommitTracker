@@ -24,6 +24,7 @@ import {select} from "d3-selection";
 import {transition} from "d3-transition";
 import {mouse} from "d3-selection";
 import repositories from 'static/data/repositories.json'
+import organizations from 'static/data/organizations.json'
 
 export default {
   props: {
@@ -41,8 +42,20 @@ export default {
     for(const repo of repositories) {
       this.colorMap.set(repo.dirname, repo.color);
     }
-    for(const organization of this.organizations) {
-      this.colorMap.set(organization, `hsl(${Math.random() * 360}, 100%, 50%)`);
+
+    // Use google as a pivot point for the colors, so that the colors are
+    // mostly consistent when adding/removing organizations.
+    let google_index = 0;
+    for(const i in organizations) {
+      if (organizations[i] == "Google") {
+        google_index = i;
+      }
+    }
+
+    for (const i in organizations) {
+      const i_hue = (i - google_index) + organizations.length;
+      const hue = (i / organizations.length + 0.5 * i%2) * 360 + 300;
+      this.colorMap.set(organizations[i], `hsl(${hue}, 100%, 50%)`);
     }
 
     return {};
