@@ -11,8 +11,12 @@ const commit_stats = `${chromium_repo}/third_party/blink/tools/commit_stats/`
 // org2,host2
 // [...]
 // ```
-const org_list_response = await fetch(`${commit_stats}/org-list.txt`);
-const org_list = await org_list_response.text();
+//const org_list_response = await fetch(`${commit_stats}/org-list.txt`);
+//const org_list = await org_list_response.text();
+
+// Import the `org-list.txt` file from the local file system.
+const org_list = await fs.readFile("../org-list.txt", "utf-8");
+console.log(org_list);
 const org = {};
 org_list.split("\n").forEach(line => {
   const [org_name, org_email] = line.split(",");
@@ -83,6 +87,7 @@ for (const repository of repositories) {
 
     const email_filename = `${repository_dir}/emails/${email}.json`;
     const organization_filename = `${repository_dir}/organizations/${organization}.json`;
+
 
     organizations[organization] ||= {
       emails: [],

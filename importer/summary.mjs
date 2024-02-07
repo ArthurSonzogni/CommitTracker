@@ -50,3 +50,32 @@ for (const repository of repositories) {
     await summarize(kind, repository);
   }
 }
+
+// In the file `organizations_summary.json` contains the summary of the
+// organizations for every repositories.
+// Format:
+// ```json
+// {
+//  "repository1": {
+//    "organization1": 1212
+//    "organization2": 1212
+//  },
+//  "repository2": {
+//    "organization1": 1212
+//    "organization2": 1212
+//  }
+// }
+// ```
+const organizations_summary = {};
+for(const repository of repositories) {
+  organizations_summary[repository.dirname] = {};
+  const repository_dir = `../static/data/${repository.dirname}`;
+  const summary_file = `${repository_dir}/organizations_summary.json`;
+  const summary = JSON.parse(await fs.readFile(summary_file, "utf8"));
+  for(const [organization, data] of Object.entries(summary)) {
+    organizations_summary[repository.dirname][organization] =
+      Object.values(data.author).reduce((a, b) => a + b, 0);
+  }
+}
+await fs.writeFile("../static/data/organizations_summary.json",
+  JSON.stringify(organizations_summary, null, 1));

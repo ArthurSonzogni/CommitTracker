@@ -23,6 +23,7 @@
           size="small"
           :allowMultiple="true"
           :allowAll="true"
+          :repositories="repositories"
           />
 
         <b-field grouped group-multiline>
