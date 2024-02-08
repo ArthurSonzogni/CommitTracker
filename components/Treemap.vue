@@ -437,33 +437,33 @@ export default {
   background: rgba(255, 255, 255, 0.1);
 }
 
-.tooltip td {
+.tooltip >>> td {
   border: 0.1px solid black;
   padding: 5px;
 }
 
-.tooltip td {
+.tooltip >>> td {
   text-align:right;
 }
 
-.tooltip thead td {
+.tooltip >>> thead td {
   text-align:center;
 }
 
-.tooltip thead td {
+.tooltip >>> thead td {
   background:rgba(255, 255, 255, 0.5);
 }
 
-.tooltip thead td:first-child {
+.tooltip >>> thead td:first-child {
   border: 0;
   background: rgba(255, 0, 255, 0.0);
   font-weight: bold;
 }
 
-.tooltip tr:nth-child(even) {
+.tooltip >>> tr:nth-child(even) {
   background:rgba(220, 220, 220, 0.5);
 }
-.tooltip tr:nth-child(odd) {
+.tooltip >>> tr:nth-child(odd) {
   background:rgba(255, 255, 255, 0.5);
 }
 

@@ -20,10 +20,6 @@
         Community graph
       </b-navbar-item>
 
-      <!--<b-navbar-item tag="router-link" :to="{ path: '/treemap' }">-->
-        <!--Treemap-->
-      <!--</b-navbar-item>-->
-
       <b-navbar-item tag="router-link" :to="{ path: '/api' }">
         API
       </b-navbar-item>
@@ -48,6 +44,10 @@
           Repositories tracking info
         </b-navbar-item>
       </b-navbar-dropdown>
+
+      <b-navbar-item tag="router-link" :to="{ path: '/treemap' }">
+        Treemap
+      </b-navbar-item>
     </template>
 
     <template #end>
