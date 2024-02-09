@@ -238,11 +238,11 @@ export default {
     }
     let percentile = 0.7071;
     if (this.$route.query.percentile) {
-      percentile = this.$route.query.percentile;
+      percentile = parseFloat(this.$route.query.percentile);
     }
     let individual = 300;
     if (this.$route.query.individual) {
-      individual = this.$route.query.individual;
+      individual = parseInt(this.$route.query.individual);
     }
     let developers = [];
     if (this.$route.query.developers) {
@@ -281,7 +281,6 @@ export default {
 
   methods: {
     updateUrl() {
-      console.log(this.what, this.display, this.kind)
       this.$router.replace({
         query: {
           repositories: this.repositories.join(","),

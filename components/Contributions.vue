@@ -1,22 +1,16 @@
 <template>
-  <div>
-    <div class="line">
-      <div class="left"><strong>{{timeLabel}}</strong></div>
-      <div class="right"><strong># {{label}}</strong></div>
-    </div>
-    <div ref="histogram"></div>
-
-  </div>
+  <BarChart
+    :timeLabel="timeLabel"
+    :data="data"
+    :formatter="formatter"
+    :postfix="postfix"
+    >
+  </BarChart>
 </template>
 
 <script>
 
-import {easeBackOut} from "d3-ease";
-import {easeCircleOut} from "d3-ease";
 import {format} from "d3-format";
-import {interpolate} from "d3-interpolate";
-import {select} from "d3-selection";
-import {transition} from "d3-transition";
 import repositories from 'static/data/repositories.json'
 
 export default {
@@ -40,6 +34,9 @@ export default {
 
     return {
       label: "label",
+      data: [],
+      formatter: format(",d"),
+      postfix: ' ⚙️',
     }
   },
 
@@ -108,8 +105,9 @@ export default {
       if (this.what == "contributors") {
         return {
           label: "Contributors",
+          graphLabel: () => "Contributors",
           formatter: format(",d"),
-          postfix: (year) => ' 🧍',
+          postfix: ' 🧍',
           solidify: data => {
             const acc = {};
             for(const user in data) {
@@ -127,7 +125,8 @@ export default {
       if (this.what == "first_commit") {
         return {
           label: "First time contributor",
-          postfix: (year) => ' 🧍',
+          graphLabel: () => "# First time contributors",
+          postfix: ' 🧍',
           formatter: format(",d"),
           solidify: data => {
             const acc = {}
@@ -146,7 +145,8 @@ export default {
       if (this.what == "last_commit") {
         return {
           label: "Last time contributor",
-          postfix: (year) => ' 🧍',
+          graphLabel: () => "# Last time contributors",
+          postfix: ' 🧍',
           formatter: format(",d"),
           solidify: data => {
             const acc = {}
@@ -165,7 +165,8 @@ export default {
       if (this.what == "commit") {
         return {
           label: "Commit",
-          postfix: (year) => ' ⚙️',
+          graphLabel: (repo) => repo,
+          postfix: ' ⚙️',
           formatter: format(",d"),
           solidify: data => {
             const acc = {}
@@ -203,8 +204,9 @@ export default {
       if (this.display == "average") {
         return {
           label: "Contribution",
+          graphLabel: () => "Commit",
           formatter: format(".2f"),
-          postfix: (year) => ' ⚙️',
+          postfix: ' ⚙️',
           solidify: data => {
             return contributionPerYear(data, c => {
               return c.reduce((a,b) => a+b, 0) / c.length;
@@ -216,8 +218,9 @@ export default {
       if (this.display == "percentile") {
         return {
           label: "Contribution",
+          graphLabel: () => "Commit",
           formatter: format(",d"),
-          postfix: (year) => ' ⚙️',
+          postfix: ' ⚙️',
           solidify: data => {
             return contributionPerYear(data, c => {
               return this.quantile(c, this.percentile / 100);
@@ -229,8 +232,9 @@ export default {
       if (this.display == "individual") {
         return {
           label: "Contribution",
+          graphLabel: (repo) => repo == "solidified" ? "Commit" : repo,
           formatter: format(",d"),
-          postfix: (year) => ' ⚙️',
+          postfix: ' ⚙️',
           solidify: data => {
             return contributionPerYear(data, c => {
               return this.top(c, this.individual)
@@ -242,8 +246,9 @@ export default {
       if (this.display == "someone") {
         return {
           label: "Contribution",
+          graphLabel: (repo) => repo,
           formatter: format(",d"),
-          postfix: (year) => ' ⚙️',
+          postfix: ' ⚙️',
           solidify: data => {
             const acc = {};
             for(const user of this.developers) {
@@ -260,8 +265,9 @@ export default {
       if (this.display == "someone_rank") {
         return {
           label: "Rank",
+          graphLabel: () => "Rank",
           formatter: format(",d"),
-          postfix: () => ' 🏆',
+          postfix: ' 🏆',
           solidify: data => {
             const contributions = contributionPerYear(data, x => x);
 
@@ -287,8 +293,9 @@ export default {
       if (this.display == "someone_rank_percent") {
         return {
           label: "Rank (%)",
+          graphLabel: () => "Rank %",
           formatter: format(".2f"),
-          postfix: () => ' % 🏆',
+          postfix: ' % 🏆',
           solidify: data => {
             const contributions = contributionPerYear(data, x => x);
 
@@ -384,9 +391,10 @@ export default {
     async refresh() {
       const traits = this.traits();
       this.label = traits.label;
+      this.formatter = traits.formatter;
+      this.postfix = traits.postfix;
 
-      const formatter = traits.formatter;
-      const postfix = traits.postfix;
+      const graphLabel = traits.graphLabel;
       const data = {};
       const summable = (
         this.what == "commit" ||
@@ -427,161 +435,21 @@ export default {
         }
       }
 
-      const per_year = {}
-      for(const year in data) {
-        per_year[year] = 0;
-        for(const d in data[year]) {
-          per_year[year] += data[year][d].value;
-        }
-      }
-
-      let max = 20;
-      for(const year in per_year) {
-        max = Math.max(max, per_year[year]);
-      }
-
-      const updateCenter = center => {
-        center
-          .transition()
-          .duration(d => 450)
-          .ease(easeBackOut)
-          .style("width", year => (70 * per_year[year] / max) + "%")
-      };
-
-      const updateBox = repository => {
-        repository
-          .transition()
-          .duration(450)
-          .ease(easeCircleOut)
-          .style("flex-grow", d => d.value)
-          .style("background-color", d => {
-            if (this.repositories.length == 1) {
-              return this.colorMap.get(this.repositories[0]);
-            }
-            if (summable) {
-              return this.colorMap.get(d.repo);
-            }
-            return "gray";
-          });
-      };
-
-      const updateRight = async right => {
-        right
-          .transition()
-          .duration(d => 350)
-          .textTween(function(year) {
-            const previous = parseFloat(
-              select(this)
-              .text()
-              .replace(',', '')
-            );
-            const interpolator = interpolate(
-              previous,
-              per_year[year]
-            );
-            return t => formatter(interpolator(t));
-          })
-      };
-
-
-      select(this.$refs.histogram)
-        .selectAll(".line")
-        .data(Object.keys(per_year).sort(), d => d)
-        .join(
-          enter => {
-            const div = enter.append("div");
-            div.classed("line", true);
-            div
-              .style("filter", "blur(4px)")
-              .style("height", "0px")
-              .style("opacity", 0.3)
-              .style("transform", "translate(-32px, 0)")
-              .transition()
-              .duration((d,i) => 450 + 30*Math.sqrt(i))
-              .ease(easeBackOut)
-              .style("height", "24px")
-              .style("transform", "translate(0px, 0)")
-              .style("filter", "blur(0px)")
-              .transition()
-              .duration(d => 450)
-              .ease(easeBackOut)
-              .style("filter", "none")
-              .style("opacity", 1.0)
-              .style("filter", "none")
-
-            const left = div.append("div")
-            left.classed("left", true)
-            left.text(year => year);
-
-            const center = div.append("div")
-            center.classed("center", true);
-            updateCenter(center);
-
-            const right = div.append("div")
-            right.classed("right", true)
-            right.text(0)
-            updateRight(right);
-
-            const right_right = div.append("div")
-            right_right.classed("right_right", true)
-            right_right.text(d => postfix(d));
-
-            return div;
-          },
-          update => {
-            const center = update.select(".center")
-            updateCenter(center);
-            const right = update.select(".right")
-            updateRight(right);
-            const right_right = update.select(".right_right")
-            right_right.text(d => postfix(d));
-            return update;
-          },
-          exit => {
-            exit
-              .transition()
-              .duration((d,i) => 350)
-              .delay((d,i) => 500-30*Math.sqrt(i))
-              .ease(easeCircleOut)
-              .style("opacity", "0.2")
-              .style("filter", "blur(1px)")
-              .duration((d,i) => 200)
-              .delay((d,i) => 500-30*Math.sqrt(i))
-              .ease(easeCircleOut)
-              .style("filter", "blur(2px)")
-              .transition()
-              .duration((d,i) => 150)
-              .ease(easeCircleOut)
-              .style("transform", "translate(64px, 0)")
-              .style("height", "0px")
-              .style("opacity", "0")
-              .remove()
-          }
-        )
-        .select(".center")
-        .selectAll(".repository")
-        .data(year => data[year].sort(this.sortRepositories), d => d.repo)
-        .join(
-          enter => {
-            const repository = enter.append("div")
-            repository.classed("repository", true);
-            repository.style("flex-grow", 0);
-            updateBox(repository);
-            return repository;
-          },
-          update => {
-            updateBox(update);
-            return update;
-          },
-          exit => {
-            return exit
-              .transition()
-              .duration(450)
-              .ease(easeCircleOut)
-              .style("flex-grow", 0)
-              .remove();
-          },
-        )
+      // Turn the object into an array of arrays for D3.
+      this.data = Object.keys(data)
+        .sort()
+        .map(date => {
+          return {
+            label: date,
+            values: data[date].map(x => {
+              return {
+                label: graphLabel(x.repo),
+                value: x.value,
+                color: this.colorMap.get(x.repo) || "gray",
+              };
+            }),
+          };
+        });
     },
   },
 
@@ -613,32 +481,3 @@ export default {
 }
 
 </script>
-
-<style>
-.line {
-  display:flex;
-  justify-content: flex-start;
-  align-items:stretch;
-  gap:5px;
-  padding:1px;
-  overflow: hidden;
-}
-
-.left {
-  text-align:right;
-  width:72px;
-}
-
-.center {
-  display:flex;
-  justify-content: flex-start;
-  align-items:stretch;
-
-  border-radius: 5px;
-  background: rgba(0,128,255);
-  overflow:hidden;
-  opacity:0.3;
-}
-
-</style>
-

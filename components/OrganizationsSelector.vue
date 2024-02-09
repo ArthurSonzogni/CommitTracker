@@ -170,8 +170,6 @@ export default {
         }
       }
 
-      console.log(Object.keys(sum).sort((a, b) => sum[b] - sum[a]))
-
       this.items.sort((a, b) => {
         const diff = sum[b] - sum[a];
         if (diff == 0) {
