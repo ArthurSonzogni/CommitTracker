@@ -4,8 +4,8 @@
       <g ref="xAxis" />
       <g ref="yAxis" />
       <g ref="content">
-        <g ref="tooltip" />
-        <g ref="legend" />
+      <g ref="tooltip" />
+      <g ref="legend" />
       </g>
     </svg>
   </div>
@@ -20,94 +20,28 @@ import {select} from "d3-selection";
 import {transition} from "d3-transition";
 import {line} from "d3-shape";
 import {interpolatePath} from "d3-interpolate-path";
-import {scaleOrdinal} from "d3-scale";
-import {schemeCategory10} from "d3-scale-chromatic";
 import {pointer} from "d3-selection";
 import {bisector} from "d3-array";
-import {hsv} from "d3-hsv";
-
-const color = scaleOrdinal(schemeCategory10);
 
 export default {
   props: {
-    repositories: { type:Array[String], default: ["chromium"],},
-    developers: { type: Array },
-    startDate: { type: Date },
-    endDate: { type: Date },
-    author: { type: Boolean },
-    review: { type: Boolean },
-    stacked: { type: Boolean },
+    filteredData: { type: Array },
   },
 
   data() {
     return {
-      data: [],
       svgWidth: 500,
       svgHeight: 500,
     }
   },
 
   computed: {
-    filteredData() {
-      // Filter:
-      let data = this.data.map(d => {
-        const author = !this.author ? {} :
-          Object.entries(d.data.author)
-          .map(([time, _]) => time)
-        const review = !this.review ? {} :
-          Object.entries(d.data.review)
-          .map(([time, _]) => time)
-
-        const values = [author, review]
-          .flat()
-          .sort()
-          .map(time => new Date(time))
-          .filter(time => {
-            return time >= this.startDate && time <= this.endDate;
-          })
-
-        return {
-          developer: d.developer,
-          values: values,
-        }
-      });
-
-      // Stacked:
-      if (this.stacked) {
-        let accu = [];
-        data = data.map(entry => {
-          accu = accu.concat(entry.values).sort((a, b) => a - b);
-          return {
-            developer: entry.developer,
-            values: accu,
-          };
-        });
-      }
-
-      // Accumulate patches:
-      data = data.map(entry => {
-        let accu = 0;
-        return {
-          developer: entry.developer,
-          values: entry.values.map(time => {
-            accu++;
-            return {
-              time: time,
-              patch: accu,
-            };
-          }),
-        };
-      });
-
-      return data;
-    },
-
     dateExtent() {
-      return extent(this.filteredData.map(e => e.values).flat().map(d => d.time));
+      return extent(this.filteredData.map(e => e.values).flat().map(d => d.x));
     },
 
     patchExtent() {
-      return [0, max(this.filteredData.map(e => e.values).flat().map(d => d.patch))];
+      return [0, max(this.filteredData.map(e => e.values).flat().map(d => d.y))];
     },
   },
 
@@ -116,41 +50,21 @@ export default {
   },
 
   watch: {
-    repositories: "render",
-    data: "render",
-    startDate: "render",
-    endDate: "render",
-    author: "render",
-    review: "render",
-    stacked: "render",
-    developers: "developersChanged",
+    filteredData: "render",
   },
 
   methods: {
-    developersChanged() {
-      Promise.all(this.developers.map(async d => {
-        const response = await fetch(`/data/${this.repositories[0]}/usernames/${d}.json`);
-        const data = await response.json();
-        return {
-          developer: d,
-          data: data,
-        }
-      })).then(data => {
-        this.data = data;
-      });
-    },
-
     initialize() {
       try {
         this.svgWidth = this.$refs.container.clientWidth;
+        this.svgWidth = Math.min(this.svgWidth,
+          Math.max(0, 2.0 * (window.innerHeight - 300)));
         this.svgHeight = this.svgWidth * 0.5;
       } catch (e) {
         console.log(e);
       }
-      this.developersChanged();
       this.render();
       window.addEventListener("resize", this.initialize);
-
     },
 
     render() {
@@ -190,15 +104,15 @@ export default {
         .call(axisLeft(y));
 
       const valueLines = line()
-        .x(d => x(d.time))
-        .y(d => y(d.patch))
+        .x(d => x(d.x))
+        .y(d => y(d.y))
       const valueZero = line()
-        .x(d => x(d.time))
+        .x(d => x(d.x))
         .y(d => y(0))
 
       select(this.$refs.container)
         .on("pointerenter pointermove", event => {
-          const bisectDate = bisector(d => d.time).left;
+          const bisectDate = bisector(d => d.x).left;
           const date = x.invert(pointer(event)[0] - margin.left);
 
           const references = this.filteredData
@@ -208,22 +122,22 @@ export default {
                 return null;
               }
               return {
-                developer: d.developer,
-                time: d.values[i].time,
-                patch: d.values[i].patch,
+                label: d.label,
+                x: d.values[i].x,
+                y: d.values[i].y,
               };
             })
             .filter(d => d !== null);
 
           select(this.$refs.tooltip)
             .selectAll(".tooltipData")
-            .data(references, reference => reference.developer)
+            .data(references, reference => reference.label)
             .join(
               enter => {
                 const group = enter
                   .append("g")
                   .attr("class", "tooltipData")
-                  .attr("transform", d => `translate(${x(d.time)}, ${y(d.patch)})`)
+                  .attr("transform", d => `translate(${x(d.x)}, ${y(d.y)})`)
                 group
                   .attr("opacity", 0)
                   .transition()
@@ -236,18 +150,18 @@ export default {
                   .attr("font-weight", "bold")
                   .attr("x", -10)
                   .attr("y", -10)
-                  .attr("fill", d => color(d.developer))
-                  .text(d => d.patch)
+                  .attr("fill", d => this.$color(d.label))
+                  .text(d => d.y)
                 group.append("circle")
                   .attr("r", 3)
-                  .attr("fill", d => color(d.developer))
+                  .attr("fill", d => this.$color(d.label))
                 return group;
               },
 
               update => update
-              .attr("transform", d => `translate(${x(d.time)}, ${y(d.patch)})`)
+              .attr("transform", d => `translate(${x(d.x)}, ${y(d.y)})`)
               .select("text")
-              .text(d => d.patch),
+              .text(d => d.y),
               exit => exit
               .attr("opacity", 1)
               .transition()
@@ -271,13 +185,13 @@ export default {
 
       select(this.$refs.content)
         .selectAll(".line")
-        .data(this.filteredData, d => d.developer)
+        .data(this.filteredData, d => d.label)
         .join(
           enter => enter
           .append("path")
           .attr("class", "line")
           .attr("fill", "none")
-          .attr("stroke", d => color(d.developer))
+          .attr("stroke", d => this.$color(d.label))
           .attr("stroke-width", 0)
           .attr("d", d => valueZero(d.values))
           .transition(500)
@@ -304,7 +218,7 @@ export default {
 
       select(this.$refs.legend)
         .selectAll(".legend")
-        .data(this.filteredData, d => d.developer)
+        .data(this.filteredData, d => d.label)
         .join(
           enter => {enter
             const group = enter
@@ -323,8 +237,8 @@ export default {
               .append("text")
               .attr("font-size", "12px")
               .attr("font-weight", "bold")
-              .attr("fill", d => color(d.developer))
-              .text(d => d.developer)
+              .attr("fill", d => this.$color(d.label))
+              .text(d => d.label)
             return group;
           },
           update => {
@@ -348,3 +262,12 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+.svg-container {
+  width: 100%;
+  height:100%;
+  min-height:500px;
+}
+
+</style>

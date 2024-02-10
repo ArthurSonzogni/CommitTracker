@@ -181,7 +181,7 @@ export default {
         )
         .select(".center")
         .selectAll(".repository")
-        .data(row => row.values)
+        .data(row => row.values, d => d.label)
         .join(
           enter => {
             const repository = enter.append("div")
