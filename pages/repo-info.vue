@@ -8,7 +8,9 @@
 
         <div class="columns is-multiline">
           <div class="column is-full-mobile is-half-desktop is-one-third-widescreen"
-               v-for="repo in repositories">
+               v-for="repo in repositories"
+               :key="repo.name"
+               >
             <div class="card">
               <div class="card-header">
                 <div class="card-header-title"
@@ -111,7 +113,6 @@ export default {
       for(let branch in repo.branches) {
         repo.last_commit.push(json[repo.branches[branch]])
       }
-      console.log(repo);
     },
   },
 }

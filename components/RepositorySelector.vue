@@ -5,6 +5,7 @@
         style="margin-right: -0.02rem; margin-left: 0"
         name="repositories"
         v-for="(item, index) in items"
+        :key="index"
         :size="size"
         :value="value"
         @input="update(repositories[index].dirname)"

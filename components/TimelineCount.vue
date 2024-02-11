@@ -9,8 +9,7 @@ export default {
   props: {
     repositories: { type:Array[String], default: () => ["chromium"],},
     developers: { type: Array },
-    startDate: { type: Date },
-    endDate: { type: Date },
+    dates: { type: Array[Date] },
   },
 
   data() {
@@ -45,8 +44,7 @@ export default {
     filteredData() {
       const filterDate = d => {
         const date = new Date(d);
-        return date >= this.startDate && //
-               date <= this.endDate;
+        return date >= this.dates[0] && date <= this.dates[1];
       }
       return this.data.map(d => {
         return {

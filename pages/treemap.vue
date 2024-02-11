@@ -26,9 +26,10 @@
               expanded
               >
               <option
-                v-for="option in colormap_list"
+                v-for="(option, index) in colormap_list"
                 :value="option"
-                :key="option">
+                :key="option"
+              >
               {{ option }}
               </option>
             </b-select>
@@ -53,6 +54,7 @@
         <b-breadcrumb-item
           tag='a'
           v-for="(component, index) in path"
+          :key="index"
           v-on:click.native="path = path.slice(0, index+1)"
           >
           {{component}}

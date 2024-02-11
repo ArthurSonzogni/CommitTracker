@@ -89,7 +89,6 @@ export default {
       ))
 
       const data = await Promise.all(responses.map(r => r.json()))
-      console.log(data);
 
       const emails = {}
       for(const d of data) {
@@ -116,7 +115,6 @@ export default {
         })
       }
       this.data.sort((a, b) => b.emails.length - a.emails.length);
-      console.log(this.data);
 
     },
   },

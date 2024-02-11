@@ -15,7 +15,7 @@
 
           <b-field>
             <b-checkbox-button
-              v-model="checkboxStates"
+              v-model="options"
               native-value="author"
               size="is-medium"
               >
@@ -23,7 +23,7 @@
             </b-checkbox-button>
 
             <b-checkbox-button
-              v-model="checkboxStates"
+              v-model="options"
               native-value="review"
               size="is-medium"
               >
@@ -34,7 +34,7 @@
           <b-field>
             <b-checkbox-button
               v-if="developers.length >= 2"
-              v-model="checkboxStates"
+              v-model="options"
               native-value="stacked"
               size="is-medium"
               >
@@ -51,8 +51,7 @@
           <TimelineCount
             :repositories="repositories"
             :developers="developers"
-            :startDate="startDate"
-            :endDate="endDate"
+            :dates="dates"
             /></TimelineCount>
         </div>
       </section>
@@ -63,11 +62,10 @@
           <TimelineChart
             :repositories="repositories"
             :developers="developers"
-            :startDate="startDate"
-            :endDate="endDate"
-            :author="checkboxStates.includes('author')"
-            :review="checkboxStates.includes('review')"
-            :stacked="checkboxStates.includes('stacked')"
+            :dates="dates"
+            :author="options.includes('author')"
+            :review="options.includes('review')"
+            :stacked="options.includes('stacked')"
             ></TimelineChart>
         </div>
       </section>
@@ -115,11 +113,10 @@
           <TimelineWrappedChart
             :repositories="repositories"
             :developers="developers"
-            :startDate="startDate"
-            :endDate="endDate"
-            :author="checkboxStates.includes('author')"
-            :review="checkboxStates.includes('review')"
-            :stacked="checkboxStates.includes('stacked')"
+            :dates="dates"
+            :author="options.includes('author')"
+            :review="options.includes('review')"
+            :stacked="options.includes('stacked')"
             :hourlyParam="hourlyParam"
             :buckets="wrappedBuckets"
             /></TimelineWrappedChart>
@@ -132,18 +129,17 @@
           <PeersChart
             :repositories="repositories"
             :developers="developers"
-            :startDate="startDate"
-            :endDate="endDate"
-            :author="checkboxStates.includes('author')"
-            :review="checkboxStates.includes('review')"
-            :stacked="checkboxStates.includes('stacked')"
+            :dates="dates"
+            :author="options.includes('author')"
+            :review="options.includes('review')"
+            :stacked="options.includes('stacked')"
             ></PeersChart>
         </div>
       </section>
 
       <section class="section sticky bottom">
         <b-field expanded>
-          <Timeline @change="changeDate" ></Timeline>
+          <Timeline v-model="dates" ></Timeline>
         </b-field>
       </section>
     </div>
@@ -154,21 +150,18 @@
 
 export default {
   data() {
-    let startDate =  new Date();
-    if (this.$route.query.startDate) {
-      startDate = new Date(this.$route.query.startDate);
+    let dates = [new Date("2000-01-01"), new Date()];
+    if (this.$route.query.dates) {
+      dates = this.$route.query.dates.split(',').map(d => new Date(d));
     }
-    let endDate =  new Date();
-    if (this.$route.query.endDate) {
-      endDate = new Date(this.$route.query.endDate);
-    }
+
     let developers =  [];
     if (this.$route.query.developers) {
       developers = this.$route.query.developers.split(',');
     }
-    let checkboxStates =  ["author", "review"];
-    if (this.$route.query.checkboxStates) {
-      checkboxStates = this.$route.query.checkboxStates.split(',');
+    let options =  ["author", "review"];
+    if (this.$route.query.options) {
+      options = this.$route.query.options.split(',');
     }
     let hourlyParam =  0;
     if (this.$route.query.hourlyParam) {
@@ -184,10 +177,9 @@ export default {
     }
 
     return {
-      startDate,
-      endDate,
+      dates,
       developers,
-      checkboxStates,
+      options,
       hourlyParam,
       wrappedBuckets,
       repositories,
@@ -195,33 +187,28 @@ export default {
   },
 
   methods: {
-    changeDate(first, endDate) {
-      this.startDate = first;
-      this.endDate = endDate;
-    },
-
     updateUrl() {
-      const query = {
-        startDate: this.startDate.toISOString().split('T')[0],
-        endDate: this.endDate.toISOString().split('T')[0],
-        developers: this.developers.join(','),
-        checkboxStates: this.checkboxStates.join(','),
-        hourlyParam: this.hourlyParam,
-        wrappedBuckets: this.wrappedBuckets,
-        repositories: this.repositories.join(','),
-      };
-      this.$router.push({ query });
+      this.$router.push({
+        query: {
+          developers: this.developers.join(','),
+          options: this.options.join(','),
+          hourlyParam: this.hourlyParam,
+          wrappedBuckets: this.wrappedBuckets,
+          repositories: this.repositories.join(','),
+          dates: this.dates.map(d => d.toISOString().split("T")[0]).join(','),
+        }
+      });
     },
   },
 
   watch: {
-    startDate: "updateUrl",
-    endDate: "updateUrl",
+    dates: "updateUrl",
     developers: "updateUrl",
-    checkboxStates: "updateUrl",
+    options: "updateUrl",
     hourlyParam: "updateUrl",
     wrappedBuckets: "updateUrl",
     repositories: "updateUrl",
+    dates: "updateUrl",
   },
 };
 

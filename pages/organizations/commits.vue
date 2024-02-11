@@ -74,18 +74,40 @@
               Organizations
             </b-radio-button>
           </b-field>
+
+          <b-field label="Chart:">
+            <b-radio-button
+              name="chart"
+              v-model="chart"
+              native-value="line">
+              Line
+            </b-radio-button>
+            <b-radio-button
+              name="chart"
+              v-model="chart"
+              native-value="bar">
+              Bar
+            </b-radio-button>
+          </b-field>
         </b-field>
 
-        <OrganizationContributions
+        <Organizations
           :repositories="repositories"
           :grouping="grouping"
           :colors="colors"
           :kind="kind"
           :organizations="organizations"
+          :chart="chart"
+          :dates="dates"
           />
       </div>
     </section>
 
+    <section class="section">
+      <b-field expanded>
+        <Timeline v-model="dates" ></Timeline>
+      </b-field>
+    </section>
   </div>
 </template>
 
@@ -118,12 +140,24 @@ export default {
       colors = this.$route.query.colors;
     }
 
+    let chart = "bar";
+    if (this.$route.query.chart) {
+      chart = this.$route.query.chart;
+    }
+
+    let dates = [new Date("2000-01-01"), new Date()];
+    if (this.$route.query.dates) {
+      dates = this.$route.query.dates.split(',').map(d => new Date(d));
+    }
+
     return {
       repositories,
       grouping,
       colors,
       kind,
       organizations,
+      chart,
+      dates,
     }
   },
 
@@ -136,6 +170,8 @@ export default {
           grouping: this.grouping,
           colors: this.colors,
           kind: this.kind,
+          chart: this.chart,
+          dates: this.dates.map(d => d.toISOString().split("T")[0]).join(','),
         }
       });
     },
@@ -147,10 +183,10 @@ export default {
     grouping: "updateUrl",
     colors: "updateUrl",
     kind: "updateUrl",
+    chart: "updateUrl",
+    dates: "updateUrl",
   }
 }
 
 </script>
-
-</style>
 

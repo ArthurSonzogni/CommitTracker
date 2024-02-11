@@ -397,7 +397,6 @@ export default {
     },
 
     pathChanged: function(new_path, old_path) {
-      console.log("pathChanged", new_path, old_path);
       const data_old = this.getCurrentDataFromPath(old_path);
       const data_new = this.getCurrentDataFromPath(new_path);
       this.zoom(data_old, data_new)

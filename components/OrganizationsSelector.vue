@@ -16,6 +16,7 @@
           style="margin-right: -0.02rem; margin-left: 0"
           name="organizations"
           v-for="(item, index) in items"
+          :key="index"
           :size="size"
           :value="value"
           @input="update(item)"
@@ -201,7 +202,7 @@ export default {
   flex-wrap: wrap;
   margin:0;
   padding:0.2rem;
-  max-height: 25vh;
+  max-height: 20vh;
   overflow-y: auto;
 }
 

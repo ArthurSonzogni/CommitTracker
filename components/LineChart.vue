@@ -4,8 +4,8 @@
       <g ref="xAxis" />
       <g ref="yAxis" />
       <g ref="content">
-      <g ref="tooltip" />
-      <g ref="legend" />
+        <g ref="tooltip" />
+        <g ref="legend" />
       </g>
     </svg>
   </div>
@@ -25,7 +25,7 @@ import {bisector} from "d3-array";
 
 export default {
   props: {
-    filteredData: { type: Array },
+    data: { type: Array },
   },
 
   data() {
@@ -37,11 +37,11 @@ export default {
 
   computed: {
     dateExtent() {
-      return extent(this.filteredData.map(e => e.values).flat().map(d => d.x));
+      return extent(this.data.map(e => e.values).flat().map(d => d.x));
     },
 
     patchExtent() {
-      return [0, max(this.filteredData.map(e => e.values).flat().map(d => d.y))];
+      return [0, max(this.data.map(e => e.values).flat().map(d => d.y))];
     },
   },
 
@@ -50,19 +50,15 @@ export default {
   },
 
   watch: {
-    filteredData: "render",
+    data: "render",
   },
 
   methods: {
     initialize() {
       try {
         this.svgWidth = this.$refs.container.clientWidth;
-        this.svgWidth = Math.min(this.svgWidth,
-          Math.max(0, 2.0 * (window.innerHeight - 300)));
         this.svgHeight = this.svgWidth * 0.5;
-      } catch (e) {
-        console.log(e);
-      }
+      } catch (e) {}
       this.render();
       window.addEventListener("resize", this.initialize);
     },
@@ -115,7 +111,7 @@ export default {
           const bisectDate = bisector(d => d.x).left;
           const date = x.invert(pointer(event)[0] - margin.left);
 
-          const references = this.filteredData
+          const references = this.data
             .map(d => {
               const i = bisectDate(d.values, date);
               if (i <= 0 || i >= d.values.length) {
@@ -185,7 +181,7 @@ export default {
 
       select(this.$refs.content)
         .selectAll(".line")
-        .data(this.filteredData, d => d.label)
+        .data(this.data, d => d.label)
         .join(
           enter => enter
           .append("path")
@@ -218,7 +214,7 @@ export default {
 
       select(this.$refs.legend)
         .selectAll(".legend")
-        .data(this.filteredData, d => d.label)
+        .data(this.data, d => d.label)
         .join(
           enter => {enter
             const group = enter

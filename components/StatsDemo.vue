@@ -23,8 +23,7 @@
 
           <TimelineWrappedChart
             :developers="developers"
-            :startDate="new Date('2000-01-01')"
-            :endDate="new Date('2030-01-01')"
+            :dates="[new Date('2000-01-01'), new Date('2030-01-01')]"
             :author="true"
             :review="true"
             :stacked="true"
@@ -36,8 +35,7 @@
         <div class="column is-7">
           <TimelineChart
             :developers="developers"
-            :startDate="new Date('2000-01-01')"
-            :endDate="new Date('2030-01-01')"
+            :dates="[new Date('2000-01-01'), new Date('2030-01-01')]"
             :author="true"
             :review="true"
             :stacked="false"
@@ -45,8 +43,7 @@
 
           <PeersChart
             :developers="developers"
-            :startDate="new Date('2000-01-01')"
-            :endDate="new Date('2030-01-01')"
+            :dates="[new Date('2000-01-01'), new Date('2030-01-01')]"
             :author="true"
             :review="true"
             :stacked="false"

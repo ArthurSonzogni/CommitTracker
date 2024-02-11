@@ -25,8 +25,7 @@ export default {
   props: {
     repositories: { type:Array[String], default: () => ["chromium"],},
     developers: { type: Array },
-    startDate: { type: Date },
-    endDate: { type: Date },
+    dates: { type: Array[Date] },
     author: { type: Boolean },
     review: { type: Boolean },
     stacked: { type:Boolean },
@@ -49,7 +48,7 @@ export default {
           Object.entries(d.data.author)
           .filter(([time, _]) => {
             const date = new Date(time)
-            return date >= this.startDate && date <= this.endDate;
+            return date >= this.dates[0] && date <= this.dates[1];
           })
           .map(([_, reviewers]) => reviewers)
           .flat();
@@ -58,7 +57,7 @@ export default {
           Object.entries(d.data.review)
           .filter(([time, _]) => {
             const date = new Date(time)
-            return date >= this.startDate && date <= this.endDate;
+            return date >= this.dates[0] && date <= this.dates[1];
           })
           .map(([_, author]) => author)
 

@@ -1,7 +1,5 @@
 <template>
-  <LineChart
-    :filteredData="filteredData"
-  />
+  <LineChart :data="filteredData" />
 </template>
 
 <script>
@@ -10,7 +8,7 @@ export default {
   props: {
     repositories: { type:Array[String], default: () => ["chromium"],},
     developers: { type: Array },
-    startDate: { type: Date },
+    dates: { type: Array[Date] },
     endDate: { type: Date },
     author: { type: Boolean },
     review: { type: Boolean },
@@ -41,7 +39,7 @@ export default {
           .sort()
           .map(time => new Date(time))
           .filter(time => {
-            return time >= this.startDate && time <= this.endDate;
+            return time >= this.dates[0] && time <= this.dates[1];
           })
 
         return {
@@ -77,7 +75,6 @@ export default {
         };
       });
 
-      console.log(data);
       return data;
     },
   },

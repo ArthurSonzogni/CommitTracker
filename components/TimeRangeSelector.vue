@@ -2,6 +2,7 @@
   <b-field grouped>
     <b-field
       v-for="list in possibleValues"
+      :key="list"
     >
       <b-checkbox-button
         :native-value="item"
@@ -10,6 +11,7 @@
         @input="update(item)"
         name="list"
         v-for="item in list"
+        :key="item"
       >
         {{item}}
       </b-checkbox-button>

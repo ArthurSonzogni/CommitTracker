@@ -5,7 +5,7 @@
       <div class="right"><strong># commit</strong></div>
     </div>
 
-    <div ref="histogram">
+    <div ref="histogram" class="histogram">
     </div>
 
     <div ref="tooltip" class="tooltip">
@@ -287,6 +287,10 @@ export default {
   top: 98%;
   left: 50%;
   z-index: 9;
+}
+
+.histogram {
+  margin-bottom:1rem;
 }
 
 </style>
