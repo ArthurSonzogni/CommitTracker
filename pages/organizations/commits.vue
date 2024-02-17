@@ -24,7 +24,17 @@
           :allowMultiple="true"
           :allowAll="true"
           :repositories="repositories"
-          />
+        >
+          <div>
+            <b-checkbox
+              size="small"
+              name="others"
+              v-model="others"
+              >
+              Others
+            </b-checkbox>
+          </div>
+        </OrganizationsSelector>
 
         <b-field grouped group-multiline>
           <b-field label="As:">
@@ -99,6 +109,7 @@
           :organizations="organizations"
           :chart="chart"
           :dates="dates"
+          :others="others"
           />
       </div>
     </section>
@@ -150,19 +161,26 @@ export default {
       dates = this.$route.query.dates.split(',').map(d => new Date(d));
     }
 
+    let others = false;
+    if (this.$route.query.others) {
+      others = this.$route.query.others != null;
+    }
+
     return {
-      repositories,
-      grouping,
+      chart,
       colors,
+      dates,
+      grouping,
       kind,
       organizations,
-      chart,
-      dates,
+      others,
+      repositories,
     }
   },
 
   methods: {
     updateUrl() {
+
       this.$router.push({
         query: {
           repositories: this.repositories.join(","),
@@ -172,7 +190,8 @@ export default {
           kind: this.kind,
           chart: this.chart,
           dates: this.dates.map(d => d.toISOString().split("T")[0]).join(','),
-        }
+          others: this.others ? null : undefined,
+        },
       });
     },
   },
@@ -185,6 +204,7 @@ export default {
     kind: "updateUrl",
     chart: "updateUrl",
     dates: "updateUrl",
+    others: "updateUrl",
   }
 }
 

@@ -56,6 +56,7 @@
             Multiple
           </b-checkbox>
         </div>
+        <slot></slot>
       </div>
     </div>
   </div>

@@ -43,6 +43,7 @@ export default {
       type:Array[Date],
       default: () => [new Date("2000-01-01"), new Date()]
     },
+    others: { type: Boolean, default: false},
   },
 
   data() {
@@ -120,10 +121,20 @@ export default {
       const data_all = await response.json();
 
       const data = {};
+
+      data["Others"] = {
+        author: {},
+        review: {},
+      }
+
       for(const organization in data_all) {
         if (this.organizations.includes(organization)) {
           data[organization] = data_all[organization];
+          continue;
         }
+
+        this.merge(data["Others"].author, data_all[organization].author);
+        this.merge(data["Others"].review, data_all[organization].review);
       }
 
       switch(this.kind) {
@@ -149,6 +160,7 @@ export default {
           break;
       }
 
+
       // Group dates togethers.
       const group = this.groupingFunction();
       for(const organization in data) {
@@ -164,6 +176,10 @@ export default {
           new_data[new_key] += old_data[key]
         }
         data[organization] = new_data;
+      }
+
+      if (!this.others) {
+        delete data["Others"];
       }
 
       return data;
@@ -357,6 +373,7 @@ export default {
     kind: "refresh",
     chart: "refresh",
     dates: "refresh",
+    others: "refresh",
   },
 
 }
