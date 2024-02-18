@@ -44,12 +44,16 @@ export default {
         .delay(1000)
         .style("opacity", 0)
     })
+    this.formatter_wrap = {
+      formatter: this.formatter,
+    }
     this.step();
   },
 
   methods: {
     async step() {
-      const formatter = this.formatter;
+      this.formatter_wrap.formatter = this.formatter;
+      const that = this;
       const row_width = []
       for(const row of this.data) {
         let width = 0;
@@ -72,6 +76,7 @@ export default {
           }
         }
       }
+      min_value = Math.max(min_value, 0.01);
 
       const updateCenter = center => {
         center
@@ -99,6 +104,7 @@ export default {
             const previous = this._current;
             this._current = next;
 
+            const formatter = that.formatter_wrap.formatter;
             if (previous === undefined) {
               return t => formatter(next);
             }
@@ -199,8 +205,7 @@ export default {
               .style("flex-grow", 0);
             updateBox(repository);
             repository.on("mouseover", function(event, d) {
-              const that = select(this);
-              const box = that.node().getBoundingClientRect();
+              const box = select(this).node().getBoundingClientRect();
               const tooltip_inner = tooltip.select(".tooltip-inner");
               tooltip
                 .transition()
@@ -210,8 +215,8 @@ export default {
                 .style("left", (box.left + box.width / 2) + "px")
                 .style("top", (box.top) + "px")
 
-              tooltip_inner
-                .text(d.label+ ": " + formatter(d.value))
+              const formatter = that.formatter_wrap.formatter;
+              tooltip_inner.text(d.label+ ": " + formatter(d.value));
             })
             return repository;
           },
@@ -233,7 +238,6 @@ export default {
 
   watch: {
     data: "step",
-    formatter: "step",
   },
 }
 

@@ -162,6 +162,8 @@
 
 <script>
 
+import all_organizations from 'static/data/organizations.json'
+
 export default {
   data() {
     let repositories = ["chromium"];
@@ -171,7 +173,11 @@ export default {
 
     let organizations = ["Google"];
     if (this.$route.query.organizations) {
-      organizations = this.$route.query.organizations.split(",");
+      if (this.$route.query.organizations === "all") {
+        organizations = all_organizations;
+      } else {
+        organizations = this.$route.query.organizations.split(",");
+      }
     }
 
     let grouping = "yearly";
@@ -199,10 +205,7 @@ export default {
       dates = this.$route.query.dates.split(',').map(d => new Date(d));
     }
 
-    let others = false;
-    if (this.$route.query.others) {
-      others = this.$route.query.others != null;
-    }
+    let others = this.$route.query.others === null;
 
     let percent = this.$route.query.percent === null ? 'percent' : 'absolute';
 
@@ -221,11 +224,12 @@ export default {
 
   methods: {
     updateUrl() {
-
       this.$router.push({
         query: {
           repositories: this.repositories.join(","),
-          organizations: this.organizations.join(","),
+          organizations: this.organizations.length === all_organizations.length
+            ? "all"
+            : this.organizations.join(","),
           grouping: this.grouping,
           colors: this.colors,
           kind: this.kind,

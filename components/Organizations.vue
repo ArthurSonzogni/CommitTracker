@@ -90,6 +90,7 @@ export default {
       bar_chart_data: [],
       line_chart_data: [],
       download: false,
+      formatter: format(",d"),
     }
   },
 
@@ -253,33 +254,25 @@ export default {
               data[date][organization] += repo_data[repo][organization][date];
             }
           }
+        }
 
-          if (this.percent) {
-            for(const date in data) {
-              let total = 0;
-              for(const organization in data[date]) {
-                total += data[date][organization];
-              }
-              for(const organization in data[date]) {
-                data[date][organization] /= total;
-              }
+        if (this.percent) {
+          for(const date in data) {
+            let total = 0;
+            for(const organization in data[date]) {
+              total += data[date][organization];
             }
-          }
-
-          if (!this.others) {
-            for(const date in data) {
-              for(const organization in repo_data[repo]) {
-                delete data[date]["Others"];
-              }
+            for(const organization in data[date]) {
+              data[date][organization] /= total;
             }
+            console.log(date, total);
           }
         }
-      }
 
-      // Clean up empty data, because we remove the "Others" data.
-      for(const date in data) {
-        if (Object.keys(data[date]).length == 0) {
-          delete data[date];
+        if (!this.others) {
+          for(const date in data) {
+            delete data[date]["Others"];
+          }
         }
       }
 
@@ -291,12 +284,21 @@ export default {
           }
         }
       }
+      for(const date in data) {
+        if (Object.keys(data[date]).length == 0) {
+          delete data[date];
+        }
+      }
 
       return data;
     },
 
     async refresh() {
       const data = await this.consolidateData();
+
+      this.formatter = this.percent
+        ? format(".2%")
+        : v=> format(",d")(v) + ' ⚙️';
 
       // Turn the object into an array of arrays for D3.
       if (this.chart == "bar") {
@@ -342,6 +344,7 @@ export default {
             };
           };
         }
+
 
         this.line_chart_data = top_label
           .map(label => {
@@ -444,13 +447,6 @@ export default {
         case "yearly": return "Year";
         case "quarterly": return "Quarter";
         case "monthly": return "Month";
-      }
-    },
-    formatter() {
-      if (this.percent) {
-        return format(".2%");
-      } else {
-        return v => format(",d")(v) + ' ⚙️';
       }
     },
   },
