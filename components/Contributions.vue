@@ -3,7 +3,6 @@
     :timeLabel="timeLabel"
     :data="data"
     :formatter="formatter"
-    :postfix="postfix"
     >
   </BarChart>
 </template>
@@ -36,7 +35,6 @@ export default {
       label: "label",
       data: [],
       formatter: format(",d"),
-      postfix: ' ⚙️',
     }
   },
 
@@ -106,8 +104,7 @@ export default {
         return {
           label: "Contributors",
           graphLabel: () => "Contributors",
-          formatter: format(",d"),
-          postfix: ' 🧍',
+          formatter: v => format(",d")(v) + " 🧍",
           solidify: data => {
             const acc = {};
             for(const user in data) {
@@ -126,8 +123,7 @@ export default {
         return {
           label: "First time contributor",
           graphLabel: () => "# First time contributors",
-          postfix: ' 🧍',
-          formatter: format(",d"),
+          formatter: v => format(",d")(v) + " 🧍",
           solidify: data => {
             const acc = {}
             for(const user in data) {
@@ -146,8 +142,7 @@ export default {
         return {
           label: "Last time contributor",
           graphLabel: () => "# Last time contributors",
-          postfix: ' 🧍',
-          formatter: format(",d"),
+          formatter: v => format(",d")(v) + " 🧍",
           solidify: data => {
             const acc = {}
             for(const user in data) {
@@ -166,8 +161,7 @@ export default {
         return {
           label: "Commit",
           graphLabel: (repo) => repo,
-          postfix: ' ⚙️',
-          formatter: format(",d"),
+          formatter: v => format(",d")(v) + " ⚙️",
           solidify: data => {
             const acc = {}
             for(const user in data) {
@@ -205,8 +199,7 @@ export default {
         return {
           label: "Contribution",
           graphLabel: () => "Commit",
-          formatter: format(".2f"),
-          postfix: ' ⚙️',
+          formatter: v => format(".2f")(v) + " ⚙️",
           solidify: data => {
             return contributionPerYear(data, c => {
               return c.reduce((a,b) => a+b, 0) / c.length;
@@ -219,8 +212,7 @@ export default {
         return {
           label: "Contribution",
           graphLabel: () => "Commit",
-          formatter: format(",d"),
-          postfix: ' ⚙️',
+          formatter: v => format(",d")(v) + " ⚙️",
           solidify: data => {
             return contributionPerYear(data, c => {
               return this.quantile(c, this.percentile / 100);
@@ -233,8 +225,7 @@ export default {
         return {
           label: "Contribution",
           graphLabel: (repo) => repo == "solidified" ? "Commit" : repo,
-          formatter: format(",d"),
-          postfix: ' ⚙️',
+          formatter: v => format(",d")(v) + " ⚙️",
           solidify: data => {
             return contributionPerYear(data, c => {
               return this.top(c, this.individual)
@@ -247,8 +238,7 @@ export default {
         return {
           label: "Contribution",
           graphLabel: (repo) => repo,
-          formatter: format(",d"),
-          postfix: ' ⚙️',
+          formatter: v => format(",d")(v) + " ⚙️",
           solidify: data => {
             const acc = {};
             for(const user of this.developers) {
@@ -266,8 +256,7 @@ export default {
         return {
           label: "Rank",
           graphLabel: () => "Rank",
-          formatter: format(",d"),
-          postfix: ' 🏆',
+          formatter: v => format(",d")(v) + " 🏆",
           solidify: data => {
             const contributions = contributionPerYear(data, x => x);
 
@@ -294,8 +283,7 @@ export default {
         return {
           label: "Rank (%)",
           graphLabel: () => "Rank %",
-          formatter: format(".2f"),
-          postfix: ' % 🏆',
+          formatter: v => format(".2f")(v) + "% 🏆",
           solidify: data => {
             const contributions = contributionPerYear(data, x => x);
 
@@ -392,7 +380,6 @@ export default {
       const traits = this.traits();
       this.label = traits.label;
       this.formatter = traits.formatter;
-      this.postfix = traits.postfix;
 
       const graphLabel = traits.graphLabel;
       const data = {};

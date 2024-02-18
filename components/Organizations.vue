@@ -4,25 +4,49 @@
     <LineChart
       class="line-chart"
       v-if="chart == 'line'"
-      :data="line_chart_data" >
+      :data="line_chart_data"
+      :formatter="formatter"
+      >
     </LineChart>
 
     <BarChart
       v-if="chart == 'bar'"
       :timeLabel="timeLabel"
+      :formatter="formatter"
       :data="bar_chart_data"
-      postfix=" ⚙️" >
+      >
     </BarChart>
 
-    <div class="download">
-      <b-button @click="download = true" v-if="!download" > Download </b-button>
-      <b-field v-if="download" label="Download as:">
-        <b-button class="download-button" @click="DownloadJSON()" > JSON </b-button>
-        <b-button class="download-button" @click="DownloadJSON2()" > JSON (variant) </b-button>
-        <b-button class="download-button" @click="DownloadCSV()" > CSV (rows)</b-button>
-        <b-button class="download-button" @click="DownloadCSV2()" > CSV (table) </b-button>
+    <b-field position="is-centered">
+      <slot></slot>
+
+      <p class="m-2"></p>
+
+      <b-field position="is-centered">
+
+        <b-button @click="download = true" > Download </b-button>
+
+        <b-modal v-model="download" :width="640">
+          <div class="card">
+            <div class="card-content">
+              <div class="media">
+                <div class="media-content">
+                  <p class="title is-4">Download as:</p>
+                </div>
+              </div>
+
+              <div class="content">
+                <b-button type="is-light" class="download-button" @click="DownloadJSON()" > JSON </b-button>
+                <b-button type="is-light" class="download-button" @click="DownloadJSON2()" > JSON (variant) </b-button>
+                <b-button type="is-light" class="download-button" @click="DownloadCSV()" > CSV (rows)</b-button>
+                <b-button type="is-light" class="download-button" @click="DownloadCSV2()" > CSV (table) </b-button>
+              </div>
+            </div>
+          </div>
+        </b-modal>
+
       </b-field>
-    </div>
+    </b-field>
   </div>
 </template>
 
@@ -30,6 +54,7 @@
 
 import repositories from 'static/data/repositories.json'
 import organizations from 'static/data/organizations.json'
+import { format } from 'd3-format'
 
 export default {
   props: {
@@ -44,6 +69,7 @@ export default {
       default: () => [new Date("2000-01-01"), new Date()]
     },
     others: { type: Boolean, default: false},
+    percent: { type: Boolean, default: false},
   },
 
   data() {
@@ -58,6 +84,7 @@ export default {
       const luminance = 40+5*(i%3);
       this.organizationsColor.set(organizations[i], `hsl(${hue}, 99%, ${luminance}%)`);
     }
+    this.organizationsColor.set("Others", "hsl(0, 0%, 50%)");
 
     return {
       bar_chart_data: [],
@@ -79,6 +106,12 @@ export default {
 
     groupingFunction: function() {
       switch(this.grouping) {
+        case "forever":
+          return x => "Forever";
+
+        case "decennial":
+          return x => x.substr(0,3) + "0";
+
         case "yearly":
           return x => x.substr(0,4);
 
@@ -98,21 +131,20 @@ export default {
     },
 
     groupingFunctionReverse: function(date) {
-      switch(date.length) {
-        case 4:
-          return new Date(date)
+      switch(this.grouping) {
+        case "forever":
+          return this.dates[0];
 
-        case 6: {
-          switch(date.substr(5,1)) {
-            case "1": return new Date(`${date.substr(0,4)}-01`);
-            case "2": return new Date(`${date.substr(0,4)}-04`);
-            case "3": return new Date(`${date.substr(0,4)}-07`);
-            case "4": return new Date(`${date.substr(0,4)}-10`);
-          }
-        }
+        case "decennial":
+          return new Date(date.substr(0,3) + "0-01-01");
 
-        case 7:
-          return new Date(`${date}-01`);
+        case "yearly":
+          return new Date(date.substr(0,4) + "-01-01");
+
+        case "quarterly":
+          return new Date(date.substr(0,4) + "-" + (1 + (parseInt(date.substr(5,1)) - 1) * 3) + "-01");
+        case "monthly":
+          return new Date(date + "-01");
       }
     },
 
@@ -133,8 +165,10 @@ export default {
           continue;
         }
 
-        this.merge(data["Others"].author, data_all[organization].author);
-        this.merge(data["Others"].review, data_all[organization].review);
+        if (this.colors == "organizations" || this.others) {
+          this.merge(data["Others"].author, data_all[organization].author);
+          this.merge(data["Others"].review, data_all[organization].review);
+        }
       }
 
       switch(this.kind) {
@@ -178,10 +212,6 @@ export default {
         data[organization] = new_data;
       }
 
-      if (!this.others) {
-        delete data["Others"];
-      }
-
       return data;
     },
 
@@ -192,25 +222,76 @@ export default {
       }
 
       const data = {};
-      for(const repo in repo_data) {
-        if (this.colors == "repositories") {
+      if (this.colors == "repositories") {
+        for(const repo in repo_data) {
           for(const organization in repo_data[repo]) {
             for(const date in repo_data[repo][organization]) {
               data[date] = data[date] || {};
-              data[date][repo] = data[date][repo] || 0;
+              data[date][repo] ||= 0;
               data[date][repo] += repo_data[repo][organization][date];
             }
           }
-        } else {
+        }
+
+        if (this.percent) {
+          for(const date in data) {
+            let total = 0;
+            for(const repo in data[date]) {
+              total += data[date][repo];
+            }
+            for(const repo in data[date]) {
+              data[date][repo] /= total;
+            }
+          }
+        }
+      } else {
+        for(const repo in repo_data) {
           for(const organization in repo_data[repo]) {
             for(const date in repo_data[repo][organization]) {
               data[date] = data[date] || {};
-              data[date][organization] = data[date][organization] || 0;
+              data[date][organization] ||= 0;
               data[date][organization] += repo_data[repo][organization][date];
+            }
+          }
+
+          if (this.percent) {
+            for(const date in data) {
+              let total = 0;
+              for(const organization in data[date]) {
+                total += data[date][organization];
+              }
+              for(const organization in data[date]) {
+                data[date][organization] /= total;
+              }
+            }
+          }
+
+          if (!this.others) {
+            for(const date in data) {
+              for(const organization in repo_data[repo]) {
+                delete data[date]["Others"];
+              }
             }
           }
         }
       }
+
+      // Clean up empty data, because we remove the "Others" data.
+      for(const date in data) {
+        if (Object.keys(data[date]).length == 0) {
+          delete data[date];
+        }
+      }
+
+      // Cleanup empty data:
+      for(const date in data) {
+        for(const label in data[date]) {
+          if (data[date][label] == 0) {
+            delete data[date][label];
+          }
+        }
+      }
+
       return data;
     },
 
@@ -358,22 +439,32 @@ export default {
   computed: {
     timeLabel() {
       switch(this.grouping) {
+        case "forever": return "Forever";
+        case "decennial": return "Decade";
         case "yearly": return "Year";
         case "quarterly": return "Quarter";
         case "monthly": return "Month";
+      }
+    },
+    formatter() {
+      if (this.percent) {
+        return format(".2%");
+      } else {
+        return v => format(",d")(v) + ' ⚙️';
       }
     },
   },
 
   watch: {
     repositories: "refresh",
-    organizations: "refresh",
-    colors: "refresh",
-    grouping: "refresh",
-    kind: "refresh",
-    chart: "refresh",
-    dates: "refresh",
-    others: "refresh",
+      organizations: "refresh",
+      colors: "refresh",
+      grouping: "refresh",
+      kind: "refresh",
+      chart: "refresh",
+      dates: "refresh",
+      others: "refresh",
+      percent: "refresh",
   },
 
 }

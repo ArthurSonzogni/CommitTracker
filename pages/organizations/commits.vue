@@ -24,15 +24,20 @@
           :allowMultiple="true"
           :allowAll="true"
           :repositories="repositories"
-        >
+          >
           <div>
-            <b-checkbox
-              size="small"
-              name="others"
-              v-model="others"
-              >
-              Others
-            </b-checkbox>
+            <b-tooltip
+              multilined
+              label="Include all the organizations that are not in the
+            list as 'Others'" position="is-bottom">
+              <b-checkbox
+                size="small"
+                name="others"
+                v-model="others"
+                >
+                Others
+              </b-checkbox>
+            </b-tooltip>
           </div>
         </OrganizationsSelector>
 
@@ -50,6 +55,18 @@
           </b-field>
 
           <b-field label="Grouping:">
+            <b-radio-button
+              name="grouping"
+              v-model="grouping"
+              native-value="forever">
+              Forever
+            </b-radio-button>
+            <b-radio-button
+              name="grouping"
+              v-model="grouping"
+              native-value="decennial">
+              Decennial
+            </b-radio-button>
             <b-radio-button
               name="grouping"
               v-model="grouping"
@@ -99,6 +116,7 @@
               Bar
             </b-radio-button>
           </b-field>
+
         </b-field>
 
         <Organizations
@@ -110,7 +128,27 @@
           :chart="chart"
           :dates="dates"
           :others="others"
-          />
+          :percent="percent === 'percent'"
+          >
+          <b-radio-button
+            size="small"
+            name="percent"
+            v-model="percent"
+            native-value="absolute"
+            >
+            Absolute
+          </b-radio-button>
+          <b-radio-button
+            size="small"
+            name="percent"
+            v-model="percent"
+            native-value="percent"
+            >
+            Percent
+          </b-radio-button>
+
+        </Organizations>
+
       </div>
     </section>
 
@@ -166,6 +204,8 @@ export default {
       others = this.$route.query.others != null;
     }
 
+    let percent = this.$route.query.percent === null ? 'percent' : 'absolute';
+
     return {
       chart,
       colors,
@@ -174,6 +214,7 @@ export default {
       kind,
       organizations,
       others,
+      percent,
       repositories,
     }
   },
@@ -191,6 +232,7 @@ export default {
           chart: this.chart,
           dates: this.dates.map(d => d.toISOString().split("T")[0]).join(','),
           others: this.others ? null : undefined,
+          percent: this.percent === "percent" ? null : undefined,
         },
       });
     },
@@ -205,6 +247,7 @@ export default {
     chart: "updateUrl",
     dates: "updateUrl",
     others: "updateUrl",
+    percent: "updateUrl",
   }
 }
 

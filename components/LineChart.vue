@@ -26,6 +26,10 @@ import {bisector} from "d3-array";
 export default {
   props: {
     data: { type: Array },
+    formatter: {
+      type: Function,
+      default: d => "" + d,
+    },
   },
 
   data() {
@@ -147,7 +151,7 @@ export default {
                   .attr("x", -10)
                   .attr("y", -10)
                   .attr("fill", d => this.$color(d.label))
-                  .text(d => d.y)
+                  .text(d =>  this.formatter(d.y))
                 group.append("circle")
                   .attr("r", 3)
                   .attr("fill", d => this.$color(d.label))
@@ -155,15 +159,16 @@ export default {
               },
 
               update => update
-              .attr("transform", d => `translate(${x(d.x)}, ${y(d.y)})`)
-              .select("text")
-              .text(d => d.y),
+                .attr("transform", d => `translate(${x(d.x)}, ${y(d.y)})`)
+                .select("text")
+                .text(d => this.formatter(d.y)),
+
               exit => exit
-              .attr("opacity", 1)
-              .transition()
-              .duration(200)
-              .attr("opacity", 0)
-              .remove()
+                .attr("opacity", 1)
+                .transition()
+                .duration(200)
+                .attr("opacity", 0)
+                .remove()
             )
           ;
 

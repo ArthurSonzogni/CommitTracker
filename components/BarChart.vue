@@ -22,14 +22,12 @@ import {easeCircleOut} from "d3-ease";
 import {format} from "d3-format";
 import {interpolate} from "d3-interpolate";
 import {select} from "d3-selection";
-import {transition} from "d3-transition";
 import {mouse} from "d3-selection";
 
 export default {
   props: {
     timeLabel: {type: String, default: ""},
     data: { type: Array },
-    postfix: { type: String, default: "" },
     formatter: {
       type: Function,
       default: format(",d"),
@@ -46,12 +44,12 @@ export default {
         .delay(1000)
         .style("opacity", 0)
     })
+    this.step();
   },
 
   methods: {
     async step() {
       const formatter = this.formatter;
-      const postfix = this.postfix;
       const row_width = []
       for(const row of this.data) {
         let width = 0;
@@ -61,9 +59,18 @@ export default {
         row_width.push(width);
       }
 
-      let row_max_width = 20;
+      let row_max_width = 0;
       for(const width of row_width) {
         row_max_width = Math.max(row_max_width, width);
+      }
+
+      let min_value = row_max_width;
+      for(const row of this.data) {
+        for(const value of row.values) {
+          if (value.value> 0) {
+            min_value = Math.min(min_value, value.value);
+          }
+        }
       }
 
       const updateCenter = center => {
@@ -79,7 +86,7 @@ export default {
           .transition()
           .duration(450)
           .ease(easeCircleOut)
-          .style("flex-grow", d => d.value)
+          .style("flex-grow", d => d.value / min_value)
           .style("background-color", d => d.color)
       };
 
@@ -88,11 +95,22 @@ export default {
           .transition()
           .duration(d => 350)
           .textTween(function(year, index) {
-            const previous = parseFloat(
-              select(this)
-              .text()
-              .replace(',', '')
-            );
+            const next = row_width[index];
+            const previous = this._current;
+            this._current = next;
+
+            if (previous === undefined) {
+              return t => formatter(next);
+            }
+
+            if (previous <= 1 && next >= 1) {
+              return t => formatter(next);
+            }
+
+            if (previous >= 1 && next <= 1) {
+              return t => formatter(next);
+            }
+
             const interpolator = interpolate(
               previous,
               row_width[index],
@@ -141,11 +159,8 @@ export default {
             const right = div.append("div")
             right.classed("right", true)
             right.text(0)
+            right.property("_current", d => 0);
             updateRight(right);
-
-            const right_right = div.append("div")
-            right_right.classed("right_right", true)
-            right_right.text(this.postfix);
 
             return div;
           },
@@ -154,8 +169,6 @@ export default {
             updateCenter(center);
             const right = update.select(".right")
             updateRight(right);
-            const right_right = update.select(".right_right")
-            right_right.text(this.postfix);
             return update;
           },
           exit => {
@@ -165,11 +178,7 @@ export default {
               .delay((d,i) => 500-30*Math.sqrt(i))
               .ease(easeCircleOut)
               .style("opacity", "0.2")
-              .style("filter", "blur(1px)")
-              .duration((d,i) => 200)
-              .delay((d,i) => 500-30*Math.sqrt(i))
-              .ease(easeCircleOut)
-              .style("filter", "blur(2px)")
+              .style("filter", "blur(3px)")
               .transition()
               .duration((d,i) => 150)
               .ease(easeCircleOut)
@@ -185,8 +194,9 @@ export default {
         .join(
           enter => {
             const repository = enter.append("div")
-            repository.classed("repository", true);
-            repository.style("flex-grow", 0);
+            repository
+              .classed("repository", true)
+              .style("flex-grow", 0);
             updateBox(repository);
             repository.on("mouseover", function(event, d) {
               const that = select(this);
@@ -201,7 +211,7 @@ export default {
                 .style("top", (box.top) + "px")
 
               tooltip_inner
-                .text(d.label+ ": " + formatter(d.value) + postfix);
+                .text(d.label+ ": " + formatter(d.value))
             })
             return repository;
           },
@@ -223,6 +233,7 @@ export default {
 
   watch: {
     data: "step",
+    formatter: "step",
   },
 }
 
