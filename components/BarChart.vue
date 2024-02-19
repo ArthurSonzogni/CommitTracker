@@ -76,7 +76,7 @@ export default {
           }
         }
       }
-      min_value = Math.max(min_value, 0.01);
+      min_value = Math.max(min_value, 0.000001);
 
       const updateCenter = center => {
         center
@@ -91,7 +91,12 @@ export default {
           .transition()
           .duration(450)
           .ease(easeCircleOut)
-          .style("flex-grow", d => d.value / min_value)
+          .style("flex-grow", d => {
+            if (d.value === 0) {
+              return 0;
+            }
+            return Math.max(1.0, d.value / min_value)
+          })
           .style("background-color", d => d.color)
       };
 
