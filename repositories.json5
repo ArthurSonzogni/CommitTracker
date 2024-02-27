@@ -103,6 +103,17 @@
   },
 
   {
+    "name": "SwiftShader",
+    "dirname": "swiftshader",
+    "color": "#00CC99",
+    "owner": "google",
+    "repository": "swiftshader",
+    "branches" : [
+      "master"
+     ]
+  },
+
+  {
     "name": "WebRTC",
     "dirname": "webrtc",
     "color": "#e377c2",

@@ -13,8 +13,10 @@ const octokit = new OctokitWithThrottling({
   auth: process.env.TOKEN,
   onRateLimit: (retryAfter, options) => {
     console.warn("Request quota exhausted");
+    console.warn("retryAfter:", retryAfter);
+    console.warn("options:", JSON.stringify(options, null, 2));
     if (options.request.retryCount === 0) {
-      console.log(`Retrying after ${retryAfter} seconds!`);
+      console.warn(`Retrying after ${retryAfter} seconds!`);
       return true;
     }
 
@@ -176,10 +178,9 @@ const processRepository = async (repository) => {
       process:
       for await (const response of iterator) {
         for (const commit of response.data) {
-
-          // Rate limit to 5,000 requests per hour to avoid getting quota
+          // Rate limit to 1,000 requests per hour to avoid getting quota
           // exhausted.
-          await new Promise(r => setTimeout(r, 3600*10/5000 + 1));
+          await new Promise(r => setTimeout(r, 37));
 
           if (first) {
             first = false;
