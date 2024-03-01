@@ -8,11 +8,17 @@ import JSON5 from "json5";
 
 const fs = filesystem.promises;
 
-const auth_token = process.env.TOKEN || await fs.readFile(".token", "utf8");
+const AuthToken = () => {
+  try {
+    return fs.readFile(".token", "utf8");
+  } catch(e) {}
+
+  return process.env.TOKEN;
+};
 
 const OctokitWithThrottling = Octokit.plugin(throttling);
 const octokit = new OctokitWithThrottling({
-  auth: auth_token,
+  auth: AuthToken()
   onRateLimit: (retryAfter, options) => {
     console.warn("Request quota exhausted");
     console.warn("retryAfter:", retryAfter);
