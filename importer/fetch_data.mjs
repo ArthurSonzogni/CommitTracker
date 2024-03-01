@@ -8,9 +8,11 @@ import JSON5 from "json5";
 
 const fs = filesystem.promises;
 
+const auth_token = process.env.TOKEN || await fs.readFile(".token", "utf8");
+
 const OctokitWithThrottling = Octokit.plugin(throttling);
 const octokit = new OctokitWithThrottling({
-  auth: process.env.TOKEN,
+  auth: auth_token,
   onRateLimit: (retryAfter, options) => {
     console.warn("Request quota exhausted");
     console.warn("retryAfter:", retryAfter);
@@ -197,11 +199,15 @@ const processRepository = async (repository) => {
 
           sha = commit.sha;
 
+          // Skip merge commits:
+          if (commit.parents.length > 1) {
+            continue;
+          }
+
           const email = commit.commit.author.email;
           if (!isEmailValid(email)) {
             continue;
           }
-
 
           const author = mailMap(email);
           addEmail(author)

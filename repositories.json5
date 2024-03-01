@@ -1,3 +1,20 @@
+// repositories.json5
+// ------------------
+// This file contains the list of all the repositories that we want to track.
+//
+// Each repository is defined by a JSON object with the following fields:
+// {
+//   name       : The name of the repository. This is used to display the
+//                repository in the UI.
+//   dirname    : The name of the directory where the data will be stored.
+//   color      : The color used to display the repository in the UI.
+//   owner      : The owner of the repository on GitHub.
+//   repository : The name of the repository on GitHub.
+//   branches   : The list of branches to track.
+//   cone       : The path to the directory to clone. If not specified, the whole
+//                repository will be cloned.
+//   parent     : The name of the parent repository. To be used with the cone.
+// }
 [
   {
     "name": "Chromium",
@@ -143,6 +160,17 @@
     "repository": "devtools-frontend",
     "branches" : [
       "main"
+     ]
+  },
+
+  {
+    "name": "Perfetto",
+    "dirname": "perfetto",
+    "color": "#bcbd22",
+    "owner": "google",
+    "repository": "perfetto",
+    "branches" : [
+      "master"
      ]
   },
 
