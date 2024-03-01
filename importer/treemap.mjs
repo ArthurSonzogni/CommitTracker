@@ -13,11 +13,16 @@ async function processRepositories() {
 }
 
 async function processRepository(repo) {
+  console.log(`Processing ${repo.owner}/${repo.repository}#${repo.branches[0]}`);
   // Git clone
   {
     await fs.writeFile("script.sh", `
       rm -rf ${repo.dirname}
-      git clone --depth=1 --branch ${repo.head} --single-branch https://github.com/${repo.owner}/${repo.repository} ${repo.dirname}
+      git clone \
+        --depth=1 \
+        --branch ${repo.branches[0]}\
+        --single-branch \
+        https://github.com/${repo.owner}/${repo.repository} ${repo.dirname}
     `)
     const shell = spawn("sh", ["./script.sh"]);
     await new Promise(r => shell.on("close", r));

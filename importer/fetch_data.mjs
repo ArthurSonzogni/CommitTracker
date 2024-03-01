@@ -18,7 +18,7 @@ const AuthToken = () => {
 
 const OctokitWithThrottling = Octokit.plugin(throttling);
 const octokit = new OctokitWithThrottling({
-  auth: AuthToken()
+  auth: AuthToken(),
   onRateLimit: (retryAfter, options) => {
     console.warn("Request quota exhausted");
     console.warn("retryAfter:", retryAfter);
