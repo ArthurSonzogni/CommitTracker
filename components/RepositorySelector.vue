@@ -5,11 +5,12 @@
         style="margin-right: -0.02rem; margin-left: 0"
         name="repositories"
         v-for="(item, index) in items"
+        v-if="filter(repositories[index])"
         :key="index"
         :size="size"
         :value="value"
-        @input="update(repositories[index].dirname)"
         :native-value="repositories[index].dirname"
+        @input="update(repositories[index].dirname)"
         >
         {{repositories[index].name}}
       </b-checkbox-button>
@@ -48,6 +49,12 @@ import repositories from 'static/data/repositories.json'
 
 export default {
   props: {
+    filter: {
+      type: Function,
+      required: false,
+      default: () => true,
+    },
+
     value: {
       type: Array[String],
       required: true
@@ -76,6 +83,12 @@ export default {
       type: String,
       required: false
     },
+
+    has_reviewers: {
+      default: false,
+      type: Boolean,
+      required: false
+    }
   },
 
   data() {

@@ -8,6 +8,7 @@
         size="small"
         :allowMultiple="false"
         :allowAll="true"
+        :filter="repo => repo.reviewers"
         />
 
       <TimeRangeSelector

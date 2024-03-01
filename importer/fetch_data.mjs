@@ -8,9 +8,9 @@ import JSON5 from "json5";
 
 const fs = filesystem.promises;
 
-const AuthToken = () => {
+const AuthToken = async () => {
   try {
-    return fs.readFile(".token", "utf8");
+    return await fs.readFile(".token", "utf8");
   } catch(e) {}
 
   return process.env.TOKEN;
@@ -18,7 +18,7 @@ const AuthToken = () => {
 
 const OctokitWithThrottling = Octokit.plugin(throttling);
 const octokit = new OctokitWithThrottling({
-  auth: AuthToken(),
+  auth: await AuthToken(),
   onRateLimit: (retryAfter, options) => {
     console.warn("Request quota exhausted");
     console.warn("retryAfter:", retryAfter);

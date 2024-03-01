@@ -8,7 +8,11 @@
 
         <div class="column">
           <b-field>
-            <RepositorySelector v-model="repositories" size="is-medium"/>
+            <RepositorySelector
+              v-model="repositories"
+              size="is-small"
+              :filter="repo => repo.treemap"
+              />
           </b-field>
           <b-field>
             <TreemapInput v-model="field_size" placeholder="size"/>
