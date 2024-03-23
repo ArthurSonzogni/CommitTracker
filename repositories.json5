@@ -205,4 +205,15 @@
     reviewers: false,
     treemap: false,
   },
+
+  {
+    name: "WebKit",
+    dirname: "webkit",
+    color: "#1393ef",
+    owner: "WebKit",
+    repository: "WebKit",
+    branches: [ "main" ],
+    reviewers: false,
+    treemap: false,
+  },
 ]
