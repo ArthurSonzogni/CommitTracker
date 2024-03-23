@@ -10,7 +10,10 @@
 //   color      : The color used to display the repository in the UI.
 //   owner      : The owner of the repository on GitHub.
 //   repository : The name of the repository on GitHub.
-//   branches   : The list of branches to track. cone       : The path to the directory to clone. If not specified, the whol repository will be cloned. parent     : The name of the parent repository. To be used with the cone }
+//   branches   : The list of branches to track.
+//   cone       : The path to the directory to clone. If not specified, the
+//                whole repository will be cloned.
+//   parent     : The name of the parent repository. To be used with the cone }
 [
   {
     name: "Chromium",
@@ -188,6 +191,17 @@
     owner: "llvm",
     repository: "llvm-project",
     branches: [ "main" ],
+    reviewers: false,
+    treemap: false,
+  },
+
+  {
+    name: "Gecko",
+    dirname: "gecko",
+    color: "#e66000",
+    owner: "mozilla",
+    repository: "gecko-dev",
+    branches: [ "master" ],
     reviewers: false,
     treemap: false,
   },
