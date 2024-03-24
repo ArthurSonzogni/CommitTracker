@@ -37,16 +37,19 @@ const octokit = new OctokitWithThrottling({
 const isEmailValid = (() => {
   // Skip sbots and automated commit:
   const bot_patterns = [
-    "gserviceaccount",
     "+robot",
     "-bot",
     "autoroll",
     "buildbot",
     "chrome-",
     "commit-queue",
+    "github-actions",
+    "gserviceaccount",
     "mdb.",
     "rebaseline",
+    "release",
     "roller",
+    "wptsync",
   ];
 
   return (email) => {
