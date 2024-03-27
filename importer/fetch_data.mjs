@@ -50,6 +50,8 @@ const isEmailValid = (() => {
     "release",
     "roller",
     "wptsync",
+    "none@none",
+    "css21testsuite",
   ];
 
   return (email) => {

@@ -196,6 +196,17 @@
   },
 
   {
+    name: "WPT",
+    dirname: "wpt",
+    color: "#888888",
+    owner: "web-platform-tests",
+    repository: "wpt",
+    branches: [ "master" ],
+    reviewers: false,
+    treemap: false,
+  },
+
+  {
     name: "Gecko",
     dirname: "gecko",
     color: "#e66000",
