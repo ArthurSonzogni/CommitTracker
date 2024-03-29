@@ -111,38 +111,39 @@ export default {
 
     // Filter the data to only include the kind of data we want.
     filterKind(data) {
-      const out = {}
       if (this.kind == "author") {
-        for(const [key, value] of Object.entries(data)) {
-          if (value.author) {
-            out[key] = value.author;
-          }
+        const out = {}
+        for(const [developer, value] of Object.entries(data)) {
+          out[developer] = value.author.commit
         }
+        return out;
       }
 
       if (this.kind == "review") {
-        for(const [key, value] of Object.entries(data)) {
-          if (value.review) {
-            out[key] = value.review;
-          }
+        const out = {}
+        for(const [developer, value] of Object.entries(data)) {
+          out[developer] = value.review.commit
         }
+        return out;
       }
 
       if (this.kind == "both") {
+        const out = {}
         for(const [key, value] of Object.entries(data)) {
           out[key] = {}
-          for(const [date, commit] of Object.entries(value.author || {})) {
+          for(const [date, commit] of Object.entries(value.author.commit)) {
             out[key][date] ||= 0;
             out[key][date] += commit;
           }
-          for(const [date, commit] of Object.entries(value.review || {})) {
+          for(const [date, commit] of Object.entries(value.review.commit)) {
             out[key][date] ||= 0;
             out[key][date] += commit;
           }
         }
+        return out;
       }
 
-      return out;
+      console.error("Not reached");
     },
 
     // Merge the data from multiple repositories into a single object.

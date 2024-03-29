@@ -22,6 +22,7 @@ jobs:
         run: |
           yarn
           yarn pull-data
+          yarn generate-derived-data
 
       - name: Refresh files
         run: |

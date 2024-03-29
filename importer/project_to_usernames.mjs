@@ -29,31 +29,13 @@ for(const repository of repositories) {
     const email_filename = `${repository_dir}/emails/${email}.json`;
     const username_filename = `${repository_dir}/usernames/${username}.json`;
 
-    usernames[username] ||= {
-      emails: [],
-      author: {},
-      review: {},
-    };
-
-    if (!usernames[username].emails.includes(email)) {
-      usernames[username].emails.push(email);
-    }
+    usernames[username] ||= []
 
     const email_data = JSON.parse(await fs.readFile(email_filename, "utf8"));
-    for(const [date, reviewer_emails] of Object.entries(email_data.author)) {
-      const reviewer_usernames = reviewer_emails
-        .map(email => email.split("@")[0]);
-      usernames[username].author[date] ||= []
-      for(const reviewer_username of reviewer_usernames) {
-        if (!usernames[username].author[date].includes(reviewer_username)) {
-          usernames[username].author[date].push(reviewer_username);
-        }
-      }
-    }
-
-    for(const [date, author_email] of Object.entries(email_data.review)) {
-      const author_username = author_email.split("@")[0];
-      usernames[username].review[date] = author_username;
+    for(const commit of email_data) {
+      commit.peers = commit.peers.map(email => email.split("@")[0]);
+      commit.peers = [...new Set(commit.peers)].sort();
+      usernames[username].push(commit);
     }
   }
 
@@ -68,4 +50,3 @@ for(const repository of repositories) {
       JSON.stringify(data, null, 1));
   }
 }
-

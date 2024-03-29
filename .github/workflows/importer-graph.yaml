@@ -25,6 +25,7 @@ jobs:
         run: |
           yarn
           yarn pull-data
+          yarn generate-derived-data
 
       - name: Install OpenMP
         run: sudo apt-get install libomp-dev libomp5

@@ -44,24 +44,23 @@ export default {
     filteredData() {
       // Filter and count peers for every developers.
       const data = this.data.map(d => {
-        const author = !this.author ? [] :
-          Object.entries(d.data.author)
-          .filter(([time, _]) => {
-            const date = new Date(time)
-            return date >= this.dates[0] && date <= this.dates[1];
-          })
-          .map(([_, reviewers]) => reviewers)
-          .flat();
 
-        const review = !this.review ? [] :
-          Object.entries(d.data.review)
-          .filter(([time, _]) => {
-            const date = new Date(time)
+        let commits = d.data
+          .filter(commit => {
+            const date = new Date(commit.date);
             return date >= this.dates[0] && date <= this.dates[1];
-          })
-          .map(([_, author]) => author)
+          });
 
-        const developers = [...author, ...review];
+        if (!this.author) {
+          commits = commits.filter(commit => commit.kind != "author")
+        }
+
+        if (!this.review) {
+          commits = commits.filter(commit => commit.kind != "review")
+        }
+
+        const developers = commits.map(commit => commit.peers).flat();
+
         const peers = {};
 
         developers.forEach(d=> {

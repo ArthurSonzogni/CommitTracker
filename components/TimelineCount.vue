@@ -1,10 +1,21 @@
 <template>
-  <div ref="container" align="center">
-    <b-table :data="filteredData" :columns="columns"></b-table>
+  <div>
+    <h3>As author</h3>
+    <div ref="container" align="center">
+      <b-table
+        :data="filteredData"
+        :columns="columns"
+        striped
+        hoverable
+      ></b-table>
+    </div>
   </div>
 </template>
 
 <script>
+
+import { format } from 'd3-format'
+
 export default {
   props: {
     repositories: { type:Array[String], default: () => ["chromium"],},
@@ -23,15 +34,25 @@ export default {
         },
         {
           field: "author",
-          label: "Author",
+          label: "#Commits as author",
           sortable: true,
         },
         {
           field: "review",
-          label: "Review",
+          label: "#Commits as reviewer",
           sortable: true,
         },
-      ]
+        {
+          field: "additions",
+          label: "#Lines added",
+          sortable: true,
+        },
+        {
+          field: "deletions",
+          label: "#Lines removed",
+          sortable: true,
+        },
+      ],
     }
   },
 
@@ -42,15 +63,26 @@ export default {
 
   computed: {
     filteredData() {
-      const filterDate = d => {
-        const date = new Date(d);
-        return date >= this.dates[0] && date <= this.dates[1];
-      }
       return this.data.map(d => {
+        const commit = d.commits
+          .filter(commit => {
+            const date = new Date(commit.date);
+            return date >= this.dates[0] && date <= this.dates[1];
+          });
+
+        const authored = commit
+          .filter(c => c.kind == "author");
+
+        const reviewed = commit
+          .filter(c => c.kind == "review");
+
+        const sum = array => array.reduce((a,b) => a+b , 0);
         return {
           developer: d.developer,
-          author: d.author.filter(filterDate).length,
-          review: d.review.filter(filterDate).length,
+          author: authored.length,
+          review: reviewed.length,
+          additions: format(",d")(sum(authored.map(c => c.additions))),
+          deletions: format(",d")(sum(authored.map(c => c.deletions))),
         };
       });
     },
@@ -62,8 +94,7 @@ export default {
       this.data = data.map(d => {
         return {
           developer: d.developer,
-          author: Object.keys(d.data.author),
-          review: Object.keys(d.data.review),
+          commits: d.data
         };
       });
     },

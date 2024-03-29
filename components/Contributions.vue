@@ -318,7 +318,7 @@ export default {
       switch(this.what) {
         case "commit":
           for(const user in data) {
-            data[user] = data[user].author;
+            data[user] = data[user].author.commit;
           }
           break;
 
@@ -326,21 +326,21 @@ export default {
           switch(this.kind) {
             case "author":
               for(const user in data) {
-                data[user] = data[user].author;
+                data[user] = data[user].author.commit
               }
               break;
 
             case "review":
               for(const user in data) {
-                data[user] = data[user].review;
+                data[user] = data[user].review.commit
               }
               break;
 
             case "both":
               for(const user in data) {
                 let merged = {};
-                this.merge(merged, data[user].author);
-                this.merge(merged, data[user].review);
+                this.merge(merged, data[user].author.commit);
+                this.merge(merged, data[user].review.commit);
                 data[user] = merged
               }
               break;

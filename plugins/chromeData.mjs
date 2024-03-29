@@ -4,21 +4,13 @@ const fetchData = async (repo, user) => {
   const response = await fetch(`/data/${repo}/usernames/${user}.json`);
   const data = response.status == 200
     ? await response.json()
-    : {author: {}, review: {}};
+    : []
 
   // Remove developers reviewing themselves:
-  for(const date in data.review) {
-    if (data.review[date] == user) {
-      delete data.review[date];
-    }
-  }
-
-  // Remove developers reviewing themselves:
-  for(const date in data.author) {
-    for(const reviewer in data.author[date]) {
-      if (data.author[date][reviewer] == user) {
-        delete data.author[date][reviewer];
-      }
+  for(const commit of data) {
+    const index = commit.peers.indexOf(user);
+    if (index !== -1) {
+      commit.peers.splice(index, 1);
     }
   }
 

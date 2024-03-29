@@ -28,9 +28,9 @@ jobs:
         run: |
           cd importer
           yarn install
-          yarn run main
+          yarn run fetch_data
         env:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push data
         uses: peaceiris/actions-gh-pages@v3

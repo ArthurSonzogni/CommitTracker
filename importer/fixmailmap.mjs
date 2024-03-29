@@ -47,12 +47,8 @@ const processRepository = async (repository) => {
     const old_data = JSON.parse(await fs.readFile(old_file, "utf8"));
     const new_data = JSON.parse(await fs.readFile(new_file, "utf8"));
 
-    // Merge author data:
-    for (const [key, value] of Object.entries(old_data.author)) {
-      new_data.author[key] = value;
-    }
-    for (const [key, value] of Object.entries(old_data.review)) {
-      new_data.review[key] = value;
+    for (const commit of old_data) {
+      new_data.push(commit);
     }
 
     // Write the new data:
@@ -65,21 +61,15 @@ const processRepository = async (repository) => {
 
   // Update the content of every files:
   for(const email of new_users) {
-    const email_file = `../static/data/${repository.dirname}/emails/${email}.json`;
-    const email_data = JSON.parse(await fs.readFile(email_file, "utf8"));
+    const file = `../static/data/${repository.dirname}/emails/${email}.json`;
+    const data = JSON.parse(await fs.readFile(file, "utf8"));
 
-    // Update author data:
-    for (const [time, reviewer] of Object.entries(email_data.author)) {
-      email_data.author[time] = reviewer.map(mailMap);
-    }
-
-    // Update review data:
-    for (const [time, author] of Object.entries(email_data.review)) {
-      email_data.review[time] = mailMap(author);
+    for (const commit of data) {
+      commit.peers = commit.peers.map(mailMap);
     }
 
     // Write the new data:
-    await fs.writeFile(email_file, JSON.stringify(email_data, null, 1));
+    await fs.writeFile(file, JSON.stringify(data, null, 1));
   }
 }
 

@@ -27,19 +27,22 @@ export default {
     filteredData() {
       // Filter:
       let data = this.data.map(d => {
-        const author = !this.author ? {} :
-          Object.entries(d.data.author)
-          .map(([time, _]) => time)
-        const review = !this.review ? {} :
-          Object.entries(d.data.review)
-          .map(([time, _]) => time)
+        console.log(data);
+        let commits = d.data;
 
-        const values = [author, review]
-          .flat()
-          .sort()
-          .map(time => new Date(time))
-          .filter(time => {
-            return time >= this.dates[0] && time <= this.dates[1];
+        if (!this.author) {
+          commits = commits.filter(commit => commit.kind != "author")
+        }
+
+        if (!this.review) {
+          commits = commits.filter(commit => commit.kind != "review")
+        }
+
+        const values = commits
+          .map(commit => new Date(commit.date))
+          .sort((a,b) => (a-b))
+          .filter(date => {
+            return date >= this.dates[0] && date <= this.dates[1];
           })
 
         return {

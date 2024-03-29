@@ -167,29 +167,31 @@ export default {
         }
 
         if (this.colors == "organizations" || this.others) {
-          this.merge(data["Others"].author, data_all[organization].author);
-          this.merge(data["Others"].review, data_all[organization].review);
+          this.merge(data["Others"].author.commit,
+            data_all[organization].author.comit);
+          this.merge(data["Others"].review.commit,
+            data_all[organization].review.commit);
         }
       }
 
       switch(this.kind) {
         case "author":
           for(const organization in data) {
-            data[organization] = data[organization].author;
+            data[organization] = data[organization].author.commit;
           }
           break;
 
         case "review":
           for(const organization in data) {
-            data[organization] = data[organization].review;
+            data[organization] = data[organization].review.commit;
           }
           break;
 
         case "both":
           for(const organization in data) {
             let merged = {};
-            this.merge(merged, data[organization].author);
-            this.merge(merged, data[organization].review);
+            this.merge(merged, data[organization].author.commit);
+            this.merge(merged, data[organization].review.commit);
             data[organization] = merged
           }
           break;

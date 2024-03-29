@@ -85,22 +85,24 @@ export default {
       });
 
       const responses = await Promise.all(this.repositories.map(repo =>
-        fetch(`/data/${repo}/organizations_summary.json`)
+        fetch(`/data/${repo}/organizations_emails.json`)
       ))
 
       const data = await Promise.all(responses.map(r => r.json()))
 
+      console.log(data);
       const emails = {}
       for(const d of data) {
         for(const org in d) {
           if(!emails[org]) {
             emails[org] = new Set();
           }
-          for(const email of d[org].emails) {
+          for(const email of d[org]) {
             emails[org].add(email);
           }
         }
       }
+      console.log(emails);
 
       this.data = []
       for(const [org, emails_data] of Object.entries(emails)) {

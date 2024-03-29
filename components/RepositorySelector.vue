@@ -147,7 +147,6 @@ export default {
       }
 
       // Tweak to avoid including twice the same repository.
-
       this.$emit('input', newValue.sort());
       return;
     },

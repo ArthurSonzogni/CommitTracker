@@ -1,267 +1,312 @@
-import * as filesystem from "fs";
-import core from "@actions/core";
-import statusLine from "@alt-jero/status-line";
-import { Octokit } from "octokit";
-import { mailMap } from "./mailmap.mjs";
-import { throttling } from "@octokit/plugin-throttling";
-import JSON5 from "json5";
+import * as filesystem from 'fs';
+import JSON5 from 'json5';
+import core from '@actions/core';
+import statusLine from '@alt-jero/status-line';
+import {Octokit} from 'octokit';
+import {mailMap} from './mailmap.mjs';
+import {throttling} from '@octokit/plugin-throttling';
 
 const fs = filesystem.promises;
 
 const AuthToken = async () => {
   try {
-    return await fs.readFile(".token", "utf8");
-  } catch(e) {}
+    return await fs.readFile('.token', 'utf8');
+  } catch (e) {
+  }
 
-  return process.env.TOKEN;
+  if (process.env.GITHUB_TOKEN) {
+    return process.env.GITHUB_TOKEN;
+  }
+
+  if (process.env.TOKEN) {
+    return process.env.TOKEN;
+  }
 };
 
-const OctokitWithThrottling = Octokit.plugin(throttling);
-const octokit = new OctokitWithThrottling({
+const MyOctokit = Octokit.plugin(throttling);
+const octokit = new MyOctokit({
   auth: await AuthToken(),
-  onRateLimit: (retryAfter, options) => {
-    console.warn("Request quota exhausted");
-    console.warn("retryAfter:", retryAfter);
-    console.warn("options:", JSON.stringify(options, null, 2));
-    if (options.request.retryCount === 0) {
-      console.warn(`Retrying after ${retryAfter} seconds!`);
-      return true;
-    }
+  throttle: {
+    onRateLimit: (retryAfter, options, octokit, retryCount) => {
+      statusLine.error(
+        `Request quota exhausted for request ${options.method} ${options.url}`,
+      );
 
-  },
-  onAbuseLimit: (retryAfter, options) => {
-    console.warn(`Abuse detected for request ${options.method} ${options.url}`);
+      if (retryCount < 10) {
+        statusLine.error(
+          `Retrying after ${retryAfter} seconds!`);
+        return true;
+      }
+    },
+    onSecondaryRateLimit: (retryAfter, options, octokit) => {
+      // does not retry, only logs a warning
+      statusLine.error(
+        `SecondaryRateLimit detected for request ${options.method} ${options.url}`,
+      );
+    },
   },
 });
 
-const isEmailValid = (() => {
-  // Skip sbots and automated commit:
-  const bot_patterns = [
-    "+robot",
-    "-bot",
-    "autoroll",
-    "buildbot",
-    "chrome-",
-    "commit-queue",
-    "github-actions",
-    "gserviceaccount",
-    "mdb.",
-    "rebaseline",
-    "release",
-    "roller",
-    "wptsync",
-    "none@none",
-    "css21testsuite",
-  ];
+// Skip sbots and automated commit:
+const g_bot_patterns = [
+  '+robot',
+  '-bot',
+  'autoroll',
+  'buildbot',
+  'chrome-',
+  'commit-queue',
+  'github-actions',
+  'gserviceaccount',
+  'mdb.',
+  'rebaseline',
+  'release',
+  'roller',
+  'wptsync',
+  'none@none',
+  'css21testsuite',
+];
 
-  return (email) => {
-    if (bot_patterns.some(pattern => email.includes(pattern))) {
-      return false;
-    }
-
-    // Skip authors with no emails.
-    if (email.indexOf("@") == -1) {
-      return false
-    }
-
-    return true;
+const IsEmailValid = email => {
+  if (g_bot_patterns.some(pattern => email.includes(pattern))) {
+    return false;
   }
-})();
+
+  // Skip authors with no emails.
+  if (email.indexOf('@') == -1) {
+    return false
+  }
+
+  return true;
+};
+
+const ProcessCommit = (data, commit) => {
+  // Skip merge commits:
+  if (commit.parents.totalCount > 1) {
+    return "skipped";
+  }
+
+  const email = commit.author.email;
+  if (!IsEmailValid(email)) {
+    return "invalid email";
+  }
+
+  const author = mailMap(email);
+  const date = commit.committedDate;
+  const reviewers = [];
+
+  // Parse reviewers:
+  for (const line of commit.messageBody.split('\n')) {
+    if (!line.startsWith('Reviewed-by:')) {
+      continue;
+    }
+    const a = line.indexOf('<');
+    const b = line.indexOf('>');
+    if (a == -1 || b == -1) {
+      continue;
+    }
+    const reviewer = mailMap(line.substring(a + 1, b));
+    if (!IsEmailValid(reviewer)) {
+      continue;
+    }
+    reviewers.push(reviewer);
+  }
+
+  data[author] ||= [];
 
 
-const processRepository = async (repository) => {
+  if (data[author].some(commit => commit.date === date)) {
+    return "duplicate";
+  }
+
+  data[author].push({
+    'date': date,
+    'kind': 'author',
+    'peers': reviewers,
+    'additions': commit.additions,
+    'deletions': commit.deletions,
+    'files': commit.changedFilesIfAvailable,
+  });
+
+  reviewers.forEach(reviewer => {
+    data[reviewer] ||= [];
+    data[reviewer].push({
+      'date': date,
+      'kind': 'review',
+      'peers': [author],
+      'additions': commit.additions,
+      'deletions': commit.deletions,
+      'files': commit.changedFilesIfAvailable,
+    });
+  });
+
+  return "success";
+};
+
+
+const ProcessRepository = async (repository) => {
+  statusLine.logString(`-----`)
   statusLine.logString(`Processing ${repository.dirname}`);
-
   const repository_dir = `../static/data/${repository.dirname}`;
+  const last_file = `${repository_dir}/last.json`;
+  const emails_dir = `${repository_dir}/emails`;
+  const emails_file = `${repository_dir}/emails.json`;
 
   // Setup the directory structures, in case this is the first time we are
   // running this.
-  await fs.mkdir(repository_dir, { recursive: true });
+  await fs.mkdir(repository_dir, {recursive: true});
+  await fs.mkdir(emails_dir, {recursive: true});
 
-  const last_file = `${repository_dir}/last.json`;
-  const emails_file = `${repository_dir}/emails.json`;
-  const emails_dir = `${repository_dir}/emails`;
-
-  // Write emails to database. This is a list of all emails that have ever
-  // contributed to the repository.
-  const writeEmails = async (emails) => {
-    await fs.writeFile(emails_file, JSON.stringify(emails, null, 1));
-  };
-
-  // Read emails from database. This is a list of all emails that have ever
-  // contributed to the repository.
-  const readEmails = async () => {
+  // Populate data from the current database -----------------------------------
+  const emails = async () => {
     try {
-      const emails = await fs.readFile(emails_file, "utf8");
-      return JSON.parse(emails);
-    } catch (error) {
-      writeEmails([]);
+      const data = await fs.readFile(emails_file, 'utf8');
+      return JSON.parse(data);
+    } catch (e) {
+      console.log(e);
       return [];
     }
   };
 
-  // Read email data from database. This is all the informations we can gather
-  // about one particular email.
-  const readEmail = async email => {
+  const email_data = async (email) => {
     try {
-      const data = await fs.readFile(`${emails_dir}/${email}.json`, "utf8");
+      const data = await fs.readFile(`${emails_dir}/${email}.json`, 'utf8');
       return JSON.parse(data);
-    } catch (error) {
-      return {
-        author: {},
-        review: {},
-      }
+    } catch (e) {
+      return [];
     }
-  }
-
-  // Read last sha from database. This is the last commit that was processed.
-  const readLastSha = async () => {
-    try {
-      const file = await fs.readFile(last_file, "utf8");
-      const json = JSON.parse(file);
-      return json;
-    } catch (error) {
-      return {};
-    }
-  }
-
-  // Setup the directory structures:
-  await fs.mkdir(emails_dir, { recursive: true });
+  };
 
   const data = {};
-
-  const emails = new Set();
-  const addEmail = (email) => {
-    if (emails.has(email)) {
-      return;
-    }
-    emails.add(email);
-    data[email] = {
-      author: {},
-      review: {},
-    };
-  };
-
-  // Read all the emails from database.
-  for(const email of await readEmails()) {
-    addEmail(email);
-    data[email] = await readEmail(email);
+  for (const email of await emails()) {
+    data[email] = await email_data(email);
   }
 
-  const last_sha = await readLastSha();
-  let new_last_sha = structuredClone(last_sha);
-
-  const save = async () => {
-    // Write emails.
-    Object.keys(data).forEach((email) => emails.add(email));
-    writeEmails(Array.from(emails).sort());
+  const SaveDataForRepository = async() => {
+    // Write emails:
+    await fs.writeFile(
+      `${repository_dir}/emails.json`,
+      JSON.stringify(Object.keys(data).sort(), null, 1));
 
     // Write email data:
-    for (const email of emails) {
-      await fs.writeFile(`${emails_dir}/${email}.json`,
-        JSON.stringify(data[email], null, 1));
-    }
-  };
+    for (const email in data) {
+      const email_file = `${emails_dir}/${email}.json`;
 
-  for(const start of repository.branches) {
-    let sha = start;
-
-    if (last_sha[start] == start) {
-      continue
-    }
-
-    try {
-      let first = true;
-
-      const params = {
-        owner: repository.owner,
-        repo: repository.repository,
-        sha,
-        per_page : 100,
+      // Remove duplicated commits
+      const map = new Map();
+      for(const commit of data[email]) {
+        map.set(commit.date, commit)
       }
+      data[email] = Array.from(map.values()).sort((a,b) => a.date > b.date);
 
-      if (repository.cone) {
-        params.path = repository.cone;
-      }
-
-      const iterator = octokit.paginate.iterator(
-        "GET /repos/{owner}/{repo}/commits", params);
-
-      let index  = 0;
-      process:
-      for await (const response of iterator) {
-        for (const commit of response.data) {
-          // Rate limit to 1,000 requests per hour to avoid getting quota
-          // exhausted.
-          await new Promise(r => setTimeout(r, 37));
-
-          if (first) {
-            first = false;
-            new_last_sha[start] = commit.sha;
-            await fs.writeFile(last_file, JSON.stringify(new_last_sha, null, 2));
-          }
-
-          index += 1;
-          statusLine(`${index} ${commit.commit.author.date} ${commit.sha}`);
-          if (commit.sha === last_sha[start]) {
-            console.log("Break after finding last sha");
-            break process;
-          }
-
-          sha = commit.sha;
-
-          // Skip merge commits:
-          if (commit.parents.length > 1) {
-            continue;
-          }
-
-          const email = commit.commit.author.email;
-          if (!isEmailValid(email)) {
-            continue;
-          }
-
-          const author = mailMap(email);
-          addEmail(author)
-
-          const date = commit.commit.author.date;
-          const reviewers = [];
-
-          // Parse reviewers:
-          for (const line of commit.commit.message.split("\n")) {
-            if (!line.startsWith("Reviewed-by:")) {
-              continue;
-            }
-            const a = line.indexOf("<");
-            const b = line.indexOf(">");
-            if (a == -1 || b == -1) {
-              continue;
-            }
-            const reviewer = mailMap(line.substring(a + 1, b));
-            if (!isEmailValid(reviewer)) {
-              continue;
-            }
-            addEmail(reviewer);
-
-            data[reviewer].review[date] = author;
-            reviewers.push(reviewer);
-          }
-          data[author].author[date] = reviewers;
-        }
-      }
-    } catch (error) {
-      statusLine.error(error);
+      await fs.writeFile(email_file, JSON.stringify(data[email], null, 1));
     }
   }
 
-  await save();
+  let cursor = null;
+  let hasNextPage = true;
+  let index = 0;
+  let duplicate = 0;
+
+  while(hasNextPage && duplicate<10) {
+    if (index % 10000 == 0) {
+      statusLine.logString(`Repo: ${repository.dirname} ${index}`);
+    }
+    for(let retry = 0; retry < 5; ++retry) {
+      try {
+        const startTime = Date.now();
+        const response = await octokit.graphql(`
+          query query($cursor: String,
+                      $owner: String!,
+                      $name: String!,
+                      $path: String,
+          ) {
+            repository(owner: $owner, name: $name) {
+              defaultBranchRef {
+                target {
+                  ... on Commit {
+                    history(
+                      path: $path
+                      first: 100,
+                      after: $cursor
+                    ) {
+                      pageInfo {
+                        hasNextPage
+                        endCursor
+                      }
+                      edges {
+                        node {
+                          ... on Commit {
+                            abbreviatedOid
+                            messageBody
+                            committedDate
+                            author {
+                              email
+                            }
+                            additions
+                            deletions
+                            changedFilesIfAvailable
+                            parents {
+                              totalCount
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          `,
+          {
+            cursor: cursor,
+            owner: repository.owner,
+            name: repository.repository,
+            path: repository.cone,
+          }
+        );
+        const endTime = Date.now();
+        const delay = endTime - startTime;
+
+        const history = response.repository.defaultBranchRef.target.history;
+
+        for (const edge of history.edges) {
+          await new Promise(r => setTimeout(r, 3));
+          index++;
+          let commit = edge.node
+          const result = ProcessCommit(data, commit);
+          statusLine(`${index} ${commit.committedDate} ${commit.abbreviatedOid} ${delay} ${result}`);
+
+          if (result == "duplicate") {
+            duplicate++;
+          }
+        }
+        const pageInfo = history.pageInfo;
+        hasNextPage = history.pageInfo.hasNextPage;
+        cursor = history.pageInfo.endCursor;
+
+        break;
+      } catch (error) {
+        console.log(error);
+        await SaveDataForRepository();
+        statusLine.logString(`Error`)
+        const waitTime = 2 ** retry; // Exponential backoff
+        statusLine.error(`Waiting for ${waitTime} seconds`);
+        await new Promise(r => setTimeout(r, waitTime * 1000));
+      }
+    }
+  }
+
+  statusLine.logString(`Repo: ${repository.dirname} ${index}`);
+  await SaveDataForRepository();
 };
 
-await fs.mkdir("../static/data", { recursive: true });
-const file_content = await fs.readFile("../repositories.json5", "utf8");
+await fs.mkdir('../static/data', {recursive: true});
+const file_content = await fs.readFile('../repositories.json5', 'utf8');
 const file_json = JSON5.parse(file_content);
-await fs.writeFile("../static/data/repositories.json",
-  JSON.stringify(file_json, null, 2));
+await fs.writeFile(
+    '../static/data/repositories.json', JSON.stringify(file_json, null, 2));
 
 for (const repository of file_json) {
-  await processRepository(repository);
+  await ProcessRepository(repository);
 }
