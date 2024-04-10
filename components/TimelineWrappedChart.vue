@@ -85,7 +85,7 @@ export default {
       // Accumulate patches:
       data = data.map(entry => {
         return {
-          developer: entry.developer,
+          developer: entry.label,
           values: entry.values.map(time => {
             const seconds = now - time;
             return (seconds % this.modulo) / this.modulo;
