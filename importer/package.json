@@ -10,7 +10,8 @@
     "treemap": "node treemap.mjs",
     "graph": "node graph.mjs",
     "fixmailmap": "node fixmailmap.mjs",
-    "commit_per_hour": "node commit_per_hour.mjs"
+    "commit_per_hour": "node commit_per_hour.mjs",
+    "cleanup_organizations": "node cleanup_organizations.mjs"
   },
   "repository": {
     "type": "git",

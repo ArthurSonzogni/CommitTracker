@@ -76,10 +76,6 @@
                 </a>
               </li>
 
-              <li> <a href="/data/chromium/organizations/Intel.json">
-                  <code>/data/${repository}/organizations/${organization}.json</code>
-                </a>
-              </li>
             </ul>
           </li>
           </a>

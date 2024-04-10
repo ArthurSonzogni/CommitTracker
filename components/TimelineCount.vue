@@ -34,22 +34,32 @@ export default {
         },
         {
           field: "author",
-          label: "#Commits as author",
+          label: "#Commits",
           sortable: true,
         },
         {
           field: "review",
-          label: "#Commits as reviewer",
+          label: "#Commits (review)",
           sortable: true,
         },
         {
-          field: "additions",
+          field: "additions_author",
           label: "#Lines added",
           sortable: true,
         },
         {
-          field: "deletions",
+          field: "deletions_author",
           label: "#Lines removed",
+          sortable: true,
+        },
+        {
+          field: "additions_review",
+          label: "#Lines added (review)",
+          sortable: true,
+        },
+        {
+          field: "deletions_review",
+          label: "#Lines removed (review)",
           sortable: true,
         },
       ],
@@ -81,8 +91,10 @@ export default {
           developer: d.developer,
           author: authored.length,
           review: reviewed.length,
-          additions: format(",d")(sum(authored.map(c => c.additions))),
-          deletions: format(",d")(sum(authored.map(c => c.deletions))),
+          additions_author: format(",d")(sum(authored.map(c => c.additions))),
+          deletions_author: format(",d")(sum(authored.map(c => c.deletions))),
+          additions_review: format(",d")(sum(reviewed.map(c => c.additions))),
+          deletions_review: format(",d")(sum(reviewed.map(c => c.deletions))),
         };
       });
     },

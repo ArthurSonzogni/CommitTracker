@@ -33,13 +33,13 @@ const summarize = async (kind, repository) => {
         commit: group_by_date(author, commit => 1),
         additions: group_by_date(author, commit => commit.additions),
         deletions: group_by_date(author, commit => commit.deletions),
-        changedFiles: group_by_date(author, commit => commit.changedFiles),
+        files: group_by_date(author, commit => commit.files),
       },
       review: {
         commit: group_by_date(review, commit => 1),
         additions: group_by_date(review, commit => commit.additions),
         deletions: group_by_date(review, commit => commit.deletions),
-        changedFiles: group_by_date(review, commit => commit.changedFiles),
+        files: group_by_date(review, commit => commit.files),
       },
     };
   }
