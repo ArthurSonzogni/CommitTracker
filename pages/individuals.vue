@@ -236,12 +236,30 @@ document.addEventListener('scroll', updateHasScrolled, { passive: true });
 .sticky {
   position: sticky;
   width: 100%;
+  z-index: 2;
+}
+
+.sticky::before {
+  display: block;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 100%;
   z-index: 1;
+
   backdrop-filter: blur(4px);
   background-color: rgba(255, 255, 255, 0.5);
-  transition: background-color 0.2s ease-in-out;
+  content: '';
+  position:absolute;
   transition: all 0.1s ease-in-out;
+  transition: background-color 0.2s ease-in-out;
 }
+
+.sticky > * {
+  z-index: 2;
+  position: relative;
+}
+
 
 html[data-scrolltop= "1"] .sticky.top {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
