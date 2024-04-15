@@ -22,6 +22,7 @@
           </p>
 
           <TimelineWrappedChart
+            :repositories="['chromium']"
             :developers="developers"
             :dates="[new Date('2000-01-01'), new Date('2030-01-01')]"
             :author="true"
@@ -89,8 +90,7 @@ export default {
         }
       }
 
-      if (Object.keys(data.author).length +
-        Object.keys(data.review).length < 50) {
+      if (data.length < 50) {
         setTimeout(() => {
           this.getRandom();
         }, this.once ? 1000: 10);
