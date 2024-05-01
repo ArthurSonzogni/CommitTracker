@@ -1,8 +1,8 @@
 <template>
   <b-field grouped>
     <b-field
-      v-for="list in possibleValues"
-      :key="list"
+      v-for="(list, i) in possibleValues"
+      :key="i"
     >
       <b-checkbox-button
         :native-value="item"

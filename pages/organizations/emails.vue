@@ -18,7 +18,7 @@
     </section>
 
     <section class="container">
-      <div class="card box" v-for="(o, i) in data" :key="o.organization">
+      <div class="card box" v-for="o in data" :key="o.organization">
 
         <div class="card-header"
              style="background-color: #f5f5f5;">

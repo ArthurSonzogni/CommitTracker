@@ -22,11 +22,12 @@
             label="Readme"
             @click="displayReadme = !displayReadme"
             type="is-warning"
-            />
-          </b-button>
-          <b-button @click="view" type="is-info" v-if="!displayPlaceholder">
-            View
-          </b-button>
+            ></b-button>
+          <b-button
+            @click="view"
+            type="is-info"
+            v-if="!displayPlaceholder"
+            label="View"></b-button>
           <b-button @click="download" type="is-info is-light"
             v-if="!displayPlaceholder">
             Download

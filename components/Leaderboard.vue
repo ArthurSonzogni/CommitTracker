@@ -165,7 +165,7 @@ export default {
     groupingFunction: function() {
       switch(this.grouping) {
         case "forever":
-          return x => "forever";
+          return () => "forever";
 
         case "yearly":
           return x => x.substr(0,4);
@@ -305,7 +305,7 @@ export default {
         const updateGroup = group => {
           return group
             .transition(transition)
-            .attr("transform", (d, i) => `translate(0, ${y(i)})`)
+            .attr("transform", (_d, i) => `translate(0, ${y(i)})`)
             .attr("opacity", 1)
         };
 
@@ -349,7 +349,7 @@ export default {
         const updateIndex = index => {
           return index
             .transition(transition)
-            .textTween(function(d, i) {
+            .textTween(function(_d, i) {
               const new_value = i + 1;
               this._current ||= 0;
               const interpolator = interpolate(
@@ -365,7 +365,7 @@ export default {
 
         g
           .selectAll("g")
-          .data(frame.users.slice(0, this.take_n), (d, i) => d[0])
+          .data(frame.users.slice(0, this.take_n), (d) => d[0])
           .join(enter => {
             const group = enter.append("g")
             group
@@ -474,7 +474,6 @@ export default {
           }
         );
 
-      const max_users = frame.users.length;
       const max_commit = Math.max(...frame.users.map(d => d[1]));
 
       const x = scaleLinear()
@@ -589,7 +588,6 @@ export default {
           .duration(2000 / n)
           .ease(easeLinear);
 
-        const frame = ordered_with_added_frames[timeIndex];
         this.render(ordered_with_added_frames[timeIndex], t);
         await t.end();
       }

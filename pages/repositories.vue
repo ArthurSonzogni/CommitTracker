@@ -169,14 +169,13 @@
     </section>
 
     <section class="section">
-      <b-field
+      <b-field>
         <b-button
           v-if="!displayReadme"
           label="Readme"
           @click="displayReadme = true"
           type="is-warning"
-          />
-        </b-button>
+          ></b-button>
       </b-field>
       <b-message
         title="Readme"

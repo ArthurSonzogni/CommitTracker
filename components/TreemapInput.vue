@@ -1,4 +1,5 @@
-<template> <b-field expanded>
+<template>
+    <b-field expanded>
         <b-taginput
             ref="input"
             :value="value"

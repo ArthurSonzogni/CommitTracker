@@ -17,7 +17,6 @@ import {axisBottom, axisLeft} from "d3-axis";
 import {extent, max} from "d3-array";
 import {scaleTime, scaleLinear} from "d3-scale";
 import {select} from "d3-selection";
-import {transition} from "d3-transition";
 import {line} from "d3-shape";
 import {interpolatePath} from "d3-interpolate-path";
 import {pointer} from "d3-selection";

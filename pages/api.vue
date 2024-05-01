@@ -27,17 +27,20 @@
 
           <li>
             <ul>
-              <li> <a href="/data/chromium/emails.json">
+              <li>
+                <a href="/data/chromium/emails.json">
                   <code>/data/${repository}/emails.json</code>
                 </a>
               </li>
 
-              <li> <a href="/data/chromium/emails_summary.json">
+              <li>
+                <a href="/data/chromium/emails_summary.json">
                   <code>/data/${repository}/emails_summary.json</code>
                 </a>
               </li>
 
-              <li> <a href="/data/chromium/emails/arthursonzogni@chromium.org.json">
+              <li>
+                <a href="/data/chromium/emails/arthursonzogni@chromium.org.json">
                   <code>/data/${repository}/emails/${email}.json</code>
                 </a>
               </li>
@@ -66,19 +69,20 @@
           <li>
             <ul>
 
-              <li> <a href="/data/chromium/organizations.json">
+              <li>
+                <a href="/data/chromium/organizations.json">
                   <code>/data/${repository}/organizations.json</code>
                 </a>
               </li>
 
-              <li> <a href="/data/chromium/organizations_summary.json">
+              <li>
+                <a href="/data/chromium/organizations_summary.json">
                   <code>/data/${repository}/organizations_summary.json</code>
                 </a>
               </li>
 
             </ul>
           </li>
-          </a>
         </ul>
 
       </div>

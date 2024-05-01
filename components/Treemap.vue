@@ -17,15 +17,10 @@
 <script>
 
 import {easeCubicInOut} from "d3-ease";
-import {extent, max} from "d3-array";
 import {hierarchy} from "d3-hierarchy";
 import {interpolateRgb} from "d3-interpolate";
-import {pointer} from "d3-selection";
 import {scaleLinear} from "d3-scale";
-import {scaleRadial} from "d3-scale";
 import {select} from "d3-selection";
-import {selectAll} from "d3-selection";
-import {transition} from "d3-transition";
 import {treemapSquarify} from "d3-hierarchy";
 import {treemap} from "d3-hierarchy";
 
@@ -104,7 +99,7 @@ export default {
         })
     },
 
-    renderText: function(text, index, x, y) {
+    renderText: function(text, index, _x, _y) {
       return text
         .attr("text-anchor", "start")
         .attr("alignment-baseline", "bottom")
@@ -149,7 +144,7 @@ export default {
             const text = this.transition(update.selectAll("text"));
             this.renderGroup(group, x, y);
             this.renderRect(rect, x, y, false)
-            text.each((d, i, nodes) => {
+            text.each((_d, i, nodes) => {
               this.renderText(select(nodes[i]), i, x, y);
             });
             return update;
@@ -169,7 +164,7 @@ export default {
       child
         .filter(d => d.children)
         .attr("cursor", "pointer")
-        .on("click", (event, d) => this.zoomin(d))
+        .on("click", (_event, d) => this.zoomin(d))
       ;
 
       child
@@ -236,7 +231,7 @@ export default {
               exit => exit.remove(),
             )
         })
-        .on("mouseleave", (event, d) => {
+        .on("mouseleave", (event, _d) => {
           const rect = select(event.currentTarget).select("rect");
           this.renderRect(rect, x, y, false)
 

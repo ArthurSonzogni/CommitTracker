@@ -16,7 +16,7 @@
         <div class="column is-4 content">
           <p>
             A data visualization of the interactions between developers. Find
-            out what are the differents communities, and how they evolved over
+            out what are the different communities, and how they evolved over
             the years.
           </p>
         </div>

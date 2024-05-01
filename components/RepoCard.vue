@@ -3,10 +3,10 @@
     <div class="card">
       <div class="card-header">
         <div class="card-header-title"
-          :style='{
-            backgroundColor: repo.color + "66",
-          }
-          '>
+             :style='{
+             backgroundColor: repo.color + "66",
+             }
+             '>
           {{repo.name}}
         </div>
       </div>
@@ -32,7 +32,6 @@
       </div>
     </div>
   </div>
-  </section>
 
 </template>
 

@@ -46,6 +46,7 @@
       </b-field>
       <b-field
         v-for="year in [year-1, year]"
+        :key="year"
         :label="year + '-Quarters'">
         <b-button
           v-for="i in 4"

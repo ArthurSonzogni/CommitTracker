@@ -52,7 +52,6 @@ export default {
             developer = developer.trim().toLowerCase();
             this.developerListFiltered = this.developerList.filter((option) => {
                 return option.toLowerCase().indexOf(developer) == 0;
-                return option.toLowerCase().includes(developer);
             })
             this.developerListFiltered.sort((a,b) => {
                 return a.toLowerCase().indexOf(developer) -

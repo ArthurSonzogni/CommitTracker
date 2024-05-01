@@ -35,9 +35,7 @@
 
 import {select} from "d3-selection";
 import {interpolate} from "d3-interpolate";
-import {linear} from "d3-ease";
 import {easeBackOut} from "d3-ease";
-import {transition} from "d3-transition";
 
 export default {
   data() {
@@ -84,7 +82,7 @@ export default {
       const updateCenter = center => {
         center
           .transition()
-          .duration(d => 450)
+          .duration(_d => 450)
           .ease(easeBackOut)
           .style("width", d => (2 * (d != 0) + 79 * d / max) + "%")
       };
@@ -92,7 +90,7 @@ export default {
       const updateRight = right => {
         right
           .transition()
-          .duration(d => 450)
+          .duration(_d => 450)
           .textTween((d, i, nodes) => {
             const previous = select(nodes[i]).text();
             const interpolator = interpolate(previous, d);
@@ -115,7 +113,7 @@ export default {
 
             const left = div.append("div")
             left.classed("left", true)
-            left.text((d,i) => i);
+            left.text((_d,i) => i);
 
             const center = div.append("div")
             center.classed("center", true)
@@ -149,7 +147,7 @@ export default {
         )
         .select("ul")
         .selectAll("li")
-        .data((d,i) => data.filter(e => e.length === i), d => d)
+        .data((_d,i) => data.filter(e => e.length === i), d => d)
         .join(
           enter => {
             const li = enter.append("li");

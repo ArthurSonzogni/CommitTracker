@@ -13,7 +13,6 @@
 import {max} from "d3-array";
 import {scaleLinear, scaleRadial} from "d3-scale";
 import {select} from "d3-selection";
-import {transition} from "d3-transition";
 import {arc} from "d3-shape";
 import {interpolate} from "d3-interpolate";
 import {local} from "d3-selection";
@@ -102,7 +101,7 @@ export default {
         });
         const out = {
           developer: entry.developer,
-          values: outer.map((v, i) => {
+          values: outer.map((_v, i) => {
             return {
               angle: i,
               buckets: this.buckets,
@@ -215,7 +214,7 @@ export default {
         .cornerRadius(d => d.padAngle * 1000)
       ;
 
-      const arcs = select(this.$refs.arcs)
+      select(this.$refs.arcs)
         .selectAll("path")
         .data(this.filteredData.arcs,
               d => `${d.developer}-${d.angle}-${d.buckets}`)
@@ -255,7 +254,7 @@ export default {
               .transition()
               .duration(1000)
               .attr("opacity", 0)
-              .attrTween('d', function (d) {
+              .attrTween('d', function (_d) {
                 const previous = currentState.get(this);
                 const next = Scale({
                   angle: 0,
@@ -355,10 +354,10 @@ export default {
 
             group
               .attr("opacity", 0)
-              .attr("transform", (d, i) => `translate(100, ${i*20+20})`)
+              .attr("transform", (_d, i) => `translate(100, ${i*20+20})`)
               .transition()
               .duration(500)
-              .attr("transform", (d, i) => `translate(10, ${i*20+20})`)
+              .attr("transform", (_d, i) => `translate(10, ${i*20+20})`)
               .attr("opacity", 1)
 
             group
@@ -373,7 +372,7 @@ export default {
             update
               .transition()
               .duration(1000)
-              .attr("transform", (d, i) => `translate(10, ${i*20+20})`)
+              .attr("transform", (_d, i) => `translate(10, ${i*20+20})`)
               .attr("opacity", 1)
             return update;
           },
@@ -381,7 +380,7 @@ export default {
             exit
               .transition()
               .duration(500)
-              .attr("transform", (d, i) => `translate(100, ${i*20+20})`)
+              .attr("transform", (_d, i) => `translate(100, ${i*20+20})`)
               .attr("opacity", 0)
               .remove()
           }

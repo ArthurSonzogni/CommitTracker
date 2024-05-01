@@ -156,8 +156,12 @@ export default {
       const data = {};
 
       data["Others"] = {
-        author: {},
-        review: {},
+        author: {
+          commit: {}
+        },
+        review: {
+          commit: {}
+        }
       }
 
       for(const organization in data_all) {
@@ -168,7 +172,7 @@ export default {
 
         if (this.colors == "organizations" || this.others) {
           this.merge(data["Others"].author.commit,
-            data_all[organization].author.comit);
+            data_all[organization].author.commit);
           this.merge(data["Others"].review.commit,
             data_all[organization].review.commit);
         }

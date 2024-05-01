@@ -10,16 +10,11 @@
 <script>
 
 import {max} from "d3-array";
-import {scaleLinear, scaleRadial} from "d3-scale";
+import {scaleLinear} from "d3-scale";
 import {select} from "d3-selection";
-import {transition} from "d3-transition";
-import {arc} from "d3-shape";
 import {interpolate} from "d3-interpolate";
-import {local} from "d3-selection";
 import {axisTop} from "d3-axis";
 
-const currentState = local();
-const now = new Date();
 
 export default {
   props: {
@@ -102,7 +97,7 @@ export default {
       const result = [];
       for(const peer in peers) {
         let max =  0;
-        Object.entries(peers[peer]).forEach(([developer, count]) => {
+        Object.entries(peers[peer]).forEach(([, count]) => {
           max = Math.max(max, count.right);
         });
 
@@ -175,7 +170,7 @@ export default {
           .transition()
           .duration(500)
           .attr("opacity", 1)
-          .attr("transform", (d, i) => `translate(0, ${i * 20})`);
+          .attr("transform", (_d, i) => `translate(0, ${i * 20})`);
       }
 
       const updateRect = rect => {
@@ -195,7 +190,7 @@ export default {
             const group = enter.append("g");
             group
               .attr("opacity", 0)
-              .attr("transform", (d, i) => `translate(-100, ${i * 20})`);
+              .attr("transform", (_d, i) => `translate(-100, ${i * 20})`);
             updateGroup(group);
 
             const peer = group.append("text");
@@ -239,7 +234,7 @@ export default {
               .transition()
               .duration(500)
               .attr("opacity", 0)
-              .attr("transform", (d, i) => `translate(100, ${i * 20})`)
+              .attr("transform", (_d, i) => `translate(100, ${i * 20})`)
               .remove();
             return exit;
           },

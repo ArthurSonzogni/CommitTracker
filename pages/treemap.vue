@@ -30,7 +30,7 @@
               expanded
               >
               <option
-                v-for="(option, index) in colormap_list"
+                v-for="option in colormap_list"
                 :value="option"
                 :key="option"
               >

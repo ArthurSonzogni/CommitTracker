@@ -30,7 +30,7 @@
             :stacked="true"
             :hourlyParam="1"
             :buckets="80"
-            /></TimelineWrappedChart>
+            />
         </div>
 
         <div class="column is-7">
@@ -40,7 +40,7 @@
             :author="true"
             :review="true"
             :stacked="false"
-            /></TimelineChart>
+            />
 
           <PeersChart
             :developers="developers"
@@ -49,7 +49,7 @@
             :review="true"
             :stacked="false"
             :take_n="15"
-            /></PeersChart>
+            />
         </div>
 
 

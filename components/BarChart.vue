@@ -22,7 +22,6 @@ import {easeCircleOut} from "d3-ease";
 import {format} from "d3-format";
 import {interpolate} from "d3-interpolate";
 import {select} from "d3-selection";
-import {mouse} from "d3-selection";
 
 export default {
   props: {
@@ -81,9 +80,9 @@ export default {
       const updateCenter = center => {
         center
           .transition()
-          .duration(d => 450)
+          .duration(_d => 450)
           .ease(easeBackOut)
-          .style("width", (year, i) => (70 * row_width[i] / row_max_width) + "%")
+          .style("width", (_year, i) => (70 * row_width[i] / row_max_width) + "%")
       };
 
       const updateBox = repository => {
@@ -103,23 +102,23 @@ export default {
       const updateRight = async right => {
         right
           .transition()
-          .duration(d => 350)
-          .textTween(function(year, index) {
+          .duration(_d => 350)
+          .textTween(function(_year, index) {
             const next = row_width[index];
             const previous = this._current;
             this._current = next;
 
             const formatter = that.formatter_wrap.formatter;
             if (previous === undefined) {
-              return t => formatter(next);
+              return _t => formatter(next);
             }
 
             if (previous <= 1 && next >= 1) {
-              return t => formatter(next);
+              return _t => formatter(next);
             }
 
             if (previous >= 1 && next <= 1) {
-              return t => formatter(next);
+              return _t => formatter(next);
             }
 
             const interpolator = interpolate(
@@ -146,14 +145,14 @@ export default {
               .style("transform", "translate(-32px, 0)")
 
               .transition()
-              .duration((d,i) => 450 + 30*Math.sqrt(i))
+              .duration((_d,i) => 450 + 30*Math.sqrt(i))
               .ease(easeBackOut)
               .style("height", "24px")
               .style("transform", "translate(0px, 0)")
               .style("filter", "blur(0px)")
 
               .transition()
-              .duration(d => 450)
+              .duration(_d => 450)
               .ease(easeBackOut)
               .style("filter", "none")
               .style("opacity", 1.0)
@@ -170,7 +169,7 @@ export default {
             const right = div.append("div")
             right.classed("right", true)
             right.text(0)
-            right.property("_current", d => 0);
+            right.property("_current", _d => 0);
             updateRight(right);
 
             return div;
@@ -185,13 +184,13 @@ export default {
           exit => {
             exit
               .transition()
-              .duration((d,i) => 350)
-              .delay((d,i) => 500-30*Math.sqrt(i))
+              .duration((_d,_i) => 350)
+              .delay((_d,i) => 500-30*Math.sqrt(i))
               .ease(easeCircleOut)
               .style("opacity", "0.2")
               .style("filter", "blur(3px)")
               .transition()
-              .duration((d,i) => 150)
+              .duration((_d,_i) => 150)
               .ease(easeCircleOut)
               .style("transform", "translate(64px, 0)")
               .style("height", "0px")
@@ -209,7 +208,7 @@ export default {
               .classed("repository", true)
               .style("flex-grow", 0);
             updateBox(repository);
-            repository.on("mouseover", function(event, d) {
+            repository.on("mouseover", function(_event, d) {
               const box = select(this).node().getBoundingClientRect();
               const tooltip_inner = tooltip.select(".tooltip-inner");
               tooltip
