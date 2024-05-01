@@ -16,6 +16,6 @@
     <CommunityMapDemo/>
     <StatsDemo/>
     <RepositoryDemo/>
-    <!--<TreemapDemo/>-->
+    <TreemapDemo/>
   </div>
 </template>

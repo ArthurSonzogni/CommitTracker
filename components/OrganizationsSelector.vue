@@ -18,7 +18,7 @@
           v-for="(item, index) in items"
           :key="index"
           :size="size"
-          :value="value"
+          v-model="value"
           @input="update(item)"
           :native-value="item"
           >
@@ -62,130 +62,116 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 
-import organizations from 'static/data/organizations.json'
+import organizations_data from 'public/data/organizations.json'
 
-export default {
-  props: {
-    value: {
-      type: Array[String],
-      required: true
-    },
-
-    allowMultiple: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-
-    allowAll: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-
-    size: {
-      default: "is-small",
-      type: String,
-      required: true
-    },
-
-    label: {
-      default: "",
-      type: String,
-      required: false
-    },
-
-    repositories: {
-      type: Array[String],
-      required: false,
-      default: () => [],
-    },
+const props = defineProps({
+  allowMultiple: {
+    type: Boolean,
+    required: false,
+    default: false,
   },
 
-  data() {
-    const items = organizations;
-    const multiple = (this.value.length > 1) && this.allowMultiple;
-    let all = this.value.length == items.length;
-    return {
-      organizations,
-      multiple,
-      items,
-      all,
-      availableIcon: [
-        "adobe",
-        "amazon",
-        "apple",
-        "facebook",
-        "google",
-        "microsoft",
-        "netflix",
-        "opera",
-        "redhat",
-        "slack",
-      ],
-    };
+  allowAll: {
+    type: Boolean,
+    required: false,
+    default: false,
   },
 
-  created() {
-    this.sortOrganizationsByCommits();
+  size: {
+    default: "is-small",
+    type: String,
+    required: true
   },
 
-  methods: {
-    updateAll() {
-      this.all = !this.all;
-      if (this.all) {
-        this.multiple = this.allowMultiple
-        this.$emit('input', this.items)
-      } else {
-        this.multiple = false;
-        this.$emit('input', []);
-      }
-    },
-    update(item) {
-      if (!this.multiple) {
-        this.$emit('input', [item]);
-        return;
-      }
-
-      const newValue = [...this.value];
-      const index = newValue.indexOf(item);
-      if (index === -1) {
-        newValue.push(item);
-      } else {
-        newValue.splice(index, 1);
-      }
-      this.$emit('input', newValue.sort());
-    },
-
-    async sortOrganizationsByCommits() {
-      const summary_response  = await fetch('/data/organizations_summary.json')
-      const summary = await summary_response.json()
-      const sum = {}
-      for(const org of organizations) {
-        sum[org] = 0;
-        for(const repo of this.repositories) {
-          if (summary[repo]) {
-            sum[org] += summary[repo][org] || 0;
-          }
-        }
-      }
-
-      this.items.sort((a, b) => {
-        const diff = sum[b] - sum[a];
-        if (diff == 0) {
-          return a.localeCompare(b);
-        }
-        return diff;
-      });
-    },
-
-    sortOrganizationsAlphabetically() {
-      this.items.sort();
-    },
+  label: {
+    default: "",
+    type: String,
+    required: false
   },
-}
+
+  repositories: {
+    type: Array[String],
+    required: false,
+    default: () => [],
+  },
+});
+
+const value = defineModel();
+const items = ref(structuredClone(organizations_data));
+const multiple = ref(value.value.length > 1 && props.allowMultiple);
+const all = ref(value.value.length == items.value.length);
+const availableIcon = ref([
+  "adobe",
+  "amazon",
+  "apple",
+  "facebook",
+  "google",
+  "microsoft",
+  "netflix",
+  "opera",
+  "redhat",
+  "slack",
+]);
+
+const sortOrganizationsByCommits = async () => {
+  const summary_response  = await fetch('/data/organizations_summary.json')
+  const summary = await summary_response.json()
+  const sum = {}
+  for(const org of items.value) {
+    sum[org] = 0;
+    for(const repo of props.repositories) {
+      if (summary[repo]) {
+        sum[org] += summary[repo][org] || 0;
+      }
+    }
+  }
+
+  items.value.sort((a, b) => {
+    const diff = sum[b] - sum[a];
+    if (diff == 0) {
+      return a.localeCompare(b);
+    }
+    return diff;
+  });
+};
+
+const sortOrganizationsAlphabetically = () => {
+  items.value.sort();
+};
+
+
+const updateAll = () => {
+  all.value = !all.value;
+  if (all.value) {
+    multiple.value = props.allowMultiple
+    value.value = organizations_data;
+  } else {
+    multiple.value = false;
+    value.value = [];
+  }
+};
+
+const update = (item) => {
+  if (!multiple.value) {
+    value.value = [item];
+    return;
+  }
+
+  const newValue = [...value.value];
+  const index = newValue.indexOf(item);
+  if (index === -1) {
+    newValue.push(item);
+  } else {
+    newValue.splice(index, 1);
+  }
+  value.value = newValue.sort();
+};
+
+onMounted(() => {
+  sortOrganizationsByCommits();
+});
 
 </script>
 

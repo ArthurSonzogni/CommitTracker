@@ -29,7 +29,7 @@
             <b-tooltip
               multilined
               label="Include all the organizations that are not in the
-            list as 'Others'" position="is-bottom">
+              list as 'Others'" position="is-bottom">
               <b-checkbox
                 size="small"
                 name="others"
@@ -128,24 +128,26 @@
           :chart="chart"
           :dates="dates"
           :others="others"
-          :percent="percent === 'percent'"
-          >
-          <b-radio-button
-            size="small"
-            name="percent"
-            v-model="percent"
-            native-value="absolute"
-            >
-            Absolute
-          </b-radio-button>
-          <b-radio-button
-            size="small"
-            name="percent"
-            v-model="percent"
-            native-value="percent"
-            >
-            Percent
-          </b-radio-button>
+          :percent="percent === 'percent'" >
+
+          <b-field class="has-addons">
+            <b-radio-button
+              size="small"
+              name="percent"
+              v-model="percent"
+              native-value="absolute"
+              >
+              Absolute
+            </b-radio-button>
+            <b-radio-button
+              size="small"
+              name="percent"
+              v-model="percent"
+              native-value="percent"
+              >
+              Percent
+            </b-radio-button>
+          </b-field>
 
         </Organizations>
 
@@ -160,100 +162,84 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 
-import all_organizations from 'static/data/organizations.json'
+import all_organizations from 'public/data/organizations.json'
 
-export default {
-  data() {
-    let repositories = ["chromium"];
-    if(this.$route.query.repositories) {
-      repositories = this.$route.query.repositories.split(",");
-    }
+const route = useRoute();
+const router = useRouter();
 
-    let organizations = ["Google"];
-    if (this.$route.query.organizations) {
-      if (this.$route.query.organizations === "all") {
-        organizations = all_organizations;
-      } else {
-        organizations = this.$route.query.organizations.split(",");
-      }
-    }
+const repositories = ref<string[]>(["chromium"]);
+if (route.query.repositories) {
+  repositories.value = route.query.repositories.split(",");
+}
 
-    let grouping = "yearly";
-    if (this.$route.query.grouping) {
-      grouping = this.$route.query.grouping;
-    }
-
-    let kind = "author";
-    if (this.$route.query.kind) {
-      kind = this.$route.query.kind;
-    }
-
-    let colors = "repositories";
-    if (this.$route.query.colors) {
-      colors = this.$route.query.colors;
-    }
-
-    let chart = "bar";
-    if (this.$route.query.chart) {
-      chart = this.$route.query.chart;
-    }
-
-    let dates = [new Date("2000-01-01"), new Date()];
-    if (this.$route.query.dates) {
-      dates = this.$route.query.dates.split(',').map(d => new Date(d));
-    }
-
-    let others = this.$route.query.others === null;
-
-    let percent = this.$route.query.percent === null ? 'percent' : 'absolute';
-
-    return {
-      chart,
-      colors,
-      dates,
-      grouping,
-      kind,
-      organizations,
-      others,
-      percent,
-      repositories,
-    }
-  },
-
-  methods: {
-    updateUrl() {
-      this.$router.push({
-        query: {
-          repositories: this.repositories.join(","),
-          organizations: this.organizations.length === all_organizations.length
-            ? "all"
-            : this.organizations.join(","),
-          grouping: this.grouping,
-          colors: this.colors,
-          kind: this.kind,
-          chart: this.chart,
-          dates: this.dates.map(d => d.toISOString().split("T")[0]).join(','),
-          others: this.others ? null : undefined,
-          percent: this.percent === "percent" ? null : undefined,
-        },
-      });
-    },
-  },
-
-  watch: {
-    repositories: "updateUrl",
-    organizations: "updateUrl",
-    grouping: "updateUrl",
-    colors: "updateUrl",
-    kind: "updateUrl",
-    chart: "updateUrl",
-    dates: "updateUrl",
-    others: "updateUrl",
-    percent: "updateUrl",
+const organizations = ref<string[]>(["Google"]);
+if (route.query.organizations) {
+  if (route.query.organizations === "all") {
+    organizations.value = all_organizations;
+  } else {
+    organizations.value = route.query.organizations.split(",");
   }
 }
+
+const grouping = ref<string>("yearly");
+if (route.query.grouping) {
+  grouping.value = route.query.grouping as string;
+}
+
+const colors = ref<string>("repositories");
+if (route.query.colors) {
+  colors.value = route.query.colors as string;
+}
+
+const kind = ref<string>("author");
+if (route.query.kind) {
+  kind.value = route.query.kind as string;
+}
+
+const chart = ref<string>("bar");
+if (route.query.chart) {
+  chart.value = route.query.chart as string;
+}
+
+const dates = ref<Date[]>([new Date("2000-01-01"), new Date()]);
+if (route.query.dates) {
+  dates.value = route.query.dates.split(',').map(d => new Date(d));
+}
+
+const others = ref(route.query.others === null);
+const percent = ref(route.query.percent === null ? 'percent' : 'absolute');
+
+const updateUrl = () => {
+  router.push({
+    query: {
+      repositories: repositories.value.join(","),
+      organizations: organizations.value.length === all_organizations.length
+        ? "all"
+        : organizations.value.join(","),
+      grouping: grouping.value,
+      colors: colors.value,
+      kind: kind.value,
+      chart: chart.value,
+      dates: dates.value.map(d => d.toISOString().split("T")[0]).join(','),
+      others: others.value ? null : undefined,
+      percent: percent.value === "percent" ? null : undefined,
+    },
+  });
+}
+
+watch([
+  repositories,
+  organizations,
+  grouping,
+  colors,
+  kind,
+  chart,
+  dates,
+  others,
+  percent,
+], updateUrl);
 
 </script>
 

@@ -16,8 +16,8 @@
         </div>
         <div class="column">
           <Treemap
-            :field_color="field_color"
-            :field_size="field_size"
+            :field_color="['DanglingUntriaged']"
+            :field_size="['raw_ptr']"
             path="[]"
             colormap="Turbo"
             colormapMin="0"
@@ -28,16 +28,3 @@
     </div>
   </section>
 </template>
-
-<script>
-
-export default {
-  data() {
-    return {
-      field_color: ["DanglingUntriaged"],
-      field_size: ["raw_ptr"],
-    }
-  },
-}
-
-</script>

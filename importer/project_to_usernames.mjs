@@ -18,7 +18,7 @@ const repositories = JSON5.parse(await fs.readFile(repositories_file, "utf8"));
 for(const repository of repositories) {
   const usernames = {};
 
-  const repository_dir = `../static/data/${repository.dirname}`;
+  const repository_dir = `../public/data/${repository.dirname}`;
   const emails_filename = `${repository_dir}/emails.json`;
   const usernames_filename = `${repository_dir}/usernames.json`;
 

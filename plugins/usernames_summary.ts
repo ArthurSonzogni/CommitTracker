@@ -15,6 +15,7 @@ const usersInfo = async repo => {
   return await cache.get(repo);
 }
 
-export default (context, inject) => {
-  inject('usernamesSummary', usersInfo)
-}
+export default defineNuxtPlugin(nuxtApp => {
+  nuxtApp.provide('usersInfo', usersInfo)
+})
+

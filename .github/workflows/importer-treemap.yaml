@@ -36,13 +36,13 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Actions"
-          git add static/data
+          git add public/data
           git commit -m 'refresh treemap data'
 
       - name: Push data
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./static/data/
+          publish_dir: ./public/data/
           publish_branch: data
           force_orphan: true

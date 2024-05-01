@@ -2,103 +2,89 @@
   <LineChart :data="filteredData" />
 </template>
 
-<script>
+<script setup lang="ts">
 
-export default {
-  props: {
-    repositories: { type:Array[String], default: () => ["chromium"],},
-    developers: { type: Array },
-    dates: { type: Array[Date] },
-    endDate: { type: Date },
-    author: { type: Boolean },
-    review: { type: Boolean },
-    stacked: { type: Boolean },
-  },
+const props = defineProps({
+  repositories: { type: Array, default: () => ["chromium"] },
+  developers: { type: Array },
+  dates: { type: Array },
+  author: { type: Boolean },
+  review: { type: Boolean },
+  stacked: { type: Boolean },
+});
 
-  data() {
-    return {
-      data: [],
-      svgWidth: 500,
-      svgHeight: 500,
+const data = ref([]);
+
+const { $chromeDataAll } = useNuxtApp();
+
+const filteredData = computed(() => {
+  // Filter:
+  let data_2 = data.value.map(d => {
+    let commits = d.data;
+
+    if (!props.author) {
+      commits = commits.filter(commit => commit.kind != "author")
     }
-  },
 
-  computed: {
-    filteredData() {
-      // Filter:
-      let data = this.data.map(d => {
-        console.log(data);
-        let commits = d.data;
+    if (!props.review) {
+      commits = commits.filter(commit => commit.kind != "review")
+    }
 
-        if (!this.author) {
-          commits = commits.filter(commit => commit.kind != "author")
-        }
+    const values = commits
+      .map(commit => new Date(commit.date))
+      .sort((a,b) => (a-b))
+      .filter(date => {
+        return date >= props.dates[0] && date <= props.dates[1];
+      })
 
-        if (!this.review) {
-          commits = commits.filter(commit => commit.kind != "review")
-        }
+    return {
+      label: d.developer,
+      values: values,
+    }
+  });
 
-        const values = commits
-          .map(commit => new Date(commit.date))
-          .sort((a,b) => (a-b))
-          .filter(date => {
-            return date >= this.dates[0] && date <= this.dates[1];
-          })
-
-        return {
-          label: d.developer,
-          values: values,
-        }
-      });
-
-      // Stacked:
-      if (this.stacked) {
-        let accu = [];
-        data = data.map(entry => {
-          accu = accu.concat(entry.values).sort((a, b) => a - b);
-          return {
-            label: entry.developer,
-            values: accu,
-          };
-        });
-      }
-
-      // Accumulate patches:
-      data = data.map(entry => {
-        let accu = 0;
-        return {
-          label: entry.label,
-          values: entry.values.map(time => {
-            accu++;
-            return {
-              x: time,
-              y: accu,
-            };
-          }),
-        };
-      });
-
-      return data;
-    },
-  },
-
-  mounted() {
-    this.initialize();
-  },
-
-  watch: {
-    developers: "developersChanged",
-    repositories: "developersChanged",
-  },
-
-  methods: {
-    async developersChanged() {
-      this.data = await this.$chromeDataAll(this.repositories[0], this.developers);
-    },
-
-    initialize() {
-      this.developersChanged();
-    },
+  // Stacked:
+  if (props.stacked) {
+    let accu = [];
+    data_2 = data_2.map(entry => {
+      accu = accu.concat(entry.values).sort((a, b) => a - b);
+      return {
+        label: entry.developer,
+        values: accu,
+      };
+    });
   }
-};
+
+  // Accumulate patches:
+  data_2 = data_2.map(entry => {
+    let accu = 0;
+    return {
+      label: entry.label,
+      values: entry.values.map(time => {
+        accu++;
+        return {
+          x: time,
+          y: accu,
+        };
+      }),
+    };
+  });
+
+  return data_2;
+});
+
+const developersChanged = async () => {
+  const new_data = await $chromeDataAll(props.repositories[0], props.developers);
+  data.value = new_data;
+}
+watch(() => [props.developers, props.repositories], developersChanged);
+
+const initialize = () => {
+  developersChanged();
+}
+
+onMounted(() => {
+  initialize();
+})
+
 </script>

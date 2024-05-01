@@ -1,6 +1,6 @@
 <template>
   <div class="fullscreenFlexbox">
-    <Navbar/>
+    <Navbar></Navbar>
     <section class="section zoom">
 
       <RepositorySelector
@@ -8,28 +8,27 @@
         size="small"
         :allowMultiple="false"
         :allowAll="true"
-        :filter="repo => repo.reviewers"
-        />
+        :filter="repo => repo.reviewers">
+      </RepositorySelector>
 
-      <TimeRangeSelector
-        v-model="time"
-        size="small"
-        />
+      <TimeRangeSelector v-model="time">
+      </TimeRangeSelector>
 
       <b-field grouped>
         <b-field grouped>
           <b-button
             label="Readme"
             @click="displayReadme = !displayReadme"
-            type="is-warning"
-            ></b-button>
+            type="is-warning">
+          </b-button>
           <b-button
             @click="view"
             type="is-info"
             v-if="!displayPlaceholder"
-            label="View"></b-button>
+            label="View">
+          </b-button>
           <b-button @click="download" type="is-info is-light"
-            v-if="!displayPlaceholder">
+                                      v-if="!displayPlaceholder">
             Download
           </b-button>
         </b-field>
@@ -41,25 +40,25 @@
             :step="0.05"
             :tooltip="false"
             lazy
-            indicator
-            ></b-slider>
+            indicator>
+          </b-slider>
         </b-field>
       </b-field>
     </section>
-
     <section class="section" v-if="displayReadme">
       <div class="container">
         <b-message
           title="Readme"
           v-model="displayReadme"
-          aria-close-label="Close message"
-          >
+          aria-close-label="Close message">
           <div class="content">
             <ul>
               <li>
                 Data is refreshed <strong>weekly</strong>, and
                 <strong>automatically</strong>. See <a
-                  href="https://github.com/ArthurSonzogni/ChromeCommitTracker/actions/workflows/importer-graph.yaml">Job</a>
+                  href="https://github.com/ArthurSonzogni/ChromeCommitTracker/actions/workflows/importer-graph.yaml">
+                  Job
+                </a>
               </li>
               <li>
                 <strong>Label height</strong> is proportional to the number
@@ -92,6 +91,7 @@
                   <strong>Code reviews before 2017 are not included.</strong>,
                   the data wasn't part of the commit description before.
                 </li>
+              </li>
             </ul>
           </div>
         </b-message>
@@ -112,112 +112,101 @@
   </div>
 </template>
 
-<script>
-export default {
-  data() {
-    let repositories = ["v8"];
-    if (this.$route.query.repositories) {
-      repositories = this.$route.query.repositories.split(",");
-    }
-    let time = ["forever"];
-    if (this.$route.query.time) {
-      time = this.$route.query.time.split(",");
-    }
-    let zoom = 1;
-    if (this.$route.query.zoom) {
-      zoom = parseFloat(this.$route.query.zoom);
-    }
-    return {
-      repositories,
-      time,
-      zoom,
-      displayReadme: false,
-      displayPlaceholder: false,
-      cachedObjectSrc: null,
-    }
-  },
+<script setup lang="ts">
 
-  computed: {
-    dataset() {
-      const repo = this.repositories.length == 1
-        ? this.repositories[0]
-        : "all";
-      const time = this.time[0];
-      return `${repo}_${time}.svg`;
-    },
-    objectSrc() {
-      return "/community-map/" + this.dataset;
-    }
-  },
+const route = useRoute();
+const router = useRouter();
 
-  mounted() {
-    this.updateSVG();
-  },
+const repositories = ref(["v8"]);
+const time = ref("forever");
+const zoom = ref(1);
+const displayReadme = ref(false);
+const displayPlaceholder = ref(false);
+const cachedObjectSrc = ref(null);
 
-  methods: {
-    view() {
-      location.href = this.objectSrc;
-    },
-    download() {
-      const a = document.createElement("a");
-      a.href = this.objectSrc;
-      a.download = this.dataset;
-      a.click();
-    },
-
-    async fetchSVG() {
-      if (this.objectSrc == this.cachedObjectSrc) {
-        return;
-      }
-      this.cachedObjectSrc = this.objectSrc;
-      const response = await fetch(this.objectSrc)
-      if (response.ok) {
-        this.displayPlaceholder = false;
-        const text = await response.text();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(text, "image/svg+xml");
-        const svg = doc.querySelector("svg");
-        if (!svg) {
-          return;
-        }
-        document.querySelector("svg").replaceWith(svg);
-      } else {
-        this.displayPlaceholder = true;
-      }
-    },
-
-    updateUrl() {
-      this.$router.replace({
-        query: {
-          time: this.time.join(","),
-          zoom: this.zoom,
-          repositories: this.repositories.join(","),
-        }
-      });
-      this.updateSVG();
-    },
-
-    async updateSVG() {
-      await this.fetchSVG();
-      this.updateZoom();
-    },
-
-    updateZoom() {
-      const svg = document.querySelector("svg");
-      svg.setAttribute("preserveAspectRatio", "xMinYMin meet");
-      svg.setAttribute("margin", "auto")
-      svg.setAttribute("aspect-ratio", "2")
-      svg.setAttribute("width", this.zoom * 95 + "vw");
-    }
-  },
-
-  watch: {
-    time: "updateUrl",
-    zoom: "updateUrl",
-    repositories: "updateUrl",
-  },
-
+if (route.query.repositories) {
+  repositories.value = route.query.repositories.split(",");
 }
+if (route.query.time) {
+  time.value = route.query.time;
+}
+if (route.query.zoom) {
+  zoom.value = parseFloat(route.query.zoom);
+}
+
+const dataset = computed(() => {
+  const repo = repositories.value.length == 1
+    ? repositories.value
+    : "all";
+  return `${repo}_${time.value}.svg`;
+});
+
+const objectSrc = computed(() => {
+  return "/community-map/" + dataset.value;
+});
+
+const view = () => {
+  window.open(objectSrc.value, "_blank");
+};
+
+const download = () => {
+  const a = document.createElement("a");
+  a.href = objectSrc.value;
+  a.download = dataset.value;
+  a.click();
+};
+
+
+const fetchSVG = async () => {
+  if (objectSrc.value == cachedObjectSrc.value) {
+    return;
+  }
+  cachedObjectSrc.value = objectSrc.value;
+  const response = await fetch(objectSrc.value)
+  if (response.ok) {
+    displayPlaceholder.value = false;
+    const text = await response.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(text, "image/svg+xml");
+    const svg = doc.querySelector("svg");
+    if (!svg) {
+      return;
+    }
+    document.querySelector("svg").replaceWith(svg);
+  } else {
+    displayPlaceholder.value = true;
+  }
+};
+
+const updateSVG = async () => {
+  await fetchSVG();
+  updateZoom();
+};
+
+const updateZoom = () => {
+  const svg = document.querySelector("svg");
+  svg.setAttribute("preserveAspectRatio", "xMinYMin meet");
+  svg.setAttribute("margin", "auto")
+  svg.setAttribute("aspect-ratio", "2")
+  svg.setAttribute("width", zoom.value * 95 + "vw");
+};
+
+const updateUrl = () => {
+  router.replace({
+    query: {
+      time: time.value,
+      zoom: zoom.value,
+      repositories: repositories.value.join(","),
+    }
+  });
+  updateSVG();
+};
+
+watch([time, zoom, repositories], updateUrl);
+
+onMounted(() => {
+  updateSVG();
+});
 
 </script>
 

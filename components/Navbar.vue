@@ -55,6 +55,8 @@
           class="is-dark"
           href="https://github.com/ArthurSonzogni/ChromeCommitTracker">
         Sources
+        <b-icon icon="github" class="ml-2"
+          ></b-icon>
       </b-navbar-item>
     </template>
   </b-navbar>

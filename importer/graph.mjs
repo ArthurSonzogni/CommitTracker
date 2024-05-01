@@ -40,7 +40,7 @@ async function Main() {
   for (const repos in task_repo) {
     for (const date in task_time) {
       const file_name = `../graph/build/${repos}_${date}.csv`;
-      const svg_file = `../static/community-map/${repos}_${date}.svg`;
+      const svg_file = `../public/community-map/${repos}_${date}.svg`;
       console.log(`Processing ${file_name}`);
 
       const output = {};
@@ -93,8 +93,8 @@ async function Main() {
 }
 
 async function ProcessRepository(repository, date_min, date_max, output) {
-  const usernames_file = `../static/data/${repository.dirname}/usernames.json`;
-  const usernames_dir = `../static/data/${repository.dirname}/usernames`;
+  const usernames_file = `../public/data/${repository.dirname}/usernames.json`;
+  const usernames_dir = `../public/data/${repository.dirname}/usernames`;
   const username = JSON.parse(await fs.readFile(usernames_file, "utf8"));
 
   for (const user of username) {

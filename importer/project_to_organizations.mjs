@@ -28,7 +28,7 @@ org_list.split("\n").forEach((line) => {
 });
 const organizations_list = [...new Set(Object.values(org))].sort();
 await fs.writeFile(
-  "../static/data/organizations.json",
+  "../public/data/organizations.json",
   JSON.stringify(organizations_list, null, 1)
 );
 
@@ -84,7 +84,7 @@ const repositories = JSON5.parse(repositories_file);
 for (const repository of repositories) {
   // Write the `organizations.json` file.
   await fs.writeFile(
-    `../static/data/${repository.dirname}/organizations.json`,
+    `../public/data/${repository.dirname}/organizations.json`,
     JSON.stringify(Object.keys(org), null, 1)
   );
 
@@ -92,7 +92,7 @@ for (const repository of repositories) {
   const organizations = {};
   const organizations_emails = {};
 
-  const repository_dir = `../static/data/${repository.dirname}`;
+  const repository_dir = `../public/data/${repository.dirname}`;
   const emails_filename = `${repository_dir}/emails.json`;
   const organizations_filename = `${repository_dir}/organizations.json`;
 
@@ -146,5 +146,5 @@ for(const org in organizations_emails_global) {
   organizations_emails_global[org] = [...organizations_emails_global[org]];
 }
 
-await fs.writeFile(`../static/data/organizations_emails.json`,
+await fs.writeFile(`../public/data/organizations_emails.json`,
   JSON.stringify(organizations_emails_global, null, 1))

@@ -161,7 +161,7 @@ const ProcessCommit = (data, commit) => {
 const ProcessRepository = async (repository) => {
   statusLine.logString(`-----`)
   statusLine.logString(`Processing ${repository.dirname}`);
-  const repository_dir = `../static/data/${repository.dirname}`;
+  const repository_dir = `../public/data/${repository.dirname}`;
   const last_file = `${repository_dir}/last.json`;
   const emails_dir = `${repository_dir}/emails`;
   const emails_file = `${repository_dir}/emails.json`;
@@ -323,11 +323,11 @@ const ProcessRepository = async (repository) => {
   await SaveDataForRepository();
 };
 
-await fs.mkdir('../static/data', {recursive: true});
+await fs.mkdir('../public/data', {recursive: true});
 const file_content = await fs.readFile('../repositories.json5', 'utf8');
 const file_json = JSON5.parse(file_content);
 await fs.writeFile(
-    '../static/data/repositories.json', JSON.stringify(file_json, null, 2));
+    '../public/data/repositories.json', JSON.stringify(file_json, null, 2));
 
 for (const repository of file_json) {
   await ProcessRepository(repository);

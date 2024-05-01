@@ -35,13 +35,10 @@
 
 </template>
 
-<script>
+<script setup lang="ts">
 
-export default {
-  props: {
-    repo: Object
-  },
-  name: 'RepoCard',
-}
+const props = defineProps({
+  repo: Object
+})
 
 </script>

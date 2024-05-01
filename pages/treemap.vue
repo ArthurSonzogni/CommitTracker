@@ -1,28 +1,23 @@
 <template>
   <div>
     <Navbar/>
-
     <section class="section">
-
       <div class="columns">
-
         <div class="column">
           <b-field>
             <RepositorySelector
               v-model="repositories"
               size="is-small"
               :filter="repo => repo.treemap"
-              />
+            ></RepositorySelector>
           </b-field>
           <b-field>
-            <TreemapInput v-model="field_size" placeholder="size"/>
-            <TreemapInput v-model="field_color" placeholder="color"/>
+            <TreemapInput v-model:value="field_size" placeholder="size"/>
+            <TreemapInput v-model:value="field_color" placeholder="color"/>
           </b-field>
         </div>
 
-
         <div class="column is-narrow">
-
           <b-field label="Colormap" label-position="inside">
             <b-select
               placeholder="Colormap"
@@ -33,8 +28,8 @@
                 v-for="option in colormap_list"
                 :value="option"
                 :key="option"
-              >
-              {{ option }}
+                >
+                {{ option }}
               </option>
             </b-select>
           </b-field>
@@ -45,14 +40,13 @@
           </b-field>
 
         </div>
-
       </div>
 
       <b-breadcrumb align="is-left">
         <b-breadcrumb-item
           tag = 'a'
           v-on:click.native = "path = []"
-        >
+          >
           .
         </b-breadcrumb-item>
         <b-breadcrumb-item
@@ -75,7 +69,7 @@
         :colormapMax="colormapMax"
         :colormap="colormap"
         @zoomin="path.push($event)"
-        />
+      ></Treemap>
 
     </section>
 
@@ -94,80 +88,74 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 
-export default {
-  data() {
-    let field_color = ["DanglingUntriaged"];
-    if (this.$route.query.field_color) {
-      field_color = this.$route.query.field_color.split(",");
-    }
-    let field_size = ["raw_ptr"];
-    if (this.$route.query.field_size) {
-      field_size = this.$route.query.field_size.split(",");
-    }
-    let colormap = "Turbo";
-    if (this.$route.query.colormap) {
-      colormap = this.$route.query.colormap;
-    }
-    let path = [];
-    if (this.$route.query.path) {
-      path = this.$route.query.path.split(",");
-    }
-    let colormapMin = 0.0;
-    if (this.$route.query.colormapMin) {
-      colormapMin = parseFloat(this.$route.query.colormapMin);
-    }
-    let colormapMax = 1.0;
-    if (this.$route.query.colormapMax) {
-      colormapMax = parseFloat(this.$route.query.colormapMax);
-    }
-    let repositories = ["chromium"];
-    if (this.$route.query.repositories) {
-      repositories = this.$route.query.repositories.split(",");
-    }
-    return {
-      repositories,
-      path,
-      field_color,
-      field_size,
-      colormap_list: Object.keys(this.$getColormapList()),
-      colormap,
-      colormapMin,
-      colormapMax,
-    }
-  },
+const route = useRoute()
+const router = useRouter()
 
-  methods: {
-    updateUrl() {
-      const query = {
-        repositories: this.repositories.join(","),
-        path: this.path.join(","),
-        field_color: this.field_color.join(","),
-        field_size: this.field_size.join(","),
-        colormap: this.colormap,
-        colormapMin: this.colormapMin,
-        colormapMax: this.colormapMax,
-      }
-      this.$router.replace({query});
-    },
-  },
-
-  watch: {
-    repositories: "updateUrl",
-    colormap: "updateUrl",
-    colormapMax: "updateUrl",
-    colormapMin: "updateUrl",
-    field_color: "updateUrl",
-    field_size: "updateUrl",
-    path: "updateUrl",
-  },
+const field_color = ref(["DanglingUntriaged"]);
+if (route.query.field_color) {
+  field_color.value = route.query.field_color.split(",");
 }
+
+const field_size = ref(["raw_ptr"]);
+if (route.query.field_size) {
+  field_size.value = route.query.field_size.split(",");
+}
+
+const colormap = ref("Turbo");
+if (route.query.colormap) {
+  colormap.value = route.query.colormap;
+}
+
+const path = ref([]);
+if (route.query.path) {
+  path.value = route.query.path.split(",");
+}
+
+const colormapMin = ref(0.0);
+if (route.query.colormapMin) {
+  colormapMin.value = parseFloat(route.query.colormapMin);
+}
+
+const colormapMax = ref(1.0);
+if (route.query.colormapMax) {
+  colormapMax.value = parseFloat(route.query.colormapMax);
+}
+
+const repositories = ref(["chromium"]);
+if (route.query.repositories) {
+  repositories.value = route.query.repositories.split(",");
+}
+
+const { $color_map } = useNuxtApp();
+const colormap_list = ref(Object.keys($color_map));
+
+const updateUrl = () => {
+  const query = {
+    repositories: repositories.value.join(","),
+    path: path.value.join(","),
+    field_color: field_color.value.join(","),
+    field_size: field_size.value.join(","),
+    colormap: colormap.value,
+    colormapMin: colormapMin.value,
+    colormapMax: colormapMax.value,
+  }
+  router.replace({query});
+}
+
+watch(repositories, updateUrl);
+watch(colormap, updateUrl);
+watch(colormapMax, updateUrl);
+watch(colormapMin, updateUrl);
+watch(field_color, updateUrl);
+watch(field_size, updateUrl);
+watch(path, updateUrl);
 
 </script>
 
 <style scoped>
-  section {
-    margin-top: -40px;
-  }
+section {
+  margin-top: -40px;
+}
 </style>

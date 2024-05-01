@@ -80,6 +80,10 @@ const color_map = {
   YlOrRd: interpolateYlOrRd,
 };
 
-export default (context, inject) => {
-  inject('getColormapList', () => color_map)
-}
+export default defineNuxtPlugin(() => {
+  return {
+    provide: {
+      color_map: color_map
+    },
+  }
+})

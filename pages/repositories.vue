@@ -85,7 +85,7 @@
             :min=0
             :max=1
             :step=0.001
-            :custom-formatter="(val) => this.sliderTransform(val).toFixed(2) + '%'"
+            :custom-formatter="(val) => sliderTransform(val).toFixed(2) + '%'"
             :tooltip="false"
             indicator
             lazy
@@ -147,16 +147,16 @@
 
           <b-field label="Developer min total contributions:"
                    v-if="min_contributions_enabled" >
-            <b-numberinput
-              v-model="min_contributions"
-              controls-position="compact"
-            ></b-numberinput>
+                   <b-numberinput
+                     v-model="min_contributions"
+                     controls-position="compact"
+                     ></b-numberinput>
           </b-field>
         </b-field>
 
         <Contributions
           :repositories="repositories"
-          :percentile="this.sliderTransform(percentile)"
+          :percentile="sliderTransform(percentile)"
           :individual="individual"
           :grouping="grouping"
           :what="what"
@@ -211,117 +211,85 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 
-export default {
-  data() {
-    let repositories = ["chromium"];
-    if (this.$route.query.repositories) {
-      repositories = this.$route.query.repositories.split(",");
-    }
-    let what = "contributors";
-    if (this.$route.query.what) {
-      what = this.$route.query.what;
-    }
-    let grouping = "yearly";
-    if (this.$route.query.grouping) {
-      grouping = this.$route.query.grouping;
-    }
-    let display = "average";
-    if (this.$route.query.display) {
-      display = this.$route.query.display;
-    }
-    let kind = "author";
-    if (this.$route.query.kind) {
-      kind = this.$route.query.kind;
-    }
-    let percentile = 0.7071;
-    if (this.$route.query.percentile) {
-      percentile = parseFloat(this.$route.query.percentile);
-    }
-    let individual = 300;
-    if (this.$route.query.individual) {
-      individual = parseInt(this.$route.query.individual);
-    }
-    let developers = [];
-    if (this.$route.query.developers) {
-      developers = this.$route.query.developers.split(",");
-    }
-    let min_contributions = 0;
-    if (this.$route.query.min_contributions) {
-      min_contributions = parseInt(this.$route.query.min_contributions);
-    }
+const route = useRoute();
+const router = useRouter();
 
-    return {
-      repositories,
-      what,
-      grouping,
-      display,
-      kind,
-      percentile,
-      individual,
-      developers,
-      min_contributions,
-      displayReadme: false,
-    };
-  },
-
-  watch: {
-    repositories: "updateUrl",
-    what: "updateUrl",
-    grouping: "updateUrl",
-    display: "updateUrl",
-    kind: "updateUrl",
-    percentile: "updateUrl",
-    individual: "updateUrl",
-    developers: "updateUrl",
-    min_contributions: "updateUrl",
-  },
-
-  methods: {
-    updateUrl() {
-      this.$router.replace({
-        query: {
-          repositories: this.repositories.join(","),
-          what: this.what,
-          grouping: this.grouping,
-          display: this.display,
-          kind: this.kind,
-          percentile: this.percentile,
-          individual: this.individual,
-          developers: this.developers.join(","),
-          min_contributions: this.min_contributions,
-        }
-      });
-    },
-
-    sliderTransform(value) {
-      return 100 * value * value;
-    }
-  },
-
-  computed: {
-    slider_percentil_disabled: function() {
-      return !(
-        this.kind === "author_percentile" ||
-        this.kind === "review_percentile" ||
-        this.kind === "both_percentile"
-      );
-    },
-    slider_individual_disabled: function() {
-      return !(
-        this.kind === "author_individual" ||
-        this.kind === "review_individual" ||
-        this.kind === "both_individual"
-      );
-    },
-    min_contributions_enabled: function() {
-      return this.what != 'per_contributor' || (
-        this.display != 'someone' &&
-        this.display != 'someone_rank' &&
-        this.display != 'someone_rank_percent'
-      )
-    }
-  }
+const repositories = ref(["chromium"]);
+if (route.query.repositories) {
+  repositories.value = route.query.repositories.split(",");
 }
+const what = ref("contributors");
+if (route.query.what) {
+  what.value = route.query.what;
+}
+const grouping = ref("yearly");
+if (route.query.grouping) {
+  grouping.value = route.query.grouping;
+}
+const display = ref("average");
+if (route.query.display) {
+  display.value = route.query.display;
+}
+const kind = ref("author");
+if (route.query.kind) {
+  kind.value = route.query.kind;
+}
+const percentile = ref(0.7071);
+if (route.query.percentile) {
+  percentile.value = parseFloat(route.query.percentile);
+}
+const individual = ref(300);
+if (route.query.individual) {
+  individual.value = parseInt(route.query.individual);
+}
+const developers = ref([]);
+if (route.query.developers) {
+  developers.value = route.query.developers.split(",");
+}
+const min_contributions = ref(0);
+if (route.query.min_contributions) {
+  min_contributions.value = parseInt(route.query.min_contributions);
+}
+const displayReadme = ref(false);
+
+watch([
+  repositories,
+  what,
+  grouping,
+  display,
+  kind,
+  percentile,
+  individual,
+  developers,
+  min_contributions
+], () => {
+  router.replace({
+    query: {
+      repositories: repositories.value.join(","),
+      what: what.value,
+      grouping: grouping.value,
+      display: display.value,
+      kind: kind.value,
+      percentile: percentile.value,
+      individual: individual.value,
+      developers: developers.value.join(","),
+      min_contributions: min_contributions.value,
+    }
+  });
+});
+
+const sliderTransform = (value: number) => {
+  return 100 * value * value;
+}
+
+const min_contributions_enabled = computed(() => {
+  return what.value != 'per_contributor' || (
+    display.value != 'someone' &&
+    display.value != 'someone_rank' &&
+    display.value != 'someone_rank_percent'
+  )
+});
+
 </script>

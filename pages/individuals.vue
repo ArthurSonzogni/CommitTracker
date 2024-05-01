@@ -6,11 +6,14 @@
 
       <section class="section sticky top">
 
-        <RepositorySelector v-model="repositories" size="medium"/>
+        <RepositorySelector
+          v-model="repositories"
+          size="medium"
+          />
         <b-field grouped>
 
           <b-field expanded>
-            <DevelopersInput v-model="developers" ></DevelopersInput>
+            <DevelopersInput v-model="developers"/>
           </b-field>
 
           <b-field>
@@ -47,18 +50,7 @@
 
       <section class="section">
         <div class="container">
-          <h2 class="title">1. Count</h2>
-          <TimelineCount
-            :repositories="repositories"
-            :developers="developers"
-            :dates="dates"
-            /></TimelineCount>
-        </div>
-      </section>
-
-      <section class="section">
-        <div class="container">
-          <h2 class="title">2. Timeline</h2>
+          <h2 class="title">1. Timeline</h2>
           <TimelineChart
             :repositories="repositories"
             :developers="developers"
@@ -72,25 +64,24 @@
 
       <section class="section">
         <div class="container">
-          <h2 class="title">3. Timeline wrapped</h2>
+          <h2 class="title">2. Timeline wrapped</h2>
           <b-field grouped>
             <b-field
               label="Modulo"
               expanded
               label-position="on-border"
-            >
+              >
               <b-slider
                 v-model="hourlyParam"
                 :min="0"
-                :max="3"
+                :max="2"
                 aria-label="Fan"
                 :tooltip="false"
                 rounded
-              >
+                >
                 <b-slider-tick :value="0">Day</b-slider-tick>
                 <b-slider-tick :value="1">Week</b-slider-tick>
-                <b-slider-tick :value="2">Month</b-slider-tick>
-                <b-slider-tick :value="3">Year</b-slider-tick>
+                <b-slider-tick :value="2">Year</b-slider-tick>
               </b-slider>
             </b-field>
 
@@ -98,7 +89,7 @@
               :label="'Buckets: ' + wrappedBuckets"
               expanded
               label-position="on-border"
-            >
+              >
               <b-slider
                 v-model="wrappedBuckets"
                 :min="1"
@@ -106,7 +97,7 @@
                 aria-label="Buckets"
                 lazy
                 rounded
-              ></b-slider>
+                ></b-slider>
             </b-field>
           </b-field>
 
@@ -119,13 +110,13 @@
             :stacked="options.includes('stacked')"
             :hourlyParam="hourlyParam"
             :buckets="wrappedBuckets"
-            /></TimelineWrappedChart>
+            />
         </div>
       </section>
 
       <section class="section">
         <div class="container">
-          <h2 class="title">4. Peers</h2>
+          <h2 class="title">3. Peers</h2>
           <PeersChart
             :repositories="repositories"
             :developers="developers"
@@ -133,7 +124,20 @@
             :author="options.includes('author')"
             :review="options.includes('review')"
             :stacked="options.includes('stacked')"
-            ></PeersChart>
+            />
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <h2 class="title">4. Counts</h2>
+          <TimelineCount
+            :repositories="repositories"
+            :developers="developers"
+            :dates="dates"
+            :author="options.includes('author')"
+            :review="options.includes('review')"
+            />
         </div>
       </section>
 
@@ -146,71 +150,66 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 
-export default {
-  data() {
-    let dates = [new Date("2000-01-01"), new Date()];
-    if (this.$route.query.dates) {
-      dates = this.$route.query.dates.split(',').map(d => new Date(d));
-    }
+const route = useRoute();
+const router = useRouter();
 
-    let developers =  [];
-    if (this.$route.query.developers) {
-      developers = this.$route.query.developers.split(',');
-    }
-    let options =  ["author", "review"];
-    if (this.$route.query.options) {
-      options = this.$route.query.options.split(',');
-    }
-    let hourlyParam =  0;
-    if (this.$route.query.hourlyParam) {
-      hourlyParam = parseInt(this.$route.query.hourlyParam);
-    }
-    let wrappedBuckets =  100;
-    if (this.$route.query.wrappedBuckets) {
-      wrappedBuckets = parseInt(this.$route.query.wrappedBuckets);
-    }
-    let repositories =  ["chromium"];
-    if (this.$route.query.repositories) {
-      repositories = this.$route.query.repositories.split(',');
-    }
+const dates = ref([new Date("2000-01-01"), new Date()]);
+if (route.query.dates) {
+  dates.value = route.query.dates.split(',').map((d: string|number|Date) => new Date(d));
+}
 
-    return {
-      dates,
-      developers,
-      options,
-      hourlyParam,
-      wrappedBuckets,
-      repositories,
-    };
-  },
+const developers = ref([]);
+if (route.query.developers) {
+  developers.value = route.query.developers.split(',');
+}
 
-  methods: {
-    updateUrl() {
-      this.$router.push({
-        query: {
-          developers: this.developers.join(','),
-          options: this.options.join(','),
-          hourlyParam: this.hourlyParam,
-          wrappedBuckets: this.wrappedBuckets,
-          repositories: this.repositories.join(','),
-          dates: this.dates.map(d => d.toISOString().split("T")[0]).join(','),
-        }
-      });
-    },
-  },
+const tt = computed(() => {
+  return developers.value;
+});
 
-  watch: {
-    dates: "updateUrl",
-    developers: "updateUrl",
-    options: "updateUrl",
-    hourlyParam: "updateUrl",
-    wrappedBuckets: "updateUrl",
-    repositories: "updateUrl",
-    dates: "updateUrl",
-  },
+const options = ref(["author", "review"]);
+if (route.query.options) {
+  options.value = route.query.options.split(',');
+}
+
+const hourlyParam = ref(0);
+if (route.query.hourlyParam) {
+  hourlyParam.value = parseInt(route.query.hourlyParam);
+}
+
+const wrappedBuckets = ref(100);
+if (route.query.wrappedBuckets) {
+  wrappedBuckets.value = parseInt(route.query.wrappedBuckets);
+}
+
+const repositories = ref(["chromium"]);
+if (route.query.repositories) {
+  repositories.value = route.query.repositories.split(',');
+}
+
+const updateUrl = () => {
+  router.push({
+    query: {
+      developers: developers.value.join(','),
+      options: options.value.join(','),
+      hourlyParam: hourlyParam.value,
+      wrappedBuckets: wrappedBuckets.value,
+      repositories: repositories.value.join(','),
+      dates: dates.value.map((d: { toISOString: () => string; }) => d.toISOString().split("T")[0]).join(','),
+    }
+  });
 };
+
+watch([
+  dates,
+  developers,
+  options,
+  hourlyParam,
+  wrappedBuckets,
+  repositories,
+], updateUrl);
 
 const updateHasScrolled = () => {
   const maxScroll = Math.max(
@@ -222,9 +221,9 @@ const updateHasScrolled = () => {
   );
 
   document.documentElement.dataset.scrolltop =
-    (window.scrollY > 100) ? 1 : 0;
+    (window.scrollY > 100) ? '1' : '0';
   document.documentElement.dataset.scrollbottom=
-    (maxScroll - window.scrollY > 1000) ? 1 : 0;
+    (maxScroll - window.scrollY > 1000) ? '1' : '0';
 };
 
 updateHasScrolled();
@@ -278,4 +277,21 @@ html[data-scrolltop= "1"] .sticky.top {
   margin-bottom:0px;
   padding-bottom:15px;
 }
+
+.anchor {
+  display: block;
+  position: relative;
+  top: -200px;
+}
+
+.anchor-link {
+  color:black;
+  opacity: 0.1;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.anchor-link:hover {
+  opacity: 1;
+}
+
 </style>

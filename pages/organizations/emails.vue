@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Navbar/>
+    <Navbar></Navbar>
     <section class="section">
       <div class="container">
         <h1 class="title">Organization's Developers emails</h1>
@@ -12,14 +12,13 @@
           v-model="repositories"
           size="medium"
           :allowMultiple="true"
-          :allowAll="true"
-          />
+          :allowAll="true">
+        </RepositorySelector>
       </div>
     </section>
 
     <section class="container">
       <div class="card box" v-for="o in data" :key="o.organization">
-
         <div class="card-header"
              style="background-color: #f5f5f5;">
 
@@ -30,8 +29,7 @@
             <b-tooltip
               :label="o.username_size + ' unique usernames'"
               position="is-bottom"
-              type="is-light"
-              >
+              type="is-light">
               <div>{{ o.emails.length }} emails</div>
             </b-tooltip>
           </div>
@@ -61,77 +59,67 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 
-export default {
-  data() {
-    let repositories = ["chromium"];
-    if(this.$route.query.repositories) {
-      repositories = this.$route.query.repositories.split(",");
-    }
+const route = useRoute();
+const router = useRouter();
 
-    return {
-      repositories,
-      data: {}
-    }
-  },
-
-  methods: {
-    async refresh() {
-      this.$router.push({
-        query: {
-          repositories: this.repositories.join(",")
-        }
-      });
-
-      const responses = await Promise.all(this.repositories.map(repo =>
-        fetch(`/data/${repo}/organizations_emails.json`)
-      ))
-
-      const data = await Promise.all(responses.map(r => r.json()))
-
-      console.log(data);
-      const emails = {}
-      for(const d of data) {
-        for(const org in d) {
-          if(!emails[org]) {
-            emails[org] = new Set();
-          }
-          for(const email of d[org]) {
-            emails[org].add(email);
-          }
-        }
-      }
-      console.log(emails);
-
-      this.data = []
-      for(const [org, emails_data] of Object.entries(emails)) {
-        const emails= Array.from(emails_data).sort();
-        this.data.push({
-          org,
-          emails,
-          emails_short: Array.from(emails).slice(0, 5),
-          emails_size: emails.length,
-          username_size: new Set(emails.map(e => e.split("@")[0])).size,
-          collapsed: emails.length > 6,
-        })
-      }
-      this.data.sort((a, b) => b.emails.length - a.emails.length);
-
-    },
-  },
-
-  mounted() {
-    this.refresh();
-  },
-
-  watch: {
-    repositories: "refresh",
-
-  }
+const repositories = ref<string[]>(["chromium"]);
+if (route.query.repositories) {
+  repositories.value = route.query.repositories.split(",");
 }
 
-</script>
+const data = ref([]);
 
-</style>
+const refresh = async () => {
+  router.push({
+    query: {
+      repositories: repositories.value.join(",")
+    }
+  });
+
+  const responses = await Promise.all(repositories.value.map(repo =>
+    fetch(`/data/${repo}/organizations_emails.json`)
+  ))
+
+  const json_data = await Promise.all(responses.map(r => r.json()))
+
+  const emails = {}
+  for(const d of json_data) {
+    for(const org in d) {
+      if(!emails[org]) {
+        emails[org] = new Set();
+      }
+      for(const email of d[org]) {
+        emails[org].add(email);
+      }
+    }
+  }
+
+  const new_data = []
+  for(const [org, emails_data] of Object.entries(emails)) {
+    const emails= Array.from(emails_data).sort();
+    new_data.push({
+      org,
+      emails,
+      emails_short: Array.from(emails).slice(0, 5),
+      emails_size: emails.length,
+      username_size: new Set(emails.map(e => e.split("@")[0])).size,
+      collapsed: emails.length > 6,
+    })
+  }
+  new_data.sort((a, b) => b.emails.length - a.emails.length);
+
+  data.value = new_data;
+}
+
+onMounted(() => {
+  refresh();
+});
+
+watch(repositories, () => {
+  refresh();
+});
+
+</script>
 

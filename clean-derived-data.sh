@@ -4,7 +4,7 @@ cd "$(dirname "$0")"
 work_dir=`mktemp -d -p "$DIR"`;
 echo ${work_dir}
 
-cd static/data
+cd public/data
 mv * ${work_dir};
 mv ${work_dir}/repositories.json .
 for dir in ${work_dir}/*/

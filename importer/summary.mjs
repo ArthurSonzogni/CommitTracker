@@ -15,7 +15,7 @@ const group_by_date = (commits, value) => {
 };
 
 const summarize = async (kind, repository) => {
-  const repository_dir = `../static/data/${repository.dirname}`;
+  const repository_dir = `../public/data/${repository.dirname}`;
   const kind_list = `${repository_dir}/${kind}.json`;
   const kind_summary = `${repository_dir}/${kind}_summary.json`;
 
@@ -73,7 +73,7 @@ for (const repository of repositories) {
 const organizations_summary = {};
 for (const repository of repositories) {
   organizations_summary[repository.dirname] = {};
-  const repository_dir = `../static/data/${repository.dirname}`;
+  const repository_dir = `../public/data/${repository.dirname}`;
   const summary_file = `${repository_dir}/organizations_summary.json`;
   const summary = JSON.parse(await fs.readFile(summary_file, "utf8"));
   for (const [organization, data] of Object.entries(summary)) {
@@ -83,6 +83,6 @@ for (const repository of repositories) {
   }
 }
 await fs.writeFile(
-  "../static/data/organizations_summary.json",
+  "../public/data/organizations_summary.json",
   JSON.stringify(organizations_summary, null, 1)
 );

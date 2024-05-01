@@ -38,19 +38,10 @@
   </div>
 </template>
 
-<script>
-import repositories_raw from 'static/data/repositories.json'
+<script setup lang="ts">
+import repositories_raw from 'public/data/repositories.json'
 
-export default {
-  data() {
-    const json = JSON.stringify(repositories_raw, null, 2);
-    let repositories = structuredClone(repositories_raw);
-
-    return {
-      json,
-      repositories,
-    }
-  },
-}
+const json = ref(JSON.stringify(repositories_raw, null, 2));
+const repositories = ref(structuredClone(repositories_raw));
 
 </script>

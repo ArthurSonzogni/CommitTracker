@@ -58,62 +58,68 @@
   </section>
 </template>
 
-<script>
-export default {
-  data() {
-    return {
-      developers: [],
-    };
-  },
+<script setup lang="ts">
 
-  async fetch() {
-    const response = await fetch("/data/chromium/usernames.json");
-    this.developerList = await response.json();
-    this.getRandom();
-  },
+const developers = ref<string[]>([]);
+let developersList = [];
+let destroyed = false;
+let once = undefined;
 
-  methods: {
-    async getRandom() {
-      if (this.destroyed) {
-        return;
-      }
-
-      const index = Math.floor(Math.random() * this.developerList.length);
-      const developer = this.developerList[index];
-      const response = await fetch(`/data/chromium/usernames/${developer}.json`);
-      const data = await response.json();
-
-      for(let i = 0; i<2; ++i) {
-        const index = Math.floor(Math.random() * 10);
-        if (index < this.developers.length) {
-          this.developers = this.developers.splice(index, 1);
-        }
-      }
-
-      if (data.length < 50) {
-        setTimeout(() => {
-          this.getRandom();
-        }, this.once ? 1000: 10);
-        return;
-      }
-
-      this.developers.push(developer);
-
-      if (this.once == undefined) {
-        if (this.developers.length == 0) {
-          return this.getRandom();
-        }
-        this.once = true;
-      }
-
-      setTimeout(() => {
-        this.getRandom();
-      }, 5000);
-    },
-  },
-
-  beforeDestroy() {
-    this.destroyed = true;
+const getRandom = async () => {
+  if (destroyed) {
+    return;
   }
+
+  // Remove randomly, up to 2 developers.
+  for(let i = 0; i<2; ++i) {
+    const index = Math.floor(Math.random() * 10);
+    if (index < developers.value.length) {
+      developers.value.splice(index, 1);
+      developers.value = [...developers.value];
+    }
+  }
+
+  const index = Math.floor(Math.random() * developersList.length);
+  const developer = developersList[index];
+  const response = await fetch(`/data/chromium/usernames/${developer}.json`);
+  const data = await response.json();
+
+  // If the data is too small, retry.
+  if (data.length < 50) {
+    setTimeout(() => {
+      getRandom();
+    }, once ? 1000: 10);
+    return;
+  }
+
+  developers.value.push(developer);
+  developers.value = [...developers.value];
+
+  if (once == undefined) {
+    if (developers.value.length == 0) {
+      return getRandom();
+    }
+    once = true;
+  }
+
+  setTimeout(() => {
+    getRandom();
+  }, 5000);
 };
+
+const fetchDevelopersList = async () => {
+  const response = await fetch("/data/chromium/usernames.json");
+  developersList = await response.json();
+  getRandom();
+};
+
+onMounted(() => {
+  fetchDevelopersList();
+});
+
+onBeforeUnmount(() => {
+  destroyed = true;
+});
+
+
 </script>

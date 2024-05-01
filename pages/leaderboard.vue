@@ -15,11 +15,19 @@
 
         <b-field grouped group-multiline>
           <b-field label="As:">
-            <b-radio-button name="kind" v-model="kind" native-value="author">
+            <b-radio-button
+              name="kind"
+              v-model="kind"
+              native-value="author"
+            >
               author
             </b-radio-button>
-            <b-radio-button name="kind" v-model="kind" native-value="review">
-              reviewer
+            <b-radio-button
+              name="kind"
+              v-model="kind"
+              native-value="review"
+            >
+              Review
             </b-radio-button>
             <b-radio-button name="kind" v-model="kind" native-value="both">
               both
@@ -65,61 +73,49 @@
           :repositories="repositories"
           :grouping="grouping"
           :kind="kind"
-          :timeIndex="timeIndex"
-          @timeIndexChanged="n => timeIndex = n"
+          v-model:timeIndex="timeIndex"
           />
       </div>
     </section>
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 
-export default {
-  data() {
-    let repositories = ["chromium"];
-    if (this.$route.query.repositories) {
-      repositories = this.$route.query.repositories.split(",");
-    }
-    let grouping = "yearly";
-    if (this.$route.query.grouping) {
-      grouping = this.$route.query.grouping;
-    }
-    let kind = "author";
-    if (this.$route.query.kind) {
-      kind = this.$route.query.kind;
-    }
-    let timeIndex = 0;
-    if (this.$route.query.timeIndex) {
-      timeIndex = parseInt(this.$route.query.timeIndex);
-    }
+const repositories = ref<string[]>(["chromium"]);
+const grouping = ref<string>("yearly");
+const kind = ref<string>("author");
+const timeIndex = ref<number>(0);
 
-    return {
-      repositories,
-      grouping,
-      kind,
-      timeIndex
-    };
-  },
+const router = useRouter();
+const route = useRoute();
 
-  watch: {
-    repositories: "updateUrl",
-    grouping: "updateUrl",
-    kind: "updateUrl",
-    timeIndex: "updateUrl",
-  },
-
-  methods: {
-    updateUrl() {
-      this.$router.replace({
-        query: {
-          repositories: this.repositories.join(","),
-          grouping: this.grouping,
-          kind: this.kind,
-          timeIndex: this.timeIndex,
-        }
-      });
-    },
-  },
+if (route.query.repositories) {
+  repositories.value = route.query.repositories.split(",");
 }
+if (route.query.grouping) {
+  grouping.value = route.query.grouping as string;
+}
+if (route.query.kind) {
+  kind.value = route.query.kind as string;
+}
+if (route.query.timeIndex) {
+  timeIndex.value = parseInt(route.query.timeIndex as string);
+}
+
+watch([
+  repositories,
+  grouping,
+  kind,
+  timeIndex,
+], () => {
+  router.replace({
+    query: {
+      repositories: repositories.value.join(","),
+      grouping: grouping.value,
+      kind: kind.value,
+      timeIndex: timeIndex.value.toString(),
+    }
+  });
+});
 </script>

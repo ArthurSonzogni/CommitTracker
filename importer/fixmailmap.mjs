@@ -22,7 +22,7 @@ const processRepository = async (repository) => {
   console.log(`-- Processing ${repository.dirname}`);
 
   // Read all the emails of the repository:
-  const emails_filename = `../static/data/${repository.dirname}/emails.json`;
+  const emails_filename = `../public/data/${repository.dirname}/emails.json`;
   const emails = JSON.parse(await fs.readFile(emails_filename, "utf8"));
 
   // If the email requested to mail their username to a different one, we need to
@@ -33,8 +33,8 @@ const processRepository = async (repository) => {
     }
     console.log(`---- Merging ${email} into ${mailMap(email)}`);
 
-    const old_file = `../static/data/${repository.dirname}/emails/${email}.json`;
-    const new_file = `../static/data/${repository.dirname}/emails/${mailMap(email)}.json`;
+    const old_file = `../public/data/${repository.dirname}/emails/${email}.json`;
+    const new_file = `../public/data/${repository.dirname}/emails/${mailMap(email)}.json`;
 
     if (!await checkFileExists(new_file)) {
       console.log(`------ ${email}.json does not exist, renaming ${email}.json to ${mailMap(email)}.json`);
@@ -61,7 +61,7 @@ const processRepository = async (repository) => {
 
   // Update the content of every files:
   for(const email of new_users) {
-    const file = `../static/data/${repository.dirname}/emails/${email}.json`;
+    const file = `../public/data/${repository.dirname}/emails/${email}.json`;
     const data = JSON.parse(await fs.readFile(file, "utf8"));
 
     for (const commit of data) {
