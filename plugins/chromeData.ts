@@ -32,7 +32,8 @@ const chromeDataAll = (repo, users) => Promise.all(users.map(user => {
   return chromeData(repo, user);
 }));
 
-export default (context, inject) => {
-  inject('chromeData', chromeData)
-  inject('chromeDataAll', chromeDataAll)
-}
+export default defineNuxtPlugin(nuxtApp => {
+  nuxtApp.provide('chromeData', chromeData)
+  nuxtApp.provide('chromeDataAll', chromeDataAll)
+})
+

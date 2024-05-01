@@ -6,14 +6,11 @@
 
       <section class="section sticky top">
 
-        <RepositorySelector
-          v-model="repositories"
-          size="medium"
-        />
+        <RepositorySelector v-model="repositories" size="medium"/>
         <b-field grouped>
 
           <b-field expanded>
-            <DevelopersInput v-model="developers"/>
+            <DevelopersInput v-model="developers" ></DevelopersInput>
           </b-field>
 
           <b-field>
@@ -55,7 +52,7 @@
             :repositories="repositories"
             :developers="developers"
             :dates="dates"
-          />
+            />
         </div>
       </section>
 
@@ -122,7 +119,7 @@
             :stacked="options.includes('stacked')"
             :hourlyParam="hourlyParam"
             :buckets="wrappedBuckets"
-          />
+            /></TimelineWrappedChart>
         </div>
       </section>
 
@@ -136,7 +133,7 @@
             :author="options.includes('author')"
             :review="options.includes('review')"
             :stacked="options.includes('stacked')"
-          />
+            ></PeersChart>
         </div>
       </section>
 
@@ -149,68 +146,71 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script>
 
-const route = useRoute();
-const router = useRouter();
-
-const dates = ref([new Date("2000-01-01"), new Date()]);
-if (route.query.dates) {
-  dates.value = route.query.dates.split(',').map((d: string|number|Date) => new Date(d));
-}
-
-const developers = ref([]);
-if (route.query.developers) {
-  developers.value = route.query.developers.split(',');
-}
-
-const tt = computed(() => {
-  console.log(developers.value);
-  return developers.value;
-});
-
-const options = ref(["author", "review"]);
-if (route.query.options) {
-  options.value = route.query.options.split(',');
-}
-
-const hourlyParam = ref(0);
-if (route.query.hourlyParam) {
-  hourlyParam.value = parseInt(route.query.hourlyParam);
-}
-
-const wrappedBuckets = ref(100);
-if (route.query.wrappedBuckets) {
-  wrappedBuckets.value = parseInt(route.query.wrappedBuckets);
-}
-
-const repositories = ref(["chromium"]);
-if (route.query.repositories) {
-  repositories.value = route.query.repositories.split(',');
-}
-
-const updateUrl = () => {
-  router.push({
-    query: {
-      developers: developers.value.join(','),
-      options: options.value.join(','),
-      hourlyParam: hourlyParam.value,
-      wrappedBuckets: wrappedBuckets.value,
-      repositories: repositories.value.join(','),
-      dates: dates.value.map((d: { toISOString: () => string; }) => d.toISOString().split("T")[0]).join(','),
+export default {
+  data() {
+    let dates = [new Date("2000-01-01"), new Date()];
+    if (this.$route.query.dates) {
+      dates = this.$route.query.dates.split(',').map(d => new Date(d));
     }
-  });
+
+    let developers =  [];
+    if (this.$route.query.developers) {
+      developers = this.$route.query.developers.split(',');
+    }
+    let options =  ["author", "review"];
+    if (this.$route.query.options) {
+      options = this.$route.query.options.split(',');
+    }
+    let hourlyParam =  0;
+    if (this.$route.query.hourlyParam) {
+      hourlyParam = parseInt(this.$route.query.hourlyParam);
+    }
+    let wrappedBuckets =  100;
+    if (this.$route.query.wrappedBuckets) {
+      wrappedBuckets = parseInt(this.$route.query.wrappedBuckets);
+    }
+    let repositories =  ["chromium"];
+    if (this.$route.query.repositories) {
+      repositories = this.$route.query.repositories.split(',');
+    }
+
+    return {
+      dates,
+      developers,
+      options,
+      hourlyParam,
+      wrappedBuckets,
+      repositories,
+    };
+  },
+
+  methods: {
+    updateUrl() {
+      this.$router.push({
+        query: {
+          developers: this.developers.join(','),
+          options: this.options.join(','),
+          hourlyParam: this.hourlyParam,
+          wrappedBuckets: this.wrappedBuckets,
+          repositories: this.repositories.join(','),
+          dates: this.dates.map(d => d.toISOString().split("T")[0]).join(','),
+        }
+      });
+    },
+  },
+
+  watch: {
+    dates: "updateUrl",
+    developers: "updateUrl",
+    options: "updateUrl",
+    hourlyParam: "updateUrl",
+    wrappedBuckets: "updateUrl",
+    repositories: "updateUrl",
+    dates: "updateUrl",
+  },
 };
-
-watch([
-  dates,
-  developers,
-  options,
-  hourlyParam,
-  wrappedBuckets,
-  repositories,
-], updateUrl);
-
 
 const updateHasScrolled = () => {
   const maxScroll = Math.max(

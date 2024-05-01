@@ -19,57 +19,61 @@
     </b-field>
 </template>
 
-<script>
+<script setup lang="ts">
 
-export default {
-    props: [
-        "value",
-        "placeholder"
-    ],
-    emits: [
-        "input"
-    ],
-    data() {
-        return {
-            entryList: [],
-            entryListFiltered: [],
-        }
-    },
+const value = defineModel("value");
 
-    async fetch() {
-        const response = await fetch("/data/chromium/treemap/entries.json");
-        const list = await response.json();
-        this.list = list;
-        this.entryList = list.map(e => e.file)
-        this.entryListFiltered = this.entryList;
-    },
+const input = ref(null);
 
-    methods: {
-        computeFilteredList(name) {
-            this.entryListFiltered = this.entryList.filter((option) => {
-                return option.indexOf(name) == 0;
-            })
-        },
-
-        updateInput(name) {
-            this.$emit("input", name);
-            this.refreshColors(name);
-        },
-
-        refreshColors(name) {
-            setTimeout(() => {
-                let i = 0;
-                for(const element of this.$refs.input.$el.querySelectorAll(".tag")) {
-                    element.style.backgroundColor = this.$color(name[i]);
-                    ++i;
-                }
-            }, 0);
-        },
-    },
-
-    mounted: function() {
-        this.refreshColors(this.value);
+const props = defineProps({
+    placeholder: {
+        type: String,
+        required: false,
+        default: "Type to filter"
     }
+});
+
+const emit = defineEmits(["input"]);
+
+const entryList = ref([]);
+const entryListFiltered = ref([]);
+
+const fetchEntries = async () => {
+    console.log("fetching entries");
+    const response = await fetch("/data/chromium/treemap/entries.json");
+    const list = await response.json();
+    console.log(list);
+    entryList.value = list.map(e => e.file);
+    entryListFiltered.value = entryList.value;
 };
+fetchEntries();
+
+const computeFilteredList = (name:string) => {
+    entryListFiltered.value = entryList.value.filter((option:any) => {
+        return option.indexOf(name) == 0;
+    });
+};
+
+const updateInput = (name:string) => {
+    emit("input", name);
+    refreshColors(name);
+};
+
+const { $color } = useNuxtApp();
+
+const refreshColors = (name:string) => {
+    setTimeout(() => {
+        let i = 0;
+        console.log(input.value);
+        for(const element of input.value.$el.querySelectorAll(".tag")) {
+            element.style.backgroundColor = $color(name[i]);
+            ++i;
+        }
+    }, 0);
+};
+
+onMounted(() => {
+    refreshColors(value);
+});
 
 </script>

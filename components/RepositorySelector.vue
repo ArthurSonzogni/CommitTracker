@@ -1,35 +1,44 @@
 <template>
   <div class="columns">
+
+    <!-- The list of repositories -->
     <div class="fields column">
-      <b-checkbox-button
-        style="margin-right: -0.02rem; margin-left: 0"
-        name="repositories"
+      <template
         v-for="(item, index) in items"
-        v-if="filter(repositories[index])"
         :key="index"
-        :size="size"
-        :value="value"
-        :native-value="repositories[index].dirname"
-        @input="update(repositories[index].dirname)"
         >
-        {{repositories[index].name}}
-      </b-checkbox-button>
+        <b-checkbox-button
+          style="margin-right: -0.02rem; margin-left: 0"
+          name="repositories"
+          v-if="filter(repositories[index])"
+          :size="size"
+          v-model="value"
+          :native-value="repositories[index].dirname"
+          @input="update(repositories[index].dirname)"
+          >
+          {{repositories[index].name}}
+        </b-checkbox-button>
+      </template>
       <div class="spacer"></div>
     </div>
+
+    <!-- The options -->
     <div class="column is-narrow">
       <div>
+        <!-- The "All" checkbox -->
         <b-checkbox
           v-if="allowAll"
           :size="size"
           name="all"
-          :value="all"
-          @input="updateAll()"
           type="is-warning"
+          v-model="all"
+          @input="updateAll()"
           >
           All
         </b-checkbox>
       </div>
       <div>
+        <!-- The "Multiple" checkbox -->
         <b-checkbox
           v-if="allowMultiple"
           :size="size"
@@ -43,118 +52,92 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 
-import repositories from 'static/data/repositories.json'
+import repositories_json from '../public/data/repositories.json'
 
-export default {
-  props: {
-    filter: {
-      type: Function,
-      required: false,
-      default: () => true,
-    },
+const value = defineModel();
 
-    value: {
-      type: Array[String],
-      required: true
-    },
-
-    allowMultiple: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-
-    allowAll: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-
-    size: {
-      default: "is-small",
-      type: String,
-      required: true
-    },
-
-    label: {
-      default: "",
-      type: String,
-      required: false
-    },
-
-    has_reviewers: {
-      default: false,
-      type: Boolean,
-      required: false
-    }
+const props = defineProps({
+  filter: {
+    type: Function,
+    required: false,
+    default: () => true,
   },
 
-  data() {
-    const items = repositories.map(item => item.dirname);
-    const multiple = this.value.length > 1;
-    const all = this.value.length == items.filter(item => {
-      for(const repo of repositories) {
+  allowMultiple: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+
+  allowAll: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+
+  size: {
+    type: String,
+    default: "is-small",
+    required: false,
+  },
+})
+
+const repositories = ref(repositories_json);
+const items = ref(repositories_json.map(item => item.dirname));
+const multiple = ref(value.value.length > 1);
+
+const all = ref(value.value.length == items.value.filter(item => {
+  for(const repo of repositories_json) {
+    if (repo.dirname.toLowerCase() === item) {
+      return repo.parent == undefined;
+    }
+  }
+  return false;
+}).length);
+
+const updateAll = async () => {
+  all.value = !all.value;
+  if (!all.value) {
+    value.value = [];
+    return;
+  }
+
+  multiple.value = props.allowMultiple.value;
+
+  const all_repositories = items.value
+    .map(item => item.toLowerCase())
+    .filter(item => {
+      for(const repo of repositories.value) {
         if (repo.dirname.toLowerCase() === item) {
           return repo.parent == undefined;
         }
       }
       return false;
-    }).length;
-    return {
-      repositories,
-      multiple,
-      items,
-      all,
-    };
-  },
+    })
+  value.value = all_repositories;
+}
 
+function update(item: string) {
+  all.value = false;
+  if (!multiple.value) {
+    value.value = [item];
+    return;
+  }
 
-  methods: {
-    updateAll() {
-      this.all = !this.all;
-      if (!this.all) {
-        this.$emit('input', []);
-        return;
-      }
-
-      this.multiple = this.allowMultiple
-      const all = this.items
-        .map(item => item.toLowerCase())
-        .filter(item => {
-          for(const repo of this.repositories) {
-            if (repo.dirname.toLowerCase() === item) {
-              return repo.parent == undefined;
-            }
-          }
-          return false;
-        })
-      this.$emit('input', all);
-    },
-    update(item) {
-      if (!this.multiple) {
-        this.$emit('input', [item]);
-        return;
-      }
-
-      const newValue = [...this.value];
-      const index = newValue.indexOf(item);
-      if (index === -1) {
-        newValue.push(item);
-      } else {
-        newValue.splice(index, 1);
-      }
-
-      // Tweak to avoid including twice the same repository.
-      this.$emit('input', newValue.sort());
-      return;
-    },
-  },
+  const newValue = [...value.value];
+  const index = newValue.indexOf(item);
+  if (index === -1) {
+    newValue.push(item);
+  } else {
+    newValue.splice(index, 1);
+  }
+  value.value = newValue.sort();
+  return;
 }
 
 </script>
-
 <style scoped>
 
 .columns {
@@ -183,6 +166,5 @@ export default {
 .spacer {
   flex: 10;
 }
-
 
 </style>

@@ -8,46 +8,45 @@
     </template>
 
     <template #start>
-      <b-navbar-item tag="router-link" :to="{ path: '/repositories' }">
-        Repositories
-      </b-navbar-item>
+      <!--<b-navbar-item tag="router-link" :to="{ path: '/repositories' }">-->
+        <!--Repositories-->
+      <!--</b-navbar-item>-->
 
       <b-navbar-item tag="router-link" :to="{ path: '/individuals' }">
         Individuals
       </b-navbar-item>
 
-      <b-navbar-item tag="router-link" :to="{ path: '/communities' }">
-        Community graph
-      </b-navbar-item>
+      <!--<b-navbar-item tag="router-link" :to="{ path: '/communities' }">-->
+        <!--Community graph-->
+      <!--</b-navbar-item>-->
 
-      <b-navbar-item tag="router-link" :to="{ path: '/api' }">
-        API
-      </b-navbar-item>
+      <!--<b-navbar-item tag="router-link" :to="{ path: '/api' }">-->
+        <!--API-->
+      <!--</b-navbar-item>-->
 
-      <b-navbar-dropdown label="Organizations">
-        <b-navbar-item tag="router-link" :to="{ path: '/organizations/commits' }">
-          Commits
-        </b-navbar-item>
-        <b-navbar-item tag="router-link" :to="{ path: '/organizations/emails' }">
-          Emails
-        </b-navbar-item>
-      </b-navbar-dropdown>
+      <!--<b-navbar-dropdown label="Organizations">-->
+        <!--<b-navbar-item tag="router-link" :to="{ path: '/organizations/commits' }">-->
+          <!--Commits-->
+        <!--</b-navbar-item>-->
+        <!--<b-navbar-item tag="router-link" :to="{ path: '/organizations/emails' }">-->
+          <!--Emails-->
+        <!--</b-navbar-item>-->
+      <!--</b-navbar-dropdown>-->
 
       <b-navbar-dropdown label="Misc">
         <b-navbar-item tag="router-link" :to="{ path: '/usernames' }">
           Usernames distribution
         </b-navbar-item>
-        <b-navbar-item tag="router-link" :to="{ path: '/leaderboard' }">
-          Leaderboard
-        </b-navbar-item>
-        <b-navbar-item tag="router-link" :to="{ path: '/repo-info' }">
-          Repositories tracking info
-        </b-navbar-item>
+        <!--<b-navbar-item tag="router-link" :to="{ path: '/leaderboard' }">-->
+          <!--Leaderboard--> <!--</b-navbar-item>-->
+        <!--<b-navbar-item tag="router-link" :to="{ path: '/repo-info' }">-->
+          <!--Repositories tracking info-->
+        <!--</b-navbar-item>-->
       </b-navbar-dropdown>
 
-      <b-navbar-item tag="router-link" :to="{ path: '/treemap' }">
-        Treemap
-      </b-navbar-item>
+      <!--<b-navbar-item tag="router-link" :to="{ path: '/treemap' }">-->
+        <!--Treemap-->
+      <!--</b-navbar-item>-->
     </template>
 
     <template #end>
