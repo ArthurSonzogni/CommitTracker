@@ -14,7 +14,7 @@ import {scaleLinear} from "d3-scale";
 import {select} from "d3-selection";
 import {interpolate} from "d3-interpolate";
 import {axisTop} from "d3-axis";
-
+import {transition} from "d3-transition";
 
 export default {
   props: {

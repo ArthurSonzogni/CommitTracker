@@ -16,6 +16,7 @@ import {select} from "d3-selection";
 import {arc} from "d3-shape";
 import {interpolate} from "d3-interpolate";
 import {local} from "d3-selection";
+import {transition} from "d3-transition";
 
 const currentState = local();
 const now = new Date();

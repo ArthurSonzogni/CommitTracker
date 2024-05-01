@@ -21,6 +21,7 @@ import {line} from "d3-shape";
 import {interpolatePath} from "d3-interpolate-path";
 import {pointer} from "d3-selection";
 import {bisector} from "d3-array";
+import {transition} from "d3-transition";
 
 export default {
   props: {

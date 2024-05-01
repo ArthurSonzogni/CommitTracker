@@ -22,6 +22,7 @@ import {easeCircleOut} from "d3-ease";
 import {format} from "d3-format";
 import {interpolate} from "d3-interpolate";
 import {select} from "d3-selection";
+import {transition} from "d3-transition";
 
 export default {
   props: {

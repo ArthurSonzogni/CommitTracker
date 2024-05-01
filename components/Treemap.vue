@@ -23,6 +23,7 @@ import {scaleLinear} from "d3-scale";
 import {select} from "d3-selection";
 import {treemapSquarify} from "d3-hierarchy";
 import {treemap} from "d3-hierarchy";
+import {transition} from "d3-transition";
 
 export default {
 

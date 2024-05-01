@@ -36,6 +36,7 @@
 import {select} from "d3-selection";
 import {interpolate} from "d3-interpolate";
 import {easeBackOut} from "d3-ease";
+import {transition} from "d3-transition";
 
 export default {
   data() {
