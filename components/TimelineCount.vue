@@ -62,8 +62,6 @@ const columns = [
 ]
 
 const filteredData = computed(() => {
-  console.log("filteredData");
-  console.log(data.value);
   return data.value.map(d => {
     const commit = d.commits
       .filter(commit => {
@@ -85,13 +83,11 @@ const filteredData = computed(() => {
       additions_review: format(",d")(sum(reviewed.map(c => c.additions))),
       deletions_review: format(",d")(sum(reviewed.map(c => c.deletions))),
     };
-    console.log(out);
     return out;
   });
 })
 
 const refresh = async () => {
-  console.log("refresh");
   const d = await $chromeDataAll(props.repositories[0], props.developers)
   data.value = d.map(d => {
     return {
@@ -99,13 +95,12 @@ const refresh = async () => {
       commits: d.data
     }
   })
-  console.log("refresh");
-  console.log(data.value);
 }
 
 refresh();
 
-watch([props.repositories, props.developers, props.date], refresh)
-
+watch(() => props.repositories, refresh)
+watch(() => props.developers, refresh)
+watch(() => props.dates, refresh)
 
 </script>

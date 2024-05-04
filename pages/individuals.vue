@@ -222,9 +222,9 @@ const updateHasScrolled = () => {
   );
 
   document.documentElement.dataset.scrolltop =
-    (window.scrollY > 100) ? 1 : 0;
+    (window.scrollY > 100) ? '1' : '0';
   document.documentElement.dataset.scrollbottom=
-    (maxScroll - window.scrollY > 1000) ? 1 : 0;
+    (maxScroll - window.scrollY > 1000) ? '1' : '0';
 };
 
 updateHasScrolled();

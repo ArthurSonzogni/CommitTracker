@@ -39,10 +39,8 @@ const entryList = ref([]);
 const entryListFiltered = ref([]);
 
 const fetchEntries = async () => {
-    console.log("fetching entries");
     const response = await fetch("/data/chromium/treemap/entries.json");
     const list = await response.json();
-    console.log(list);
     entryList.value = list.map(e => e.file);
     entryListFiltered.value = entryList.value;
 };
@@ -64,7 +62,6 @@ const { $color } = useNuxtApp();
 const refreshColors = (name:string) => {
     setTimeout(() => {
         let i = 0;
-        console.log(input.value);
         for(const element of input.value.$el.querySelectorAll(".tag")) {
             element.style.backgroundColor = $color(name[i]);
             ++i;
