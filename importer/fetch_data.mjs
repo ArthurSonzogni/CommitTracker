@@ -108,6 +108,21 @@ const ProcessCommit = (data, commit) => {
     if (!IsEmailValid(reviewer)) {
       continue;
     }
+
+    // Ignore self-review:
+    //
+    // This often happen when the author clicked CR: +1 on their own CL instead
+    // of CQ: +1. This is a common mistake and we should ignore it.
+    //
+    // Preferring "authored" commits over "reviewed" commits is a good
+    // heuristic, because it provides the following invariant:
+    // The sum of everyone's "authored" commits is equal to the sum of commit.
+    //
+    // https://github.com/ArthurSonzogni/ChromeCommitTracker/issues/7
+    if (author == reviewer) {
+      continue;
+    }
+
     reviewers.push(reviewer);
   }
 
@@ -191,10 +206,17 @@ const ProcessRepository = async (repository) => {
     for (const email in data) {
       const email_file = `${emails_dir}/${email}.json`;
 
-      // Remove duplicated commits
+      // Remove duplicated commits.
       const map = new Map();
       for(const commit of data[email]) {
-        map.set(commit.date, commit)
+        // See https://github.com/ArthurSonzogni/ChromeCommitTracker/issues/7
+        // The database is currently polluted with duplicate commits where
+        // "reviewed" commits were preferred over "authored" commits. This
+        // allows the next full import to fix the database.
+        const preexisting = map.get(commit.date);
+        if (!preexisting || preexisting.kind == 'review') {
+          map.set(commit.date, commit);
+        }
       }
       data[email] = Array.from(map.values()).sort((a,b) => a.date > b.date);
 
