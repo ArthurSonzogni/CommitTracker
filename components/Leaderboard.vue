@@ -48,6 +48,7 @@ import {scaleBand} from "d3-scale";
 import {scaleLinear} from "d3-scale";
 import {select} from "d3-selection";
 import "d3-transition";
+import {transition} from "d3-transition";
 import {range} from "d3-array";
 import {easeLinear} from "d3-ease";
 import {interpolate} from "d3-interpolate";
@@ -506,6 +507,14 @@ const render = (frame, transition) => {
     return;
   }
 
+  const title_update = title => {
+    return title
+      .attr("x", svgWidth.value - 10)
+      .attr("y", 80-32)
+      .transition(transition)
+      .text(d => d)
+  }
+
   // Update the title:
   select(svg_title.value)
     .selectAll("text")
@@ -517,8 +526,6 @@ const render = (frame, transition) => {
           .text(d => d)
           .attr("text-anchor", "end")
           .attr("transform", `translate(0, 32)`)
-          .attr("x", svgWidth.value - 10)
-          .attr("y", 80-32)
           .attr("opacity", 0)
           .attr("font-size", "2em")
 
@@ -526,9 +533,12 @@ const render = (frame, transition) => {
           .transition(transition)
           .attr("transform", `translate(0, 0)`)
           .attr("opacity", 1)
-        return text;
+
+        return title_update(text);
       },
-      update => update,
+      update => {
+        return title_update(update.transition(transition))
+      },
       exit => {
         return exit
           .transition(transition)
@@ -555,9 +565,11 @@ const render = (frame, transition) => {
 };
 
 const onResize = () => {
-  svgWidth.value = container.value.clientWidth;
-  svgHeight.value = take_n * 50;
-  fetchData();
+  if (container.value) {
+    svgWidth.value = container.value.clientWidth;
+    svgHeight.value = take_n * 50;
+    fetchData();
+  }
 };
 window.addEventListener("resize", onResize);
 

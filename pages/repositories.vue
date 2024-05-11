@@ -216,11 +216,23 @@
 const route = useRoute();
 const router = useRouter();
 
-const repositories = ref(["chromium"]);
+const repositories = ref([
+  "angle",
+  "chromeos",
+  "chromium",
+  "dawn",
+  "devtool-frontend",
+  "gn",
+  "pdfium",
+  "perfetto",
+  "swiftshader",
+  "v8",
+  "webrtc",
+]);
 if (route.query.repositories) {
   repositories.value = route.query.repositories.split(",");
 }
-const what = ref("contributors");
+const what = ref("commit");
 if (route.query.what) {
   what.value = route.query.what;
 }
