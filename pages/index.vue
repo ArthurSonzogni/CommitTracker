@@ -20,11 +20,19 @@
   </div>
 </template>
 
-<style scope>
+<style scoped>
+h1 {
+  text-shadow:
+    0px 3px 4px rgba(0, 0, 0, 0.5),
+    0px -1px 32px rgba(255, 255, 255, 1.0)
+  ;
+}
+
 h2 {
   opacity: 0.5;
   transition: opacity 0.5s;
 }
+
 h2:hover {
   opacity: 1;
 }
