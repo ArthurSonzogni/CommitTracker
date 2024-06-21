@@ -46,9 +46,15 @@
           <b-icon icon="email" class="mr-2"></b-icon>
           Usernames distribution
         </b-navbar-item>
+
         <b-navbar-item tag="router-link" :to="{ path: '/leaderboard' }">
           <b-icon icon="trophy" class="mr-2"></b-icon>
           Leaderboard
+        </b-navbar-item>
+
+        <b-navbar-item tag="router-link" :to="{ path: '/fuzz-test' }">
+          <b-icon icon="bug" class="mr-2"></b-icon>
+          Fuzz test
         </b-navbar-item>
 
         <b-navbar-item tag="router-link" :to="{ path: '/api' }">

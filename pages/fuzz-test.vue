@@ -11,8 +11,7 @@
         <div align="center">
           <b-table
             :data="data"
-            height="1000"
-            sticky-header
+            :scrollable="false"
             striped
             hoverable
             >
@@ -52,6 +51,26 @@
       </div>
     </section>
 
+    <section class="section">
+      <div class="container">
+        <h2 class="title">Leaderboard</h2>
+        <b-table
+          :data="leaderboard"
+          striped
+          hoverable
+          >
+          <b-table-column field="author" label="Author" v-slot="props">
+            {{ props.row.icon }}
+            {{ props.row.author }}
+          </b-table-column>
+
+          <b-table-column field="count" label="Fuzz tests" v-slot="props">
+            {{ props.row.count }}
+          </b-table-column>
+        </b-table>
+      </div>
+    </section>
+
     <section class="section sticky bottom">
       <b-field expanded>
         <Timeline v-model="dates" />
@@ -74,7 +93,7 @@ if (route.query.dates) {
 }
 
 const data = shallowRef([]);
-
+const leaderboard = shallowRef([]);
 const graph = shallowRef([]);
 
 const updateUrl = () => {
@@ -135,6 +154,37 @@ const getData = async function() {
       values: new_values,
     },
   ];
+
+  // Compute the leaderboard
+  const author_count = {}
+  for(const d of response_json) {
+    author_count[d.author] ||= 0;
+    author_count[d.author]++;
+  }
+
+  const leaderboard_value =
+    Object.entries(author_count)
+    .map(([author, count]) => ({ author, count }))
+    .sort((a, b) => b.count - a.count)
+
+  // Define an icon for the best author
+  for(let i=0; i<leaderboard_value.length; i++) {
+    switch(i) {
+      case 0:
+        leaderboard_value[i].icon = '🥇';
+        break;
+      case 1:
+        leaderboard_value[i].icon = '🥈';
+        break;
+      case 2:
+        leaderboard_value[i].icon = '🥉';
+        break;
+      default:
+        leaderboard_value[i].icon = ' ';
+
+    }
+  }
+  leaderboard.value = leaderboard_value;
 };
 
 onMounted(() => {
