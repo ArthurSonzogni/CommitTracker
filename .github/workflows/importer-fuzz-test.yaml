@@ -1,18 +1,15 @@
-name: cd
+name: importer-fuzz-test
 
 on:
+  schedule:
+    - cron:  '0 0 * * 0' # every week
+  push:
   workflow_dispatch:
-  workflow_run:
-    workflows:
-      - "importer-graph"
-      - "importer-treemap"
-      - "importer-fuzz-test"
-    types:
-      - completed
 
 jobs:
-  cd:
+  importer-fuzz-test:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout main repository
         uses: actions/checkout@v4
@@ -22,17 +19,23 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Build website
+      - name: Pull data
         run: |
           yarn
           yarn pull-data
-          yarn generate-derived-data
-          yarn generate
 
-      - name: Deploy
+      - name: Refresh files
+        run: |
+          cd importer
+          yarn install
+          yarn run fuzztest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push data
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .output/public
-          publish_branch: gh-pages
+          publish_dir: ./public/fuzz-test/
+          publish_branch: fuzz-test
           force_orphan: true

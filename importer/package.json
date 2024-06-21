@@ -11,7 +11,8 @@
     "graph": "node graph.mjs",
     "fixmailmap": "node fixmailmap.mjs",
     "commit_per_hour": "node commit_per_hour.mjs",
-    "cleanup_organizations": "node cleanup_organizations.mjs"
+    "cleanup_organizations": "node cleanup_organizations.mjs",
+    "fuzztest": "node fuzz-test.mjs"
   },
   "repository": {
     "type": "git",

@@ -38,7 +38,7 @@
                 + ';q=' + props.row.function
                 "
                >
-                open
+                Open
               </a>
             </b-table-column>
 
