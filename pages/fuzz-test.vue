@@ -11,7 +11,7 @@
         <div align="center">
           <b-table
             :data="data"
-            :scrollable="false"
+            scrollable
             striped
             hoverable
             >
@@ -56,6 +56,7 @@
         <h2 class="title">Leaderboard</h2>
         <b-table
           :data="leaderboard"
+          scrollable
           striped
           hoverable
           >
