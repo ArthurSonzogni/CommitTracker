@@ -39,6 +39,7 @@ interface Point {
 
 interface Data {
   label: string;
+  extra_label?: string;
   values: Array<Point>;
 }
 
@@ -215,7 +216,7 @@ const render = () => {
 
   select(legend.value)
     .selectAll(".legend")
-    .data(props.data, d => d.label)
+    .data(props.data, d => (d.label + (d.extra_label || "")))
     .join(
       enter => {enter
         const group = enter
@@ -235,7 +236,7 @@ const render = () => {
           .attr("font-size", "12px")
           .attr("font-weight", "bold")
           .attr("fill", d => $color(d.label))
-          .text(d => d.label)
+          .text(d => d.label + (d.extra_label || ""))
         return group;
       },
       update => {

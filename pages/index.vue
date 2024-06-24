@@ -20,7 +20,7 @@
   </div>
 </template>
 
-<style scope>
+<style scoped>
 h2 {
   opacity: 0.5;
   transition: opacity 0.5s;

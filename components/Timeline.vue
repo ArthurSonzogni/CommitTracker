@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="timeline">
     <b-field grouped v-if="more">
       <b-button @click="toggleMore" class="mr-5" size="is-small"> - </b-button>
       <b-field
@@ -163,3 +163,9 @@ const onQuarterClick = (year: number, quarter: number) => {
 }
 
 </script>
+
+<style scoped>
+.timeline {
+   user-select: none;
+}
+</style>

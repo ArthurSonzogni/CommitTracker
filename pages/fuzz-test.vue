@@ -5,11 +5,16 @@
     <section class="section">
       <div class="container">
         <h1 class="title">
-          <b-icon icon="strike" />
-          {{data.length}}
-        fuzzers in chromium</h1>
+          <b-icon icon="strike" />{{ total }} fuzzers in chromium</h1>
 
         <LineChart :data="graph" />
+
+        <div class="container">
+          <b-field>
+            <b-checkbox-button v-model="type" native-value="fuzzer_test">Fuzz target</b-checkbox-button>
+            <b-checkbox-button v-model="type" native-value="FUZZ_TEST">FUZZ_TEST</b-checkbox-button>
+          </b-field>
+        </div>
       </div>
     </section>
 
@@ -19,10 +24,13 @@
         <b-table
           :data="data"
           hoverable
-          scrollable
-          height="500"
-          sticky-header
+          :paginated="true"
+          :pagination-simple="true"
+          pagination-position="top"
+          :pagination-rounded="true"
+          :per-page="15"
           striped
+          detailed
           >
           <b-table-column field="date" label="Date" v-slot="props" sortable >
             {{ props.row.date }}
@@ -43,7 +51,6 @@
           <b-table-column field="suite_name" label="Name" v-slot="props" sortable>
             <a :href="'https://cs.chromium.org/chromium/src/' + props.row.file
             + '?l=' + props.row.line
-            + ';q=' + props.row.function
             "
               >
               {{ props.row.suite_name }}
@@ -66,6 +73,36 @@
             <b-tag type="is-danger" v-else>{{ props.row.type }}</b-tag>
           </b-table-column>
 
+          <template #detail="props">
+            <b-field label="Date" horizontal> {{ props.row.date }} </b-field>
+            <b-field label="Author" horizontal>
+              <router-link :to="{
+              name: 'individuals',
+              query: {
+              developers: props.row.author,
+              repositories: 'chromium',
+              }
+              }">
+                {{ props.row.author }}
+              </router-link>
+            </b-field>
+            <b-field label="File" horizontal>
+              <a :href="'https://cs.chromium.org/chromium/src/' + props.row.file
+              + '?l=' + props.row.line
+              "
+                >
+                {{ props.row.file }}
+              </a>
+            </b-field>
+            <b-field label="Line" horizontal> {{ props.row.line }} </b-field>
+            <b-field label="Type" horizontal> {{ props.row.type }} </b-field>
+            <b-field label="Sha" horizontal>
+              <a :href="'https://chromium-review.googlesource.com/q/' + props.row.sha">
+                {{ props.row.sha }}
+              </a>
+            </b-field>
+          </template>
+
         </b-table>
       </div>
     </section>
@@ -87,17 +124,17 @@
             field="author"
             label="Authors"
             v-slot="props"
-          >
+            >
             <div class="leaderboard-authors">
               <router-link
                 v-for="author in props.row.authors"
                 class="leaderboard-author"
                 :to="{
-                  name: 'individuals',
-                  query: {
-                    developers: author,
-                    repositories: 'chromium',
-                  }
+                name: 'individuals',
+                query: {
+                developers: author,
+                repositories: 'chromium',
+                }
                 }">
                 <span v-if="props.row.icon">{{ props.row.icon }}</span>
                 {{ author }}
@@ -107,6 +144,18 @@
           </b-table-column>
 
         </b-table>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <h2 class="title">Hierarchy</h2>
+        <FuzzerHierarchy
+          :name="hierarchy.name"
+          :count="hierarchy.count"
+          :children="hierarchy.children"
+          :collapsed_default="false"
+        />
       </div>
     </section>
 
@@ -131,13 +180,23 @@ if (route.query.dates) {
   dates.value = route.query.dates.split(',').map(d => new Date(d));
 }
 
+const type = ref<[string]>(['fuzzer_test', 'FUZZ_TEST']);
+if (route.query.type) {
+  type.value = route.query.type.split(',');
+}
+
 const data = shallowRef([]);
 const leaderboard = shallowRef([]);
 const graph = shallowRef([]);
 
+const total = ref(0);
+
+const hierarchy = shallowRef({});
+
 const updateUrl = () => {
   const query = {
     dates: dates.value.map(d => d.toISOString().split('T')[0]).join(','),
+    type: type.value.join(','),
   };
   router.push({ query });
 }
@@ -152,8 +211,14 @@ const getData = async function() {
     return date >= dates.value[0] && date <= dates.value[1];
   });
 
+  // Filter by type:
+  console.log(type.value);
+  response_json = response_json.filter(d => {
+    return type.value.includes(d.type);
+  });
+
   // Sort by date
-  response_json.sort((a, b) => new Date(a.date) - new Date(b.date));
+  response_json.sort((a, b) => new Date(b.date) - new Date(a.date));
 
   // Format date to YYYY-MM-DD
   response_json.forEach(d => {
@@ -166,13 +231,14 @@ const getData = async function() {
   });
 
   await new Promise(r => setTimeout(r, 1));
-  data.value = response_json;
+  data.value = structuredClone(response_json);
   await new Promise(r => setTimeout(r, 1));
+  response_json.reverse();
 
   // Compute the "graph" value. Format should be:
   // [
   //   {
-  //     label = "FUZZ_TEST",
+  //     label = type
   //     values = [
   //       {
   //         x = "2021-01-01",
@@ -180,22 +246,27 @@ const getData = async function() {
   //       },
   //       ...
   //     ]
-  const new_values = [];
-  let accu = 0;
+  const new_values = {}
+  let accu = {}
   response_json.forEach(d => {
-    accu++;
-    new_values.push({
+    accu[d.type] ||= 0;
+    accu[d.type]++;
+    new_values[d.type] ||= [];
+    new_values[d.type].push({
       x: new Date(d.date),
-      y: accu,
+      y: accu[d.type],
     });
   });
-  graph.value = [
-    {
-      label: "FUZZ_TEST",
-      values: structuredClone(new_values),
-    },
-  ];
-  response_json.reverse();
+  graph.value = Object.entries(new_values).map(([label, values]) => {
+    return {
+      label: label,
+      extra_label: " = " + accu[label],
+      values: values,
+    };
+  });
+
+  // Compute the total number of fuzzers
+  total.value = Object.values(accu).reduce((a, b) => a + b, 0);
 
   // Compute the leaderboard
   const author_count = {}
@@ -234,6 +305,62 @@ const getData = async function() {
   await new Promise(r => setTimeout(r, 1));
   leaderboard.value = count_author_array;
   await new Promise(r => setTimeout(r, 1));
+
+  // Compute a hierarchy from the file names.
+  const new_hierachy = {
+    name: 'root',
+    count: 0,
+    children: [],
+  }
+  for(const d of response_json) {
+    let current = new_hierachy;
+    current.count++;
+    const parts = d.file.split('/');
+    // Remove the last part, which is the file name.
+    parts.pop();
+    let last = current;
+    for(const part of parts) {
+      let next = current.children.find(c => c.name == part);
+      if (!next) {
+        next = {
+          name: part,
+          count: 0,
+          children: [],
+        }
+        current.children.push(next);
+      }
+      next.count++;
+      current = next;
+      last = current;
+    }
+  last.entries
+  }
+
+  // Collapse children with only one child.
+  const collapse = (node) => {
+    for(const child of node.children) {
+      collapse(child);
+    }
+
+    if (node.children.length == 1) {
+      const child = node.children[0];
+      node.name += '/' + child.name;
+      node.count += child.count;
+      node.children = child.children;
+    }
+  }
+  collapse(new_hierachy);
+
+  // Sort children alphabetically.
+  const sort = (node) => {
+    node.children.sort((a, b) => a.name.localeCompare(b.name));
+    for(const child of node.children) {
+      sort(child);
+    }
+  }
+  sort(new_hierachy);
+
+  hierarchy.value = new_hierachy;
 };
 
 onMounted(() => {
@@ -242,6 +369,11 @@ onMounted(() => {
 });
 
 watch(dates, () => {
+  updateUrl();
+  getData();
+});
+
+watch(type, () => {
   updateUrl();
   getData();
 });
