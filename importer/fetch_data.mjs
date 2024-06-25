@@ -320,7 +320,7 @@ const ProcessRepository = async (repository) => {
         retry_total++;
       }
 
-      if (repository.name == 'SwiftShader' && retry == 4) {
+      if (repository.name == 'SwiftShader') {
         statusLine.error(`SwiftShader is known to have weird issues. Skipping.`);
         hasNextPage = false;
         break;

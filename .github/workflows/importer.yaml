@@ -61,7 +61,7 @@ jobs:
 
       - name: Cleanup
         run: |
-          yarn run cleanup-derived-data
+          yarn run clean-derived-data
 
       - name: Push data
         uses: peaceiris/actions-gh-pages@v3
