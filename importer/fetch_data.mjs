@@ -228,6 +228,7 @@ const ProcessRepository = async (repository) => {
   let hasNextPage = true;
   let index = 0;
   let duplicate = 0;
+  let retry_total = 0;
 
   while(hasNextPage && duplicate<10) {
     if (index % 10000 == 0) {
@@ -309,12 +310,26 @@ const ProcessRepository = async (repository) => {
 
         break;
       } catch (error) {
-        console.log(error);
+        console.log(JSON.stringify(error, null, 2));
         await SaveDataForRepository();
         statusLine.logString(`Error`)
         const waitTime = 2 ** retry; // Exponential backoff
         statusLine.error(`Waiting for ${waitTime} seconds`);
         await new Promise(r => setTimeout(r, waitTime * 1000));
+
+        retry_total++;
+      }
+
+      if (repository.name == 'SwiftShader' && retry == 4) {
+        statusLine.error(`SwiftShader is known to have weird issues. Skipping.`);
+        hasNextPage = false;
+        break;
+      }
+
+      if (retry_total > 100) {
+        statusLine.error(`Too many retries. Skipping.`);
+        hasNextPage = false;
+        break;
       }
     }
   }
