@@ -5,6 +5,7 @@
   "scripts": {
     "pull-data": "sh ./pull-data.sh",
     "generate-derived-data": "sh ./generate-derived-data.sh",
+    "clean-derived-data": "sh ./clean-derived-data.sh",
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",

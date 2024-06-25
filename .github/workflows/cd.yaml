@@ -1,14 +1,20 @@
 name: cd
 
 on:
-  workflow_dispatch:
+  # Allows manual trigger.
+  workflow_dispatch: {}
+
+  # Triggered when the importer workflow completes.
   workflow_run:
     workflows:
-      - "importer-graph"
-      - "importer-treemap"
-      - "importer-fuzz-test"
+      - "importer"
     types:
       - completed
+
+  # Trigger when a new commit is pushed to the main branch.
+  push:
+    branches:
+      - main
 
 jobs:
   cd:

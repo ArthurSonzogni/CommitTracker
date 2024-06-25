@@ -1,0 +1,88 @@
+name: importer
+
+on:
+  workflow_dispatch: {} # Allows manual trigger.
+  schedule:
+    - cron:  '0 0 * * 3' # every week on Wednesday.
+
+jobs:
+  importer:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup node env
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Checkout main repository
+        uses: actions/checkout@v4
+
+      - name: Pull data
+        run: |
+          yarn
+          yarn install
+          yarn pull-data
+          cd importer
+          yarn
+          yarn install
+
+      - name: Install OpenMP
+        run: sudo apt-get install libomp-dev libomp5
+
+      - name: Build the C++ project
+        uses: threeal/cmake-action@v1.3.0
+        with:
+          source-dir: graph
+          build-dir: graph/build
+          args: -DCMAKE_BUILD_TYPE:STRING=Release
+          run-build: true
+
+      - name: Fetch commits
+        run: |
+          cd importer
+          yarn run fetch_data
+          yarn run graph
+          yarn run fuzztest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Graph
+        run: |
+          cd importer
+          yarn run graph
+
+      - name: Fetch fuzz data
+        run: |
+          cd importer
+          yarn run fuzztest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cleanup
+        run: |
+          yarn run cleanup-derived-data
+
+      - name: Push data
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public/data/
+          publish_branch: data
+          force_orphan: true
+
+      - name: Push fuzz test data
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public/fuzz-test/
+          publish_branch: fuzz-test
+          force_orphan: true
+
+      - name: Deploy community map
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public/community-map/
+          publish_branch: community-map
+          force_orphan: true
