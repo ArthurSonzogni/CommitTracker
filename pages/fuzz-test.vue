@@ -109,6 +109,18 @@
 
     <section class="section">
       <div class="container">
+        <h2 class="title">Hierarchy</h2>
+        <FuzzerHierarchy
+          :name="hierarchy.name"
+          :children="hierarchy.children"
+          :authors="hierarchy.authors"
+          :collapsed_default="false"
+        />
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
         <h2 class="title">Leaderboard</h2>
         <b-table
           :data="leaderboard"
@@ -147,18 +159,6 @@
       </div>
     </section>
 
-    <section class="section">
-      <div class="container">
-        <h2 class="title">Hierarchy</h2>
-        <FuzzerHierarchy
-          :name="hierarchy.name"
-          :count="hierarchy.count"
-          :children="hierarchy.children"
-          :collapsed_default="false"
-        />
-      </div>
-    </section>
-
     <section class="section sticky bottom">
       <b-field expanded>
         <Timeline v-model="dates" />
@@ -191,7 +191,11 @@ const graph = shallowRef([]);
 
 const total = ref(0);
 
-const hierarchy = shallowRef({});
+const hierarchy = shallowRef({
+  name: 'root',
+  authors: [],
+  children: [],
+});
 
 const updateUrl = () => {
   const query = {
@@ -307,34 +311,34 @@ const getData = async function() {
   await new Promise(r => setTimeout(r, 1));
 
   // Compute a hierarchy from the file names.
-  const new_hierachy = {
+  const new_hierarchy = {
     name: 'root',
-    count: 0,
+    authors: [],
     children: [],
   }
   for(const d of response_json) {
-    let current = new_hierachy;
-    current.count++;
+    let current = new_hierarchy;
     const parts = d.file.split('/');
-    // Remove the last part, which is the file name.
-    parts.pop();
-    let last = current;
+    parts.push("   " +d.suite_name);
+    current.authors.push(d.author);
     for(const part of parts) {
       let next = current.children.find(c => c.name == part);
       if (!next) {
         next = {
           name: part,
-          count: 0,
           children: [],
+          authors: [],
         }
         current.children.push(next);
       }
-      next.count++;
       current = next;
-      last = current;
+      current.authors.push(d.author);
     }
-  last.entries
+
+    current
   }
+
+  console.log(new_hierarchy);
 
   // Collapse children with only one child.
   const collapse = (node) => {
@@ -342,14 +346,14 @@ const getData = async function() {
       collapse(child);
     }
 
-    if (node.children.length == 1) {
+    if (node.children.length == 1 && node.children[0].children.length) {
       const child = node.children[0];
       node.name += '/' + child.name;
-      node.count += child.count;
       node.children = child.children;
+      node.authors = child.authors;
     }
   }
-  collapse(new_hierachy);
+  collapse(new_hierarchy);
 
   // Sort children alphabetically.
   const sort = (node) => {
@@ -358,9 +362,9 @@ const getData = async function() {
       sort(child);
     }
   }
-  sort(new_hierachy);
+  sort(new_hierarchy);
 
-  hierarchy.value = new_hierachy;
+  hierarchy.value = new_hierarchy;
 };
 
 onMounted(() => {

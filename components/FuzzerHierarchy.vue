@@ -2,13 +2,27 @@
 
 const props = defineProps({
   name: { type: String },
-  path: { type: String },
-  count: { type: Number },
+  authors: { type: Array },
   children: { type: Array },
   collapsed_default: { type: Boolean, default: true },
 });
 
 let collapsed = ref(props.collapsed_default);
+
+let authors_accu = computed(() => {
+  if (!props.authors) return [];
+
+  let authors_map = new Map<string, number>();
+  for (let author of props.authors) {
+    const old = authors_map.get(author) || 0;
+    authors_map.set(author, old + 1);
+  }
+
+  return Array
+    .from(authors_map)
+    .sort((a, b) => b[1] - a[1])
+    .map((a) => `${a[0]} (x${a[1]})`);
+});
 
 </script>
 
@@ -26,13 +40,32 @@ let collapsed = ref(props.collapsed_default);
       </span>
       <b-icon v-else icon="empty"/>
       <b-tag type="is-primary"
+        v-if="children.length"
         :style="{
           width: '4em',
           'margin-right': '1em',
-          background: 'hsv(' + (count * 30) + ', 100%, 100%) !important',
         }"
-      >{{count}}</b-tag>
+      >
+        {{ authors.length }}
+      </b-tag>
       {{name}}
+      <Transition name="fade">
+      <span v-if="authors_accu && authors_accu.length && (collapsed ||
+        children.length == 0)">
+        <span class="m-3"/>
+          <b-tag
+            type="is-warning"
+            class="mr-1 mb-1"
+            v-for="author in authors_accu.slice(0,5)">
+            {{author}}
+          </b-tag>
+          <b-tag
+            v-if="authors_accu.length > 5"
+            type="is-warning"
+            class="mr-1 mb-1"
+            >...</b-tag>
+        </span>
+      </Transition>
     </div>
     <TransitionGroup name="fade">
       <FuzzerHierarchy
@@ -41,7 +74,7 @@ let collapsed = ref(props.collapsed_default);
         v-for="child in children"
         :key="child.name"
         :name="child.name"
-        :count="child.count"
+        :authors="child.authors"
         :children="child.children"
       />
     </TransitionGroup>
