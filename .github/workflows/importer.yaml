@@ -13,7 +13,7 @@ jobs:
       - name: Setup node env
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: 'latest'
 
       - name: Checkout main repository
         uses: actions/checkout@v4
@@ -27,39 +27,17 @@ jobs:
           yarn
           yarn install
 
-      - name: Install OpenMP
-        run: sudo apt-get install libomp-dev libomp5
+      # ------------------------------------------------------------------------
 
-      - name: Build the C++ project
-        uses: threeal/cmake-action@v1.3.0
-        with:
-          source-dir: graph
-          build-dir: graph/build
-          args: -DCMAKE_BUILD_TYPE:STRING=Release
-          run-build: true
-
-      - name: Fetch commits
+      - name: Fetch new commits
         run: |
           cd importer
           yarn run fetch_data
-          yarn run graph
-          yarn run fuzztest
+
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create Graph
-        run: |
-          cd importer
-          yarn run graph
-
-      - name: Fetch fuzz data
-        run: |
-          cd importer
-          yarn run fuzztest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Cleanup
+      - name: Cleanup derived data
         run: |
           yarn run clean-derived-data
 
@@ -71,6 +49,22 @@ jobs:
           publish_branch: data
           force_orphan: true
 
+      - name: Generate derived data
+        run: |
+          cd importer
+          yarn run generate-derived-data
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ------------------------------------------------------------------------
+
+      - name: Fetch fuzz data
+        run: |
+          cd importer
+          yarn run fuzztest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Push fuzz test data
         uses: peaceiris/actions-gh-pages@v3
         with:
@@ -78,6 +72,24 @@ jobs:
           publish_dir: ./public/fuzz-test/
           publish_branch: fuzz-test
           force_orphan: true
+
+      # ------------------------------------------------------------------------
+
+      - name: Install OpenMP
+        run: sudo apt-get install libomp-dev libomp5
+
+      - name: Build the C++ project
+        uses: threeal/cmake-action@v1.3.0
+        with:
+          source-dir: graph
+          build-dir: graph/build
+          args: -DCMAKE_BUILD_TYPE:STRING=Release
+          run-build: true
+
+      - name: Create Graphs
+        run: |
+          cd importer
+          yarn run graph
 
       - name: Deploy community map
         uses: peaceiris/actions-gh-pages@v3
