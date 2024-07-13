@@ -23,10 +23,10 @@
         Repositories
       </b-navbar-item>
 
-      <!--<b-navbar-item tag="router-link" :to="{ path: '/treemap' }">-->
-        <!--<b-icon icon="chart-tree" class="mr-2"></b-icon>-->
-        <!--Treemap-->
-      <!--</b-navbar-item>-->
+      <b-navbar-item tag="router-link" :to="{ path: '/treemap' }">
+        <b-icon icon="chart-tree" class="mr-2"></b-icon>
+        Treemap
+      </b-navbar-item>
 
       <div class="ml-6"></div>
 

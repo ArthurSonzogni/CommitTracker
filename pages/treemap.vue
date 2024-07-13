@@ -2,45 +2,14 @@
   <div>
     <Navbar/>
     <section class="section">
-      <div class="columns">
-        <div class="column">
-          <b-field>
-            <RepositorySelector
-              v-model="repositories"
-              size="is-small"
-              :filter="repo => repo.treemap"
-            ></RepositorySelector>
-          </b-field>
-          <b-field>
-            <TreemapInput v-model:value="field_size" placeholder="size"/>
-            <TreemapInput v-model:value="field_color" placeholder="color"/>
-          </b-field>
-        </div>
-
-        <div class="column is-narrow">
-          <b-field label="Colormap" label-position="inside">
-            <b-select
-              placeholder="Colormap"
-              v-model="colormap"
-              expanded
-              >
-              <option
-                v-for="option in colormap_list"
-                :value="option"
-                :key="option"
-                >
-                {{ option }}
-              </option>
-            </b-select>
-          </b-field>
-
-          <b-field grouped>
-            <b-input v-model="colormapMin" size="is-small" placeholder="Min"></b-input>
-            <b-input v-model="colormapMax" size="is-small" placeholder="Max"></b-input>
-          </b-field>
-
-        </div>
-      </div>
+      <b-field grouped>
+        <b-field label="size" label-position="inside" expanded>
+          <TreemapInput v-model:value="field_size" placeholder="size"/>
+        </b-field>
+        <b-field label="color" label-position="inside" expanded>
+          <TreemapInput v-model:value="field_color" placeholder="color"/>
+        </b-field>
+      </b-field>
 
       <b-breadcrumb align="is-left">
         <b-breadcrumb-item
@@ -68,8 +37,32 @@
         :colormapMin="colormapMin"
         :colormapMax="colormapMax"
         :colormap="colormap"
-        @zoomin="path.push($event)"
+        @zoomin="path.push($event); updateUrl(0, 1)"
       ></Treemap>
+
+      <b-field grouped>
+        <b-field label="Min" grouped label-position="inside">
+          <b-input v-model="colormapMin" placeholder="Min"></b-input>
+        </b-field>
+        <b-field label="Max" grouped label-position="inside">
+          <b-input v-model="colormapMax" placeholder="Max"></b-input>
+        </b-field>
+        <b-field label="Colormap" expanded label-position="inside">
+          <b-select
+            placeholder="Colormap"
+            v-model="colormap"
+            expanded
+            >
+            <option
+              v-for="option in colormap_list"
+              :value="option"
+              :key="option"
+              >
+              {{ option }}
+            </option>
+          </b-select>
+        </b-field>
+      </b-field>
 
     </section>
 
@@ -93,17 +86,17 @@
 const route = useRoute()
 const router = useRouter()
 
-const field_color = ref(["DanglingUntriaged"]);
+const field_color = ref(["allow_unsafe_buffers"]);
 if (route.query.field_color) {
   field_color.value = route.query.field_color.split(",");
 }
 
-const field_size = ref(["raw_ptr"]);
+const field_size = ref(["file"]);
 if (route.query.field_size) {
   field_size.value = route.query.field_size.split(",");
 }
 
-const colormap = ref("Turbo");
+const colormap = ref("Red");
 if (route.query.colormap) {
   colormap.value = route.query.colormap;
 }
@@ -113,12 +106,12 @@ if (route.query.path) {
   path.value = route.query.path.split(",");
 }
 
-const colormapMin = ref(0.0);
+const colormapMin = ref(-0.03);
 if (route.query.colormapMin) {
   colormapMin.value = parseFloat(route.query.colormapMin);
 }
 
-const colormapMax = ref(1.0);
+const colormapMax = ref(0.12);
 if (route.query.colormapMax) {
   colormapMax.value = parseFloat(route.query.colormapMax);
 }
@@ -131,7 +124,7 @@ if (route.query.repositories) {
 const { $color_map } = useNuxtApp();
 const colormap_list = ref(Object.keys($color_map));
 
-const updateUrl = () => {
+const updateUrl = (old_value, new_value) => {
   const query = {
     repositories: repositories.value.join(","),
     path: path.value.join(","),
@@ -141,7 +134,7 @@ const updateUrl = () => {
     colormapMin: colormapMin.value,
     colormapMax: colormapMax.value,
   }
-  router.replace({query});
+  router.push({ query });
 }
 
 watch(repositories, updateUrl);

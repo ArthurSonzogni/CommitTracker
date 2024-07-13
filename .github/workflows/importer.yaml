@@ -57,6 +57,23 @@ jobs:
 
       # ------------------------------------------------------------------------
 
+      - name: Generate treemap data
+        run: |
+          cd importer
+          yarn run treemap
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push treemap data
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public/treemap/
+          publish_branch: treemap
+          force_orphan: true
+
+      # ------------------------------------------------------------------------
+
       - name: Fetch fuzz data
         run: |
           cd importer

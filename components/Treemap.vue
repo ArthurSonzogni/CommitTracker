@@ -1,12 +1,16 @@
 <template>
   <div ref="container" align="center">
-    <table class="tooltip" ref="tooltip">
+    <table class="treemap-tooltip" ref="tooltip">
       <thead>
-        <td ref="componentName"> </td>
-        <td> . </td>
-        <td> .. </td>
-        <td> % </td>
+        <tr>
+          <td> {{tooltip_title}} </td>
+          <td> . </td>
+          <td> .. </td>
+          <td> % </td>
+        </tr>
       </thead>
+      <tbody>
+      </tbody>
     </table>
     <svg :width="svgWidth" :height="svgHeight">
       <g ref="content"/>
@@ -21,14 +25,24 @@ import {hierarchy} from "d3-hierarchy";
 import {interpolateRgb} from "d3-interpolate";
 import {scaleLinear} from "d3-scale";
 import {select} from "d3-selection";
-import {treemapSquarify} from "d3-hierarchy";
+import {treemapBinary} from "d3-hierarchy";
 import {treemap} from "d3-hierarchy";
+import {hsl} from "d3-color";
 import "d3-transition";
 
 const { $color_map } = useNuxtApp();
 
 const container = ref<HTMLElement|null>(null);
 const content = ref<HTMLElement|null>(null);
+const tooltip = ref<HTMLElement|null>(null);
+const component_name = ref<HTMLElement|null>(null);
+const tooltip_title = ref("Tooltip");
+
+const fetchedData = shallowRef({});
+const data = shallowRef({});
+const current_data = shallowRef({});
+
+let colormapFunc = $color_map[0];
 
 const props = defineProps({
   repositories: { type:Array[String], default: () => ["chromium"],},
@@ -40,9 +54,7 @@ const props = defineProps({
   colormapMax: {},
 });
 
-const emits = defineEmits([
-  "zoomin"
-]);
+const emits = defineEmits(["zoomin"]);
 
 const svgWidth = ref(600);
 const svgHeight = ref(600);
@@ -57,7 +69,7 @@ const transition = function(d) {
 
 const getFieldColor = function(d) {
   let sum = 0;
-  for(const field of field_color) {
+  for(const field of props.field_color) {
     sum += d[field] || 0;
   }
   return sum;
@@ -65,48 +77,75 @@ const getFieldColor = function(d) {
 
 const getFieldSize = function(d) {
   let sum = 0;
-  for(const field of field_size) {
+  for(const field of props.field_size) {
     sum += d[field] || 0;
   }
   return sum;
 };
 
 const renderGroup = function(group, x, y) {
-  return group
-    .attr("transform", d => `translate(${x(d.x0)}, ${y(d.y0)})`)
-  ;
+  return group.attr("transform", d => `translate(${x(d.x0)}, ${y(d.y0)})`) ;
 };
 
 const renderRect = function(rect, x, y, hover) {
   return rect
-    .attr("rx", 7)
+    .attr("rx", 10)
     .attr("stroke", "white")
-    .attr("stroke-width", 2)
+    .attr("stroke-width", 5)
+    .attr("fill-opacity", 0.9)
     .attr('width', d => x(d.x1) - x(d.x0))
     .attr('height', d => y(d.y1) - y(d.y0))
     .style("fill", d => {
       const colorScale = scaleLinear()
-        .domain([colormapMin || 0, colormapMax || 1])
+        .domain([props.colormapMin || 0, props.colormapMax || 1])
         .range([0, 1])
       ;
       const color = getFieldColor(d.data);
       const size = getFieldSize(d.data);
-      const c1 = "white";
+      const c1 = "gray";
       const c2 = colormapFunc(colorScale(color / size));
-      return interpolateRgb(c1, c2)(hover ? 0.5 : 0.6);
+      return interpolateRgb(c1, c2)(hover ? 0.5 : 0.9);
     })
 };
 
-const renderText = function(text, index, _x, _y) {
+const initText = function(text, index) {
   return text
     .attr("text-anchor", "start")
-    .attr("alignment-baseline", "bottom")
-    .attr("font-size", "12px")
-    .attr("x", 6)
-    .attr("y", 18 + index * 14)
-    .attr("fill", index == 0 ? "black" : "rgb(100, 100, 100)")
-    .text(d => {
+    .attr("alignment-baseline", "middle")
+    .attr("x", 8)
+    .attr("opacity", 0.5 - index * 0.2)
+    .style("font-weight", index == 0 ? "bold" : "normal")
+  ;
+};
 
+const renderText = function(text, index, data) {
+  const colorScale = scaleLinear()
+    .domain([props.colormapMin || 0, props.colormapMax || 1])
+    .range([0, 1])
+  ;
+
+  const font_size = d => {
+    const total_size = getFieldSize(data.data);
+    const size = getFieldSize(d.data);
+    const percent = size / total_size * 10;
+    if (percent < 0.02) {
+      return 0;
+    }
+    return Math.min(20, Math.sqrt(percent) * 30);
+  }
+
+  return text
+    .style("fill", d => {
+      const color = getFieldColor(d.data);
+      const size = getFieldSize(d.data);
+      const c2 = colormapFunc(colorScale(color / size));
+      // Try to get a good contrast between the text and the background.
+      const c1 = hsl(c2).l < 0.5 ? "white" : "black";
+      return c1;
+    })
+    .style("font-size", font_size)
+    .attr("y", d => 5 + font_size(d) * (index + 1) * 1.2)
+    .text(d => {
       const name = d.data.name;
       const color = getFieldColor(d.data);
       const size = getFieldSize(d.data);
@@ -121,7 +160,7 @@ const renderText = function(text, index, _x, _y) {
   ;
 };
 
-const render = function(group, data, x, y) {
+const render = function(group, data, x, y, is_zoom = false) {
   const join = d => {
     return d.join(
       enter => {
@@ -131,19 +170,23 @@ const render = function(group, data, x, y) {
         const text_2 = group.append("text")
         renderGroup(group, x, y);
         renderRect(rect, x, y, false)
-        renderText(text_1, 0, x, y);
-        renderText(text_2, 1, x, y);
+        initText(text_1, 0);
+        initText(text_2, 1);
+        renderText(text_1, 0, data);
+        renderText(text_2, 1, data);
         return group;
       },
 
       update => {
         const group = transition(update);
-        const rect = transition(update.select("rect"));
-        const text = transition(update.selectAll("text"));
+        const rect = group.select("rect");
+        const text = group.selectAll("text");
         renderGroup(group, x, y);
         renderRect(rect, x, y, false)
         text.each((_d, i, nodes) => {
-          renderText(select(nodes[i]), i, x, y);
+          const node = select(nodes[i]);
+          const n = is_zoom ? node : transition(node);
+          renderText(n, i, data);
         });
         return update;
       },
@@ -164,37 +207,53 @@ const render = function(group, data, x, y) {
     .on("click", (_event, d) => zoomin(d))
 
   child
-    .on("mousemove", (event, d) => {
-      const rect = select(event.currentTarget).select("rect");
-      renderRect(rect, x, y, true)
+  .on("mousemove", (event, d) => {
+    const rect = select(event.currentTarget).select("rect");
+    renderRect(rect, x, y, true)
 
-      select(tooltip).text(d.data.name);
+    tooltip_title.value = d.data.name;
+    select(tooltip.value).style("opacity", 1.0)
 
-      const tooltip = select(tooltip);
-      tooltip.style("opacity", 1.0)
+    const width = tooltip.value.clientWidth;
+    const height = tooltip.value.clientHeight;
+    const max_right = window.innerWidth - width - 20;
+    const max_bottom = window.innerHeight - height - 20;
+    let mouse_x = Math.min(event.pageX + 20, max_right);
+    let mouse_y = Math.min(event.pageY + 20, max_bottom);
+    if (mouse_x == max_right && mouse_y == max_bottom) {
+      mouse_x = event.pageX - width - 20;
+      mouse_y = event.pageY - height- 20;
+    }
 
+    select(tooltip.value)
+      .style("left", mouse_x + "px")
+      .style("top", mouse_y + "px")
 
-      const width = tooltip.offsetWidth;
-      const height = tooltip.offsetHeight;
-      const max_left = window.innerWidth - width - 20;
-      const max_top = window.innerHeight - height - 20;
-      let mouse_x = Math.min(event.pageX + 20, max_left);
-      let mouse_y = Math.min(event.pageY + 20, max_top);
-      if (mouse_x == max_left && mouse_y == max_top) {
-        mouse_x = event.pageX - width - 20;
-        mouse_y = event.pageY - height- 20;
-      }
+    const fields = []
+      .concat(props.field_size)
+      .concat(props.field_color)
 
-  tooltip
-    .style("left", `${mouse_x}px`)
-    .style("top", mouse_y + "px")
+    const update = tr => {
+      const v1 = tr.select("td.v1");
+      const v2 = tr.select("td.v2");
+      const v3 = tr.select("td.v3");
+      const v4 = tr.select("td.v4");
+      v1.text(field => field)
+      v2.text(field => d.data[field] || 0)
+      v3.text(field => data.data[field] || 0)
+      v4.text(field => {
+        const value = d.data[field] || 0;
+        const total = data.data[field] || 0;
+        const percent = Math.floor(100 * value / total);
+        return percent + "%";
+      });
+      return tr;
+    }
 
-  tooltip
+    select(tooltip.value)
+    .select("tbody")
     .selectAll("tr")
-    .data([]
-      .concat(field_size)
-      .concat(field_color)
-    )
+    .data(fields)
     .join(
       enter => {
         const row = enter.append("tr");
@@ -206,24 +265,9 @@ const render = function(group, data, x, y) {
         v2.attr("class", "v2");
         v3.attr("class", "v3");
         v4.attr("class", "v4");
-        return row
+        return update(row)
       },
-      update => {
-        const v1 = update.select("td.v1");
-        const v2 = update.select("td.v2");
-        const v3 = update.select("td.v3");
-        const v4 = update.select("td.v4");
-        v1.text(field => field)
-        v2.text(field => d.data[field] || 0)
-        v3.text(field => data.data[field] || 0)
-        v4.text(field => {
-          const value = d.data[field] || 0;
-          const total = data.data[field] || 0;
-          const percent = Math.floor(100 * value / total);
-          return percent + "%";
-        });
-        return update;
-      },
+      update,
       exit => exit.remove(),
     )
   })
@@ -231,35 +275,34 @@ const render = function(group, data, x, y) {
     const rect = select(event.currentTarget).select("rect");
     renderRect(rect, x, y, false)
 
-    const tooltip = select(tooltip);
-    tooltip.style("opacity", 0.0)
+    select(tooltip.value).style("opacity", 0.0)
   })
 };
 
 const zoomin = function(child) {
-  emit("zoomin", child.data.name)
+  emits("zoomin", child.data.name)
 };
 
 const zoom = async function(data_old, data_new) {
   // Remove the previous content by fading them out.
-  const old_content = select(content)
+  const old_content = select(content.value)
     .select('g')
   const new_content =
-    select(content)
+    select(content.value)
     .append("g")
 
   // Draw the old and new contents from the old content zoom.
   {
     const x = scaleLinear()
       .domain([data_old.x0, data_old.x1])
-      .rangeRound([0, svgWidth])
+      .rangeRound([0, svgWidth.value])
     ;
     const y = scaleLinear()
       .domain([data_old.y0, data_old.y1])
-      .rangeRound([0, svgHeight])
+      .rangeRound([0, svgHeight.value])
     ;
-    render(old_content, data_old, x, y)
-    render(new_content, data_new, x, y)
+    render(old_content, data_old, x, y, true)
+    render(new_content, data_new, x, y, true)
   }
 
   // Wait for new content opacity transition from zero to one.
@@ -270,14 +313,14 @@ const zoom = async function(data_old, data_new) {
   {
     const x = scaleLinear()
       .domain([data_new.x0, data_new.x1])
-      .rangeRound([0, svgWidth])
+      .rangeRound([0, svgWidth.value])
     ;
     const y = scaleLinear()
       .domain([data_new.y0, data_new.y1])
-      .rangeRound([0, svgHeight])
+      .rangeRound([0, svgHeight.value])
     ;
-    render(old_content, data_old, x, y)
-    render(new_content, data_new , x, y)
+    render(old_content, data_old, x, y, true)
+    render(new_content, data_new , x, y, true)
 
     old_content
       .attr("opacity", 1)
@@ -291,28 +334,46 @@ const zoom = async function(data_old, data_new) {
 };
 
 const mytreemap = function(data) {
-  const data_with_layout = hierarchy(data)
-    .sum(d => {
-      if (d.children.length != 0) {
-        return 0;
-      }
-      return getFieldSize(d);
-    })
-  ;
-
+  const data_with_layout = hierarchy(data).sum(d => {
+    return d.children.length ? 0 : getFieldSize(d);
+  });
   const map = treemap()
-    .tile(treemapSquarify)
-    .size([svgWidth, svgHeight])
+    .tile(treemapBinary)
+    .size([svgWidth.value, svgHeight.value*2])
     .round(true)
 
-  return map(data_with_layout);
+  const out = map(data_with_layout);
+  return out;
 };
 
 const fetchEntries = async function() {
-  const response = await fetch(`/data/${props.repositories[0]}/treemap/latest.json`);
-  const data = await response.json();
+  // Filter cpp files:
+  const filter = entry => {
+    if (!entry.children) {
+      for(const extension of [".h", ".cc", ".cpp", ".c", ".hpp"]) {
+        if (entry.name.endsWith(extension)) {
+          return entry;
+        }
+      }
+      return null;
+    }
 
+    const children = entry.children.map(filter).filter(x => x);
+    if (children.length == 0) {
+      return null;
+    }
+    return { ...entry, children };
+  }
+
+  const response = await fetch(`/treemap/${props.repositories[0]}/latest.json`);
+  const data = filter(await response.json());
+
+  // Propagate the field values to the parents:
   const propagate = entry => {
+    if (!entry.children) {
+      entry.children = [];
+      return;
+    }
     for(const child of entry.children) {
       propagate(child)
       for(const field in child) {
@@ -328,62 +389,52 @@ const fetchEntries = async function() {
     }
   };
   propagate(data);
-  fetchedData = data;
-};
-
-const resize = function() {
-  try {
-    const aspect_ratio = window.innerHeight/ window.innerWidth;
-    svgWidth.value = container.clientWidth;
-    svgHeight.value = svgWidth * aspect_ratio - 200;
-  } catch (e) {
-    console.log(e);
-  }
-  paramsChanged()
+  fetchedData.value = data;
 };
 
 const getCurrentDataFromPath = function(path) {
-  let data = data;
+  let current_data = data.value
   for(const name of path) {
-    for(let child of data.children) {
+    for(let child of current_data.children) {
       if (child.data.name == name) {
-        data = child;
+        current_data = child;
         break;
       }
     }
   }
-  return data;
+  return current_data;
 };
 
 const refresh = function() {
-  colormapFunc = $color_map[colormap];
+  colormapFunc = $color_map[props.colormap];
 
-  if (!select(content).select("g").node()) {
-    select(content).append("g")
+  if (!select(content.value).select("g").node()) {
+    select(content.value).append("g")
   }
 
-  const data = getCurrentDataFromPath(path);
+  const data = getCurrentDataFromPath(props.path);
 
   const group =
-    select(content)
+    select(content.value)
     .select("g")
 
   const x = scaleLinear()
     .domain([data.x0, data.x1])
-    .rangeRound([0, svgWidth])
+    .rangeRound([0, svgWidth.value])
   ;
   const y = scaleLinear()
     .domain([data.y0, data.y1])
-    .rangeRound([0, svgHeight])
+    .rangeRound([0, svgHeight.value])
   ;
+
   render(group, data, x, y);
 
-  current_data = data;
+  current_data.data = data;
 };
 
 const paramsChanged = async function() {
   await fetchEntries();
-  data = mytreemap(fetchedData)
+  data.value = mytreemap(fetchedData.value);
   refresh();
 };
 
@@ -409,6 +460,17 @@ watch(() => [
 
 watch(path_wrapped, pathChanged);
 
+const resize = function() {
+  try {
+    const aspect_ratio = window.innerHeight / window.innerWidth;
+    svgWidth.value = container.value.clientWidth;
+    svgHeight.value = svgWidth.value * aspect_ratio - 220;
+  } catch (e) {
+    console.log(e);
+  }
+  paramsChanged()
+};
+
 onMounted(() => {
   resize();
   window.addEventListener("resize", resize);
@@ -416,46 +478,49 @@ onMounted(() => {
 
 </script>
 
-<style scoped>
+<style lang="scss">
 
-.tooltip {
-  backdrop-filter: blur(10px);
+.treemap-tooltip {
+  backdrop-filter: blur(5px);
   position: absolute;
   pointer-events: none;
   color: black;
   z-index:100;
   opacity: 0;
-  background: rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 2px 10px rgba(0, 0, 0, 0.5),
+    inset 0 2px 10px rgba(255, 255, 255, 0.9);
+
+  thead {
+    font-weight: bold;
+    background-color:rgba(255, 128, 0, 0.35);
+  }
+
+  td {
+    border: 1px solid black;
+    padding: 5px;
+    text-align: left;
+  }
+
+  tbody {
+    tr:nth-child(even) {
+      background-color:rgba(255, 255, 255, 0.35);
+    }
+
+    tr:nth-child(odd) {
+      background-color:rgba(128, 128, 128, 0.35);
+    }
+  }
 }
 
-.tooltip >>> td {
-  border: 0.1px solid black;
-  padding: 5px;
-}
+//  tr {
+//    :nth-child(even) {
+//      background-color:rgba(255, 255, 255, 0.35);
+//    }
+//    :nth-child(odd) {
+//      background-color:rgba(220, 220, 220, 0.35);
+//    }
+//  }
 
-.tooltip >>> td {
-  text-align:right;
-}
-
-.tooltip >>> thead td {
-  text-align:center;
-}
-
-.tooltip >>> thead td {
-  background:rgba(255, 255, 255, 0.5);
-}
-
-.tooltip >>> thead td:first-child {
-  border: 0;
-  background: rgba(255, 0, 255, 0.0);
-  font-weight: bold;
-}
-
-.tooltip >>> tr:nth-child(even) {
-  background:rgba(220, 220, 220, 0.5);
-}
-.tooltip >>> tr:nth-child(odd) {
-  background:rgba(255, 255, 255, 0.5);
-}
 
 </style>

@@ -9,10 +9,15 @@ async function processRepositories() {
   const repositories = JSON5.parse(await fs.readFile(repositories_file, "utf8"));
   for (const repository of repositories) {
     await processRepository(repository);
+    break;
   }
 }
 
 async function processRepository(repo) {
+  if (repo.treemap == false) {
+    return
+  }
+
   console.log(`Processing ${repo.owner}/${repo.repository}`)
   // Git clone
   {
@@ -22,26 +27,30 @@ async function processRepository(repo) {
         --depth=1 \
         --single-branch \
         --progress \
+        --verbose \
         https://github.com/${repo.owner}/${repo.repository} ${repo.dirname}
     `)
     const shell = spawn("sh", ["./script.sh"]);
+    shell.stdout.on("data", chunk => { console.log(chunk.toString()); });
+    shell.stderr.on("data", chunk => { console.log(chunk.toString()); });
     await new Promise(r => shell.on("close", r));
   }
 
   const root = {
     name: "/",
-    children: [],
   }
 
-  const entries_filename= `../public/data/chromium/treemap/entries.json`;
-  const entries = JSON.parse(await fs.readFile(entries_filename, "utf8"));
-  for (const entry of entries) {
+  const entries_filename= `../treemap.json5`;
+  const entries = JSON5.parse(await fs.readFile(entries_filename, "utf8"));
+  await fs.writeFile("../public/treemap/entries.json", JSON.stringify(entries, null, 1));
+
+  for (const entry of entries.metrics) {
     await ProcessEntry(repo, root, entry);
   }
+  console.log(JSON.stringify(root, null, 2));
 
-  await fs.mkdir(`../public/data/${repo.dirname}/treemap/`, { recursive: true });
-  const filename = `../public/data/${repo.dirname}/treemap/latest.json`;
-
+  await fs.mkdir(`../public/treemap/${repo.dirname}/`, { recursive: true });
+  const filename = `../public/treemap/${repo.dirname}/latest.json`;
   await fs.writeFile(filename, JSON.stringify(root));
 
   // Remove git repository
@@ -62,24 +71,14 @@ async function processRepository(repo) {
 //   file        : string,
 // }
 async function ProcessEntry(repo, root, entry) {
-  //if (repo.script) {
-    //await fs.writeFile("script.sh", `
-      //cd ./${repo.dirname};
-      //../../public/data/chromium/treemap/scripts/${repo.script};
-      //cd ..;
-    //`)
-  //} else {
-    await fs.writeFile("script.sh", `
-      cd ./${repo.dirname};
-      git grep "${entry.pattern}" \
-        | cut -f1 -d':' \
-        | grep -v "test" \
-        | grep -v "codelabs" \
-        | grep -v "/tools" \
-        | grep "\\.h\\|\\.cc"
-      cd ..
-    `)
-  //}
+  console.log(`Processing entry ${entry.name}`);
+  console.log(entry);
+  await fs.writeFile("script.sh", `
+    cd ./${repo.dirname}
+    cd ${repo.cone ? repo.cone : "."}
+    ${entry.script}
+    cd ..;
+  `)
 
   let output = "";
   const shell = spawn("sh", ["./script.sh"]);
@@ -93,6 +92,7 @@ async function ProcessEntry(repo, root, entry) {
     for(const component of line.split('/')) {
       let found = false;
       while(true) {
+        current.children ||= [];
         for(const child of current.children) {
           if (child.name == component) {
             found = true;
@@ -105,7 +105,6 @@ async function ProcessEntry(repo, root, entry) {
 
         current.children.push({
           name: component,
-          children: []
         })
         current.children.sort((a,b) => a.name < b.name);
       }

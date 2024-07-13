@@ -1,25 +1,25 @@
 <template>
-    <b-field expanded>
-        <b-taginput
-            ref="input"
-            :value="value"
-            @input="updateInput"
-            @typing="computeFilteredList"
-            :data="entryListFiltered"
-            :allow-new=false
-            open-on-focus
-            autocomplete
-            icon="label"
-            field="this"
-            :placeholder="placeholder"
-            type="is-primary"
-            size="is-medium"
-            >
-        </b-taginput>
-    </b-field>
+    <b-taginput
+        ref="input"
+        v-model="value"
+        @input="updateInput"
+        @typing="computeFilteredList"
+        :data="entryListFiltered"
+        :allow-new=false
+        open-on-focus
+        autocomplete
+        icon="label"
+        field="this"
+        :placeholder="placeholder"
+        type="is-primary"
+        size="is-medium"
+        >
+    </b-taginput>
 </template>
 
 <script setup lang="ts">
+
+import entries from '../public/treemap/entries.json'
 
 const value = defineModel("value");
 
@@ -39,8 +39,7 @@ const entryList = ref([]);
 const entryListFiltered = ref([]);
 
 const fetchEntries = async () => {
-    const response = await fetch("/data/chromium/treemap/entries.json");
-    const list = await response.json();
+    const list = entries.metrics;
     entryList.value = list.map(e => e.file);
     entryListFiltered.value = entryList.value;
 };
