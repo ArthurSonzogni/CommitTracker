@@ -47,7 +47,6 @@ async function processRepository(repo) {
   for (const entry of entries.metrics) {
     await ProcessEntry(repo, root, entry);
   }
-  console.log(JSON.stringify(root, null, 2));
 
   await fs.mkdir(`../public/treemap/${repo.dirname}/`, { recursive: true });
   const filename = `../public/treemap/${repo.dirname}/latest.json`;

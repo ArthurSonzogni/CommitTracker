@@ -68,13 +68,8 @@
 
     <section class="section">
       <p>
-        Data is updated automatically every weeks. This is a self modifying git
-        repository.
-      </p>
-      <p>
-        New entries to track can be added by opening a PR against this
-        <a
-          href="https://github.com/ArthurSonzogni/ChromeCommitTracker/blob/main/static/data/chromium/treemap/entries.json">file</a>
+        Content is updated weekly. Please add your own entries to track, by
+        modifying the file: <a href="https://github.com/ArthurSonzogni/ChromeCommitTracker/blob/main/treemap.json5">file</a>
       </p>
     </section>
 
