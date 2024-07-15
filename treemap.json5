@@ -75,6 +75,26 @@
       "description": "The number of c++ files in production code",
       "script": "git ls-files",
       "file": "file"
+    },
+    {
+      // Questions: Should we count the number of occurrences of
+      // UNSAFE_BUFFERS(...) or the number of files that contain
+      // UNSAFE_BUFFERS(...)? The current implementation counts the
+      // number of occurrences.
+      "name": "UNSAFE_BUFFERS",
+      "description": "The occurences of UNSAFE_BUFFERS(...)",
+      "script": "git grep 'UNSAFE_BUFFERS(' | cut -d: -f1",
+      "file": "unsafe_buffers"
+    },
+    {
+      // Questions: Should we count the number of occurrences of
+      // [[clang::unsafe_buffer_usage]] or the number of files that contain
+      // [[clang::unsafe_buffer_usage]]? The current implementation counts the
+      // number of occurrences.
+      "name": "[[clang::unsafe_buffer_usage]]",
+      "description": "The occurences of [[clang::unsafe_buffer_usage]]",
+      "script": "git grep '\\[\\[clang::unsafe_buffer_usage\\]\\]' | cut -d: -f1",
+      "file": "clang_unsafe_buffer_usage",
     }
   ]
 }
