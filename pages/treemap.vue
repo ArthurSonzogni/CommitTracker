@@ -140,6 +140,35 @@ watch(field_color, updateUrl);
 watch(field_size, updateUrl);
 watch(path, updateUrl);
 
+// Update the parameters when the URL changes
+window.onpopstate = async () => {
+
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  console.log("popstate");
+  const query = route.query;
+  if (query.repositories) {
+    repositories.value = query.repositories.split(",");
+  }
+  if (query.path) {
+    path.value = query.path.split(",");
+  }
+  if (query.field_color) {
+    field_color.value = query.field_color.split(",");
+  }
+  if (query.field_size) {
+    field_size.value = query.field_size.split(",");
+  }
+  if (query.colormap) {
+    colormap.value = query.colormap;
+  }
+  if (query.colormapMin) {
+    colormapMin.value = parseFloat(query.colormapMin);
+  }
+  if (query.colormapMax) {
+    colormapMax.value = parseFloat(query.colormapMax);
+  }
+}
+
 </script>
 
 <style scoped>

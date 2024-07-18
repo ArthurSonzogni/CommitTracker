@@ -29,6 +29,7 @@ import {treemapBinary} from "d3-hierarchy";
 import {treemap} from "d3-hierarchy";
 import {hsl} from "d3-color";
 import "d3-transition";
+import {transition} from "d3-transition";
 
 const { $color_map } = useNuxtApp();
 
@@ -40,7 +41,6 @@ const tooltip_title = ref("Tooltip");
 
 const fetchedData = shallowRef({});
 const data = shallowRef({});
-const current_data = shallowRef({});
 
 let colormapFunc = $color_map[0];
 
@@ -58,14 +58,6 @@ const emits = defineEmits(["zoomin"]);
 
 const svgWidth = ref(600);
 const svgHeight = ref(600);
-
-const transition = function(d) {
-  return d
-    .transition()
-    .ease(easeCubicInOut)
-    .duration(500)
-  ;
-};
 
 const getFieldColor = function(d) {
   let sum = 0;
@@ -160,7 +152,7 @@ const renderText = function(text, index, data) {
   ;
 };
 
-const render = function(group, data, x, y, is_zoom = false) {
+const render = function(group, data, x, y, is_zoom = false, transition) {
   const join = d => {
     return d.join(
       enter => {
@@ -178,14 +170,14 @@ const render = function(group, data, x, y, is_zoom = false) {
       },
 
       update => {
-        const group = transition(update);
+        const group = update.transition(transition);
         const rect = group.select("rect");
         const text = group.selectAll("text");
         renderGroup(group, x, y);
         renderRect(rect, x, y, false)
         text.each((_d, i, nodes) => {
           const node = select(nodes[i]);
-          const n = is_zoom ? node : transition(node);
+          const n = is_zoom ? node : node.transition(transition);
           renderText(n, i, data);
         });
         return update;
@@ -284,12 +276,17 @@ const zoomin = function(child) {
 };
 
 const zoom = async function(data_old, data_new) {
+  const transition_imm = transition()
+    .duration(0)
+    .ease(easeCubicInOut)
+
+  const transition_zoom = transition()
+    .duration(500)
+    .ease(easeCubicInOut)
+
   // Remove the previous content by fading them out.
-  const old_content = select(content.value)
-    .select('g')
-  const new_content =
-    select(content.value)
-    .append("g")
+  const old_content = select(content.value).select('g')
+  const new_content = select(content.value).append("g")
 
   // Draw the old and new contents from the old content zoom.
   {
@@ -301,13 +298,9 @@ const zoom = async function(data_old, data_new) {
       .domain([data_old.y0, data_old.y1])
       .rangeRound([0, svgHeight.value])
     ;
-    render(old_content, data_old, x, y, true)
-    render(new_content, data_new, x, y, true)
+    render(old_content, data_old, x, y, true, transition_imm)
+    render(new_content, data_new, x, y, true, transition_imm)
   }
-
-  // Wait for new content opacity transition from zero to one.
-  new_content.attr("opacity", 0)
-  transition(new_content).attr("opacity", 1.0)
 
   // Draw the old and new contents from the new content zoom.
   {
@@ -319,18 +312,28 @@ const zoom = async function(data_old, data_new) {
       .domain([data_new.y0, data_new.y1])
       .rangeRound([0, svgHeight.value])
     ;
-    render(old_content, data_old, x, y, true)
-    render(new_content, data_new , x, y, true)
-
-    old_content
-      .attr("opacity", 1)
-      .transition()
-      .duration(600)
-      .attr("opacity", 0)
-      .remove()
+    render(old_content, data_old, x, y, true, transition_zoom)
+    render(new_content, data_new, x, y, true, transition_zoom)
   }
 
-  return;
+
+  // Transition the opacity of the old and new contents.
+  {
+    old_content
+      .attr("opacity", 1)
+      .transition(transition_zoom)
+      .attr("opacity", 0)
+
+    new_content
+      .attr("opacity", 0)
+      .transition(transition_zoom)
+      .attr("opacity", 1)
+  }
+
+  // Delete the old content after the transition.
+  old_content
+    .transition(transition_zoom)
+    .remove()
 };
 
 const mytreemap = function(data) {
@@ -427,9 +430,11 @@ const refresh = function() {
     .rangeRound([0, svgHeight.value])
   ;
 
-  render(group, data, x, y);
+  const transition_refresh = transition()
+    .duration(300)
+    .ease(easeCubicInOut)
 
-  current_data.data = data;
+  render(group, data, x, y, false, transition_refresh)
 };
 
 const paramsChanged = async function() {
