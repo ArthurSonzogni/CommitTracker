@@ -1,0 +1,71 @@
+metrics:
+
+# General ----------------------------------------------------------------------
+
+- name: file
+  description: The number of c++ files in production code
+  script: >-
+    git ls-files -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
+  file: file
+
+# MiraclePtr -------------------------------------------------------------------
+
+- name: raw_ptr
+  description: The number of raw_ptr<T>
+  script: >-
+    git grep -c 'raw_ptr<' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
+  file: raw_ptr
+
+- name: raw_ref
+  description: The number of raw_ref<T>
+  script: >-
+    git grep -c 'raw_ref<' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
+  file: raw_ref
+
+- name: RAW_PTR_EXCLUSION
+  description: The number of RAW_PTR_EXCLUSION
+  script: >-
+    git grep -c 'RAW_PTR_EXCLUSION' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
+  file: raw_ptr_exclusion
+
+- name: DanglingUntriaged
+  description: The number of DanglingUntriaged
+  script: >-
+    git grep -c 'DanglingUntriaged' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
+  file: dangling_untriaged
+
+- name: AllowPtrArithmetic
+  description: The number of AllowPtrArithmetic
+  script: >-
+    git grep -c 'AllowPtrArithmetic' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
+  file: allow_ptr_arithmetic
+
+# Spanification ----------------------------------------------------------------
+
+- name: UNSAFE_BUFFERS
+  description: The occurrences of UNSAFE_BUFFERS(...)
+  script: >-
+    git grep -c 'UNSAFE_BUFFERS' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
+  file: unsafe_buffers
+
+- name: allow_unsafe_buffers
+  description: The number of files with allow_unsafe_buffers
+  script: >-
+    git grep -c 'allow_unsafe_buffers' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
+  file: allow_unsafe_buffers
+
+
+- name: "[[clang::unsafe_buffer_usage]]"
+  description: The occurrences of [[clang::unsafe_buffer_usage]]
+  script: >-
+    git grep -c '\[\[clang::unsafe_buffer_usage\]\]' --
+    '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
+  file: clang_unsafe_buffer_usage
+
+# Misc -------------------------------------------------------------------------
+
+- name: TODO
+  description: The number of TODO
+  script: >-
+    git grep -c 'TODO' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
+  file: todo

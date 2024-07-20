@@ -1,20 +1,68 @@
 <template>
-  <div ref="container" align="center">
-    <table class="treemap-tooltip" ref="tooltip">
-      <thead>
-        <tr>
-          <td> {{tooltip_title}} </td>
-          <td> . </td>
-          <td> .. </td>
-          <td> % </td>
-        </tr>
-      </thead>
-      <tbody>
-      </tbody>
-    </table>
-    <svg :width="svgWidth" :height="svgHeight">
-      <g ref="content"/>
-    </svg>
+  <div>
+    <div class="sticky top section">
+      <slot name="top"></slot>
+    </div>
+
+    <div class="section" style="padding-top: 0;">
+      <div class="container">
+        <div v-if="!fetchedData" style="height: 70vh;">
+          <b-skeleton
+            v-for="i in 20"
+            :key="i"
+            :width="(i*16546+13*i*i)%100 + '%'"
+            animated
+            ></b-skeleton>
+        </div>
+        <div v-else ref="container" >
+          <!-- Tooltip -->
+          <table class="treemap-tooltip" ref="tooltip">
+            <thead>
+              <tr>
+                <td> {{tooltip_title}} </td>
+                <td> . </td>
+                <td> .. </td>
+                <td> % </td>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+
+          <!-- Treemap -->
+          <svg :width="svgWidth" :height="svgHeight">
+            <g ref="content"/>
+          </svg>
+
+          <slot name="colormap"></slot>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="container">
+        <!-- Timeline -->
+        <div :width="svgWidth" :height="svgHeight">
+          <LineChart
+            v-if="history"
+            :data="history"
+            :width="svgWidth"
+            :height="svgHeight"
+            />
+          <b-skeleton
+            v-else
+            v-for="i in 20"
+            :key="i"
+            :width="(i*16546+13*i*i)%100 + '%'"
+            animated
+            />
+        </div>
+      </div>
+    </div>
+
+    <div class="sticky bottom section">
+      <slot name="bottom"></slot>
+    </div>
   </div>
 </template>
 
@@ -30,6 +78,7 @@ import {treemap} from "d3-hierarchy";
 import {hsl} from "d3-color";
 import "d3-transition";
 import {transition} from "d3-transition";
+import {format} from "d3-format";
 
 const { $color_map } = useNuxtApp();
 
@@ -39,8 +88,10 @@ const tooltip = ref<HTMLElement|null>(null);
 const component_name = ref<HTMLElement|null>(null);
 const tooltip_title = ref("Tooltip");
 
-const fetchedData = shallowRef({});
+const fetchedData = shallowRef(undefined);
 const data = shallowRef({});
+
+const history = shallowRef([]);
 
 let colormapFunc = $color_map[0];
 
@@ -52,6 +103,7 @@ const props = defineProps({
   colormap: {},
   colormapMin: {},
   colormapMax: {},
+  dates: {}
 });
 
 const emits = defineEmits(["zoomin"]);
@@ -62,7 +114,7 @@ const svgHeight = ref(600);
 const getFieldColor = function(d) {
   let sum = 0;
   for(const field of props.field_color) {
-    sum += d[field] || 0;
+    sum += d.summed_data[field] || 0;
   }
   return sum;
 };
@@ -70,7 +122,7 @@ const getFieldColor = function(d) {
 const getFieldSize = function(d) {
   let sum = 0;
   for(const field of props.field_size) {
-    sum += d[field] || 0;
+    sum += d.summed_data[field] || 0;
   }
   return sum;
 };
@@ -199,76 +251,79 @@ const render = function(group, data, x, y, is_zoom = false, transition) {
     .on("click", (_event, d) => zoomin(d))
 
   child
-  .on("mousemove", (event, d) => {
-    const rect = select(event.currentTarget).select("rect");
-    renderRect(rect, x, y, true)
+    .on("mousemove", (event, d) => {
+      const rect = select(event.currentTarget).select("rect");
+      renderRect(rect, x, y, true)
 
-    tooltip_title.value = d.data.name;
-    select(tooltip.value).style("opacity", 1.0)
+      tooltip_title.value = d.data.name;
+      select(tooltip.value).style("opacity", 1.0)
 
-    const width = tooltip.value.clientWidth;
-    const height = tooltip.value.clientHeight;
-    const max_right = window.innerWidth - width - 20;
-    const max_bottom = window.innerHeight - height - 20;
-    let mouse_x = Math.min(event.pageX + 20, max_right);
-    let mouse_y = Math.min(event.pageY + 20, max_bottom);
-    if (mouse_x == max_right && mouse_y == max_bottom) {
-      mouse_x = event.pageX - width - 20;
-      mouse_y = event.pageY - height- 20;
-    }
+      const container_bounds = container.value.getBoundingClientRect();
+      const bounds = content.value.getBoundingClientRect();
+      const tooltip_bounds = tooltip.value.getBoundingClientRect();
 
-    select(tooltip.value)
-      .style("left", mouse_x + "px")
-      .style("top", mouse_y + "px")
+      const max_right = bounds.right - tooltip_bounds.width;
+      const max_bottom = bounds.bottom - tooltip_bounds.height;
+      let mouse_x = Math.min(event.clientX + 20, max_right);
+      let mouse_y = Math.min(event.clientY + 20, max_bottom);
 
-    const fields = []
-      .concat(props.field_size)
-      .concat(props.field_color)
+      if (mouse_x == max_right && mouse_y == max_bottom) {
+        mouse_x = event.clientX - tooltip_bounds.width - 20;
+        mouse_y = event.clientY - tooltip_bounds.height - 20;
+      }
 
-    const update = tr => {
-      const v1 = tr.select("td.v1");
-      const v2 = tr.select("td.v2");
-      const v3 = tr.select("td.v3");
-      const v4 = tr.select("td.v4");
-      v1.text(field => field)
-      v2.text(field => d.data[field] || 0)
-      v3.text(field => data.data[field] || 0)
-      v4.text(field => {
-        const value = d.data[field] || 0;
-        const total = data.data[field] || 0;
-        const percent = Math.floor(100 * value / total);
-        return percent + "%";
-      });
-      return tr;
-    }
+      select(tooltip.value)
+        .style("left", (mouse_x - bounds.left) + "px")
+        .style("top", (mouse_y - bounds.top)+ "px")
 
-    select(tooltip.value)
-    .select("tbody")
-    .selectAll("tr")
-    .data(fields)
-    .join(
-      enter => {
-        const row = enter.append("tr");
-        const v1 = row.append("td");
-        const v2 = row.append("td");
-        const v3 = row.append("td");
-        const v4 = row.append("td");
-        v1.attr("class", "v1");
-        v2.attr("class", "v2");
-        v3.attr("class", "v3");
-        v4.attr("class", "v4");
-        return update(row)
-      },
-      update,
-      exit => exit.remove(),
-    )
-  })
-  .on("mouseleave", (event, _d) => {
-    const rect = select(event.currentTarget).select("rect");
-    renderRect(rect, x, y, false)
+      const fields = []
+        .concat(props.field_size)
+        .concat(props.field_color)
 
-    select(tooltip.value).style("opacity", 0.0)
-  })
+      const update = tr => {
+        const v1 = tr.select("td.v1");
+        const v2 = tr.select("td.v2");
+        const v3 = tr.select("td.v3");
+        const v4 = tr.select("td.v4");
+        v1.text(field => field)
+        v2.text(field => d.data.summed_data[field] || 0)
+        v3.text(field => data.data.summed_data[field] || 0)
+        v4.text(field => {
+          const value = d.data.summed_data[field] || 0;
+          const total = data.data.summed_data[field] || 0;
+          const percent = Math.floor(100 * value / total);
+          return percent + "%";
+        });
+        return tr;
+      }
+
+      select(tooltip.value)
+        .select("tbody")
+        .selectAll("tr")
+        .data(fields)
+        .join(
+          enter => {
+            const row = enter.append("tr");
+            const v1 = row.append("td");
+            const v2 = row.append("td");
+            const v3 = row.append("td");
+            const v4 = row.append("td");
+            v1.attr("class", "v1");
+            v2.attr("class", "v2");
+            v3.attr("class", "v3");
+            v4.attr("class", "v4");
+            return update(row)
+          },
+          update,
+          exit => exit.remove(),
+        )
+    })
+    .on("mouseleave", (event, _d) => {
+      const rect = select(event.currentTarget).select("rect");
+      renderRect(rect, x, y, false)
+
+      select(tooltip.value).style("opacity", 0.0)
+    })
 };
 
 const zoomin = function(child) {
@@ -342,14 +397,128 @@ const mytreemap = function(data) {
   });
   const map = treemap()
     .tile(treemapBinary)
-    .size([svgWidth.value, svgHeight.value*2])
+    .size([svgWidth.value, svgHeight.value*1.8])
     .round(true)
 
   const out = map(data_with_layout);
   return out;
 };
 
+const date_2020 = new Date("2020-01-01");
+
+// Updates are done weekly. To compress the temporal, dimension, we count the
+// number of week since 2020.
+const formatDate = date => {
+  return Math.floor((date - date_2020) / (7 * 24 * 60 * 60 * 1000));
+}
+
+const formatDateInverse = date => {
+  return new Date(date_2020.getTime() + date * 7 * 24 * 60 * 60 *
+    1000);
+}
+
+const computedSummedData = function(entry) {
+  const date = formatDate(props.dates[1]);
+  // Propagate the field values to the parents:
+  const propagate = entry => {
+    entry.children ||= [];
+
+    const summed_data = {};
+    if (entry.data) {
+      Object
+        .keys(entry.data)
+        .sort((a,b) => parseInt(a) - parseInt(b))
+        .filter(key => parseInt(key) <= date)
+        .forEach(datapoint => {
+          for(const field in entry.data[datapoint]) {
+            summed_data[field] = entry.data[datapoint][field];
+          }
+        })
+    }
+
+    for(const child of entry.children) {
+      propagate(child)
+      for(const field in child.summed_data) {
+        summed_data[field] ||= 0;
+        summed_data[field] += child.summed_data[field];
+      }
+    }
+    entry.summed_data = summed_data;
+  };
+  propagate(entry);
+};
+
+const computeHistoricalData = (raw_data) => {
+  console.log("computeHistoricalData")
+  console.log("raw_data", raw_data)
+  history.value = [];
+  const min_date = formatDate(props.dates[0]);
+  const max_date = formatDate(props.dates[1]);
+
+  const fields = []
+    .concat(props.field_size)
+    .concat(props.field_color)
+
+  history.value = fields.map(field => {
+    const data = Array(max_date - min_date + 1).fill(0);
+    const visit = entry => {
+      for(const child of entry.children) {
+        visit(child);
+      }
+
+      if (!entry.data) {
+        return;
+      }
+
+      let current_date = min_date;
+      let current_value = 0;
+      Object
+        .keys(entry.data)
+        .filter(key => parseInt(key) <= max_date)
+        .sort((a,b) => parseInt(a) - parseInt(b))
+        .forEach(datapoint => {
+          // Carry over the values from the previous datapoint.
+          while(current_date < parseInt(datapoint)) {
+            data[current_date - min_date] += current_value;
+            current_date += 1;
+          }
+          // Update the current values.
+          const proposed = entry?.data[datapoint]?.[field];
+          if (proposed !== undefined) {
+            current_value = proposed;
+          }
+          // Add the current values to the data.
+          data[datapoint - min_date] += current_value;
+          // Move to the next date.
+          current_date += 1;
+        })
+      // Carry over the values from the last datapoint.
+      while(current_date <= max_date) {
+        data[current_date - min_date] += current_value;
+        current_date += 1;
+      }
+    };
+    visit(raw_data);
+
+    // Extra_label is the last value.
+    return {
+      label: field,
+      extra_label: " = " + format(",d")(data.slice(-1)[0]),
+      formatter: format(",d"),
+      values: data.map((value, index) => {
+        return {
+          x:formatDateInverse(min_date + index),
+          y:value
+        };
+      })
+    };
+  });
+}
+
 const fetchEntries = async function() {
+  if (fetchedData.value) {
+    return;
+  }
   // Filter cpp files:
   const filter = entry => {
     if (!entry.children) {
@@ -370,28 +539,7 @@ const fetchEntries = async function() {
 
   const response = await fetch(`/treemap/${props.repositories[0]}/latest.json`);
   const data = filter(await response.json());
-
-  // Propagate the field values to the parents:
-  const propagate = entry => {
-    if (!entry.children) {
-      entry.children = [];
-      return;
-    }
-    for(const child of entry.children) {
-      propagate(child)
-      for(const field in child) {
-        if (field == "children") {
-          continue;
-        }
-        if (field == "name") {
-          continue;
-        }
-        entry[field] ||= 0;
-        entry[field] += child[field];
-      }
-    }
-  };
-  propagate(data);
+  computedSummedData(data);
   fetchedData.value = data;
 };
 
@@ -416,6 +564,7 @@ const refresh = function() {
   }
 
   const data = getCurrentDataFromPath(props.path);
+  computeHistoricalData(data.data);
 
   const group =
     select(content.value)
@@ -438,15 +587,17 @@ const refresh = function() {
 };
 
 const paramsChanged = async function() {
-  await fetchEntries();
+  console.log("paramsChanged")
+  computedSummedData(fetchedData.value);
   data.value = mytreemap(fetchedData.value);
-  refresh();
+  await refresh();
 };
 
 const pathChanged = function(new_path, old_path) {
   const data_old = getCurrentDataFromPath(old_path);
   const data_new = getCurrentDataFromPath(new_path);
   zoom(data_old, data_new)
+  computeHistoricalData(data_new.data);
 };
 
 const path_wrapped = computed(() => [...props.path]);
@@ -455,6 +606,7 @@ watch(() => [
   props.repositories,
   props.field_size,
   props.field_color,
+  props.dates,
 ], paramsChanged);
 
 watch(() => [
@@ -465,23 +617,76 @@ watch(() => [
 
 watch(path_wrapped, pathChanged);
 
-const resize = function() {
-  try {
-    const aspect_ratio = window.innerHeight / window.innerWidth;
-    svgWidth.value = container.value.clientWidth;
-    svgHeight.value = svgWidth.value * aspect_ratio - 220;
-  } catch (e) {
-    console.log(e);
+const resize = async function() {
+  // Wait for `container` to be set.
+  while(!container.value) {
+    await new Promise((resolve) => setTimeout(resolve, 100));
   }
-  paramsChanged()
+
+  svgWidth.value = container.value.clientWidth;
+  svgHeight.value = Math.max(
+    svgWidth.value * 0.5,
+    window.innerHeight - 300
+  )
+  await paramsChanged();
 };
 
-onMounted(() => {
+onMounted(async () => {
+  await fetchEntries();
   resize();
   window.addEventListener("resize", resize);
 });
 
 </script>
+
+<style scoped>
+
+.sticky {
+  position: sticky;
+  width: 100%;
+  z-index: 2;
+}
+
+.sticky::before {
+  display: block;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 100%;
+  z-index: 2;
+
+  backdrop-filter: blur(4px);
+  background-color: rgba(255, 255, 255, 0.5);
+  content: '';
+  position:absolute;
+  transition: all 0.1s ease-in-out;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.sticky > * {
+  z-index: 3;
+  position: relative;
+}
+
+.sticky.top {
+  top: 0;
+  margin-top:0;
+  padding-top:15px;
+  margin-bottom:0;
+  padding-bottom:15px;
+}
+
+.sticky.bottom {
+  bottom: 0;
+  margin-bottom:0px;
+  padding-bottom:15px;
+}
+
+html[data-scrolltop= "1"] .sticky.top {
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+</style>
 
 <style lang="scss">
 
@@ -490,11 +695,11 @@ onMounted(() => {
   position: absolute;
   pointer-events: none;
   color: black;
-  z-index:100;
+  z-index: 1;
   opacity: 0;
   box-shadow:
-    0 2px 10px rgba(0, 0, 0, 0.5),
-    inset 0 2px 10px rgba(255, 255, 255, 0.9);
+  0 2px 10px rgba(0, 0, 0, 0.5),
+  inset 0 2px 10px rgba(255, 255, 255, 0.9);
 
   thead {
     font-weight: bold;
@@ -517,15 +722,5 @@ onMounted(() => {
     }
   }
 }
-
-//  tr {
-//    :nth-child(even) {
-//      background-color:rgba(255, 255, 255, 0.35);
-//    }
-//    :nth-child(odd) {
-//      background-color:rgba(220, 220, 220, 0.35);
-//    }
-//  }
-
 
 </style>
