@@ -62,7 +62,7 @@ const svgHeight = ref(600);
 const getFieldColor = function(d) {
   let sum = 0;
   for(const field of props.field_color) {
-    sum += d[field] || 0;
+    sum += d.data[field] || 0;
   }
   return sum;
 };
@@ -70,7 +70,7 @@ const getFieldColor = function(d) {
 const getFieldSize = function(d) {
   let sum = 0;
   for(const field of props.field_size) {
-    sum += d[field] || 0;
+    sum += d.data[field] || 0;
   }
   return sum;
 };
@@ -370,28 +370,37 @@ const fetchEntries = async function() {
 
   const response = await fetch(`/treemap/${props.repositories[0]}/latest.json`);
   const data = filter(await response.json());
+  console.log(data);
 
   // Propagate the field values to the parents:
   const propagate = entry => {
     if (!entry.children) {
       entry.children = [];
-      return;
     }
+
+    const data = {};
+    entry.data ||= [];
+
+    Object
+      .keys(entry.data)
+      .sort((a,b) => parseInt(a) - parseInt(b))
+      .forEach(datapoint => {
+        for(const field in entry.data[datapoint]) {
+          data[field] = entry.data[datapoint][field];
+        }
+      })
+    entry.data = data;
+
     for(const child of entry.children) {
       propagate(child)
-      for(const field in child) {
-        if (field == "children") {
-          continue;
-        }
-        if (field == "name") {
-          continue;
-        }
-        entry[field] ||= 0;
-        entry[field] += child[field];
+      for(const field in child.data) {
+        entry.data[field] ||= 0;
+        entry.data[field] += child.data[field];
       }
     }
   };
   propagate(data);
+  console.log(data);
   fetchedData.value = data;
 };
 
