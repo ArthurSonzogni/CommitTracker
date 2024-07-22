@@ -389,6 +389,11 @@ const zoom = async function(data_old, data_new) {
   old_content
     .transition(transition_zoom)
     .remove()
+
+  // Delay the historical data computation to avoid blocking the rendering.
+  await transition_zoom.end();
+
+  computeHistoricalData(data_new.data);
 };
 
 const mytreemap = function(data) {
@@ -449,8 +454,6 @@ const computedSummedData = function(entry) {
 };
 
 const computeHistoricalData = (raw_data) => {
-  console.log("computeHistoricalData")
-  console.log("raw_data", raw_data)
   history.value = [];
   const min_date = formatDate(props.dates[0]);
   const max_date = formatDate(props.dates[1]);
@@ -556,7 +559,7 @@ const getCurrentDataFromPath = function(path) {
   return current_data;
 };
 
-const refresh = function() {
+const refresh = async function() {
   colormapFunc = $color_map[props.colormap];
 
   if (!select(content.value).select("g").node()) {
@@ -564,7 +567,6 @@ const refresh = function() {
   }
 
   const data = getCurrentDataFromPath(props.path);
-  computeHistoricalData(data.data);
 
   const group =
     select(content.value)
@@ -584,20 +586,22 @@ const refresh = function() {
     .ease(easeCubicInOut)
 
   render(group, data, x, y, false, transition_refresh)
+
+  // Delay the historical data computation to avoid blocking the rendering.
+  await transition_refresh.end();
+  computeHistoricalData(data.data);
 };
 
 const paramsChanged = async function() {
-  console.log("paramsChanged")
   computedSummedData(fetchedData.value);
   data.value = mytreemap(fetchedData.value);
   await refresh();
 };
 
-const pathChanged = function(new_path, old_path) {
+const pathChanged = async function(new_path, old_path) {
   const data_old = getCurrentDataFromPath(old_path);
   const data_new = getCurrentDataFromPath(new_path);
-  zoom(data_old, data_new)
-  computeHistoricalData(data_new.data);
+  await zoom(data_old, data_new)
 };
 
 const path_wrapped = computed(() => [...props.path]);

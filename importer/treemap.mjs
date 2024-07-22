@@ -262,8 +262,8 @@ async function ProcessEntry(repo, date, root, entry) {
     file_occurrences[filename] += occurrences;
   })
 
-  console.log("Found", Object.keys(file_occurrences).length, "files");
-  console.log(file_occurrences);
+  //console.log("Found", Object.keys(file_occurrences).length, "files");
+  //console.log(file_occurrences);
 
   for(const [filename, occurrences] of Object.entries(file_occurrences)) {
     let current = root;

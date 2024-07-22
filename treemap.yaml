@@ -40,6 +40,12 @@ metrics:
     git grep -c 'AllowPtrArithmetic' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
   file: allow_ptr_arithmetic
 
+- name: container_experimental
+  description: The number of VectorExperimental, SetExperimental, CtnExperimental
+  script: >-
+    git grep -cE "(Vector|Set|Ctn)Experimental" -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
+  file: ctrn_expr
+
 # Spanification ----------------------------------------------------------------
 
 - name: UNSAFE_BUFFERS
