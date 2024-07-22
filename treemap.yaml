@@ -25,7 +25,7 @@ metrics:
 - name: RAW_PTR_EXCLUSION
   description: The number of RAW_PTR_EXCLUSION
   script: >-
-    git grep -c 'RAW_PTR_EXCLUSION' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
+    git grep -c 'RAW_PTR_EXCLUSION ' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
   file: raw_ptr_exclusion
 
 - name: DanglingUntriaged
@@ -48,25 +48,24 @@ metrics:
 
 # Spanification ----------------------------------------------------------------
 
-- name: UNSAFE_BUFFERS
-  description: The occurrences of UNSAFE_BUFFERS(...)
-  script: >-
-    git grep -c 'UNSAFE_BUFFERS' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
-  file: unsafe_buffers
-
 - name: allow_unsafe_buffers
   description: The number of files with allow_unsafe_buffers
   script: >-
     git grep -c 'allow_unsafe_buffers' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
   file: allow_unsafe_buffers
 
-
-- name: "[[clang::unsafe_buffer_usage]]"
-  description: The occurrences of [[clang::unsafe_buffer_usage]]
+- name: "UNSAFE_BUFFER_USAGE"
+  description: The occurrences of UNSAFE_BUFFER_USAGE(...)
   script: >-
-    git grep -c '\[\[clang::unsafe_buffer_usage\]\]' --
-    '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
-  file: clang_unsafe_buffer_usage
+    git grep -c 'UNSAFE_BUFFER_USAGE(' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
+  file: unsafe_buffer_usage
+
+- name: UNSAFE_BUFFERS
+  description: The occurrences of UNSAFE_BUFFERS(...)
+  script: >-
+    git grep -c 'UNSAFE_BUFFERS' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
+  file: unsafe_buffers
+
 
 # Misc -------------------------------------------------------------------------
 
