@@ -146,7 +146,7 @@ async function processRepository(repo, entries) {
   }
 
   const today = new Date();
-  let max_iterations = 5;
+  let max_iterations = 10;
   while(incremental || (date < today && max_iterations--)) {
     const date_id = formatDate(date)
 
