@@ -55,15 +55,15 @@ metrics:
   file: allow_unsafe_buffers
 
 - name: "UNSAFE_BUFFER_USAGE"
-  description: The occurrences of UNSAFE_BUFFER_USAGE(...)
+  description: The occurrences of UNSAFE_BUFFER_USAGE
   script: >-
-    git grep -c 'UNSAFE_BUFFER_USAGE(' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
+    git grep -c 'UNSAFE_BUFFER_USAGE' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
   file: unsafe_buffer_usage
 
 - name: UNSAFE_BUFFERS
   description: The occurrences of UNSAFE_BUFFERS(...)
   script: >-
-    git grep -c 'UNSAFE_BUFFERS' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
+    git grep -c 'UNSAFE_BUFFERS(' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
   file: unsafe_buffers
 
 
