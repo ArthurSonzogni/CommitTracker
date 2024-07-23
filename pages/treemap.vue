@@ -14,7 +14,7 @@
       >
 
       <template v-slot:top>
-          <b-field grouped>
+          <b-field>
             <TreemapInput
               v-model:value="field_size"
               placeholder="size"

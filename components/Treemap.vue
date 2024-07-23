@@ -453,8 +453,7 @@ const computedSummedData = function(entry) {
   propagate(entry);
 };
 
-const computeHistoricalData = (raw_data) => {
-  history.value = [];
+const computeHistoricalData = async (raw_data) => {
   const min_date = formatDate(props.dates[0]);
   const max_date = formatDate(props.dates[1]);
 
@@ -462,7 +461,9 @@ const computeHistoricalData = (raw_data) => {
     .concat(props.field_size)
     .concat(props.field_color)
 
-  history.value = fields.map(field => {
+  const out = [];
+  for(const field of fields) {
+    await new Promise((resolve) => setTimeout(resolve, 0));
     const data = Array(max_date - min_date + 1).fill(0);
     const visit = entry => {
       for(const child of entry.children) {
@@ -504,7 +505,7 @@ const computeHistoricalData = (raw_data) => {
     visit(raw_data);
 
     // Extra_label is the last value.
-    return {
+    out.push({
       label: field,
       extra_label: " = " + format(",d")(data.slice(-1)[0]),
       formatter: format(",d"),
@@ -514,8 +515,9 @@ const computeHistoricalData = (raw_data) => {
           y:value
         };
       })
-    };
-  });
+    });
+  };
+  history.value = out;
 }
 
 const fetchEntries = async function() {
