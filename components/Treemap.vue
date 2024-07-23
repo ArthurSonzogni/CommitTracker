@@ -454,6 +454,8 @@ const computedSummedData = function(entry) {
 };
 
 const computeHistoricalData = async (raw_data) => {
+  const start = new Date()
+
   const min_date = formatDate(props.dates[0]);
   const max_date = formatDate(props.dates[1]);
 
@@ -463,48 +465,50 @@ const computeHistoricalData = async (raw_data) => {
 
   const out = [];
   for(const field of fields) {
+    // Yield in order to avoid blocking the rendering.
     await new Promise((resolve) => setTimeout(resolve, 0));
-    const data = Array(max_date - min_date + 1).fill(0);
-    const visit = entry => {
+
+    // Initially, this contains the data for each day.
+    const data = Array(max_date + 1).fill(0);
+
+    const stack = [raw_data];
+    while(stack.length > 0) {
+      const entry = stack.pop();
       for(const child of entry.children) {
-        visit(child);
+        stack.push(child);
       }
 
       if (!entry.data) {
-        return;
+        continue;
       }
 
-      let current_date = min_date;
-      let current_value = 0;
+      let prev = 0;
       Object
         .keys(entry.data)
-        .filter(key => parseInt(key) <= max_date)
-        .sort((a,b) => parseInt(a) - parseInt(b))
+        .sort((a,b) => a-b)
         .forEach(datapoint => {
-          // Carry over the values from the previous datapoint.
-          while(current_date < parseInt(datapoint)) {
-            data[current_date - min_date] += current_value;
-            current_date += 1;
-          }
           // Update the current values.
-          const proposed = entry?.data[datapoint]?.[field];
-          if (proposed !== undefined) {
-            current_value = proposed;
+          const proposed = entry.data[datapoint]?.[field];
+          if (proposed === undefined) {
+            return;
+          }
+          const datapoint_int = parseInt(datapoint);
+          if (datapoint_int <= max_date) {
+            data[datapoint_int] += proposed - prev;
           }
           // Add the current values to the data.
-          data[datapoint - min_date] += current_value;
-          // Move to the next date.
-          current_date += 1;
+          prev = proposed;
         })
-      // Carry over the values from the last datapoint.
-      while(current_date <= max_date) {
-        data[current_date - min_date] += current_value;
-        current_date += 1;
-      }
-    };
-    visit(raw_data);
+    }
 
-    // Extra_label is the last value.
+    // Integration of the data.
+    data.forEach((value, index) => {
+      if (index > 0) {
+        data[index] += data[index - 1];
+      }
+    });
+    data.splice(0, min_date);
+
     out.push({
       label: field,
       extra_label: " = " + format(",d")(data.slice(-1)[0]),
@@ -518,6 +522,9 @@ const computeHistoricalData = async (raw_data) => {
     });
   };
   history.value = out;
+
+  const end = new Date();
+  console.log("Historical data computed in", (end - start) / 1000, "seconds");
 }
 
 const fetchEntries = async function() {
@@ -595,6 +602,7 @@ const refresh = async function() {
 };
 
 const paramsChanged = async function() {
+  await new Promise((resolve) => setTimeout(resolve, 0));
   computedSummedData(fetchedData.value);
   data.value = mytreemap(fetchedData.value);
   await refresh();

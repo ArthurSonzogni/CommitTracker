@@ -4,8 +4,8 @@
     <Treemap
       :repositories="repositories"
       :path="path"
-      :field_color="field_color"
-      :field_size="field_size"
+      :field_color="field_color_value"
+      :field_size="field_size_value"
       :colormapMin="colormapMin"
       :colormapMax="colormapMax"
       :colormap="colormap"
@@ -99,25 +99,37 @@
 
 <script setup lang="ts">
 
+import entries from '../public/treemap/entries.json'
+console.log(entries.metrics)
+
 const route = useRoute()
 const router = useRouter()
 
-const field_color = ref(["allow_unsafe_buffers"]);
+const field_color = ref([entries.metrics[7]]);
 if (route.query.field_color) {
-  field_color.value = route.query.field_color.split(",");
+  field_color.value = route.query.field_color.split(",").map(file => {
+    return entries.metrics.find(e => e.file === file)
+  })
 }
+const field_color_value = computed(() => {
+  return field_color.value.map(f => f.file);
+})
 
-const field_size = ref(["file"]);
+const field_size = ref([entries.metrics[0]])
 if (route.query.field_size) {
-  field_size.value = route.query.field_size.split(",");
+  field_size.value = route.query.field_size.split(",").map(file => {
+    return entries.metrics.find(e => e.file === file)
+  })
 }
+const field_size_value = computed(() => {
+  return field_size.value.map(f => f.file);
+})
 
 const dates = ref([
   new Date("2020-01-01"),
   new Date(),
 ])
 if (route.query.dates) {
-  console.log(route.query.dates)
   dates.value = route.query.dates
     .split(',')
     .map(d => new Date(d))
@@ -133,7 +145,7 @@ if (route.query.path) {
   path.value = route.query.path.split(",");
 }
 
-const colormapMin = ref(-0.03);
+const colormapMin = ref(0);
 if (route.query.colormapMin) {
   colormapMin.value = parseFloat(route.query.colormapMin);
 }
@@ -156,8 +168,8 @@ const updateUrl = (old_value, new_value) => {
     colormap: colormap.value,
     colormapMax: colormapMax.value,
     colormapMin: colormapMin.value,
-    field_color: field_color.value.join(","),
-    field_size: field_size.value.join(","),
+    field_color: field_color.value.map(f => f.file).join(","),
+    field_size: field_size.value.map(f => f.file).join(","),
     path: path.value.join(","),
     repositories: repositories.value.join(","),
     dates: dates.value.map(d => d.toISOString().split("T")[0]).join(","),
@@ -173,35 +185,6 @@ watch(field_color, updateUrl);
 watch(field_size, updateUrl);
 watch(path, updateUrl);
 watch(dates, updateUrl);
-
-// Update the parameters when the URL changes
-window.onpopstate = async () => {
-
-  await new Promise((resolve) => setTimeout(resolve, 100));
-  console.log("popstate");
-  const query = route.query;
-  if (query.repositories) {
-    repositories.value = query.repositories.split(",");
-  }
-  if (query.path) {
-    path.value = query.path.split(",");
-  }
-  if (query.field_color) {
-    field_color.value = query.field_color.split(",");
-  }
-  if (query.field_size) {
-    field_size.value = query.field_size.split(",");
-  }
-  if (query.colormap) {
-    colormap.value = query.colormap;
-  }
-  if (query.colormapMin) {
-    colormapMin.value = parseFloat(query.colormapMin);
-  }
-  if (query.colormapMax) {
-    colormapMax.value = parseFloat(query.colormapMax);
-  }
-}
 
 const updateHasScrolled = () => {
   const maxScroll = Math.max(

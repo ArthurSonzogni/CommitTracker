@@ -15,36 +15,42 @@ metrics:
   script: >-
     git grep -c 'raw_ptr<' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
   file: raw_ptr
+  tags: ["MiraclePtr"]
 
 - name: raw_ref
   description: The number of raw_ref<T>
   script: >-
     git grep -c 'raw_ref<' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
   file: raw_ref
+  tags: ["MiraclePtr"]
 
 - name: RAW_PTR_EXCLUSION
   description: The number of RAW_PTR_EXCLUSION
   script: >-
     git grep -c 'RAW_PTR_EXCLUSION ' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
   file: raw_ptr_exclusion
+  tags: ["MiraclePtr"]
 
 - name: DanglingUntriaged
   description: The number of DanglingUntriaged
   script: >-
     git grep -c 'DanglingUntriaged' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
   file: dangling_untriaged
+  tags: ["MiraclePtr"]
 
 - name: AllowPtrArithmetic
   description: The number of AllowPtrArithmetic
   script: >-
     git grep -c 'AllowPtrArithmetic' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
   file: allow_ptr_arithmetic
+  tags: ["MiraclePtr"]
 
 - name: container_experimental
   description: The number of VectorExperimental, SetExperimental, CtnExperimental
   script: >-
     git grep -cE "(Vector|Set|Ctn)Experimental" -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
   file: ctrn_expr
+  tags: ["MiraclePtr"]
 
 # Spanification ----------------------------------------------------------------
 
@@ -53,19 +59,21 @@ metrics:
   script: >-
     git grep -c 'allow_unsafe_buffers' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
   file: allow_unsafe_buffers
+  tags: ["Spanification"]
 
 - name: "UNSAFE_BUFFER_USAGE"
   description: The occurrences of UNSAFE_BUFFER_USAGE
   script: >-
     git grep -c 'UNSAFE_BUFFER_USAGE' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
   file: unsafe_buffer_usage
+  tags: ["Spanification"]
 
 - name: UNSAFE_BUFFERS
   description: The occurrences of UNSAFE_BUFFERS(...)
   script: >-
     git grep -c 'UNSAFE_BUFFERS(' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
   file: unsafe_buffers
-
+  tags: ["Spanification"]
 
 # Misc -------------------------------------------------------------------------
 
@@ -74,3 +82,4 @@ metrics:
   script: >-
     git grep -c 'TODO' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
   file: todo
+  tags: ["Misc"]

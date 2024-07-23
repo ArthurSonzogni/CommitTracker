@@ -11,6 +11,7 @@
         placeholder="developer username"
         type="is-primary"
         :size="size || 'is-medium'"
+        open-on-focus
         >
     </b-taginput>
 </template>
