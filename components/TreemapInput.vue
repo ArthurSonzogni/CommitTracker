@@ -71,7 +71,7 @@ const props = defineProps({
 
 const emit = defineEmits(["input"]);
 
-const entryListFiltered = ref([]);
+const entryListFiltered = ref(entries.metrics);
 const computeFilteredList = (name:string) => {
     entryListFiltered.value = entries.metrics.filter((option:any) => {
         if (option.length === 0) {

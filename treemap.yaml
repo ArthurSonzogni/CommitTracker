@@ -3,7 +3,7 @@ metrics:
 # General ----------------------------------------------------------------------
 
 - name: file
-  description: The number of c++ files in production code
+  description: The number of c++ files.
   script: >-
     git ls-files -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
   file: file
@@ -45,7 +45,7 @@ metrics:
   file: allow_ptr_arithmetic
   tags: ["MiraclePtr"]
 
-- name: container_experimental
+- name: ContainerExperimental
   description: The number of VectorExperimental, SetExperimental, CtnExperimental
   script: >-
     git grep -cE "(Vector|Set|Ctn)Experimental" -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'

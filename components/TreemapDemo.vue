@@ -16,15 +16,24 @@
         </div>
         <div class="column">
           <Treemap
-            :field_color="['DanglingUntriaged']"
+            :repositories="['chromium']"
+            :path="path"
+            :field_color="['allow_unsafe_buffers']"
             :field_size="['raw_ptr']"
-            path="[]"
-            colormap="Turbo"
+            colormap="Red"
             colormapMin="0"
-            colormapMax="1"
+            colormapMax="0.3"
+            :dates="['2020-01-01', new Date()]"
+            @zoomin="path.push($event); updateUrl(0, 1)"
             />
         </div>
       </div>
     </div>
   </section>
 </template>
+
+<script setup lang="ts">
+
+const path = ref([]);
+
+</script>

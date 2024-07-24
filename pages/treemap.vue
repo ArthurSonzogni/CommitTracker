@@ -89,8 +89,10 @@
 
     <section class="section">
       <p>
-        Content is updated weekly. Please add your own entries to track, by
-        modifying the file: <a href="https://github.com/ArthurSonzogni/ChromeCommitTracker/blob/main/treemap.json5">file</a>
+        Content is updated weekly. Please add your own
+        <a href="https://github.com/ArthurSonzogni/ChromeCommitTracker/blob/main/treemap.yaml">
+          entries to track
+        </a>
       </p>
     </section>
 
