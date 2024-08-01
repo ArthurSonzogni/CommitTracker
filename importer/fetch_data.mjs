@@ -238,11 +238,11 @@ const ProcessRepository = async (repository) => {
       try {
         const startTime = Date.now();
         const response = await octokit.graphql(`
-          query query($cursor: String,
-                      $owner: String!,
-                      $name: String!,
-                      $path: String,
-          ) {
+          query GetCommit($cursor: String,
+                          $owner: String!,
+                          $name: String!,
+                          $path: String)
+          {
             repository(owner: $owner, name: $name) {
               defaultBranchRef {
                 target {
