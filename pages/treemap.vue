@@ -10,7 +10,9 @@
       :colormapMax="colormapMax"
       :colormap="colormap"
       :dates="dates"
+      :animate="animate"
       @zoomin="path.push($event); updateUrl(0, 1)"
+      @animationend="animationEnd()"
       >
 
       <template v-slot:top>
@@ -78,11 +80,31 @@
 
 
       <template v-slot:bottom>
-        <b-field expanded>
-          <Timeline
-            v-model="dates"
-            :minDate="new Date('2020-01-01')"
-            ></Timeline>
+        <b-field grouped>
+          <b-field expanded>
+            <Timeline
+              v-model="dates"
+              :minDate="new Date('2020-01-01')"
+              ></Timeline>
+          </b-field>
+          <b-field grouped>
+            <b-button
+              class="ml-5"
+              @click="animate = !animate"
+              :disabled="dates[1].getTime() > new Date().getTime() - 10000000"
+              >
+              <b-icon
+                :icon="animate ? 'pause' : 'play'"
+                size="is-small"
+                ></b-icon>
+            </b-button>
+            <b-button
+              :disabled="dates[1].getTime() > new Date().getTime() - 10000000"
+              @click="increaseAnimateSpeed"
+              >
+              x{{animate_speed}}
+            </b-button>
+          </b-field>
         </b-field>
       </template>
     </Treemap>
@@ -162,8 +184,28 @@ if (route.query.repositories) {
   repositories.value = route.query.repositories.split(",");
 }
 
+const animate = ref(false);
+const animate_speed = ref(1);
+
 const { $color_map } = useNuxtApp();
 const colormap_list = ref(Object.keys($color_map));
+
+const increaseAnimateSpeed = () => {
+  switch(animate_speed.value) {
+    case 1:
+      animate_speed.value = 2;
+      break;
+    case 2:
+      animate_speed.value = 5;
+      break;
+    case 5:
+      animate_speed.value = 10;
+      break;
+    case 10:
+      animate_speed.value = 1;
+      break;
+  }
+}
 
 const updateUrl = (old_value, new_value) => {
   const query = {
@@ -206,6 +248,25 @@ const updateHasScrolled = () => {
 updateHasScrolled();
 document.addEventListener('scroll', updateHasScrolled, { passive: true });
 
+
+const animationEnd = () => {
+  console.log("animationEnd");
+  if (dates.value[1] > new Date()) {
+    animate.value = false;
+  }
+
+  if (animate.value) {
+    const next = dates.value[1].getTime() + animate_speed.value *
+      7 * 24 * 60 * 60 * 1000;
+    dates.value = [dates.value[0], new Date(next)];
+  }
+}
+
+watch(animate, () => {
+  if (animate.value) {
+    animationEnd();
+  }
+})
 
 </script>
 

@@ -107,8 +107,29 @@ const maxDate = ref<Date>(props.maxDate);
 const today = new Date();
 const year = ref<number>(new Date(today.getFullYear(), today.getMonth()-4).getFullYear());
 
+let updating_range = false;
+let updating_value = false;
+
 watch(range, () => {
+  if (updating_value || updating_range) {
+    return;
+  }
+  updating_value = true;
   value.value = range.value.map(interpolator);
+  setTimeout(() => {
+    updating_value = false;
+  }, 1);
+})
+
+watch(value, () => {
+  if (updating_value || updating_range) {
+    return;
+  }
+  updating_range = true;
+  range.value = value.value.map(interpolatorInverse);
+  setTimeout(() => {
+    updating_range = false;
+  }, 1);
 })
 
 const toggleMore = () => {

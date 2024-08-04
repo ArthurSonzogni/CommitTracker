@@ -69,6 +69,7 @@
 <script setup lang="ts">
 
 import {easeCubicInOut} from "d3-ease";
+import {easeLinear} from "d3-ease";
 import {hierarchy} from "d3-hierarchy";
 import {interpolateRgb} from "d3-interpolate";
 import {scaleLinear} from "d3-scale";
@@ -103,10 +104,14 @@ const props = defineProps({
   colormap: {},
   colormapMin: {},
   colormapMax: {},
-  dates: {}
+  dates: {},
+  animate: { type:Boolean, default: false },
 });
 
-const emits = defineEmits(["zoomin"]);
+const emits = defineEmits([
+  "zoomin",
+  "animationend",
+]);
 
 const svgWidth = ref(600);
 const svgHeight = ref(600);
@@ -393,7 +398,7 @@ const zoom = async function(data_old, data_new) {
   // Delay the historical data computation to avoid blocking the rendering.
   await transition_zoom.end();
 
-  computeHistoricalData(data_new.data);
+  await computeHistoricalData(data_new.data);
 };
 
 const mytreemap = function(data) {
@@ -590,15 +595,20 @@ const refresh = async function() {
     .rangeRound([0, svgHeight.value])
   ;
 
-  const transition_refresh = transition()
+  const transition_refresh =
+    transition()
     .duration(300)
-    .ease(easeCubicInOut)
+    .ease(props.animate? easeCubicInOut : easeLinear)
 
   render(group, data, x, y, false, transition_refresh)
 
   // Delay the historical data computation to avoid blocking the rendering.
   await transition_refresh.end();
-  computeHistoricalData(data.data);
+  await computeHistoricalData(data.data);
+
+
+  console.log("emit animationend");
+  emits("animationend");
 };
 
 const paramsChanged = async function() {
