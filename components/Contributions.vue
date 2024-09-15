@@ -301,56 +301,9 @@ const traitsPerContributor = function() {
 }
 
 const dataForRepository = async function(repository) {
-  const response = await fetch(`/data/${repository}/usernames_summary.json`);
-  const data = await response.json();
-
-  // Select author/review/both
-  switch(props.what ) {
-    case "commit":
-      for(const user in data) {
-        data[user] = data[user].author.commit;
-      }
-      break;
-
-    default:
-      switch(props.kind) {
-        case "author":
-          for(const user in data) {
-            data[user] = data[user].author.commit
-          }
-          break;
-
-        case "review":
-          for(const user in data) {
-            data[user] = data[user].review.commit
-          }
-          break;
-
-        case "both":
-          for(const user in data) {
-            let merged = {};
-            merge(merged, data[user].author.commit);
-            merge(merged, data[user].review.commit);
-            data[user] = merged
-          }
-          break;
-      }
-  }
-
-  // Group dates togethers.
-  const group = groupingFunction();
-  for(const user in data) {
-    const old_data = data[user];
-    const new_data = {}
-    for(const key in old_data) {
-      const new_key = group(key);
-      new_data[new_key] |= 0;
-      new_data[new_key] += old_data[key]
-    }
-    data[user] = new_data;
-  }
-
-  return data;
+  const response = await
+    fetch(`/data/${repository}/usernames_summary_commit_${props.grouping}_${props.kind}.json`);
+  return await response.json();
 }
 
 const removeMinCommit = function(data) {
@@ -437,18 +390,7 @@ const timeLabel = computed(() => {
   }
 })
 
-watch(() => props.repositories, refresh)
-watch(() => props.what , refresh)
-watch(() => props.grouping, refresh)
-watch(() => props.display, refresh)
-watch(() => props.kind, refresh)
-watch(() => props.percentile, refresh)
-watch(() => props.individual, refresh)
-watch(() => props.developers, refresh)
-watch(() => props.min_contributions, refresh)
-
-onMounted(() => {
-  refresh();
-})
+watch(props, refresh)
+onMounted(refresh)
 
 </script>

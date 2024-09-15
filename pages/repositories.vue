@@ -128,6 +128,18 @@
             <b-radio-button
               name="grouping"
               v-model="grouping"
+              native-value="forever">
+              Forever
+            </b-radio-button>
+            <b-radio-button
+              name="grouping"
+              v-model="grouping"
+              native-value="decennial">
+              Decennial
+            </b-radio-button>
+            <b-radio-button
+              name="grouping"
+              v-model="grouping"
               native-value="yearly">
               Yearly
             </b-radio-button>

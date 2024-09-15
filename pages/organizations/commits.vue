@@ -124,6 +124,7 @@
           :grouping="grouping"
           :colors="colors"
           :kind="kind"
+          :metric="metric"
           :organizations="organizations"
           :chart="chart"
           :dates="dates"
@@ -131,25 +132,44 @@
           :percent="percent === 'percent'" >
 
           <b-field class="has-addons">
-            <b-radio-button
-              size="small"
-              name="percent"
-              v-model="percent"
-              native-value="absolute"
-              >
+            <b-radio-button size="small" name="metric"
+              v-model="metric" native-value="commit">
+              <b-tooltip label="Number of commits">
+              ⚙️
+              </b-tooltip>
+            </b-radio-button>
+            <b-radio-button size="small" name="metric"
+              v-model="metric" native-value="contributor" >
+              <b-tooltip label="Number of contributors">
+              🧍
+              </b-tooltip>
+            </b-radio-button>
+          </b-field>
+
+          <div class="mr-2"></div>
+
+          <b-field class="has-addons">
+            <b-radio-button size="small" name="percent"
+              v-model="percent" native-value="absolute" >
               Absolute
             </b-radio-button>
-            <b-radio-button
-              size="small"
-              name="percent"
-              v-model="percent"
-              native-value="percent"
-              >
+            <b-radio-button size="small" name="percent"
+              v-model="percent" native-value="percent" >
               Percent
             </b-radio-button>
           </b-field>
 
         </Organizations>
+
+        <!-- Warn users for invalid combinaisons -->
+        <div v-if="metric == 'contributor'" class="mt-2">
+          <b-notification type="is-warning" v-if="repositories.length > 1">
+            <p>
+              <strong>Note:</strong> Contributors who have contributed to
+              multiple repositories will be counted once per repository.
+            </p>
+          </b-notification>
+        </div>
 
       </div>
     </section>
@@ -198,6 +218,11 @@ if (route.query.kind) {
   kind.value = route.query.kind as string;
 }
 
+const metric = ref<string>("commit");
+if (route.query.metric) {
+  metric.value = route.query.metric as string;
+}
+
 const chart = ref<string>("bar");
 if (route.query.chart) {
   chart.value = route.query.chart as string;
@@ -221,6 +246,7 @@ const updateUrl = () => {
       grouping: grouping.value,
       colors: colors.value,
       kind: kind.value,
+      metric: metric.value,
       chart: chart.value,
       dates: dates.value.map(d => d.toISOString().split("T")[0]).join(','),
       others: others.value ? null : undefined,
@@ -235,6 +261,7 @@ watch([
   grouping,
   colors,
   kind,
+  metric,
   chart,
   dates,
   others,

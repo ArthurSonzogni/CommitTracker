@@ -115,6 +115,7 @@ for (const repository of repositories) {
         return getOrganization(email, commit.date);
       });
       commit.peers = [...new Set(commit.peers)].sort()
+      commit.contributor = email.split("@")[0];
       organizations[organization].push(commit);
     }
   }

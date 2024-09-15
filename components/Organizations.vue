@@ -62,6 +62,7 @@ const props = defineProps({
   colors: { type:String, default: "repositories"},
   grouping: { type:String, default: "yearly"},
   kind: {},
+  metric: {},
   chart: { type:String, default: "bar"},
   dates: {
     type:Array[Date],
@@ -134,80 +135,43 @@ const groupingFunctionReverse = function(date) {
 
     case "quarterly":
       return new Date(date.substr(0,4) + "-" + (1 + (parseInt(date.substr(5,1)) - 1) * 3) + "-01");
+
     case "monthly":
       return new Date(date + "-01");
   }
 }
 
 const dataForRepository = async function(repository) {
-  const response = await fetch(`/data/${repository}/organizations_summary.json`);
+  const response = await
+    fetch(`/data/${repository}/organizations_summary_${props.metric}_${props.grouping}_${props.kind}.json`);
   const data_all = await response.json();
 
   const data = {};
 
-  data["Others"] = {
-      author: {
-        commit: {}
-      },
-      review: {
-        commit: {}
-      }
-  }
+  data["Others"] = {};
 
   for(const organization in data_all) {
     if (props.organizations.includes(organization)) {
-      data[organization] = data_all[organization];
+      data[organization] = data_all[organization]
       continue;
     }
 
     if (props.colors == "organizations" || props.others) {
-      merge(data["Others"].author.commit,
-        data_all[organization].author.commit);
-      merge(data["Others"].review.commit,
-        data_all[organization].review.commit);
+      merge(data["Others"], data_all[organization])
     }
   }
 
-  switch(props.kind) {
-    case "author":
-      for(const organization in data) {
-        data[organization] = data[organization].author.commit;
-      }
-      break;
-
-    case "review":
-      for(const organization in data) {
-        data[organization] = data[organization].review.commit;
-      }
-      break;
-
-    case "both":
-      for(const organization in data) {
-        let merged = {};
-        merge(merged, data[organization].author.commit);
-        merge(merged, data[organization].review.commit);
-        data[organization] = merged
-      }
-      break;
-  }
-
-  // Group dates together.
-  const group = groupingFunction();
+  // Filter out the dates that are not in the range.
   for(const organization in data) {
-    const old_data = data[organization];
-    const new_data = {}
-    for(const key in old_data) {
-      const new_key = group(key);
-      const new_key_date = groupingFunctionReverse(new_key);
-      if (new_key_date < props.dates[0] || new_key_date > props.dates[1]) {
-        continue;
+    for(const key in data[organization]) {
+      const date = groupingFunctionReverse(key);
+      if (date < props.dates[0] || date > props.dates[1]) {
+        delete data[organization][key]
       }
-      new_data[new_key] |= 0;
-      new_data[new_key] += old_data[key]
     }
-    data[organization] = new_data;
   }
 
+  console.log(data);
   return data;
 }
 
@@ -278,6 +242,8 @@ const consolidateData = async function() {
       }
     }
   }
+
+  // Cleanup empty dates:
   for(const date in data) {
     if (Object.keys(data[date]).length == 0) {
       delete data[date];
@@ -292,7 +258,9 @@ const refresh = async function() {
 
   formatter = props.percent
     ? format(".2%")
-    : v=> format(",d")(v) + ' ⚙️';
+    : props.metric == "commit"
+      ? v => format(",d")(v) + ' ⚙️'
+      : v => format(",d")(v) + ' 🧍';
 
   // Turn the object into an array of arrays for D3.
   if (props.chart == "bar") {
@@ -440,15 +408,8 @@ const timeLabel = computed(() => {
   }
 })
 
-watch(() => props.repositories, refresh)
-watch(() => props.organizations, refresh)
-watch(() => props.colors, refresh)
-watch(() => props.grouping, refresh)
-watch(() => props.kind, refresh)
-watch(() => props.chart, refresh)
-watch(() => props.dates, refresh)
-watch(() => props.others, refresh)
-watch(() => props.percent, refresh)
+
+watch(props, refresh)
 
 onMounted(() => {
   refresh();
