@@ -1,8 +1,8 @@
 {
-  "name": "chrome-commit-tracker",
+  "name": "chromium-commit-tracker",
   "type": "module",
   "version": "1.0.0",
-  "description": "data visualization for chrome commits",
+  "description": "data visualization for chromium commits",
   "main": "index.mjs",
   "scripts": {
     "fetch_data": "node fetch_data.mjs",
@@ -20,6 +20,7 @@
   },
   "keywords": [
     "chrome",
+    "chromium",
     "commit",
     "tracker",
     "visualization"

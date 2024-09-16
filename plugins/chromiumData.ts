@@ -27,7 +27,7 @@ const fetchData = async (repo, user) => {
   }
 }
 
-const chromeData = async (repo, user) => {
+const chromiumData = async (repo, user) => {
   const key = repo +  user;
   if (!cache.has(key)) {
     cache.set(key, fetchData(repo, user));
@@ -35,12 +35,12 @@ const chromeData = async (repo, user) => {
   return await cache.get(key);
 }
 
-const chromeDataAll = (repo, users) => Promise.all(users.map(user => {
-  return chromeData(repo, user);
+const chromiumDataAll = (repo, users) => Promise.all(users.map(user => {
+  return chromiumData(repo, user);
 }));
 
 export default defineNuxtPlugin(nuxtApp => {
-  nuxtApp.provide('chromeData', chromeData)
-  nuxtApp.provide('chromeDataAll', chromeDataAll)
+  nuxtApp.provide('chromiumData', chromiumData)
+  nuxtApp.provide('chromiumDataAll', chromiumDataAll)
 })
 

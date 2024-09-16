@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 
-project(chrome-commit-tracker-graph
+project(chromium-commit-tracker-graph
   LANGUAGES CXX
   VERSION 1.0.0
   DESCRIPTION "C++ large graph generation"

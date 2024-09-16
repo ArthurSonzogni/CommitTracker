@@ -22,9 +22,9 @@ useHead({
     lang: "en"
   },
 })
-const title = "ChromeCommitTracker"
+const title = "ChromiumCommitTracker"
 const description =
-  "An web application to show statistics about the Chrome repository.";
+  "A web application to show statistics about the Chromium repository, and more.";
 
 useSeoMeta({
   title: title,

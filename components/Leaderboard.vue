@@ -102,38 +102,6 @@ const mergeDataForRepositories = (repositories) => {
   return out;
 };
 
-const groupingFunction = () => {
-  switch(props.grouping) {
-    case "forever"   : return () => "forever";
-    case "yearly"    : return x => x.substr(0,4);
-    case "decennial" : return x => x.substr(0,3) + "0s";
-    case "quarterly" : return x => {
-      const year = x.substr(0,4)
-      const month = x.substr(5,2);
-      const quarter = Math.floor((month - 1) / 3) + 1;
-      return `${year}Q${quarter}`;
-    }
-    case "monthly"   : return x => x.substr(0,7);
-  }
-  return x => x;
-};
-
-const groupByDate = (data) => {
-  const out = {}
-  const group = groupingFunction();
-  for(const user in data) {
-    const old_data = data[user];
-    const new_data = {}
-    for(const key in old_data) {
-      const new_key = group(key);
-      new_data[new_key] |= 0;
-      new_data[new_key] += old_data[key]
-    }
-    out[user] = new_data;
-  }
-  return out;
-};
-
 const orderByDate = (data) => {
   const out = [];
   const userList = Object.keys(data);
@@ -166,12 +134,10 @@ const orderByDate = (data) => {
 
 const fetchData = async () => {
   is_animating.value = false;
-  const async_data = props.repositories.map($usersInfo);
-  const data = await Promise.all(async_data);
-  const filtered_data = data.map(filterKind);
-  const merged = mergeDataForRepositories(filtered_data);
-  const grouped = groupByDate(merged);
-  const ordered = orderByDate(grouped);
+  const data = await Promise.all(props.repositories.map(repo => $usersInfo(repo,
+    props.grouping, props.kind)));
+  const merged = mergeDataForRepositories(data);
+  const ordered = orderByDate(merged)
   ordered.sort((a,b) => b.date > a.date ? -1 : 1);
 
   const t = transition().duration(500);
@@ -354,42 +320,6 @@ const bars = (svg) => {
   };
 }
 
-const filterKind = (data) => {
-  if (props.kind == "author") {
-    const out = {}
-    for(const [developer, value] of Object.entries(data)) {
-      out[developer] = value.author.commit
-    }
-    return out;
-  }
-
-  if (props.kind == "review") {
-    const out = {}
-    for(const [developer, value] of Object.entries(data)) {
-      out[developer] = value.review.commit
-    }
-    return out;
-  }
-
-  if (props.kind == "both") {
-    const out = {}
-    for(const [key, value] of Object.entries(data)) {
-      out[key] = {}
-      for(const [date, commit] of Object.entries(value.author.commit)) {
-        out[key][date] ||= 0;
-        out[key][date] += commit;
-      }
-      for(const [date, commit] of Object.entries(value.review.commit)) {
-        out[key][date] ||= 0;
-        out[key][date] += commit;
-      }
-    }
-    return out;
-  }
-
-  console.error("Not reached");
-};
-
 const addFrames = (frames, n = 10) => {
   const out = [];
   for(let i = 0; i < frames.length - 1; i++) {
@@ -447,12 +377,10 @@ const animate = async (should_accumulate = false) => {
     is_animating.value = false;
     return;
   }
-  const async_data = props.repositories.map($usersInfo);
-  const data = await Promise.all(async_data);
-  const filtered_data = data.map(filterKind);
-  const merged = mergeDataForRepositories(filtered_data);
-  const grouped = groupByDate(merged);
-  const ordered = orderByDate(grouped)
+  const data = await Promise.all(props.repositories.map(repo => $usersInfo(repo,
+    props.grouping, props.kind)));
+  const merged = mergeDataForRepositories(data)
+  const ordered = orderByDate(merged)
   ordered.sort((a,b) => a.date > b.date ? -1 : 1);
   ordered.length = Math.min(ordered.length, Math.max(2, timeIndexModel.value + 1));
   ordered.sort((a,b) => a.date < b.date ? -1 : 1);
@@ -491,12 +419,7 @@ const next = () => {
   timeIndexModel.value = Math.max(timeIndexModel.value - 1, 0);
 };
 
-watch(() => [
-  props.repositories,
-  props.grouping,
-  props.kind,
-  timeIndexModel.value,
-], fetchData);
+watch(props, fetchData)
 
 let updateBars = null;
 let updateAxis = null;

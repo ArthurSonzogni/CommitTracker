@@ -27,7 +27,7 @@ const indicatorDataAll = [
 const currentState = local();
 const now = new Date();
 
-const { $chromeDataAll, $color } = useNuxtApp();
+const { $chromiumDataAll, $color } = useNuxtApp();
 
 const props = defineProps({
   repositories: { type:Array[String], default: () => ["chromium"],},
@@ -144,7 +144,7 @@ const max_value = computed(() => {
 });
 
 const developersChanged = async () => {
-  data.value = await $chromeDataAll(props.repositories, props.developers);
+  data.value = await $chromiumDataAll(props.repositories, props.developers);
 }
 
 const initialize = () => {

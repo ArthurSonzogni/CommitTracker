@@ -16,7 +16,7 @@ import {interpolate} from "d3-interpolate";
 import {axisTop} from "d3-axis";
 import "d3-transition";
 
-const { $chromeDataAll, $color } = useNuxtApp();
+const { $chromiumDataAll, $color } = useNuxtApp();
 
 const container = ref<HTMLElement | null>(null);
 const svg = ref<SVGSVGElement | null>(null);
@@ -49,7 +49,7 @@ const svgWidth = ref<number>(300);
 const svgHeight = ref<number>(300);
 
 watch(() => [props.developers, props.repositories], async () => {
-  data.value = await $chromeDataAll(props.repositories[0], props.developers);
+  data.value = await $chromiumDataAll(props.repositories[0], props.developers);
 });
 
 const filteredData = computed(() => {

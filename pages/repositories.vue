@@ -202,7 +202,7 @@
                 href="https://github.com/ArthurSonzogni/ChromeCommitTracker/actions/workflows/importer-commit-timeline.yaml">Jobs</a>
             </li>
             <li>
-              Chrome's <strong>reviewers data before 2017 are missing</strong>.
+              Chromium's <strong>reviewers data before 2017 are missing</strong>.
               This informations wasn't part of the commit description before.
             </li>
             <li>

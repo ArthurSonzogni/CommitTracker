@@ -1,7 +1,7 @@
-# ChromeCommitTracker
+# ChromiumCommitTracker
 
 An [web application](https://chrome-commit-tracker.arthursonzogni.com) to
-show statistics about the Chrome repository.
+show statistics about the Chromium, and related repositories.
 
 ### Running the server locally.
 

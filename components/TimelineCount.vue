@@ -19,7 +19,7 @@
 <script setup lang="ts">
 
 import { format } from 'd3-format'
-const { $chromeDataAll } = useNuxtApp();
+const { $chromiumDataAll } = useNuxtApp();
 
 const props = defineProps({
   repositories: { type:Array[String], default: () => ["chromium"],},
@@ -163,7 +163,7 @@ const refreshFilteredData = async () => {
 };
 
 const refresh = async () => {
-  const d = await $chromeDataAll(props.repositories[0], props.developers)
+  const d = await $chromiumDataAll(props.repositories[0], props.developers)
   data.value = d.map(d => {
     return {
       developer: d.developer,

@@ -15,7 +15,7 @@ const props = defineProps({
 
 const data = ref([]);
 
-const { $chromeDataAll } = useNuxtApp();
+const { $chromiumDataAll } = useNuxtApp();
 
 const filteredData = computed(() => {
   // Filter:
@@ -74,7 +74,7 @@ const filteredData = computed(() => {
 });
 
 const developersChanged = async () => {
-  const new_data = await $chromeDataAll(props.repositories[0], props.developers);
+  const new_data = await $chromiumDataAll(props.repositories[0], props.developers);
   data.value = new_data;
 }
 watch(() => [props.developers, props.repositories], developersChanged);
