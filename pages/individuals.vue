@@ -8,7 +8,7 @@
 
         <RepositorySelector
           v-model="repositories"
-          size="medium"
+          size="is-small"
           />
         <b-field grouped>
 

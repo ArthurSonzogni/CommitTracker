@@ -128,19 +128,27 @@ const ProcessCommit = (data, commit) => {
 
   data[author] ||= [];
 
-
-  if (data[author].some(commit => commit.date === date)) {
-    return "duplicate";
-  }
-
-  data[author].push({
+  const new_commit = {
     'date': date,
     'kind': 'author',
     'peers': reviewers,
     'additions': commit.additions,
     'deletions': commit.deletions,
     'files': commit.changedFilesIfAvailable,
-  });
+  };
+
+  // Skip duplicated commits:
+  for(const commit of data[author]) {
+    if (commit.date == new_commit.date && //
+      commit.additions == new_commit.additions && //
+      commit.deletions == new_commit.deletions && //
+      commit.files == new_commit.files
+    ) {
+      return "duplicate";
+    }
+  }
+
+  data[author].push(new_commit);
 
   reviewers.forEach(reviewer => {
     data[reviewer] ||= [];

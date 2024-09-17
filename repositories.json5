@@ -208,4 +208,13 @@
     reviewers: false,
     treemap: false,
   },
+  {
+    name: "Ladybird",
+    dirname: "ladybird",
+    color: "#ff7f0e",
+    owner: "LadybirdBrowser",
+    repository: "ladybird",
+    reviewers: false,
+    treemap: false,
+  }
 ]
