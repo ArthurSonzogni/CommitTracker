@@ -1,12 +1,32 @@
 <template>
   <div ref="container" align="center">
     <svg :width="svgWidth" :height="svgHeight">
+      <g ref="content">
+        <g ref="tooltip" />
+        <g ref="legend" />
+      </g>
       <g ref="xAxis" />
       <g ref="yAxis" />
-      <g ref="content">
-      <g ref="tooltip" />
-      <g ref="legend" />
-      </g>
+
+      <!--
+        Filter for the tooltip, it creates a white glow around the text to
+        make it more readable
+      -->
+      <filter id="highlightText" x="0" y="0" width="100%" height="100%">
+        <!-- Dilate the source alpha channel to create a border -->
+        <feMorphology in="SourceAlpha" result="dilated" operator="dilate" radius="2" />
+        <!-- Fill the dilated shape with white -->
+        <feFlood flood-color="white" result="glow" />
+        <!-- Composite "glow" and "dilated" to create the final background -->
+        <feComposite in="glow" in2="dilated" operator="in" result="softGlow" />
+        <!-- Put the original text on top of the glowing background -->
+        <feMerge>
+          <!-- Glow first -->
+          <feMergeNode in="softGlow"/>
+          <!-- Original on top -->
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
     </svg>
   </div>
 </template>
@@ -22,6 +42,8 @@ import {interpolatePath} from "d3-interpolate-path";
 import {pointer} from "d3-selection";
 import {bisector} from "d3-array";
 import "d3-transition";
+import {curveMonotoneX} from "d3-shape"
+import {curveLinear} from "d3-shape"
 
 const { $color } = useNuxtApp();
 
@@ -97,9 +119,12 @@ const render = () => {
     .duration(500)
     .call(axisLeft(y));
 
+  const max_curve_length = props.data.reduce((acc, d) => Math.max(acc, d.values.length), 0);
+
   const valueLines = line()
     .x(d => x(d.x))
     .y(d => y(d.y))
+    .curve(max_curve_length < 400 ? curveMonotoneX : curveLinear)
   const valueZero = line()
     .x(d => x(d.x))
     .y(d => y(0))
@@ -144,10 +169,13 @@ const render = () => {
               .attr("text-anchor", "middle")
               .attr("font-size", "12px")
               .attr("font-weight", "bold")
-              .attr("x", -10)
-              .attr("y", -10)
+              .attr("x", -5)
+              .attr("y", -5)
+              .attr("text-anchor", "end")
+              .attr("alignment-baseline", "bottom")
+              .attr("filter", "url(#highlightText)")
               .attr("fill", d => $color(d.label))
-              .text(d =>  props.formatter(d.y))
+              .text(d =>  d.label + ":  " + props.formatter(d.y))
 
             group.append("circle")
               .attr("r", 3)
@@ -159,7 +187,7 @@ const render = () => {
             update
               .attr("transform", d => `translate(${x(d.x)}, ${y(d.y)})`)
               .select("text")
-              .text(d =>  props.formatter(d.y))
+              .text(d =>  d.label + ":  " + props.formatter(d.y))
           },
           exit => exit
           .attr("opacity", 1)
@@ -186,7 +214,7 @@ const render = () => {
     .data(props.data, d => d.label)
     .join(
       enter => enter
-      .append("path")
+      .insert("path", ":first-child")
       .attr("class", "line")
       .attr("fill", "none")
       .attr("stroke", d => $color(d.label))
