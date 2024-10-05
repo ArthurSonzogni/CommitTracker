@@ -1,4 +1,4 @@
-# ChromiumCommitTracker
+# CommitTracker
 
 An [web application](https://chrome-commit-tracker.arthursonzogni.com) to
 show statistics about the Chromium, and related repositories.
