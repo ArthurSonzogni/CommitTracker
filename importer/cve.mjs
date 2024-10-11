@@ -27,10 +27,10 @@ const exec = async (command, args, options) => {
 }
 
 // Fetch the CVE github repository.
-const fetchCveRepository= async () => {
+const fetchCveRepository = async () => {
   // If the repository already exists, fetch the latest changes.
-  if (fs.existsSync('cvelist')) {
-    await exec('git', ['pull'], { cwd: 'cvelist' })
+  if (fs.existsSync('/tmp/cvelist')) {
+    await exec('git', ['pull'], { cwd: '/tmp/cvelist' })
 
     return
   }
@@ -40,24 +40,24 @@ const fetchCveRepository= async () => {
     'clone',
     '--depth=1',
     'https://github.com/CVEProject/cvelistV5',
-    'cvelist'
+    '/tmp/cvelist'
   ])
 }
 
 // Iterate over the CVEs in the repository.
 const iterateCVE = function* () {
-  for (const year of fs.readdirSync('cvelist/cves')) {
-    if (!fs.statSync(`cvelist/cves/${year}`).isDirectory()) {
+  for (const year of fs.readdirSync('/tmp/cvelist/cves')) {
+    if (!fs.statSync(`/tmp/cvelist/cves/${year}`).isDirectory()) {
       continue;
     }
 
-    for (const subsection of fs.readdirSync(`cvelist/cves/${year}`)) {
-      if (!fs.statSync(`cvelist/cves/${year}/${subsection}`).isDirectory()) {
+    for (const subsection of fs.readdirSync(`/tmp/cvelist/cves/${year}`)) {
+      if (!fs.statSync(`/tmp/cvelist/cves/${year}/${subsection}`).isDirectory()) {
         continue;
       }
 
-      for (const file of fs.readdirSync(`cvelist/cves/${year}/${subsection}`)) {
-        const cve = JSON.parse(fs.readFileSync(`cvelist/cves/${year}/${subsection}/${file}`, 'utf8'))
+      for (const file of fs.readdirSync(`/tmp/cvelist/cves/${year}/${subsection}`)) {
+        const cve = JSON.parse(fs.readFileSync(`/tmp/cvelist/cves/${year}/${subsection}/${file}`, 'utf8'))
         yield cve;
       }
     }
@@ -161,6 +161,15 @@ const getChromiumReleaseDate = (version) => {
   return out;
 }
 
+const chromiumSeverity = (description) => {
+  const match = description.match(/security severity: (\w+)\)/);
+  if (match) {
+    return match[1];
+  } else {
+    return "";
+  }
+}
+
 // Extract the relevant fields from the CVE.
 const transformCve = (cve) => {
   normalizeCve(cve)
@@ -201,8 +210,8 @@ const transformCve = (cve) => {
 
   //const proposedCweId = cve.containers.adp[0].prolemTypes[0].descriptions[0].cweId;
   const cweId =
-    cve.containers.adp[0].problemTypes[0].descriptions[0].cweId ||
-    cve.containers.cna.problemTypes[0].descriptions[0].cweId;
+    cve.containers.adp[0].problemTypes[0].descriptions[0].cweId.replace('CWE-', '') ||
+    cve.containers.cna.problemTypes[0].descriptions[0].cweId.replace('CWE-', '');
 
   const problem =
     cve.containers.adp[0].problemTypes[0].descriptions[0].description ||
@@ -211,7 +220,7 @@ const transformCve = (cve) => {
   const version_dates = getChromiumReleaseDate(version_fixed);
 
   return {
-    id: cve.cveMetadata.cveId,
+    id: cve.cveMetadata.cveId.replace('CVE-', ''),
     cweId,
     problem: cve.containers.cna.problemTypes[0].descriptions[0].description,
     bug,
@@ -219,11 +228,12 @@ const transformCve = (cve) => {
     published: cve.cveMetadata.datePublished,
     version_fixed,
     version_dates,
+    severity: chromiumSeverity(description),
   };
 }
 
 const retrieveCveList = async () => {
-  //await fetchCveRepository()
+  await fetchCveRepository()
 
   const cves = {}
   for (const cve of iterateCVE()) {
@@ -243,26 +253,136 @@ const retrieveCveList = async () => {
   fs.mkdirSync('../data/cve', { recursive: true });
 
   // Write json to file.
-  fs.writeFileSync('../data/cve/data.json', JSON.stringify(cves, null, 1))
+  fs.writeFileSync('../public/cve/data.json', JSON.stringify(cves, null, 1))
 }
 
-const main = async () => {
-  await fetchVersionHistory()
-  await retrieveCveList();
-  return;
+const fetchBugganizer = async (cve, page) => {
+  const url = cve.bug
+  //const url = "https://issues.chromium.org/issues/348567825";
+  //const url = "https://issues.chromium.org/issues/348129258";
+  console.log("Fetching", url)
+  cve.import_stage = "bug_start";
 
-  // const url = "https://issues.chromium.org/issues/41485789"
-  // The URL is the first argument passed to the script.
-  const url = process.argv[2]
-
-  const browser = await puppeteer.launch()
-  const page = await browser.newPage()
   await page.goto(url)
 
-  // Wait for the page to load.
-  await page.waitForSelector('.child')
+  // Wait for the page to load:
+  await page.waitForSelector('.child', { timeout: 3000 })
+  await page.waitForSelector('label', { timeout: 3000 })
 
-  // Iterate over the content of every ".child" element.
+  // Search for the cve value to confirm.
+  const extracted = await page.evaluate(() => {
+    const out = {
+      cve: null,
+      vrp_reward: null,
+      components: [],
+      found_in: null,
+      security_release: null,
+      oses: [],
+      errors: [],
+      chromium_labels: [],
+      bug_date: null,
+      severity: null,
+    }
+
+    for(const el of document.querySelectorAll('label')) {
+      if (!el.textContent) {
+        continue
+      }
+
+      try {
+        // CVE
+        if (el.textContent == ' CVE ') {
+          out.cve = el.parentElement.parentElement.querySelector('span').textContent;
+        }
+
+        // vrp-reward
+        if (el.textContent == ' vrp-reward ') {
+          out.vrp_reward = el.parentElement.parentElement.querySelector('span').textContent;
+        }
+
+        // Component Tags
+        if (el.textContent == ' Component Tags ') {
+          out.components = Array.from(el.parentElement.parentElement.querySelectorAll('a')).map(el => el.textContent.trim());
+        }
+
+        // Found In
+        if (el.textContent == ' Found In ') {
+          out.found_in = el.parentElement.parentElement.querySelector('span').textContent;
+        }
+
+        // Security Release
+        if (el.textContent == ' Security_Release ') {
+          out.security_release = el.parentElement.parentElement.querySelector('span').textContent;
+        }
+
+        // OS
+        if (el.textContent == ' OS ') {
+          //out.os = el.parentElement.parentElement.querySelector('span').textContent;
+          out.oses = Array.from(el.parentElement.parentElement.querySelectorAll('span'))
+            .map(el => el.textContent)
+            .filter(el => el.length > 0)
+            .filter(el => !el.startsWith('Add'))
+            .filter(el => !el.startsWith('Remove'))
+            .filter(el => !el.startsWith('Edit'))
+            .filter(el => !el.includes('('));
+        }
+
+        // Chromium Labels
+        if (el.textContent == ' Chromium Labels ') {
+          out.chromium_labels = Array
+            .from(el.parentElement.parentElement.querySelectorAll('span'))
+            .map(el => el.textContent)
+            .filter(el => el.length > 0)
+            .filter(el => !el.startsWith('Add'))
+            .filter(el => !el.startsWith('Remove'))
+            .filter(el => !el.startsWith('Edit'))
+            .filter(el => !el.includes('('));
+        }
+
+        // Severity
+        if (el.textContent == ' Severity ') {
+          const severity = el.parentElement.parentElement.querySelector('span').textContent;
+          switch(severity) {
+            case 'S0': out.severity = "Critical"; break;
+            case 'S1': out.severity = "High"; break;
+            case 'S2': out.severity = "Medium"; break;
+            case 'S3': out.severity = "Low"; break;
+            case 'S4': out.severity = "None"; break;
+          }
+        }
+
+      } catch (e) {
+        out.errors.push("Error reading " + el.textContent);
+      }
+    }
+
+    // Extract the bug open date.
+    const bug_date = document.querySelector('time').getAttribute('datetime');
+    out.bug_date = bug_date;
+
+    return out;
+  })
+
+  console.log("Extracted:")
+  console.log(extracted)
+  if (extracted.cve && extracted.cve != cve.id) {
+    console.log("CVE mismatch", extracted.cve, cve.id);
+    return;
+  }
+
+  cve.id = extracted.cve;
+  if (cve.vrp_reward != null && cve.vrp_reward != "--") {
+    cve.vrp_reward = extracted.vrp_reward;
+  }
+  cve.components = extracted.components;
+  cve.found_in = extracted.found_in;
+  cve.security_release = extracted.security_release;
+  cve.oses = extracted.oses;
+  cve.chromium_labels = extracted.chromium_labels;
+  cve.bug_date = extracted.bug_date;
+  cve.severity = extracted.severity;
+
+  // Read the issues descriptions.
   const issues = await page.evaluate(() => {
     const issues = []
     for (const el of document.querySelectorAll('.child')) {
@@ -270,17 +390,6 @@ const main = async () => {
     }
     return issues
   })
-
-  // Iterate over the issues, extract links to code review:
-  // Example:
-  // Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/5149755
-  const codeReviews = issues.map(issue => {
-    const match = issue.match(/Reviewed-on: (https:\/\/chromium-review.googlesource.com\/c\/chromium\/src\/\+\/\d+)/)
-    return match ? match[1] : null
-  }).filter(Boolean)
-
-  console.log("Patches URLs:")
-  console.log(codeReviews)
 
   // Iterate over the issues, extract the commit hash.
   // Example:
@@ -290,98 +399,44 @@ const main = async () => {
     return match ? match[1] : null
   }).filter(Boolean)
 
-  console.log("Commits:")
-  console.log(commits)
+  cve.commits = commits;
 
-
-  // Search for a `vrp-reward` span, and return the associated dollar amount.
-  // ...
-  // <div>
-  //   <label> vrp-reward </label>
-  // </div>
-  // <div>
-  //   <div>
-  //     <div>
-  //      <b-truncated-span>
-  //        <span> $500 </span>
-  //      </b-truncated-span>
-  //    </div>
-  //   </div>
-  // </div>
-  //
-  await page.waitForSelector('label')
-  const reward = await page.evaluate(() => {
-    const out = []
-    for(const el of document.querySelectorAll('label')) {
-      out.push(el.textContent)
-      if (el.textContent == ' vrp-reward ') {
-        return el.parentElement.parentElement.querySelector('span').textContent;
-      }
-    }
-
-    return out;
-  })
-  console.log("vrp-reward = ", reward)
-
-
-  // Same, but for ' Component Tags '
-  await page.waitForSelector('label')
-  const componentTags = await page.evaluate(() => {
-    const out = []
-    for(const el of document.querySelectorAll('label')) {
-      out.push(el.textContent)
-      if (el.textContent == ' Component Tags ') {
-        return el.parentElement.parentElement.querySelector('a').textContent.trim();
-      }
-    }
-
-    return out;
-  })
-  console.log("Component Tags = ", componentTags)
-
-  // Same, but for 'CVE'
-  await page.waitForSelector('label')
-  const cve = await page.evaluate(() => {
-    const out = []
-    for(const el of document.querySelectorAll('label')) {
-      out.push(el.textContent)
-      if (el.textContent == ' CVE ') {
-        return el.parentElement.parentElement.querySelector('span').textContent.trim();
-      }
-    }
-
-    return out;
-  })
-  console.log("CVE = ", cve)
-
-
-  // Search for the <label> Security
-
-
-  //const response = await fetch(url)
-  //const text = await response.text()
-  //console.log(text);
-
-  //const root = parse(text)
-
-  //// Iterate over scripts, search one defining the `defrostedREsourcesJspb`
-  //// variable, capture its value.
-  //let defrostedResourcesJspb = null
-  //for (const script of root.querySelectorAll('script')) {
-  //console.log("found script")
-  //const text = script.text
-  //if (text.includes('defrostedResourcesJspb')) {
-  //const match = text.match(/defrostedResourcesJspb = (.*);/)
-  //if (match) {
-  //defrostedResourcesJspb = JSON.parse(match[1])
-  //break
-  //}
-  //}
-  //}
-  //console.log(defrostedResourcesJspb)
-  //console.log(JSON.stringify(defrostedResourcesJspb, null, 1))
-
-  //// Write json to file.
-  //fs.writeFileSync('defrostedResourcesJspb.json', JSON.stringify(defrostedResourcesJspb, null, 1))
+  console.log("Finished");
+  console.log(cve);
+  cve.import_stage = "bug_end";
 }
-main()
+
+const main = async () => {
+  //await fetchVersionHistory()
+  //await retrieveCveList();
+
+  const database = JSON.parse(fs.readFileSync('../public/cve/data.json', 'utf8'))
+  const browser = await puppeteer.launch()
+  const page = await browser.newPage()
+
+  let index = 0;
+  for(const cve of Object.values(database)) {
+    console.log("Processing", cve.id);
+    if (cve.bug == undefined) {
+      continue;
+    }
+
+    if (cve.import_stage == undefined) {// || cve.severity == '') {
+      try {
+        await fetchBugganizer(cve, page);
+
+        if (index % 10 == 0) {
+          fs.writeFileSync('../public/cve/data.json', JSON.stringify(database, null, 1))
+        }
+        index++;
+      } catch (e) {
+        console.log("Error fetching", cve.bug, e);
+      }
+    }
+  }
+  console.log("Done fetching all CVEs");
+  fs.writeFileSync('../public/cve/data.json', JSON.stringify(database, null, 1))
+  console.log("Saved to file");
+  await browser.close()
+}
+main();

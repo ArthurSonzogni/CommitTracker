@@ -41,6 +41,11 @@
         </b-navbar-item>
       </b-navbar-dropdown>
 
+      <b-navbar-item tag="router-link" :to="{ path: '/cve/list' }">
+        <b-icon icon="security" class="mr-2"></b-icon>
+        CVE
+      </b-navbar-item>
+
       <b-navbar-dropdown label="Misc">
         <b-navbar-item tag="router-link" :to="{ path: '/usernames' }">
           <b-icon icon="email" class="mr-2"></b-icon>
