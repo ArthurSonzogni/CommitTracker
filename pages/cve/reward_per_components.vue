@@ -34,7 +34,7 @@
 
     <section class="timeline">
       <div class="container">
-      <Timeline v-model="dates" />
+        <Timeline v-model="dates" :minDate="new Date('2015-01-01')"/>
       </div>
     </section>
 
@@ -72,8 +72,8 @@ const width = ref(2000);
 const height = ref(2000);
 
 const dates = ref([
-  new Date("2021-01-01"),
-  new Date("2021-12-31")
+  new Date("2015-01-01"),
+  new Date(),
 ]);
 if (route.query.start) {
   dates.value[0] = new Date(route.query.start);
@@ -264,14 +264,19 @@ const render = (() => {
   const update_link = (update) => {
     update
       .attr("d", d => {
-        const w = (d.source.x1 - d.source.x0) * 20;
+        const w = (d.target.x0 - d.source.x1) * 0.3;
         const p = path();
         p.moveTo(d.source.x1, d.y0 - d.width /2)
-        p.bezierCurveTo(d.source.x1 + w, d.y0 - d.width / 2, d.target.x0 - w, d.y1 - d.width / 2, d.target.x0, d.y1 - d.width / 2);
-        //p.lineTo(d.target.x0, d.y1 - d.width / 2);
-        p.lineTo(d.target.x0, d.y1 + d.width / 2);
-        p.bezierCurveTo(d.target.x0 - w, d.y1 + d.width / 2, d.source.x1 + w, d.y0 + d.width / 2, d.source.x1, d.y0 + d.width / 2);
-        //p.lineTo(d.source.x1, d.y0 + d.width / 2);
+        p.bezierCurveTo(
+          d.source.x1 + w , d.y0 - d.width / 2   ,
+          d.target.x0 - w , d.y1 - d.width / 2   ,
+          d.target.x0     , d.y1 - d.width / 2);
+        p.lineTo(
+          d.target.x0, d.y1 + d.width / 2);
+        p.bezierCurveTo(
+          d.target.x0 - w , d.y1 + d.width / 2,
+          d.source.x1 + w , d.y0 + d.width / 2,
+          d.source.x1     , d.y0 + d.width / 2);
         p.closePath();
         return p.toString();
       })
@@ -310,13 +315,16 @@ const render = (() => {
     .on("mouseover", function(event, d) {
       const [mouse_x, mouse_y] = pointer(event);
       const mouse = pointer(event);
-      select(this).attr("fill", color(d.source.component));
+
+      select(this)
+        .attr("opacity", 0.5)
       select(".tooltip")
         .style("display", "block")
         .style("position", "absolute")
         .attr("transform", `translate(${mouse_x},${mouse_y})`)
         .select("text")
         .text(d.target.name + ": " + formatter(d.value));
+
     })
     .on("mousemove", function(event) {
       const [mouse_x, mouse_y] = pointer(event);
@@ -326,6 +334,8 @@ const render = (() => {
     .on("mouseout", function(event, d) {
       select(".tooltip").style("display", "none");
       select(this).attr("fill", color(d.source.component));
+      select(this)
+        .attr("opacity", 1.0)
     });
 
   const update_label = (update) => {
