@@ -9,7 +9,7 @@
         </h1>
         <ul>
           <li>{{cve_count}} CVEs</li>
-          <li>{{formatter(total_reward)}} total reward</li>
+          <li>{{dollars_formatter(total_reward)}} total reward</li>
         </ul>
       </div>
     </section>
@@ -20,15 +20,16 @@
         :height="height"
       >
 
-      <g ref="svg_nodes" />
-      <g ref="svg_links" />
       <g ref="svg_labels" />
       <g ref="svg_link_labels" />
-
+      <g ref="svg_nodes" />
+      <g ref="svg_links" />
 
       <g class="tooltip" style="display: none;">
-        <text>Tooltip</text>
+        <rect/>
+        <text/>
       </g>
+
       </svg>
     </section>
 
@@ -55,7 +56,8 @@ import "d3-transition";
 import { transition } from "d3-transition";
 import { easeQuadInOut } from "d3-ease";
 
-const formatter = format("$,.0f");
+const dollars_formatter = format("$,.0f");
+const percent_formatter = format(".2%");
 
 const route = useRoute();
 const router = useRouter();
@@ -176,7 +178,6 @@ const render = (() => {
   Object.entries(component_vrp_reward)
     .sort((a, b) => a[0].localeCompare(b[0]))
     .forEach(([component, reward]) => {
-      console.log(component, reward);
       const parts = component.split(">");
       let source = componentIndex("All");
       component_vrp_reward["All"] ||= 0;
@@ -195,20 +196,19 @@ const render = (() => {
     node.name = parts[parts.length - 1];
   }
 
-  //const nodeWidth = graph.nodes.map(d => d.name.length * 20).reduce((a, b) => a + b) / graph.nodes.length;
+  // const nodeWidth = graph.nodes.map(d => d.name.length * 20).reduce((a, b) => a + b) / graph.nodes.length;
 
   const nodeWidth = 6;
 
   const sankey_generator = sankey(graph)
     .nodeId(d => d.node)
     .nodeWidth(nodeWidth)
-    .nodePadding(5)
+    .nodePadding(7)
     .nodeAlign(sankeyLeft)
     .size([width.value-200, height.value-100])
     .nodeSort(null)
 
   const sankey_graph = sankey_generator(graph);
-  console.log(sankey_graph);
 
   const transition_enter = transition()
     .duration(500)
@@ -318,12 +318,34 @@ const render = (() => {
 
       select(this)
         .attr("opacity", 0.5)
-      select(".tooltip")
+
+      const tooltip = select(".tooltip")
         .style("display", "block")
         .style("position", "absolute")
         .attr("transform", `translate(${mouse_x},${mouse_y})`)
+        .attr("pointer-events", "none")
+
+      const text = tooltip
         .select("text")
-        .text(d.target.name + ": " + formatter(d.value));
+        .attr("font-size", 20)
+        .attr("fill", "black")
+        .attr("pointer-events", "none")
+        .text(d.target.name + ": " + dollars_formatter(d.value) + `
+          (${percent_formatter(d.value / total_reward.value)})`);
+
+
+      const rect = tooltip
+        .select("rect")
+        .attr("x", -10)
+        .attr("y", -30)
+        .attr("width", text.node().getBBox().width + 20)
+        .attr("height", text.node().getBBox().height + 20)
+        .attr("fill", color(d.source.component))
+        .attr("rx", 5)
+        .attr("ry", 5)
+        .attr("pointer-events", "none")
+        .attr("stroke", "black")
+        .attr("stroke-width", 1)
 
     })
     .on("mousemove", function(event) {
@@ -345,7 +367,7 @@ const render = (() => {
       .attr("text-anchor", "start")
       .attr("alignment-baseline", "middle")
       .text(d => d.name)
-      .attr("font-size", d => Math.pow(d.y1 - d.y0, 0.1) * 7)
+      .attr("font-size", d => Math.max(Math.pow(d.y1 - d.y0, 0.2) * 5, 10));
   }
 
   select(svg_labels.value)
@@ -381,11 +403,9 @@ const render = (() => {
 
   const update_link_label = (update) => {
     update
-      //.attr("x", d => d.target.x0 - 10)
-      //.attr("y", d => (d.target.y1 + d.target.y0) / 2)
       .attr("transform", d => `translate(${d.target.x0 - 10}, ${(d.target.y1 + d.target.y0) / 2})`)
-      .attr("font-size", d => Math.pow(d.target.y1 - d.target.y0, 0.1) * 7)
-      .text(d => formatter(d.value));
+      .attr("font-size", d => Math.max(Math.pow(d.target.y1 - d.target.y0, 0.2) * 5, 10))
+      .text(d => dollars_formatter(d.value));
   }
 
   select(svg_link_labels.value)

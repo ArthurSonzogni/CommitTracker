@@ -70,6 +70,7 @@ const filteredData = computed(() => {
     };
   });
 
+  console.log(data_2);
   return data_2;
 });
 

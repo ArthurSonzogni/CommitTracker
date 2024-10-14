@@ -22,6 +22,18 @@
           <li>Updates <strong>weekly</strong>.</li>
         </ul>
 
+        <strong>
+          Visualizations
+        </strong>
+        <ul>
+          <li>
+            <NuxtLink :to="'/cve/reward_per_components'">
+              Per components rewards.
+            </NuxtLink>
+          </li>
+        </ul>
+
+
         <div style="border-bottom: 1px solid #ccc; margin-bottom: 1em;"></div>
 
         <!--
