@@ -20,6 +20,14 @@
           <li><strong>{{ data_size }} CVEs.</strong></li>
           <li>Last CVE published <strong>{{ latest_cve_duration }} ago</strong></li>
           <li>Updates <strong>weekly</strong>.</li>
+          <li>
+            Usually
+            <b-tag type="is-danger is-small" class="ml-2">
+              Private bug
+            </b-tag>
+            become public 14 weeks after they have been
+            fixed.
+          </li>
         </ul>
 
         <strong>
@@ -78,7 +86,7 @@
           <div class="cve-description">
             <b-tag type="is-danger is-small" class="ml-2"
               v-if="!cve.bug_date">
-              Undisclosed
+              Private bug
             </b-tag>
             <b-tag type="is-info is-small" class="ml-2"
                                             v-if="cve.vrp_reward">
@@ -232,8 +240,8 @@ const refresh = async () => {
     case "component":
       for(const cve of filtered_data) {
         if (!cve.components) {
-          out["<Undisclosed>"] ||= [];
-          out["<Undisclosed>"].push(cve);
+          out["<Private bug>"] ||= [];
+          out["<Private bug>"].push(cve);
           continue;
         }
 
@@ -331,7 +339,7 @@ const refresh = async () => {
         return a.localeCompare(b);
       });
 
-      keys = moveToEnd(keys, key => key != "<Undisclosed>");
+      keys = moveToEnd(keys, key => key != "<Private bug>");
 
       break;
   }

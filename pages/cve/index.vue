@@ -6,8 +6,10 @@
         <h2 class="title">
           {{ id }}
           <b-tag type="is-danger is-small" class="ml-2"
-            v-if="!cve.bug_date">
-            Undisclosed
+              v-if="!cve.bug_date">
+            <b-tooltip label="Bug are opened 14 weeks after being fixed" position="is-top">
+            Private bug
+            </b-tooltip>
           </b-tag>
           <b-tag type="is-info is-small" class="ml-2" v-else>
             public
