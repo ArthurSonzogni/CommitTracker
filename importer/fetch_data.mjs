@@ -64,6 +64,7 @@ const g_bot_patterns = [
   'wptsync',
   'none@none',
   'css21testsuite',
+  'dependabot',
 ];
 
 const IsEmailValid = email => {
