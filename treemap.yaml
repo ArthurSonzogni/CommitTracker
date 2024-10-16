@@ -75,6 +75,14 @@ metrics:
   file: unsafe_buffers
   tags: ["Spanification"]
 
+# Memory Safety ----------------------------------------------------------------
+- name: "base::Unretained"
+  description: The occurrences of base::Unretained
+  script: >-
+    git grep -c 'base::Unretained' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
+  file: base_unretained
+  tags: ["Memory Safety"]
+
 # Misc -------------------------------------------------------------------------
 
 - name: TODO
