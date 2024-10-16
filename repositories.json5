@@ -216,5 +216,14 @@
     repository: "ladybird",
     reviewers: false,
     treemap: false,
+  },
+  {
+    name: "Servo",
+    dirname: "servo",
+    color: "#42be65",
+    owner: "servo",
+    repository: "servo",
+    reviewers: false,
+    treemap: false,
   }
 ]
