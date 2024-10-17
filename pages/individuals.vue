@@ -177,6 +177,7 @@ if (route.query.options) {
 const hourlyParam = ref(0);
 if (route.query.hourlyParam) {
   hourlyParam.value = parseInt(route.query.hourlyParam);
+  hourlyParam.value = Math.min(2, Math.max(0, hourlyParam.value));
 }
 
 const wrappedBuckets = ref(100);

@@ -46,10 +46,14 @@ const filteredData = computed(() => {
   // Stacked:
   if (props.stacked) {
     let accu = [];
-    data_2 = data_2.map(entry => {
+    data_2 = data_2.map((entry, i) => {
+      let label = entry.label;
+      if (i != 0) {
+        label += " (+" + i + ")";
+      }
       accu = accu.concat(entry.values).sort((a, b) => a - b);
       return {
-        label: entry.developer,
+        label,
         values: accu,
       };
     });
@@ -70,7 +74,6 @@ const filteredData = computed(() => {
     };
   });
 
-  console.log(data_2);
   return data_2;
 });
 
