@@ -274,8 +274,6 @@ const retrieveCveList = async (database) => {
 
 const fetchBugganizer = async (cve, page) => {
   const url = cve.bug
-  //const url = "https://issues.chromium.org/issues/348567825";
-  //const url = "https://issues.chromium.org/issues/348129258";
   console.log("Fetching", url)
   cve.import_stage = "bug_start";
 
@@ -438,17 +436,41 @@ const main = async () => {
       continue;
     }
 
-    if (cve.import_stage == undefined) {// || cve.severity == '') {
-      try {
-        await fetchBugganizer(cve, page);
+    if (cve.import_stage == "bug_end") {
+      continue;
+    }
 
-        if (index % 10 == 0) {
-          saveDatabase(database);
-        }
-        index++;
-      } catch (e) {
-        console.log("Error fetching", cve.bug, e);
+    if (cve.import_stage == "bug_start") {
+      // The bug has not been fetched yet, but it might still be private. Load
+      // them randomly based on the number number of weeks since the CVE was
+      // published. This is to avoid hitting the same bugs over and over again.
+      // Below 14 weeks, the probability is 20%, because the bugs are likely
+      // private. After 14 weeks, the probability is 100%, and it decreases to
+      // 5% after 28 weeks.
+      const published = new Date(cve.published);
+      const today = new Date();
+      const weeks = (today - published) / (1000 * 60 * 60 * 24 * 7);
+      let probability = 0.2;
+      if (weeks > 14) {
+        probability = Math.max(0.05, 1 - (weeks - 14) * 0.067);
       }
+      console.log("Weeks", weeks, "Probability", probability);
+
+      if (Math.random() > probability) {
+        console.log("Skipping", cve.id, "probability", probability);
+        continue;
+      }
+    }
+
+    try {
+      await fetchBugganizer(cve, page);
+
+      if (index % 10 == 0) {
+        saveDatabase(database);
+      }
+      index++;
+    } catch (e) {
+      console.log("Error fetching", cve.bug, e);
     }
   }
   console.log("Done fetching all CVEs");
