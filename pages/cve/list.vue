@@ -17,16 +17,10 @@
         </p>
 
         <ul>
-          <li><strong>{{ data_size }} CVEs.</strong></li>
-          <li>Last CVE published <strong>{{ latest_cve_duration }} ago</strong></li>
-          <li>Updates <strong>weekly</strong>.</li>
-          <li>
-            Usually
-            <b-tag type="is-danger is-small" class="ml-2">
-              Private bug
-            </b-tag>
-            become public 14 weeks after they have been
-            fixed.
+          <li><strong>{{ data_size }} CVEs</strong> in the database.</li>
+          <li>Latest published <strong>{{ latest_cve_duration }} ago.</strong></li>
+          <li>Private bug usually become public 3 months and 2 weeks after they
+            have been fixed. The latest was published <strong>{{ latest_public_cve_duration }} ago.</strong>
           </li>
         </ul>
 
@@ -117,6 +111,7 @@ const grouped = ref({});
 
 const data_size = ref(0);
 const latest_cve_duration = ref("n/a");
+const latest_public_cve_duration = ref("n/a");
 
 const loading = ref(false);
 
@@ -143,7 +138,15 @@ onMounted(async () => {
     return Math.max(max, new Date(cve.published).getTime());
   }, 0);
   latest_cve_duration.value = humanizeDuration(Date.now() - max_date, {
-    largest: 3,
+    largest: 2,
+  });
+  const max_public_date = Object.values(data.value)
+    .filter(cve => cve.bug_date)
+    .reduce((max, cve) => {
+      return Math.max(max, new Date(cve.bug_date).getTime());
+    }, 0);
+  latest_public_cve_duration.value = humanizeDuration(Date.now() - max_public_date, {
+    largest: 2,
   });
 });
 

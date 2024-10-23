@@ -4,6 +4,21 @@ import fs from 'fs'
 import puppeteer from 'puppeteer'
 import spawn from 'child_process'
 
+const loadDatabase = () => {
+  try {
+    const data = JSON.parse(fs.readFileSync('../public/cve/data.json', 'utf8'))
+    const values = Object.values(data);
+    return values.filter(cve => cve.id).sort((a, b) => a.id - b.id)
+  } catch (e) {
+    return {}
+  }
+}
+
+const saveDatabase = (database) => {
+  fs.mkdirSync('../data/cve', { recursive: true });
+  fs.writeFileSync('../public/cve/data.json', JSON.stringify(database, null, 1))
+}
+
 // Execute a command, and log its output.
 const exec = async (command, args, options) => {
   console.log(`Running: ${command} ${args.join(' ')}`)
@@ -232,7 +247,7 @@ const transformCve = (cve) => {
   };
 }
 
-const retrieveCveList = async () => {
+const retrieveCveList = async (database) => {
   await fetchCveRepository()
 
   const cves = {}
@@ -246,14 +261,15 @@ const retrieveCveList = async () => {
     }
 
     const transformed = transformCve(cve)
-    cves[transformed.id] = transformed;
+
+    // Skip entries that have already been processed.
+    if (database.find(entry => entry.id == transformed.id)) {
+      continue;
+    }
+
+    console.log("Adding CVE", transformed.id)
+    database.push(transformed)
   }
-
-  // Create directories.
-  fs.mkdirSync('../data/cve', { recursive: true });
-
-  // Write json to file.
-  fs.writeFileSync('../public/cve/data.json', JSON.stringify(cves, null, 1))
 }
 
 const fetchBugganizer = async (cve, page) => {
@@ -407,15 +423,16 @@ const fetchBugganizer = async (cve, page) => {
 }
 
 const main = async () => {
-  //await fetchVersionHistory()
-  //await retrieveCveList();
-
-  const database = JSON.parse(fs.readFileSync('../public/cve/data.json', 'utf8'))
+  fs.mkdirSync('../data/cve', { recursive: true });
+  await fetchVersionHistory()
+  const database = loadDatabase();
+  await retrieveCveList(database);
+  saveDatabase(database);
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
 
   let index = 0;
-  for(const cve of Object.values(database)) {
+  for(const cve of database) {
     console.log("Processing", cve.id);
     if (cve.bug == undefined) {
       continue;
@@ -426,7 +443,7 @@ const main = async () => {
         await fetchBugganizer(cve, page);
 
         if (index % 10 == 0) {
-          fs.writeFileSync('../public/cve/data.json', JSON.stringify(database, null, 1))
+          saveDatabase(database);
         }
         index++;
       } catch (e) {
@@ -435,7 +452,7 @@ const main = async () => {
     }
   }
   console.log("Done fetching all CVEs");
-  fs.writeFileSync('../public/cve/data.json', JSON.stringify(database, null, 1))
+  saveDatabase(database);
   console.log("Saved to file");
   await browser.close()
 }

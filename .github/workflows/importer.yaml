@@ -91,6 +91,23 @@ jobs:
 
       # ------------------------------------------------------------------------
 
+      - name: Fetch CVE data
+        run: |
+          cd importer
+          yarn run cve
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push CVE data
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public/cve/
+          publish_branch: cve
+          force_orphan: true
+
+      # ------------------------------------------------------------------------
+
       - name: Install OpenMP
         run: sudo apt-get install libomp-dev libomp5
 
