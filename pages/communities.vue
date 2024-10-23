@@ -87,10 +87,10 @@
                 <a href="https://en.wikipedia.org/wiki/Louvain_method">
                   Louvain algorithm
                 </a>.
-                <li>
-                  <strong>Code reviews before 2017 are not included.</strong>,
-                  the data wasn't part of the commit description before.
-                </li>
+              </li>
+              <li>
+                <strong>Code reviews before 2017 are not included.</strong>,
+                the data wasn't part of the commit description before.
               </li>
             </ul>
           </div>
@@ -189,6 +189,7 @@ const updateZoom = () => {
   svg.setAttribute("margin", "auto")
   svg.setAttribute("aspect-ratio", "2")
   svg.setAttribute("width", zoom.value * 95 + "vw");
+  svg.addEventListener("click", view);
 };
 
 const updateUrl = () => {
@@ -213,7 +214,8 @@ onMounted(() => {
 <style scope>
 
 svg {
-  transition: width 0.5s ease-in-out,
+  transition: width 0.5s ease-in-out;
+  cursor: pointer;
 }
 
 .fullscreenFlexbox {
