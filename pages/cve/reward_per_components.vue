@@ -5,10 +5,10 @@
     <section class="section">
       <div class="container">
         <h1 class="title">
-          VRP reward per component
+          VRP reward per component in the Chromium project.
         </h1>
         <ul>
-          <li>{{cve_count}} CVEs</li>
+          <li>{{cve_count}} CVEs in between {{dates[0].toISOString().split("T")[0]}} and {{dates[1].toISOString().split("T")[0]}}</li>
           <li>{{dollars_formatter(total_reward)}} total reward</li>
         </ul>
       </div>
@@ -74,7 +74,7 @@ const width = ref(2000);
 const height = ref(2000);
 
 const dates = ref([
-  new Date("2015-01-01"),
+  new Date(new Date().setDate(new Date().getDate() - 365)),
   new Date(),
 ]);
 if (route.query.start) {
@@ -140,7 +140,7 @@ const render = (() => {
   let total_reward_partial = 0;
 
   const component_vrp_reward = { }
-  for (const cve of Object.values(data)) {
+  for (const cve of data) {
     const date = new Date(cve.bug_date);
     if (date < dates.value[0] || date > dates.value[1]) {
       continue;
@@ -172,7 +172,7 @@ const render = (() => {
     }
   }
 
-  //height.value = Math.max(500, 20 * Object.keys(component_vrp_reward).length);
+  height.value = Math.max(500, 35 * Math.pow(Object.keys(component_vrp_reward).length, 0.8));
   width.value = window.innerWidth;
 
   Object.entries(component_vrp_reward)

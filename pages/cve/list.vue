@@ -134,13 +134,13 @@ onMounted(async () => {
 
   data_size.value = Object.keys(data.value).length;
 
-  const max_date = Object.values(data.value).reduce((max, cve) => {
+  const max_date = data.value.reduce((max, cve) => {
     return Math.max(max, new Date(cve.published).getTime());
   }, 0);
   latest_cve_duration.value = humanizeDuration(Date.now() - max_date, {
     largest: 2,
   });
-  const max_public_date = Object.values(data.value)
+  const max_public_date = data.value
     .filter(cve => cve.bug_date)
     .reduce((max, cve) => {
       return Math.max(max, new Date(cve.bug_date).getTime());
@@ -180,7 +180,7 @@ const refresh = async () => {
     });
   }
 
-  const filtered_data = Object.values(data.value).filter(cve => {
+  const filtered_data = data.value.filter(cve => {
     const date = new Date(cve.published);
     return date >= dates.value[0] && date <= dates.value[1];
   });

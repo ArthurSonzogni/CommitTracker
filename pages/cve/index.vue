@@ -138,30 +138,15 @@ onMounted(async ()=> {
   const data=await response.json();
 
   let out=null;
-  for (const cve_ of Object.values(data)) {
+  for (const cve_ of data) {
     if (cve_.id==id.value) {
       out=cve_;
       break;
     }
   }
 
-  console.log(out);
   cve.value=out;
-
   events.value=getEvents(out);
-
-  /*
-    Format:/*
-    "id": "CVE-2011-1802",
-    "cweId": "",
-    "problem": "memory corruption",
-    "bug": "https://bugs.chromium.org/p/chromium/issues/detail?id=78572",
-    "description": "WebKit in Google Chrome before Blink M11 and M12 does not properly handle counter nodes, which allows remote attackers to cause a denial of service (memory corruption).",
-    "published": "2019-11-12T21:46:01",
-    "version_fixed": "before Blink M11 and M12",
-    "version_dates": {}
-   */
-
 });
 
 </script>
