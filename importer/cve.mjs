@@ -275,13 +275,13 @@ const retrieveCveList = async (database) => {
 const fetchBugganizer = async (cve, page) => {
   const url = cve.bug
   console.log("Fetching", url)
-  cve.import_stage = "bug_start";
 
   await page.goto(url)
 
-  // Wait for the page to load:
-  await page.waitForSelector('.child', { timeout: 3000 })
-  await page.waitForSelector('label', { timeout: 3000 })
+  await page.waitForFunction(() => {
+    labels = Array.from(document.querySelectorAll('label')).map(el => el.textContent.trim());
+    return labels.includes('vrp-reward');
+  }, { timeout: 3000 });
 
   // Search for the cve value to confirm.
   const extracted = await page.evaluate(() => {
@@ -385,7 +385,7 @@ const fetchBugganizer = async (cve, page) => {
   }
 
   cve.id = extracted.cve;
-  if (cve.vrp_reward != null && cve.vrp_reward != "--") {
+  if (parseInt(extracted.vrp_reward) > 0) {
     cve.vrp_reward = extracted.vrp_reward;
   }
   cve.components = extracted.components;
@@ -417,7 +417,6 @@ const fetchBugganizer = async (cve, page) => {
 
   console.log("Finished");
   console.log(cve);
-  cve.import_stage = "bug_end";
 }
 
 const main = async () => {
@@ -436,34 +435,45 @@ const main = async () => {
       continue;
     }
 
-    if (cve.import_stage == "bug_end") {
+    if (cve.vrp_reward == "--") {
+      delete cve.vrp_reward;
+    }
+
+    if (cve.import_stage != undefined) {
+      delete cve.import_stage;
+    }
+
+    if (cve.vrp_reward != undefined) {
+      console.log("Skipping", cve.bug, " vrp reward", cve.vrp_reward);
       continue;
     }
 
-    if (cve.import_stage == "bug_start") {
-      // The bug has not been fetched yet, but it might still be private. Load
-      // them randomly based on the number number of weeks since the CVE was
-      // published. This is to avoid hitting the same bugs over and over again.
-      // Below 14 weeks, the probability is 20%, because the bugs are likely
-      // private. After 14 weeks, the probability is 100%, and it decreases to
-      // 5% after 28 weeks.
-      const published = new Date(cve.published);
-      const today = new Date();
-      const weeks = (today - published) / (1000 * 60 * 60 * 24 * 7);
-      let probability = 0.2;
-      if (weeks > 14) {
-        probability = Math.max(0.05, 1 - (weeks - 14) * 0.067);
-      }
-      console.log("Weeks", weeks, "Probability", probability);
+    // The bug has not been fetched yet, but it might still be private. Load
+    // them randomly based on the number number of weeks since the CVE was
+    // published. This is to avoid hitting the same bugs over and over again.
+    // Below 14 weeks, the probability is 20%, because the bugs are likely
+    // private. After 14 weeks, the probability is 100%, and it decreases to
+    // 5% after 28 weeks.
+    const published = new Date(cve.published);
+    const today = new Date();
+    const weeks = (today - published) / (1000 * 60 * 60 * 24 * 7);
+    let probability = 0.2;
+    if (weeks > 14) {
+      probability = Math.max(0.05, 1 - (weeks - 14) * 0.067);
+    }
+    console.log("Weeks", weeks, "Probability", probability);
 
-      if (Math.random() > probability) {
-        console.log("Skipping", cve.id, "probability", probability);
-        continue;
-      }
+    if (Math.random() > probability) {
+      console.log("Skipping", cve.id, "probability", probability);
+      continue;
     }
 
     try {
-      await fetchBugganizer(cve, page);
+      try {
+        await fetchBugganizer(cve, page);
+      } catch (e) {
+        console.log("Error fetching", cve.bug, e);
+      }
 
       if (index % 10 == 0) {
         saveDatabase(database);
