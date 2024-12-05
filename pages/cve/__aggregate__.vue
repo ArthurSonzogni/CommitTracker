@@ -63,7 +63,7 @@
           </b-field>
 
           <b-field label="Hide low count">
-            <b-switch v-model="hide_unreliable" type="is-info"></b-switch>
+            <b-switch v-model="hide_low_count" type="is-info"></b-switch>
           </b-field>
         </b-field>
       </div>
@@ -94,8 +94,7 @@
 
           <b-table-column
             draggable-column
-            v-for="column in table_columns"
-            :key="column.field"
+            v-for="column in table_columns.sort((a, b) => a.label.localeCompare(b.label))"
             :field="column.field"
             :label="column.label"
             :td-attrs="tdAttrs"
@@ -173,7 +172,7 @@ const updateUrl = () => {
   });
 };
 
-const hide_unreliable = ref(true);
+const hide_low_count = ref(true);
 
 let raw_data = {}
 let table_data = shallowRef([])
@@ -240,6 +239,19 @@ const component_generator = function*(component) {
   }
 }
 
+const components_generator = function*(components) {
+  const seen = new Set();
+  for (const component of components) {
+    for (const part of component_generator(component)) {
+      if (seen.has(part)) {
+        continue;
+      }
+      seen.add(part);
+      yield part;
+    }
+  }
+}
+
 const time_get_bucket = (date) => {
   switch(time_division.value) {
     case "all":
@@ -292,10 +304,8 @@ const render = (() => {
 
       const time_label = time_get_bucket(date);
       time_bucket_set.add(time_label)
-      for (const component of cve.components || []) {
-        for (const part of component_generator(component)) {
-          component_bucket_set.add(part);
-        }
+      for (const part of components_generator(cve.components)) {
+        component_bucket_set.add(part);
       }
 
       return {
@@ -392,7 +402,7 @@ const render = (() => {
             row[field] = 0;
             break;
           }
-          if (hide_unreliable.value && row[field].length < 10) {
+          if (hide_low_count.value && row[field].length < 10) {
             row[field] = 0;
             break;
           }
@@ -404,7 +414,7 @@ const render = (() => {
             row[field] = 0;
             break;
           }
-          if (hide_unreliable.value && row[field].length < 7) {
+          if (hide_low_count.value && row[field].length < 6) {
             row[field] = 0;
             break;
           }
@@ -416,7 +426,7 @@ const render = (() => {
             row[field] = 0;
             break;
           }
-          if (hide_unreliable.value && row[field].length < 10) {
+          if (hide_low_count.value && row[field].length < 10) {
             row[field] = 0;
             break;
           }
@@ -486,7 +496,7 @@ watch([
   cell_value,
   component_division,
   dates,
-  hide_unreliable,
+  hide_low_count,
   severity,
   time_division,
 ], () => {
