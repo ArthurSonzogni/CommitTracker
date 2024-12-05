@@ -4,7 +4,7 @@
 
     <section class="section">
       <div class="container">
-        <b-field grouped>
+        <b-field grouped group-multiline>
           <!--component_division, use 4 radiobox to set the value to 0,1,2,3-->
           <b-field label="Components depths">
             <b-radio-button v-model="component_division" native-value="0">0</b-radio-button>
@@ -61,6 +61,10 @@
               </b-tooltip>
             </b-radio-button>
           </b-field>
+
+          <b-field label="Hide low count">
+            <b-switch v-model="hide_unreliable" type="is-info"></b-switch>
+          </b-field>
         </b-field>
       </div>
     </section>
@@ -80,8 +84,6 @@
             field="component"
             label="Component"
             sortable
-            :td-attrs="tdAttrs"
-            :th-attrs="thAttrs"
             sticky
             >
             <template v-slot="props">
@@ -96,8 +98,8 @@
             :key="column.field"
             :field="column.field"
             :label="column.label"
-            :sortable="column.sortable"
             :td-attrs="tdAttrs"
+            sortable
             >
             <template v-slot="props">
               {{ formatter(props.row[column.field]) }}
@@ -171,9 +173,11 @@ const updateUrl = () => {
   });
 };
 
+const hide_unreliable = ref(true);
+
 let raw_data = {}
-let table_data = ref([])
-let table_columns = ref([])
+let table_data = shallowRef([])
+let table_columns = shallowRef([])
 
 // Format the cells with d3.format.
 const dollarFormatter = format("$,.0f");
@@ -205,14 +209,6 @@ const thAttrs = (column) => {
 }
 
 const tdAttrs = (row, column) => {
-  if (column.field == "component") {
-
-    return {
-      style: {
-        backgroundColor: "white",
-      }
-    }
-  }
   return {
     style: {
       backgroundColor: color_scale2(color_scale(row[column.field])),
@@ -244,75 +240,87 @@ const component_generator = function*(component) {
   }
 }
 
-const time_generator = function*(start, end) {
-  switch(time_division.value) {
-    case "all":
-      yield "All";
-      return;
-    case "year":
-      for (let i = start.getFullYear(); i <= end.getFullYear(); ++i) {
-        yield ""+i;
-      }
-      return;
-    case "quarter":
-      for (let i = start.getFullYear(); i <= end.getFullYear(); ++i) {
-        for (let j = 1; j < 13; j+=3) {
-          yield `${i}Q${Math.floor(j/3)+1}`;
-        }
-      }
-      return;
-    case "month":
-      for (let i = start.getFullYear(); i <= end.getFullYear(); ++i) {
-        for (let j = 1; j < 13; ++j) {
-          yield `${i}M${j}`;
-        }
-      }
-      return;
-  }
-}
-
 const time_get_bucket = (date) => {
   switch(time_division.value) {
     case "all":
       return "All";
     case "year":
-      return ""+date.getFullYear();
+      return `${date.getFullYear()}`;
     case "quarter":
       return `${date.getFullYear()}Q${Math.floor(date.getMonth()/3)+1}`;
     case "month":
-      return `${date.getFullYear()}M${date.getMonth()+1}`;
+      const month = (date.getMonth() + 1).toString().padStart(2, "0");
+      return `${date.getFullYear()}M${month}`;
   }
 }
 
+
 const render = (() => {
+
+  const time_bucket_set = new Set();
+  const component_bucket_set = new Set();
+
   const data = Object
     .values(raw_data)
     .map(cve => {
+      if (!cve.version_dates.stable) {
+        return 0;
+      }
+
+      if (!severity.value.includes(cve.severity)) {
+        return 0;
+      }
+
+
       const begin = new Date(cve.bug_date);
       const end = new Date(cve.version_dates.stable);
 
+      if (!begin || !end) {
+        return 0;
+      }
+      const date = end;
+
+      if (date < dates.value[0] || date > dates.value[1]) {
+        return 0;
+      }
+
+      const value = (end - begin) / (1000 * 60 * 60 * 24);
+      if (isNaN(value)) {
+        return 0;
+      }
+
+
+      const time_label = time_get_bucket(date);
+      time_bucket_set.add(time_label)
+      for (const component of cve.components || []) {
+        for (const part of component_generator(component)) {
+          component_bucket_set.add(part);
+        }
+      }
+
       return {
-        date: new Date(cve.published),
+        date,
         cve,
-        value: (end - begin) / (1000 * 60 * 60 * 24)
+        value,
       }
     })
-    .filter(x => !isNaN(x.value))
-    .filter(x => severity.value.includes(x.cve.severity))
+    .filter(x => x != 0)
     .sort((a, b) => a.date - b.date)
 
-
-  const time_buckets = new Array();
-  for (const time of time_generator(dates.value[0], dates.value[1])) {
-    time_buckets.push(time);
-  }
+  const time_buckets = Array.from(time_bucket_set).sort();
+  const component_buckets = Array.from(component_bucket_set).sort();
 
   // On the y axis, we have the date.
+  table_columns.value = [
+    {
+      field: "component",
+      label: "Component",
+    }
+  ]
   table_columns.value = time_buckets.map(time => {
     return {
       field: time,
       label: time,
-      sortable: true,
     }
   })
 
@@ -326,36 +334,20 @@ const render = (() => {
     }
   }
 
-  const component_array = Array.from(components).sort();
   const component_array_index = new Map();
-  for (let i = 0; i < component_array.length; ++i) {
-    component_array_index.set(component_array[i], i);
+  for (let i = 0; i < component_buckets.length; ++i) {
+    component_array_index.set(component_buckets[i], i);
   }
 
   // Value is the vrp_reward for each component in each date.
-  let table_data_value = component_array.map(component => {
-    switch(cell_value.value) {
-      case "cve_count":
-      case "vrp_reward":
-        return {
-          component,
-          // Fill date with 0.
-          ...Object.fromEntries(time_buckets.map(time => [time, 0])),
-        }
-      case "time_to_fix_10p":
-      case "time_to_fix_90p":
-      case "time_to_fix_median":
-        return {
-          component,
-          // Fill date with 0.
-          ...Object.fromEntries(time_buckets.map(time => [time, []])),
-        }
+  let table_data_value = component_buckets.map(component => {
+    return {
+      component,
     }
   })
 
   for (const cve of data) {
-    const date =
-      time_get_bucket(new Date(cve.cve.published));
+    const date = time_get_bucket(cve.date);
 
     for(const component of cve.cve.components) {
       for (const part of component_generator(component)) {
@@ -366,14 +358,17 @@ const render = (() => {
 
         switch(cell_value.value) {
           case "cve_count":
+            table_data_value[component_index][date] ||= 0;
             table_data_value[component_index][date] += 1;
             break;
           case "time_to_fix_10p":
           case "time_to_fix_90p":
           case "time_to_fix_median":
+            table_data_value[component_index][date] ||= [];
             table_data_value[component_index][date].push(cve.value);
             break;
           case "vrp_reward":
+            table_data_value[component_index][date] ||= 0;
             table_data_value[component_index][date] += parseInt(cve.cve.vrp_reward) || 0;
         }
       }
@@ -387,9 +382,17 @@ const render = (() => {
         continue;
       }
 
+      if (row[field] === undefined) {
+        continue;
+      }
+
       switch(cell_value.value) {
         case "time_to_fix_10p":
           if (row[field].length == 0) {
+            row[field] = 0;
+            break;
+          }
+          if (hide_unreliable.value && row[field].length < 10) {
             row[field] = 0;
             break;
           }
@@ -401,11 +404,19 @@ const render = (() => {
             row[field] = 0;
             break;
           }
+          if (hide_unreliable.value && row[field].length < 7) {
+            row[field] = 0;
+            break;
+          }
           row[field] = row[field].sort((a, b) => a - b);
           row[field] = row[field][Math.floor(row[field].length / 2)];
           break;
         case "time_to_fix_90p":
           if (row[field].length == 0) {
+            row[field] = 0;
+            break;
+          }
+          if (hide_unreliable.value && row[field].length < 10) {
             row[field] = 0;
             break;
           }
@@ -428,22 +439,6 @@ const render = (() => {
 
         let days = Math.floor(x);
         return `${days}d`;
-        /*
-        let years = Math.floor(days / 365);
-        days = days % 365;
-        let months = Math.floor(days / 30);
-        days = days % 30;
-
-        if (years != 0) {
-          return `${years}y ${months}m`;
-        }
-
-        if (months != 0) {
-          return `${months}m ${days}d`;
-        }
-
-        return `${days}d`;
-        */
       }
       break;
     case "vrp_reward":
@@ -474,12 +469,11 @@ const render = (() => {
       break;
   }
 
-  table_data.value = table_data_value;
-
   // Add a colorscale.
-  let max_value = Math.max(...table_data.value.map(row => {
+  let max_value = Math.max(...table_data_value.map(row => {
     return Math.max(...Object.values(row).map(x => parseInt(x) || 0));
   }));
+  table_data.value = table_data_value;
 
   color_scale = scalePow()
     .exponent(0.3)
@@ -489,11 +483,12 @@ const render = (() => {
 })
 
 watch([
-  dates,
-  component_division,
-  time_division,
   cell_value,
+  component_division,
+  dates,
+  hide_unreliable,
   severity,
+  time_division,
 ], () => {
   updateUrl();
   render();
