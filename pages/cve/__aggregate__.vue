@@ -3,24 +3,25 @@
     <Navbar/>
 
     <section class="section">
-      <div class="container">
-        <b-field grouped group-multiline>
-          <!--component_division, use 4 radiobox to set the value to 0,1,2,3-->
-          <b-field label="Components depths">
-            <b-radio-button v-model="component_division" native-value="0">0</b-radio-button>
-            <b-radio-button v-model="component_division" native-value="1">1</b-radio-button>
-            <b-radio-button v-model="component_division" native-value="2">2</b-radio-button>
-            <b-radio-button v-model="component_division" native-value="3">3</b-radio-button>
-            <b-radio-button v-model="component_division" native-value="4">4</b-radio-button>
-            <b-radio-button v-model="component_division" native-value="5">5</b-radio-button>
-          </b-field>
-
-          <!-- time_division, use 3 radiobox to set the value to all,year,quarter,months -->
+      <div class="mycolumns">
+        <div id="widget-colum">
           <b-field label="Time division">
             <b-radio-button v-model="time_division" native-value="all">All</b-radio-button>
             <b-radio-button v-model="time_division" native-value="year">Year</b-radio-button>
             <b-radio-button v-model="time_division" native-value="quarter">Quarter</b-radio-button>
             <b-radio-button v-model="time_division" native-value="month">Month</b-radio-button>
+          </b-field>
+
+          <!--<b-field label="Components depths">-->
+          <!--<b-radio-button v-model="component_division" native-value="0">0</b-radio-button>-->
+          <!--<b-radio-button v-model="component_division" native-value="1">1</b-radio-button>-->
+          <!--<b-radio-button v-model="component_division" native-value="2">2</b-radio-button>-->
+          <!--<b-radio-button v-model="component_division" native-value="3">3</b-radio-button>-->
+          <!--<b-radio-button v-model="component_division" native-value="4">4</b-radio-button>-->
+          <!--<b-radio-button v-model="component_division" native-value="5">5</b-radio-button>-->
+          <!--</b-field>-->
+          <b-field label="Components depths">
+            <b-numberinput v-model="component_division" min="0" max="4" step="1"></b-numberinput>
           </b-field>
 
           <!--Severity ['low', 'medium', 'high', 'critical']-->
@@ -32,52 +33,53 @@
           </b-field>
 
           <!-- value -->
-          <b-field label="Value">
-            <!--<b-radio-button v-model="cell_value" native-value="vrp_reward">VRP reward</b-radio-button>-->
-            <!--<b-radio-button v-model="cell_value" native-value="cve_count">CVE count</b-radio-button>-->
-            <b-radio-button v-model="cell_value" native-value="vrp_reward">
-              <b-tooltip label="VRP reward" position="is-top">
-                Reward
-              </b-tooltip>
-            </b-radio-button>
-            <b-radio-button v-model="cell_value" native-value="cve_count">
-              <b-tooltip label="Number of CVE" position="is-top">
-                CVE
-              </b-tooltip>
-            </b-radio-button>
-            <b-radio-button v-model="cell_value" native-value="time_to_fix_10p">
-              <b-tooltip label="Delay from bug reported to fix released to stable" position="is-top">
-                Velocity 10p
-              </b-tooltip>
-            </b-radio-button>
-            <b-radio-button v-model="cell_value" native-value="time_to_fix_median">
-              <b-tooltip label="Delay from bug reported to fix released to stable" position="is-top">
-                Velocity median
-              </b-tooltip>
-            </b-radio-button>
-            <b-radio-button v-model="cell_value" native-value="time_to_fix_90p">
-              <b-tooltip label="Delay from bug reported to fix released to stable" position="is-top">
-                Velocity 90p
-              </b-tooltip>
-            </b-radio-button>
+          <b-field grouped>
+            <b-field label="Reward">
+              <b-radio-button v-model="cell_value" native-value="vrp_reward">
+                <b-tooltip label="VRP reward" position="is-top">
+                  $$$
+                </b-tooltip>
+              </b-radio-button>
+            </b-field>
+            <b-field label="CVE">
+              <b-radio-button v-model="cell_value" native-value="cve_count">
+                <b-tooltip label="Number of CVE" position="is-top">
+                  Count
+                </b-tooltip>
+              </b-radio-button>
+            </b-field>
+            <b-field label="Velocity" label-position="on">
+              <b-radio-button v-model="cell_value" native-value="time_to_fix_10p">
+                <b-tooltip label="Delay from bug reported to fix released to stable" position="is-top">
+                  10p
+                </b-tooltip>
+              </b-radio-button>
+              <b-radio-button v-model="cell_value" native-value="time_to_fix_median">
+                <b-tooltip label="Delay from bug reported to fix released to stable" position="is-top">
+                  50p
+                </b-tooltip>
+              </b-radio-button>
+              <b-radio-button v-model="cell_value" native-value="time_to_fix_90p">
+                <b-tooltip label="Delay from bug reported to fix released to stable" position="is-top">
+                  90p
+                </b-tooltip>
+              </b-radio-button>
+            </b-field>
           </b-field>
 
-          <b-field label="Hide low count">
+          <b-field label="Hide non representative data">
             <b-switch v-model="hide_low_count" type="is-info"></b-switch>
           </b-field>
-        </b-field>
-      </div>
-    </section>
 
-    <section class="section">
-      <div class="container">
+        </div>
         <b-table
+          id="table-column"
           :data="table_data"
           striped
           bordered
           scrollable
           sticky-header
-          height="60vh"
+          height="85vh"
           >
           <!--The component field-->
           <b-table-column
@@ -184,7 +186,6 @@ const dollarFormatter2 = format("$,.2f");
 let formatter = x => x;
 
 // Exponential scale for the color.
-
 let color_scale = scalePow()
   .exponent(0.2)
   .domain([0, 7000])
@@ -222,7 +223,6 @@ onMounted(async () => {
 })
 
 // Generator of component and subcomponent.
-
 const component_generator = function*(component) {
   yield "All";
   if (component_division.value == 0) {
@@ -335,7 +335,7 @@ const render = (() => {
   })
 
   // On the x axis, we have the component.
-  const components = new Set();
+    const components = new Set();
   for (const cve of data) {
     for (const component of cve.cve.components) {
       for (const part of component_generator(component)) {
@@ -350,11 +350,11 @@ const render = (() => {
   }
 
   // Value is the vrp_reward for each component in each date.
-  let table_data_value = component_buckets.map(component => {
-    return {
-      component,
-    }
-  })
+    let table_data_value = component_buckets.map(component => {
+      return {
+        component,
+      }
+    })
 
   for (const cve of data) {
     const date = time_get_bucket(cve.date);
@@ -393,6 +393,7 @@ const render = (() => {
       }
 
       if (row[field] === undefined) {
+        row[field] = 0;
         continue;
       }
 
@@ -480,9 +481,9 @@ const render = (() => {
   }
 
   // Add a colorscale.
-  let max_value = Math.max(...table_data_value.map(row => {
-    return Math.max(...Object.values(row).map(x => parseInt(x) || 0));
-  }));
+    let max_value = Math.max(...table_data_value.map(row => {
+      return Math.max(...Object.values(row).map(x => parseInt(x) || 0));
+    }));
   table_data.value = table_data_value;
 
   color_scale = scalePow()
@@ -517,6 +518,30 @@ watch([
 
 .tooltip {
   background-color: white;
+}
+
+.mycolumns {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 1104px) {
+  .mycolumns {
+    display: flex;
+    flex-direction: row;
+    max-width: 100%;
+    gap: 1em;
+  }
+}
+
+.mycolumns {
+  display: flex;
+  gap: 1em;
+}
+
+#table-column {
+  flex: 1;
+  overflow: auto;
 }
 
 </style>
