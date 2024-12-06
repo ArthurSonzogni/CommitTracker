@@ -206,7 +206,7 @@ const refresh = async () => {
 
     case "year":
       for(const cve of filtered_data) {
-        const key = cve.version_dates?.stable?.split("-")[0] || "unknown";
+        const key = cve.published.split("-")[0]
         out[key] ||= [];
         out[key].push(cve);
       }
@@ -214,9 +214,7 @@ const refresh = async () => {
 
     case "month":
       for(const cve of filtered_data) {
-        const year = cve.version_dates?.stable?.split("-")[0] || "unknown";
-        const month = cve.version_dates?.stable?.split("-")[1] || "01"
-        const key = `${year}-${month}`;
+        const key = cve.published.split("-").slice(0, 2).join("-");
         out[key] ||= [];
         out[key].push(cve);
       }

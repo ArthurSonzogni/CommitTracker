@@ -12,20 +12,13 @@
             <b-radio-button v-model="time_division" native-value="month">Month</b-radio-button>
           </b-field>
 
-          <!--<b-field label="Components depths">-->
-          <!--<b-radio-button v-model="component_division" native-value="0">0</b-radio-button>-->
-          <!--<b-radio-button v-model="component_division" native-value="1">1</b-radio-button>-->
-          <!--<b-radio-button v-model="component_division" native-value="2">2</b-radio-button>-->
-          <!--<b-radio-button v-model="component_division" native-value="3">3</b-radio-button>-->
-          <!--<b-radio-button v-model="component_division" native-value="4">4</b-radio-button>-->
-          <!--<b-radio-button v-model="component_division" native-value="5">5</b-radio-button>-->
-          <!--</b-field>-->
           <b-field label="Components depths">
             <b-numberinput v-model="component_division" min="0" max="4" step="1"></b-numberinput>
           </b-field>
 
           <!--Severity ['low', 'medium', 'high', 'critical']-->
           <b-field label="Severity">
+            <b-checkbox-button v-model="severity" native-value="N/A">N/A</b-checkbox-button>
             <b-checkbox-button v-model="severity" native-value="Low">Low</b-checkbox-button>
             <b-checkbox-button v-model="severity" native-value="Medium">Medium</b-checkbox-button>
             <b-checkbox-button v-model="severity" native-value="High">High</b-checkbox-button>
@@ -115,7 +108,7 @@
 
     <section class="timeline">
       <div class="container">
-        <Timeline v-model="dates" :minDate="new Date('2015-01-01')"/>
+        <Timeline v-model="dates" :minDate="new Date('2010-01-01')"/>
       </div>
     </section>
 
@@ -218,7 +211,13 @@ const tdAttrs = (row, column) => {
 
 onMounted(async () => {
   const response = await fetch("/cve/data.json");
-  raw_data = await response.json();
+  raw_data = (await response.json()).map(cve => {
+    if (["Low", "Medium", "High", "Critical"].indexOf(cve.severity) == -1) {
+      cve.severity = "N/A";
+    }
+
+    return cve;
+  });
   render();
 })
 
@@ -240,6 +239,9 @@ const component_generator = function*(component) {
 }
 
 const components_generator = function*(components) {
+  if (!components) {
+    return "All";
+  }
   const seen = new Set();
   for (const component of components) {
     for (const part of component_generator(component)) {
@@ -275,32 +277,20 @@ const render = (() => {
   const data = Object
     .values(raw_data)
     .map(cve => {
-      if (!cve.version_dates.stable) {
-        return 0;
-      }
-
       if (!severity.value.includes(cve.severity)) {
         return 0;
       }
 
-
       const begin = new Date(cve.bug_date);
       const end = new Date(cve.version_dates.stable);
 
-      if (!begin || !end) {
-        return 0;
-      }
-      const date = end;
+      const date = new Date(cve.published) || end || begin;
 
       if (date < dates.value[0] || date > dates.value[1]) {
         return 0;
       }
 
       const value = (end - begin) / (1000 * 60 * 60 * 24);
-      if (isNaN(value)) {
-        return 0;
-      }
-
 
       const time_label = time_get_bucket(date);
       time_bucket_set.add(time_label)
@@ -335,12 +325,10 @@ const render = (() => {
   })
 
   // On the x axis, we have the component.
-    const components = new Set();
+  const components = new Set();
   for (const cve of data) {
-    for (const component of cve.cve.components) {
-      for (const part of component_generator(component)) {
-        components.add(part);
-      }
+    for (const part of components_generator(cve.cve.components)) {
+      components.add(part);
     }
   }
 
@@ -359,28 +347,26 @@ const render = (() => {
   for (const cve of data) {
     const date = time_get_bucket(cve.date);
 
-    for(const component of cve.cve.components) {
-      for (const part of component_generator(component)) {
-        const component_index = component_array_index.get(part);
-        if (component_index === undefined) {
-          continue;
-        }
+    for (const component of components_generator(cve.cve.components)) {
+      const component_index = component_array_index.get(component);
+      if (component_index === undefined) {
+        continue;
+      }
 
-        switch(cell_value.value) {
-          case "cve_count":
-            table_data_value[component_index][date] ||= 0;
-            table_data_value[component_index][date] += 1;
-            break;
-          case "time_to_fix_10p":
-          case "time_to_fix_90p":
-          case "time_to_fix_median":
-            table_data_value[component_index][date] ||= [];
-            table_data_value[component_index][date].push(cve.value);
-            break;
-          case "vrp_reward":
-            table_data_value[component_index][date] ||= 0;
-            table_data_value[component_index][date] += parseInt(cve.cve.vrp_reward) || 0;
-        }
+      switch(cell_value.value) {
+        case "cve_count":
+          table_data_value[component_index][date] ||= 0;
+          table_data_value[component_index][date] += 1;
+          break;
+        case "time_to_fix_10p":
+        case "time_to_fix_90p":
+        case "time_to_fix_median":
+          table_data_value[component_index][date] ||= [];
+          table_data_value[component_index][date].push(cve.value);
+          break;
+        case "vrp_reward":
+          table_data_value[component_index][date] ||= 0;
+          table_data_value[component_index][date] += parseInt(cve.cve.vrp_reward) || 0;
       }
     }
   }

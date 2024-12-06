@@ -96,6 +96,12 @@ const cveIsChromium = (cve) => {
       (vendor.includes('google'))) {
       return true;
     }
+
+    // Old CVE from 2018- are not properly tagged. They are using product="n/a"
+    // and "vendor"="n/a"
+    if (affected.product == "n/a" && affected.vendor == "n/a") {
+      return true;
+    }
   }
 
   return false;

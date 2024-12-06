@@ -35,7 +35,7 @@
 
     <section class="timeline">
       <div class="container">
-        <Timeline v-model="dates" :minDate="new Date('2015-01-01')"/>
+        <Timeline v-model="dates" :minDate="new Date('2011-01-01')"/>
       </div>
     </section>
 
