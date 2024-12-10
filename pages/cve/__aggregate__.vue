@@ -96,7 +96,11 @@
             sortable
             >
             <template v-slot="props">
-              {{ formatter(props.row[column.field]) }}
+              <a :href="`/cve/list?group_by=component&component=${props.row.component}&date=${column.label}`"
+                class="table_link"
+              >
+                {{ formatter(props.row[column.field]) }}
+              </a>
             </template>
           </b-table-column>
 
@@ -145,7 +149,7 @@ const time_division = ref("year");
 if (route.query.td) {
   time_division.value = route.query.td;
 }
-const severity = ref(["Low", "Medium", "High", "Critical"]);
+const severity = ref(["N/A", "Low", "Medium", "High", "Critical"]);
 if (route.query.s) {
   severity.value = route.query.s.split(",");
 }
@@ -176,6 +180,8 @@ let table_columns = shallowRef([])
 // Format the cells with d3.format.
 const dollarFormatter = format("$,.0f");
 const dollarFormatter2 = format("$,.2f");
+
+let value_projector = x => x;
 let formatter = x => x;
 
 // Exponential scale for the color.
@@ -186,25 +192,19 @@ let color_scale = scalePow()
 let color_scale2 = scaleSequential(interpolateOranges);
 
 const thAttrs = (column) => {
-  if (column.field == "component") {
-    return {
-      style: {
-        backgroundColor: "white",
-        zIndex: 1,
-      }
-    }
-  }
   return {
     style: {
-      backgroundColor: color_scale2(color_scale(column.field)),
+      backgroundColor: "white",
+      zIndex: 1,
     }
   }
 }
 
 const tdAttrs = (row, column) => {
+
   return {
     style: {
-      backgroundColor: color_scale2(color_scale(row[column.field])),
+      backgroundColor: color_scale2(color_scale(value_projector(row[column.field]))),
     }
   }
 }
@@ -267,7 +267,6 @@ const time_get_bucket = (date) => {
       return `${date.getFullYear()}M${month}`;
   }
 }
-
 
 const render = (() => {
 
@@ -338,11 +337,11 @@ const render = (() => {
   }
 
   // Value is the vrp_reward for each component in each date.
-    let table_data_value = component_buckets.map(component => {
-      return {
-        component,
-      }
-    })
+  let table_data_value = component_buckets.map(component => {
+    return {
+      component,
+    }
+  })
 
   for (const cve of data) {
     const date = time_get_bucket(cve.date);
@@ -353,25 +352,157 @@ const render = (() => {
         continue;
       }
 
-      switch(cell_value.value) {
-        case "cve_count":
-          table_data_value[component_index][date] ||= 0;
-          table_data_value[component_index][date] += 1;
-          break;
-        case "time_to_fix_10p":
-        case "time_to_fix_90p":
-        case "time_to_fix_median":
-          table_data_value[component_index][date] ||= [];
-          table_data_value[component_index][date].push(cve.value);
-          break;
-        case "vrp_reward":
-          table_data_value[component_index][date] ||= 0;
-          table_data_value[component_index][date] += parseInt(cve.cve.vrp_reward) || 0;
-      }
+      table_data_value[component_index][date] ||= [];
+      table_data_value[component_index][date].push(cve.cve);
     }
   }
 
-  // Post processing for computing median and 90p.
+  // Set a formatter for the cells.
+  switch(cell_value.value) {
+    case "vrp_reward":
+      value_projector = cves => {
+        if (!cves) {
+          return 0;
+        }
+
+        let reward = 0;
+        for (const cve of cves) {
+          reward += parseInt(cve.vrp_reward) || 0;
+        }
+
+        return reward;
+      }
+      break;
+
+    case "cve_count":
+      value_projector = cves => {
+        if (!cves) {
+          return 0;
+        }
+
+        return cves.length;
+      }
+      formatter = value_projector;
+      break;
+
+    case "time_to_fix_10p":
+      value_projector = cves => {
+        if (!cves) {
+          return 0;
+        }
+
+        if (cves.length == 0) {
+          return 0;
+        }
+
+        if (hide_low_count.value && cves.length < 10) {
+          return 0;
+        }
+
+        const values = cves
+          .map(cve => {
+            const begin = new Date(cve.bug_date);
+            const end = new Date(cve.version_dates.stable);
+            return (end - begin) / (1000 * 60 * 60 * 24);
+          })
+          .sort((a, b) => a - b);
+
+        return values[Math.floor(values.length * 0.1)];
+      }
+      break;
+
+    case "time_to_fix_median":
+      value_projector = cves => {
+        if (!cves) {
+          return 0;
+        }
+
+        if (cves.length == 0) {
+          return 0;
+        }
+
+        if (hide_low_count.value && cves.length < 6) {
+          return 0;
+        }
+
+        const values = cves
+          .map(cve => {
+            const begin = new Date(cve.bug_date);
+            const end = new Date(cve.version_dates.stable);
+            return (end - begin) / (1000 * 60 * 60 * 24);
+          })
+          .sort((a, b) => a - b);
+
+        return values[Math.floor(values.length / 2)];
+      }
+      break;
+
+    case "time_to_fix_90p":
+      value_projector = cves => {
+        if (!cves) {
+          return 0;
+        }
+
+        if (cves.length == 0) {
+          return 0;
+        }
+
+        if (hide_low_count.value && cves.length < 10) {
+          return 0;
+        }
+
+        const values = cves
+          .map(cve => {
+            const begin = new Date(cve.bug_date);
+            const end = new Date(cve.version_dates.stable);
+            return (end - begin) / (1000 * 60 * 60 * 24);
+          })
+          .sort((a, b) => a - b);
+
+        return values[Math.floor(values.length * 0.9)];
+      }
+      break;
+  }
+
+  switch(cell_value.value) {
+    case "vrp_reward":
+      formatter = cves => {
+        const reward = value_projector(cves);
+        if (reward == 0) {
+          return "";
+        }
+
+        if (reward >= 1000000) {
+          return dollarFormatter2(reward/1000000) + "M";
+        }
+
+        if (reward >= 1000) {
+          return dollarFormatter(reward/1000) + "k";
+        }
+
+        return dollarFormatter(reward);
+      }
+      break;
+
+    case "cve_count":
+      formatter = value_projector;
+      break;
+
+    case "time_to_fix_10p":
+    case "time_to_fix_median":
+    case "time_to_fix_90p":
+      formatter = x => {
+        const value = value_projector(x);
+        if (!value) {
+          return "";
+        }
+        return `${Math.floor(value)}d`;
+      }
+      break;
+  }
+
+  // Add a colorscale.
+  let max_value = 0;
   for (const row of table_data_value) {
     for (const field of time_buckets) {
       if (field == "component") {
@@ -383,100 +514,18 @@ const render = (() => {
         continue;
       }
 
-      switch(cell_value.value) {
-        case "time_to_fix_10p":
-          if (row[field].length == 0) {
-            row[field] = 0;
-            break;
-          }
-          if (hide_low_count.value && row[field].length < 10) {
-            row[field] = 0;
-            break;
-          }
-          row[field] = row[field].sort((a, b) => a - b);
-          row[field] = row[field][Math.floor(row[field].length * 0.1)];
-          break;
-        case "time_to_fix_median":
-          if (row[field].length == 0) {
-            row[field] = 0;
-            break;
-          }
-          if (hide_low_count.value && row[field].length < 6) {
-            row[field] = 0;
-            break;
-          }
-          row[field] = row[field].sort((a, b) => a - b);
-          row[field] = row[field][Math.floor(row[field].length / 2)];
-          break;
-        case "time_to_fix_90p":
-          if (row[field].length == 0) {
-            row[field] = 0;
-            break;
-          }
-          if (hide_low_count.value && row[field].length < 10) {
-            row[field] = 0;
-            break;
-          }
-          row[field] = row[field] || [];
-          row[field] = row[field].sort((a, b) => a - b);
-          row[field] = row[field][Math.floor(row[field].length * 0.9)];
-          break;
+      const value = value_projector(row[field]);
+      if (value > max_value) {
+        max_value = value;
       }
     }
   }
-
-  switch(cell_value.value) {
-    case "time_to_fix_10p":
-    case "time_to_fix_median":
-    case "time_to_fix_90p":
-      formatter = x => {
-        if (!x) {
-          return "";
-        }
-
-        let days = Math.floor(x);
-        return `${days}d`;
-      }
-      break;
-    case "vrp_reward":
-      formatter = x => {
-        if (!x) {
-          return "";
-        }
-
-        if (x >= 1000000) {
-          return dollarFormatter2(x/1000000) + "M";
-        }
-
-        if (x >= 1000) {
-          return dollarFormatter(x/1000) + "k";
-        }
-
-        return dollarFormatter(x);
-      }
-      break;
-    case "cve_count":
-      formatter = x => {
-        if (!x) {
-          return "";
-        }
-
-        return `${x}`;
-      }
-      break;
-  }
-
-  // Add a colorscale.
-    let max_value = Math.max(...table_data_value.map(row => {
-      return Math.max(...Object.values(row).map(x => parseInt(x) || 0));
-    }));
-  table_data.value = table_data_value;
 
   color_scale = scalePow()
     .exponent(0.3)
     .domain([0, max_value])
     .range([0, 0.5]);
-
+  table_data.value = table_data_value;
 })
 
 watch([
@@ -528,6 +577,14 @@ watch([
 #table-column {
   flex: 1;
   overflow: auto;
+}
+
+.table_link {
+  color: black;
+}
+
+.table_link:hover {
+  color: blue;
 }
 
 </style>

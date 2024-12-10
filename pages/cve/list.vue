@@ -38,14 +38,12 @@
 
         <div style="border-bottom: 1px solid #ccc; margin-bottom: 1em;"></div>
 
-        <!--
-        <b-field>
-          <Timeline
-            :minDate="new Date('2017-01-01')"
-            v-model="dates"
-          ></Timeline>
-        </b-field>
-        -->
+        <b-notification type="is-info" v-if="filter_component" @close="filter_component = null">
+          Filtering by component: {{ filter_component }}
+        </b-notification>
+        <b-notification type="is-info" v-if="filter_date" @close="filter_date = null">
+          Filtering by date: {{ filter_date }}
+        </b-notification>
 
         <b-field label="Group by">
           <b-radio-button v-model="group_by" native-value="version">Version</b-radio-button>
@@ -119,14 +117,37 @@ if (route.query.group_by) {
   group_by.value = route.query.group_by;
 }
 
+const filter_component = ref(null);
+if (route.query.component) {
+  filter_component.value = route.query.component;
+}
+if (filter_component.value == "All") {
+  filter_component.value = null;
+}
+
+const filter_date = ref(null);
+if (route.query.date) {
+  filter_date.value = route.query.date;
+}
+
 const updateUrl = () => {
   router.push({
     query: {
-      group_by: group_by.value
+      group_by: group_by.value,
+      component: filter_component.value,
+      date: filter_date.value,
     }
   });
 };
-watch(group_by, updateUrl);
+watch(
+  [
+    group_by,
+    filter_component,
+    filter_date,
+    dates,
+  ],
+  updateUrl,
+);
 
 onMounted(async () => {
   const response = await fetch("/cve/data.json");
@@ -167,7 +188,6 @@ const moveToEnd = (array, filter) => {
 };
 
 const refresh = async () => {
-  console.log("refresh");
   loading.value = true;
 
   // Wait for 5 frames to allow the UI to update.
@@ -182,6 +202,27 @@ const refresh = async () => {
 
   const filtered_data = data.value.filter(cve => {
     const date = new Date(cve.published);
+
+    if (filter_component.value) {
+      let found = false;
+      for(const component of cve.components || []) {
+        if (component.startsWith(filter_component.value)) {
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        return false;
+      }
+    }
+
+    if (filter_date.value) {
+      const date_string = date.toISOString().split("T")[0];
+      if (!date_string.startsWith(filter_date.value)) {
+        return false;
+      }
+    }
+
     return date >= dates.value[0] && date <= dates.value[1];
   });
 
@@ -247,6 +288,10 @@ const refresh = async () => {
         }
 
         for(const component of cve.components) {
+          if (filter_component.value && !component.startsWith(filter_component.value)) {
+            continue;
+          }
+
           out[component] ||= [];
           out[component].push(cve);
         }
@@ -355,7 +400,9 @@ const refresh = async () => {
 watch(() => [
   data.value,
   dates.value,
-  group_by.value
+  group_by.value,
+  filter_component.value,
+  filter_date.value,
 ], refresh);
 
 
