@@ -50,13 +50,13 @@
           <b-radio-button v-model="group_by" native-value="vrp_reward">Reward</b-radio-button>
           <b-radio-button v-model="group_by" native-value="severity">Severity</b-radio-button>
           <b-radio-button v-model="group_by" native-value="component">Component</b-radio-button>
+          <b-radio-button v-model="group_by" native-value="cwe">CWE</b-radio-button>
         </b-field>
       </div>
     </section>
 
 
     <section class="section" v-for="group in grouped" :key="group.key">
-
       <div class="container content">
       <h3 class="title">
         {{ group.key}}
@@ -81,7 +81,9 @@
                                             v-if="cve.vrp_reward">
               {{ cve.vrp_reward }}$
             </b-tag>
-            {{ cve.description }}
+            <span class="cve-description-text">
+              {{ cve.description }}
+            </span>
           </div>
         </template>
       </div>
@@ -144,6 +146,38 @@ watch(
   ],
   updateUrl,
 );
+
+const cweTitle = new Map([
+  [119, "Improper Restriction of Operations within the Bounds of a Memory Buffer"],
+  [120, "Buffer Copy without Checking Size of Input (‘Classic Buffer Overflow’)"],
+  [122, "Heap-based Buffer Overflow"],
+  [125, "Out-of-bounds Read"],
+  [1284, "Improper Validation of Specified Quantity in Input"],
+  [1287, "Improper Validation of Specified Type of Input"],
+  [190, "Integer Overflow or Wraparound"],
+  [20, "Improper Input Validation"],
+  [285, "Improper Authorization"],
+  [290, "Authentication Bypass by Spoofing"],
+  [303, "Incorrect Implementation of Authentication Algorithm"],
+  [345, "Insufficient Verification of Data Authenticity"],
+  [346, "Origin Validation Error"],
+  [358, "Improperly Implemented Security Check for Standard"],
+  [362, "Concurrent Execution using Shared Resource with Improper Synchronization (‘Race Condition’)"],
+  [366, "Race Condition within a Thread"],
+  [374, "Passing Mutable Objects to an Untrusted Method"],
+  [416, "Use After Free"],
+  [451, "User Interface (UI) Misrepresentation of Critical Information"],
+  [457, "Use of Uninitialized Variable"],
+  [472, "External Control of Assumed-Immutable Web Parameter"],
+  [474, "Use of Function with Inconsistent Implementations"],
+  [691, "Insufficient Control Flow Management"],
+  [787, "Out-of-bounds Write"],
+  [79, "Improper Neutralization of Input During Web Page Generation (‘Cross-site Scripting’)"],
+  [807, "Reliance on Untrusted Inputs in a Security Decision"],
+  [843, "Access of Resource Using Incompatible Type (‘Type Confusion’)"],
+  [863, "Incorrect Authorization"],
+  [94, "Improper Control of Generation of Code (‘Code Injection’)"],
+])
 
 onMounted(async () => {
   const response = await fetch("/cve/data.json");
@@ -319,6 +353,14 @@ const refresh = async () => {
         }
       }
       break;
+
+    case "cwe":
+      for(const cve of filtered_data) {
+        const cwe = cve.cweId ? `${cve.cweId} - ${cweTitle.get(parseInt(cve.cweId))}` : "n/a";
+        out[cwe] ||= [];
+        out[cwe].push(cve);
+      }
+      break;
   }
 
   switch(group_by.value) {
@@ -409,6 +451,15 @@ const refresh = async () => {
       keys = moveToEnd(keys, key => key != "<Private bug>");
 
       break;
+
+    case "cwe":
+      keys = Object.keys(out).sort((a, b) => {
+        return a.localeCompare(b);
+      });
+
+      keys = moveToEnd(keys, key => key != "unknown");
+
+      break;
   }
 
   loading.value = false;
@@ -453,6 +504,10 @@ h3 {
 .cve-description {
   display: inline-block;
   overflow: hidden;
+}
+
+.cve-description-text {
+  margin-left: 1em;
 }
 
 </style>
