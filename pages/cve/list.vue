@@ -29,12 +29,18 @@
 
         <div style="border-bottom: 1px solid #ccc; margin-bottom: 1em;"></div>
 
-        <b-notification type="is-info" v-if="filter_component" @close="filter_component = null">
-          Filtering by component: {{ filter_component }}
-        </b-notification>
-        <b-notification type="is-info" v-if="filter_date" @close="filter_date = null">
-          Filtering by date: {{ filter_date }}
-        </b-notification>
+        <div class="columns">
+          <div class="column" v-if="filter_component">
+          <b-notification type="is-warning" @close="filter_component = null">
+            Filtering by component: {{ filter_component }}
+          </b-notification>
+          </div>
+          <div class="column" v-if="filter_date">
+          <b-notification type="is-warning" @close="filter_date = null">
+            Filtering by date: {{ filter_date }}
+          </b-notification>
+          </div>
+        </div>
 
         <b-field label="Group by">
           <b-radio-button v-model="group_by" native-value="version">Version</b-radio-button>
@@ -94,7 +100,6 @@ const router = useRouter();
 const route = useRoute();
 
 const repositories = ref([]);
-const dates = ref([new Date("2000-01-01"), new Date()]);
 const data = ref([]);
 const group_by = ref("version");
 const grouped = ref({});
@@ -136,7 +141,6 @@ watch(
     group_by,
     filter_component,
     filter_date,
-    dates,
   ],
   updateUrl,
 );
@@ -196,6 +200,31 @@ const refresh = async () => {
     });
   }
 
+  let date_filter_start = new Date("2000-01-01");
+  let date_filter_end = new Date("2030-01-01");
+
+  const date_filter_regex_year = /^\d{4}$/;
+  const date_filter_regex_quarter = /^\d{4}Q\d$/;
+  const date_filter_regex_month = /^\d{4}M\d{2}$/;
+
+  if (filter_date.value) {
+    if (date_filter_regex_year.test(filter_date.value)) {
+      date_filter_start = new Date(`${filter_date.value}-01-01`);
+      date_filter_end = new Date(`${filter_date.value}-12-31`);
+    } else if (date_filter_regex_quarter.test(filter_date.value)) {
+      const year = filter_date.value.substring(0, 4);
+      const quarter = filter_date.value.substring(5, 6);
+      const month = (quarter - 1) * 3 + 1;
+      date_filter_start = new Date(`${year}-${month}-01`);
+      date_filter_end = new Date(`${year}-${month + 2}-31`);
+    } else if (date_filter_regex_month.test(filter_date.value)) {
+      const year = filter_date.value.substring(0, 4);
+      const month = filter_date.value.substring(5, 7);
+      date_filter_start = new Date(`${year}-${month}-01`);
+      date_filter_end = new Date(`${year}-${month}-31`);
+    }
+  }
+
   const filtered_data = data.value.filter(cve => {
     const date = new Date(cve.published);
 
@@ -212,14 +241,11 @@ const refresh = async () => {
       }
     }
 
-    if (filter_date.value) {
-      const date_string = date.toISOString().split("T")[0];
-      if (!date_string.startsWith(filter_date.value)) {
-        return false;
-      }
+    if (date < date_filter_start || date > date_filter_end) {
+      return false;
     }
 
-    return date >= dates.value[0] && date <= dates.value[1];
+    return true;
   });
 
   let out = {};
@@ -341,7 +367,6 @@ const refresh = async () => {
       break;
 
     case "month":
-
       keys = Object.keys(out).sort().reverse();
       keys = moveToEnd(keys, key => !key.startsWith("unknown"));
       break;
@@ -389,13 +414,12 @@ const refresh = async () => {
   loading.value = false;
   grouped.value = keys.map(key => ({
     key,
-    cves: out[key].reverse(),
+    cves: out[key]?.reverse() || [],
   }));
 };
 
 watch(() => [
   data.value,
-  dates.value,
   group_by.value,
   filter_component.value,
   filter_date.value,
