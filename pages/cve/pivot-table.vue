@@ -306,8 +306,8 @@ const render = (() => {
     .filter(x => x != 0)
     .sort((a, b) => a.date - b.date)
 
-  const time_buckets = Array.from(time_bucket_set).sort();
-  const component_buckets = Array.from(component_bucket_set).sort();
+  const time_buckets = Array.from(time_bucket_set).sort()
+  const component_buckets = Array.from(component_bucket_set).sort()
 
   // On the y axis, we have the date.
   table_columns.value = [
@@ -395,17 +395,18 @@ const render = (() => {
           return 0;
         }
 
-        if (hide_low_count.value && cves.length < 10) {
-          return 0;
-        }
-
         const values = cves
           .map(cve => {
             const begin = new Date(cve.bug_date);
             const end = new Date(cve.version_dates.stable);
             return (end - begin) / (1000 * 60 * 60 * 24);
           })
-          .sort((a, b) => a - b);
+          .filter(x => x)
+          .sort((a, b) => a - b)
+
+        if (hide_low_count.value && values.length < 12) {
+          return 0;
+        }
 
         return values[Math.floor(values.length * 0.1)];
       }
@@ -421,17 +422,18 @@ const render = (() => {
           return 0;
         }
 
-        if (hide_low_count.value && cves.length < 6) {
-          return 0;
-        }
-
         const values = cves
           .map(cve => {
             const begin = new Date(cve.bug_date);
             const end = new Date(cve.version_dates.stable);
             return (end - begin) / (1000 * 60 * 60 * 24);
           })
-          .sort((a, b) => a - b);
+          .filter(x => x)
+          .sort((a, b) => a - b)
+
+        if (hide_low_count.value && values.length < 6) {
+          return 0;
+        }
 
         return values[Math.floor(values.length / 2)];
       }
@@ -447,18 +449,18 @@ const render = (() => {
           return 0;
         }
 
-        if (hide_low_count.value && cves.length < 10) {
-          return 0;
-        }
-
         const values = cves
           .map(cve => {
             const begin = new Date(cve.bug_date);
             const end = new Date(cve.version_dates.stable);
             return (end - begin) / (1000 * 60 * 60 * 24);
           })
-          .sort((a, b) => a - b);
+          .filter(x => x)
+          .sort((a, b) => a - b)
 
+        if (hide_low_count.value && values.length < 12) {
+          return 0;
+        }
         return values[Math.floor(values.length * 0.9)];
       }
       break;
@@ -485,7 +487,13 @@ const render = (() => {
       break;
 
     case "cve_count":
-      formatter = value_projector;
+      formatter = value => {
+        const count = value_projector(value);
+        if (count == 0) {
+          return "";
+        }
+        return count;
+      }
       break;
 
     case "time_to_fix_10p":
