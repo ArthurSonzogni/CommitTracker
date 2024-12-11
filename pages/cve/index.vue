@@ -52,9 +52,21 @@
             <div class="event" v-for="event in events">
               <div class="duration">
                 <p v-if="event.absolute_delta != event.delta" class="delta">
-                (+{{ humanizeDuration(event.delta, { largest: 2 })}})
+                (+{{
+                  humanizeDuration(event.delta, {
+                    largest: 2,
+                    units: ["y", "mo", "w", "d", "h"],
+                    round: true,
+                  })
+                }})
                 </p>
-                {{ humanizeDuration(event.absolute_delta, { largest: 2 })}}
+                {{
+                  humanizeDuration(event.absolute_delta, {
+                    largest: 2,
+                    units: ["y", "mo", "w", "d", "h"],
+                    round: true,
+                  })
+                }}
               </div>
 
               <div class="header">

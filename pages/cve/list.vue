@@ -22,8 +22,8 @@
           <li><strong>{{ data_size }} CVEs</strong> in the database.</li>
           <li>Latest published <strong>{{ latest_cve_duration }} ago.</strong></li>
 
-          <li>Private bug usually become public 90 days after they have been
-            fixed. The latest: <strong>{{ latest_public_cve_duration }} ago.</strong>
+          <li>Bugs are usually made public 90 days after they have been fixed.
+            Currently the latest public bug was published <strong>{{ latest_public_cve_duration }} ago.</strong>
           </li>
         </ul>
 
@@ -152,6 +152,8 @@ onMounted(async () => {
   }, 0);
   latest_cve_duration.value = humanizeDuration(Date.now() - max_date, {
     largest: 2,
+    round: true,
+    units: ["d"],
   });
   const max_public_date = data.value
     .filter(cve => cve.bug_date)
@@ -160,6 +162,8 @@ onMounted(async () => {
     }, 0);
   latest_public_cve_duration.value = humanizeDuration(Date.now() - max_public_date, {
     largest: 2,
+    round: true,
+    units: ["d"],
   });
 });
 
