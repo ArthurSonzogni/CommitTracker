@@ -130,13 +130,17 @@ if (route.query.date) {
 }
 
 const updateUrl = () => {
-  router.push({
-    query: {
-      group_by: group_by.value,
-      component: filter_component.value,
-      date: filter_date.value,
-    }
-  });
+  const query = {
+    group_by: group_by.value,
+  };
+  if (filter_component.value) {
+    query.component = filter_component.value;
+  }
+  if (filter_date.value) {
+    query.date = filter_date.value;
+  }
+
+  router.push({query})
 };
 watch(
   [
