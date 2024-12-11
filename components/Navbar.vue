@@ -30,7 +30,11 @@
 
       <div class="ml-6"></div>
 
-      <b-navbar-dropdown label="Organizations">
+      <b-navbar-dropdown>
+        <template #label>
+          <b-icon icon="account-group" class="mr-2"></b-icon>
+          Organizations
+        </template>
         <b-navbar-item tag="router-link" :to="{ path: '/organizations/commits' }">
           <b-icon icon="source-branch" class="mr-2"></b-icon>
           Commits
@@ -41,12 +45,35 @@
         </b-navbar-item>
       </b-navbar-dropdown>
 
-      <b-navbar-item tag="router-link" :to="{ path: '/cve/list' }">
-        <b-icon icon="security" class="mr-2"></b-icon>
-        CVE
-      </b-navbar-item>
+      <b-navbar-dropdown>
+        <template #label>
+          <b-icon icon="security" class="mr-2"></b-icon>
+          CVE
+        </template>
 
-      <b-navbar-dropdown label="Misc">
+        <b-navbar-item tag="router-link" :to="{ path: '/cve/list' }">
+          <b-icon icon="format-list-bulleted" class="mr-2"></b-icon>
+          List
+        </b-navbar-item>
+
+        <b-navbar-item tag="router-link" :to="{ path: '/cve/pivot-table' }">
+          <b-icon icon="table" class="mr-2"></b-icon>
+          Pivot table
+        </b-navbar-item>
+
+        <b-navbar-item tag="router-link" :to="{ path:
+          '/cve/reward_per_components' }">
+          <b-icon icon="chart-sankey" class="mr-2"></b-icon>
+          Reward per component
+        </b-navbar-item>
+
+      </b-navbar-dropdown>
+
+      <b-navbar-dropdown>
+        <template #label>
+          <b-icon icon="one-up" class="mr-2"></b-icon>
+          Misc
+        </template>
         <b-navbar-item tag="router-link" :to="{ path: '/usernames' }">
           <b-icon icon="email" class="mr-2"></b-icon>
           Usernames distribution

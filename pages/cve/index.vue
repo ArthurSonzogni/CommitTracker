@@ -51,7 +51,10 @@
           <div class="events">
             <div class="event" v-for="event in events">
               <div class="duration">
-                {{ humanizeDuration(event.delta, { largest: 2 })}}
+                <p v-if="event.absolute_delta != event.delta" class="delta">
+                (+{{ humanizeDuration(event.delta, { largest: 2 })}})
+                </p>
+                {{ humanizeDuration(event.absolute_delta, { largest: 2 })}}
               </div>
 
               <div class="header">
@@ -126,8 +129,12 @@ const getEvents = (cve) => {
 
   // Compute delta in between events
   for (let i=1; i < events.length; i++) {
-    events[i].delta=events[i].date - events[0].date;
-    console.log("delta = ", events[i].delta);
+    events[i].delta=events[i].date - events[i-1].date;
+  }
+
+  // Compute absolute_delta in between events
+  for (let i=1; i < events.length; i++) {
+    events[i].absolute_delta=events[i].date - events[0].date;
   }
 
   return events;
@@ -201,6 +208,11 @@ onMounted(async ()=> {
     left: 174px;
     border: 5px solid white;
   }
+}
+
+.delta {
+  color: #888;
+  font-size: 0.8em;
 }
 
 

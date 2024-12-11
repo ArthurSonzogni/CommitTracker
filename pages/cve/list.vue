@@ -10,31 +10,22 @@
     <section class="section">
       <div class="container content">
         <h1 class="title">Chromium CVEs</h1>
+
         <p>
-          The list of publicly known vulnerabilities in the Chromium project. This
-          only includes the vulnerabilities that have been assigned a CVE number.
-          Internally found vulnerabilities are not listed here.
+          The list of publicly known vulnerabilities in the Chromium project.
+          This only includes the vulnerabilities that have been assigned a CVE
+          number. Internally found vulnerabilities are not listed here.
+          Bug are usually made public 90 days after they have been fixed.
         </p>
 
         <ul>
           <li><strong>{{ data_size }} CVEs</strong> in the database.</li>
           <li>Latest published <strong>{{ latest_cve_duration }} ago.</strong></li>
-          <li>Private bug usually become public 3 months and 2 weeks after they
-            have been fixed. The latest was published <strong>{{ latest_public_cve_duration }} ago.</strong>
+
+          <li>Private bug usually become public 90 days after they have been
+            fixed. The latest: <strong>{{ latest_public_cve_duration }} ago.</strong>
           </li>
         </ul>
-
-        <strong>
-          Visualizations
-        </strong>
-        <ul>
-          <li>
-            <NuxtLink :to="'/cve/reward_per_components'">
-              Per components rewards.
-            </NuxtLink>
-          </li>
-        </ul>
-
 
         <div style="border-bottom: 1px solid #ccc; margin-bottom: 1em;"></div>
 
@@ -102,6 +93,7 @@ import { format } from "d3-format";
 const router = useRouter();
 const route = useRoute();
 
+const repositories = ref([]);
 const dates = ref([new Date("2000-01-01"), new Date()]);
 const data = ref([]);
 const group_by = ref("version");

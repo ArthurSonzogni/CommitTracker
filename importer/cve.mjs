@@ -431,7 +431,9 @@ const main = async () => {
   const database = loadDatabase();
   await retrieveCveList(database);
   saveDatabase(database);
-  const browser = await puppeteer.launch()
+  const browser = await puppeteer.launch({
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  })
   const page = await browser.newPage()
 
   let index = 0;
