@@ -3,6 +3,7 @@
 import fs from 'fs'
 import puppeteer from 'puppeteer'
 import spawn from 'child_process'
+import {octokit} from './octokit.mjs'
 
 const loadDatabase = () => {
   try {
@@ -425,12 +426,7 @@ const fetchBugganizer = async (cve, page) => {
   console.log(cve);
 }
 
-const main = async () => {
-  fs.mkdirSync('../data/cve', { recursive: true });
-  await fetchVersionHistory()
-  const database = loadDatabase();
-  await retrieveCveList(database);
-  saveDatabase(database);
+const augmentFromBugganizer = async (database) => {
   const browser = await puppeteer.launch({
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   })
@@ -491,9 +487,33 @@ const main = async () => {
       console.log("Error fetching", cve.bug, e);
     }
   }
+  await browser.close()
+}
+
+const augmentFromGit = async (database) => {
+  // TODO: Implement this.
+}
+
+const main = async () => {
+  await fetchVersionHistory()
+
+  // Step 1: Restore the database from disk, if any.
+  fs.mkdirSync('../data/cve', { recursive: true });
+  const database = loadDatabase();
+
+  // Step 2: Augment from CVE database.
+  await retrieveCveList(database);
+  saveDatabase(database);
+
+  // Step 3: Augment from bugganizer.
+  await augmentFromBugganizer(database);
+
+  // Step 4: Augment from git repository.
+  await augmentFromGit(database);
+
+  // Final: Save the database to disk.
   console.log("Done fetching all CVEs");
   saveDatabase(database);
   console.log("Saved to file");
-  await browser.close()
 }
 main();
