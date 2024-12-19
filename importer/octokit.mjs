@@ -1,3 +1,4 @@
+import statusLine from '@alt-jero/status-line';
 import {Octokit} from 'octokit';
 import {throttling} from '@octokit/plugin-throttling';
 

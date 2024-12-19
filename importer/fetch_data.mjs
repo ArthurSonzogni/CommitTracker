@@ -4,40 +4,10 @@ import core from '@actions/core';
 import statusLine from '@alt-jero/status-line';
 import {mailMap} from './mailmap.mjs';
 import {octokit} from './octokit.mjs';
+import {IsEmailValid} from './is_email_valid.mjs';
+import {ParseReviewers} from './parse_reviewers.mjs';
+
 const fs = filesystem.promises;
-
-// Skip sbots and automated commit:
-const g_bot_patterns = [
-  '+robot',
-  '-bot',
-  'autoroll',
-  'buildbot',
-  'chrome-',
-  'commit-queue',
-  'github-actions',
-  'gserviceaccount',
-  'mdb.',
-  'rebaseline',
-  'release',
-  'roller',
-  'wptsync',
-  'none@none',
-  'css21testsuite',
-  'dependabot',
-];
-
-const IsEmailValid = email => {
-  if (g_bot_patterns.some(pattern => email.includes(pattern))) {
-    return false;
-  }
-
-  // Skip authors with no emails.
-  if (email.indexOf('@') == -1) {
-    return false
-  }
-
-  return true;
-};
 
 const ProcessCommit = (data, commit) => {
   // Skip merge commits:
@@ -52,39 +22,19 @@ const ProcessCommit = (data, commit) => {
 
   const author = mailMap(email);
   const date = commit.committedDate;
-  const reviewers = [];
+  const reviewers = ParseReviewers(commit.messageBody);
 
-  // Parse reviewers:
-  for (const line of commit.messageBody.split('\n')) {
-    if (!line.startsWith('Reviewed-by:')) {
-      continue;
-    }
-    const a = line.indexOf('<');
-    const b = line.indexOf('>');
-    if (a == -1 || b == -1) {
-      continue;
-    }
-    const reviewer = mailMap(line.substring(a + 1, b));
-    if (!IsEmailValid(reviewer)) {
-      continue;
-    }
-
-    // Ignore self-review:
-    //
-    // This often happen when the author clicked CR: +1 on their own CL instead
-    // of CQ: +1. This is a common mistake and we should ignore it.
-    //
-    // Preferring "authored" commits over "reviewed" commits is a good
-    // heuristic, because it provides the following invariant:
-    // The sum of everyone's "authored" commits is equal to the sum of commit.
-    //
-    // https://github.com/ArthurSonzogni/ChromeCommitTracker/issues/7
-    if (author == reviewer) {
-      continue;
-    }
-
-    reviewers.push(reviewer);
-  }
+  // Ignore self-review:
+  //
+  // This often happen when the author clicked CR: +1 on their own CL instead
+  // of CQ: +1. This is a common mistake and we should ignore it.
+  //
+  // Preferring "authored" commits over "reviewed" commits is a good
+  // heuristic, because it provides the following invariant:
+  // The sum of everyone's "authored" commits is equal to the sum of commit.
+  //
+  // https://github.com/ArthurSonzogni/ChromeCommitTracker/issues/7
+  reviewers = reviewers.filter(reviewer => reviewer != author);
 
   data[author] ||= [];
 

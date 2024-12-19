@@ -4,8 +4,11 @@ import fs from 'fs'
 import puppeteer from 'puppeteer'
 import spawn from 'child_process'
 import {octokit} from './octokit.mjs'
+import {IsEmailValid} from './is_email_valid.mjs';
+import {ParseReviewers} from './parse_reviewers.mjs';
 
 const loadDatabase = () => {
+  fs.mkdirSync('../data/cve', { recursive: true });
   try {
     const data = JSON.parse(fs.readFileSync('../public/cve/data.json', 'utf8'))
     const values = Object.values(data);
@@ -16,7 +19,8 @@ const loadDatabase = () => {
 }
 
 const saveDatabase = (database) => {
-  fs.mkdirSync('../data/cve', { recursive: true });
+  console.log("Saving database")
+  fs.mkdirSync('../public/cve', { recursive: true });
   fs.writeFileSync('../public/cve/data.json', JSON.stringify(database, null, 1))
 }
 
@@ -420,7 +424,16 @@ const fetchBugganizer = async (cve, page) => {
     return match ? match[1] : null
   }).filter(Boolean)
 
-  cve.commits = commits;
+  cve.commits ||= {}
+
+  // Convert array to object.
+  if (Array.isArray(cve.commits)) {
+    cve.commits = {};
+  }
+
+  for(const commit of commits) {
+    cve.commits[commit] ||= {}
+  }
 
   console.log("Finished");
   console.log(cve);
@@ -491,25 +504,66 @@ const augmentFromBugganizer = async (database) => {
 }
 
 const augmentFromGit = async (database) => {
-  // TODO: Implement this.
+  for(const cve of database) {
+    if (!cve.commits) {
+      continue;
+    }
+
+    // Convert array to object.
+    if (Array.isArray(cve.commits)) {
+      cve.commits = cve.commits.reduce((acc, commit) => {
+        acc[commit] = {}
+        return acc
+      }, {})
+    }
+    console.log(cve)
+
+    for(const sha in cve.commits) {
+      console.log("Fetching", sha);
+
+      // Use github API (Octokit) to fetch the sha:
+      // - description
+      // - author
+      // - date
+      // - reviewer(s) `Reviewed-by:`
+      try {
+        const response = await octokit.request('GET /repos/{owner}/{repo}/commits/{ref}', {
+          owner: 'chromium',
+          repo: 'chromium',
+          ref: sha,
+        });
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        const data = response.data;
+
+        cve.commits[sha].author = data.commit.author.email;
+        cve.commits[sha].reviewers = ParseReviewers(data.commit.message);
+        cve.commits[sha].title = data.commit.message.split('\n')[0];
+        cve.commits[sha].date = data.commit.author.date;
+        cve.commits[sha].found = true;
+        saveDatabase(database);
+        console.log(cve)
+
+      } catch (e) {
+        cve.commits[sha].found = false;
+      }
+    }
+  }
 }
 
 const main = async () => {
   await fetchVersionHistory()
 
-  // Step 1: Restore the database from disk, if any.
-  fs.mkdirSync('../data/cve', { recursive: true });
   const database = loadDatabase();
 
-  // Step 2: Augment from CVE database.
+  // Step 1: Augment from CVE database.
   await retrieveCveList(database);
-  saveDatabase(database);
 
-  // Step 3: Augment from bugganizer.
+  // Step 2: Augment from bugganizer.
   await augmentFromBugganizer(database);
 
-  // Step 4: Augment from git repository.
-  await augmentFromGit(database);
+  // Step 3: Augment from git repository.
+  //await augmentFromGit(database);
 
   // Final: Save the database to disk.
   console.log("Done fetching all CVEs");
