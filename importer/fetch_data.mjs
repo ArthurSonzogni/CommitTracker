@@ -22,8 +22,6 @@ const ProcessCommit = (data, commit) => {
 
   const author = mailMap(email);
   const date = commit.committedDate;
-  const reviewers = ParseReviewers(commit.messageBody);
-
   // Ignore self-review:
   //
   // This often happen when the author clicked CR: +1 on their own CL instead
@@ -34,7 +32,8 @@ const ProcessCommit = (data, commit) => {
   // The sum of everyone's "authored" commits is equal to the sum of commit.
   //
   // https://github.com/ArthurSonzogni/ChromeCommitTracker/issues/7
-  reviewers = reviewers.filter(reviewer => reviewer != author);
+  const reviewers = ParseReviewers(commit.messageBody)
+    .filter(reviewer => reviewer != author);
 
   data[author] ||= [];
 
@@ -228,6 +227,7 @@ const ProcessRepository = async (repository) => {
 
         break;
       } catch (error) {
+        console.log(error);
         console.log(JSON.stringify(error, null, 2));
         await SaveDataForRepository();
         statusLine.logString(`Error`)

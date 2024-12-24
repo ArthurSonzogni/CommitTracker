@@ -8,9 +8,7 @@ const MyOctokit = Octokit.plugin(throttling);
 const AuthToken = async () => {
   try {
     return await fs.readFile('.token', 'utf8');
-  } catch (e) {
-    console.log(e);
-  }
+  } catch (e) {}
 
   if (process.env.GITHUB_TOKEN) {
     return process.env.GITHUB_TOKEN;
@@ -22,10 +20,6 @@ const AuthToken = async () => {
 
   throw new Error("No token found");
 };
-
-AuthToken().then((token) => {
-  console.log(`Using token: ${token}`);
-});
 
 const showRateLimitProgress = async (retryAfter) => {
   let current = retryAfter;

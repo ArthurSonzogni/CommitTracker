@@ -518,10 +518,7 @@ const augmentFromGit = async (database) => {
     }
 
     for(const sha in cve.commits) {
-      //if (cve.commits[sha].type == "commit" && cve.commits[sha].repo != undefined) {
-        //continue;
-      //}
-      if (cve.commits[sha].type != "commit" || cve.commits[sha].repo != undefined) {
+      if (cve.commits[sha].type != undefined) {
         continue;
       }
 
@@ -590,7 +587,6 @@ const augmentFromGit = async (database) => {
           type: 'external',
         }
       }
-      console.log(cve.commits[sha]);
     }
   }
 }
@@ -601,17 +597,15 @@ const main = async () => {
   const database = loadDatabase();
 
   // Step 1: Augment from CVE database.
-  //await retrieveCveList(database);
+  await retrieveCveList(database);
 
   // Step 2: Augment from bugganizer.
-  //await augmentFromBugganizer(database);
+  await augmentFromBugganizer(database);
 
   // Step 3: Augment from git repository.
   await augmentFromGit(database);
 
   // Final: Save the database to disk.
-  console.log("Done fetching all CVEs");
   saveDatabase(database);
-  console.log("Saved to file");
 }
 main();
