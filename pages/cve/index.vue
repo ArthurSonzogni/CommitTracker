@@ -70,7 +70,12 @@
               </div>
 
               <div class="header">
+                <b-icon :icon="event.icon" size="is-small"></b-icon>
                 {{ event.title }}
+              </div>
+
+              <div v-for="resource in event.resources" class="resources">
+                <a :href="resource.url">{{ resource.title }}</a>
               </div>
 
               <div class="date">
@@ -119,12 +124,14 @@ const getEvents = (cve) => {
   const events = [];
 
   events.push({
+    icon: 'bullhorn',
     title: `CVE published`,
     date: new Date(cve.published),
   })
 
   if (cve.bug_date) {
     events.push({
+      icon: 'bug-outline',
       title: `Bug reported`,
       date: new Date(cve.bug_date),
     })
@@ -132,9 +139,27 @@ const getEvents = (cve) => {
 
   for (const [channel, date] of Object.entries(cve.version_dates)) {
     events.push({
+      icon: 'cloud-upload',
       title: `${channel} version deployed.`,
       date: new Date(date),
     })
+  }
+
+  for (const sha in cve.commits) {
+    const commit = cve.commits[sha];
+    if (commit.type == "commit") {
+      events.push({
+        icon: 'auto-fix',
+        title: `${commit.author.split("@")[0]}@ pushed a fix.`,
+        resources: [
+          {
+            title: commit.title,
+            url: `https://cr-rev.appspot.com/${sha}`,
+          },
+        ],
+        date: new Date(commit.date),
+      })
+    }
   }
 
   events.sort((a, b)=> a.date - b.date);
@@ -173,14 +198,13 @@ onMounted(async ()=> {
 .grid {
   display: grid;
   grid-template-columns: max-content 1fr;
-  gap: 1em;
+  gap: 0.5em;
 }
 
 .events {
   border-left: 1px solid black;
   padding-left: 1em;
   margin-left: 150px;
-  padding-top: 10px;
 }
 
 .event {
@@ -190,6 +214,12 @@ onMounted(async ()=> {
     padding: 0.5em;
     border-radius: 0.5em 0.5em 0 0;
     font-weight: bold;
+  }
+
+  .resources {
+    background-color: #f0f0f0;
+    margin-left: 8px;
+    padding: 0.5em;
   }
 
   .date{
@@ -202,7 +232,7 @@ onMounted(async ()=> {
   .duration{
     display:relative;
     width: 200px;
-    transform: translateX(-200px);
+    transform: translate(-200px, 120%);
     text-align: right;
     padding-right: 30px;
   }

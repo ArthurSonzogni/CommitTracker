@@ -51,6 +51,8 @@
           <b-radio-button v-model="group_by" native-value="severity">Severity</b-radio-button>
           <b-radio-button v-model="group_by" native-value="component">Component</b-radio-button>
           <b-radio-button v-model="group_by" native-value="cwe">CWE</b-radio-button>
+          <b-radio-button v-model="group_by" native-value="authors">Authors</b-radio-button>
+          <b-radio-button v-model="group_by" native-value="reviewers">Reviewers</b-radio-button>
         </b-field>
       </div>
     </section>
@@ -60,11 +62,15 @@
       <div class="container content">
       <h3 class="title">
         {{ group.key}}
-        <div class="is-pulled-right">
+        <b-taglist attached style="display: inline-block;" class="mr-2
+        is-pulled-right">
+          <b-tag type="is-danger is-medium" style="background-color: black;">
+            {{ formatter(group.cves.total_reward) }}$
+          </b-tag>
           <b-tag type="is-info is-medium">
           {{ group.cves.length }} CVEs
           </b-tag>
-        </div>
+        </b-taglist>
       </h3>
 
       <div class="grid">
@@ -80,6 +86,16 @@
             <b-tag type="is-info is-small" class="ml-2"
                                             v-if="cve.vrp_reward">
               {{ cve.vrp_reward }}$
+            </b-tag>
+            <b-tag v-for="repo in cve.repos" class="ml-2"
+              :style="
+                {
+                  backgroundColor: repo_color.get(repo) || 'black',
+                  color: 'white',
+                }
+              "
+            >
+              {{ repo }}
             </b-tag>
             <span class="cve-description-text">
               {{ cve.description }}
@@ -97,6 +113,19 @@
 
 import humanizeDuration from "humanize-duration";
 import { format } from "d3-format";
+
+const formatter = format("$,.0f");
+const repo_color = new Map([
+  ["angle", "orange"],
+  ["chromium", "#121212"],
+  ["chromiumos-platform2", "blue"],
+  ["dawn", "#FF5722"],
+  ["pdfium", "#9C27B0"],
+  ["skia", "#FFC107"],
+  ["v8", "red"],
+  ["webrtc", "#03A9F4"],
+  ["swiftshader", "#4CAF50"],
+]);
 
 const router = useRouter();
 const route = useRoute();
@@ -322,7 +351,6 @@ const refresh = async () => {
       break;
 
     case "vrp_reward":
-      const formatter = format("$,.0f");
       for(const cve of filtered_data) {
         const reward = cve.vrp_reward ?
           `${formatter(cve.vrp_reward)}` : "unknown";
@@ -365,6 +393,79 @@ const refresh = async () => {
         out[cwe].push(cve);
       }
       break;
+    case "authors":
+      for(const cve of filtered_data) {
+        if (!cve.commits) {
+          continue;
+        }
+        const authors = new Set();
+        for(const sha in cve.commits) {
+          const commit = cve.commits[sha];
+          if (commit.type != "commit") {
+            continue;
+          }
+          const author = commit.author.split("@")[0] + "@";
+          authors.add(author);
+        }
+        for(const author of authors) {
+          out[author] ||= [];
+          out[author].push(cve);
+        }
+      }
+      break;
+
+    case "reviewers":
+      for(const cve of filtered_data) {
+        if (!cve.commits) {
+          continue;
+        }
+        const reviewers = new Set();
+        for(const sha in cve.commits) {
+          const commit = cve.commits[sha];
+          if (commit.type != "commit") {
+            continue;
+          }
+          for (const reviewer of commit.reviewers) {
+            reviewers.add(reviewer.split("@")[0] + "@");
+          }
+        }
+        for(const reviewer of reviewers) {
+          out[reviewer] ||= [];
+          out[reviewer].push(cve);
+        }
+      }
+      break;
+  }
+
+  // Add the Set(...cve.commit.repo) to the out[key]
+  for (const key in out) {
+    const cves = out[key];
+    for (const cve of cves) {
+      const repos = new Set();
+      for (const sha in cve.commits) {
+        const commit = cve.commits[sha];
+        if (commit.type != "commit") {
+          continue;
+        }
+        repos.add(commit.repo);
+      }
+      cve.repos = Array.from(repos);
+    }
+  }
+
+  // Add the total reward to the out[key]
+  for (const key in out) {
+    const cves = out[key];
+    let total_reward = 0;
+    const repos = new Set();
+    for (const cve of cves) {
+      total_reward += parseInt(cve.vrp_reward) || 0;
+      for (const repo of cve.repos) {
+        repos.add(repo);
+      }
+    }
+    out[key].total_reward = total_reward;
+    out[key].repos = Array.from(repos).sort();
   }
 
   switch(group_by.value) {
@@ -462,6 +563,15 @@ const refresh = async () => {
       });
 
       keys = moveToEnd(keys, key => key != "unknown");
+
+      break;
+
+    case "authors":
+    case "reviewers":
+      keys = Object.keys(out).sort((a, b) => {
+        return a.localeCompare(b);
+      });
+      keys = moveToEnd(keys, key => key != "unknown")
 
       break;
   }

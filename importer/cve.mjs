@@ -505,10 +505,6 @@ const augmentFromBugganizer = async (database) => {
 
 const augmentFromGit = async (database) => {
   for(const cve of database) {
-    if (!cve.commits) {
-      continue;
-    }
-
     // Convert array to object.
     if (Array.isArray(cve.commits)) {
       cve.commits = cve.commits.reduce((acc, commit) => {
@@ -516,37 +512,85 @@ const augmentFromGit = async (database) => {
         return acc
       }, {})
     }
-    console.log(cve)
+
+    if (!cve.commits || Object.keys(cve.commits).length == 0) {
+      continue;
+    }
 
     for(const sha in cve.commits) {
-      console.log("Fetching", sha);
+      //if (cve.commits[sha].type == "commit" && cve.commits[sha].repo != undefined) {
+        //continue;
+      //}
+      if (cve.commits[sha].type != "commit" || cve.commits[sha].repo != undefined) {
+        continue;
+      }
 
       // Use github API (Octokit) to fetch the sha:
       // - description
       // - author
       // - date
       // - reviewer(s) `Reviewed-by:`
-      try {
-        const response = await octokit.request('GET /repos/{owner}/{repo}/commits/{ref}', {
-          owner: 'chromium',
-          repo: 'chromium',
-          ref: sha,
-        });
-        await new Promise(resolve => setTimeout(resolve, 1000));
+      //
+      // Iterate for chrome, v8, skia, webrtc, angle.
 
-        const data = response.data;
+      let found = false;
+      for(const {owner, repo} of [
+        { owner: 'chromium', repo: 'chromium' },
+        { owner: 'v8', repo: 'v8' },
+        { owner: 'google', repo: 'skia' },
+        { owner: 'google', repo: 'dawn' },
+        { owner: 'google', repo: 'angle' },
+        { owner: 'google', repo: 'swiftshader' },
+        { owner: 'maitrungduc1410', repo: 'webrtc' },
+        { owner: 'chromium', repo: 'pdfium' },
+        { owner: 'ArthurSonzogni', repo: 'chromiumos-platform2' },
+      ]) {
+        try {
+          console.log("Fetching", sha, repo);
+          const response = await octokit.request('GET /repos/{owner}/{repo}/commits/{ref}', {
+            owner,
+            repo,
+            ref: sha,
+          });
 
-        cve.commits[sha].author = data.commit.author.email;
-        cve.commits[sha].reviewers = ParseReviewers(data.commit.message);
-        cve.commits[sha].title = data.commit.message.split('\n')[0];
-        cve.commits[sha].date = data.commit.author.date;
-        cve.commits[sha].found = true;
-        saveDatabase(database);
-        console.log(cve)
+          const data = response.data;
 
-      } catch (e) {
-        cve.commits[sha].found = false;
+          const message = data.commit.message;
+          const author = data.commit.author.email;
+          const reviewers = ParseReviewers(message)
+            .filter(reviewer => reviewer != author);
+          const title = data.commit.message.split('\n')[0];
+          const date = data.commit.author.date;
+
+          if (!IsEmailValid(author)) {
+            cve.commits[sha] = {
+              type: 'automated',
+            }
+            throw new Error("Invalid email");
+          }
+
+          cve.commits[sha] = {
+            type: 'commit',
+            author,
+            reviewers,
+            title,
+            date,
+            repo,
+          }
+
+          //saveDatabase(database);
+          found = true;
+          break;
+        } catch (e) {
+        }
       }
+
+      if (!found) {
+        cve.commits[sha] = {
+          type: 'external',
+        }
+      }
+      console.log(cve.commits[sha]);
     }
   }
 }
@@ -557,13 +601,13 @@ const main = async () => {
   const database = loadDatabase();
 
   // Step 1: Augment from CVE database.
-  await retrieveCveList(database);
+  //await retrieveCveList(database);
 
   // Step 2: Augment from bugganizer.
-  await augmentFromBugganizer(database);
+  //await augmentFromBugganizer(database);
 
   // Step 3: Augment from git repository.
-  //await augmentFromGit(database);
+  await augmentFromGit(database);
 
   // Final: Save the database to disk.
   console.log("Done fetching all CVEs");

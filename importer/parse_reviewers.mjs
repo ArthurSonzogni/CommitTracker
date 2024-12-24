@@ -1,8 +1,9 @@
 import {IsEmailValid} from './is_email_valid.mjs';
+import {mailMap} from './mailmap.mjs';
 
 const ParseReviewers = (description) => {
   const reviewers = [];
-  for (const line of commit.messageBody.split('\n')) {
+  for (const line of description.split('\n')) {
     if (!line.startsWith('Reviewed-by:')) {
       continue;
     }
