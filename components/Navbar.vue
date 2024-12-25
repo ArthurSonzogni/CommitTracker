@@ -98,6 +98,11 @@
           <b-icon icon="source-branch" class="mr-2"></b-icon>
           Repositories tracking info
         </b-navbar-item>
+
+        <b-navbar-item tag="router-link" :to="{ path: '/page-view' }">
+          <b-icon icon="eye" class="mr-2"></b-icon>
+          Page view
+        </b-navbar-item>
       </b-navbar-dropdown>
 
     </template>
