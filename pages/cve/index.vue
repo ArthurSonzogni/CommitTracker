@@ -69,17 +69,19 @@
                 }}
               </div>
 
-              <div class="header">
-                <b-icon :icon="event.icon" size="is-small"></b-icon>
-                {{ event.title }}
-              </div>
+              <div class="content">
+                <div class="header">
+                  <b-icon :icon="event.icon" size="is-small"></b-icon>
+                  {{ event.title }}
+                </div>
 
-              <div v-for="resource in event.resources" class="resources">
-                <a :href="resource.url">{{ resource.title }}</a>
-              </div>
+                <div v-for="resource in event.resources" class="resources">
+                  <a :href="resource.url">{{ resource.title }}</a>
+                </div>
 
-              <div class="date">
-                {{ hdate.prettyPrint(event.date) }}
+                <div class="date">
+                  {{ hdate.prettyPrint(event.date) }}
+                </div>
               </div>
             </div>
           </div>
@@ -134,9 +136,16 @@ const getEvents = (cve) => {
       icon: 'bug-outline',
       title: `Bug reported`,
       date: new Date(cve.bug_date),
+      resources: [
+        {
+          title: `${cve.bug}`,
+          url: cve.bug,
+        },
+      ],
     })
   }
 
+  console.log(cve)
   for (const [channel, date] of Object.entries(cve.version_dates)) {
     events.push({
       icon: 'cloud-upload',
@@ -150,7 +159,7 @@ const getEvents = (cve) => {
     if (commit.type == "commit") {
       events.push({
         icon: 'auto-fix',
-        title: `${commit.author.split("@")[0]}@ pushed a fix.`,
+        title: `${commit.author.split("@")[0]}@ pushed a fix to ${commit.repo}.`,
         resources: [
           {
             title: commit.title,
@@ -208,31 +217,36 @@ onMounted(async ()=> {
 }
 
 .event {
-  .header {
-    background-color: #f0f0f0;
-    margin-left: 8px;
+  margin-top: 1em;
+  margin-bottom: 1em;
+
+  .content {
+    border-radius: 0.5em;
     padding: 0.5em;
-    border-radius: 0.5em 0.5em 0 0;
-    font-weight: bold;
+    background: linear-gradient(90deg, #f0f0f0 0%, #f0f0f0 80%, #f0f0f000 95%);
+
+    .header {
+      margin: 0.5em;
+      font-weight: bold;
+    }
+
+    .resources {
+      margin-left: 1em;
+    }
+
+    .date {
+      margin: 0.5em;
+      font-size: 0.8em;
+      margin-left: 1em;
+    }
   }
 
-  .resources {
-    background-color: #f0f0f0;
-    margin-left: 8px;
-    padding: 0.5em;
-  }
-
-  .date{
-    background-color: #f0f0f0;
-    margin-left: 8px;
-    padding: 0.5em;
-    border-radius: 0 0 0.5em 0.5em;
-  }
 
   .duration{
+    height: 0;
     display:relative;
     width: 200px;
-    transform: translate(-200px, 120%);
+    transform: translate(-200px, -5px);
     text-align: right;
     padding-right: 30px;
   }

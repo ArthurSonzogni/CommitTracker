@@ -12,7 +12,13 @@
             <b-radio-button v-model="time_division" native-value="month">Month</b-radio-button>
           </b-field>
 
-          <b-field label="Components depths">
+          <!--Lines-->
+          <b-field label="Lines">
+            <b-radio-button v-model="line" native-value="components">components</b-radio-button>
+            <b-radio-button v-model="line" native-value="repositories">repositories</b-radio-button>
+          </b-field>
+
+          <b-field label="Components depths" v-if="line == 'components'">
             <b-numberinput v-model="component_division" min="0" max="4" step="1"></b-numberinput>
           </b-field>
 
@@ -82,7 +88,7 @@
             sticky
             >
             <template v-slot="props">
-              {{ props.row.component }}
+              {{ props.row.line}}
             </template>
 
           </b-table-column>
@@ -96,7 +102,15 @@
             sortable
             >
             <template v-slot="props">
-              <a :href="`/cve/list?group_by=component&component=${props.row.component}&date=${column.label}`"
+              <a v-if="line == 'components'"
+                :href="`/cve/list?group_by=component&component=${props.row.line}&date=${column.label}`"
+                class="table_link"
+              >
+                {{ formatter(props.row[column.field]) }}
+              </a>
+
+              <a v-if="line == 'repositories'"
+                :href="`/cve/list?group_by=component&repo=${props.row.line}&date=${column.label}`"
                 class="table_link"
               >
                 {{ formatter(props.row[column.field]) }}
@@ -141,6 +155,12 @@ if (route.query.start) {
 if (route.query.end) {
   dates.value[1] = new Date(route.query.end);
 }
+
+const line = ref("components");
+if (route.query.l) {
+  line.value = route.query.l;
+}
+
 const component_division = ref(3);
 if (route.query.cd) {
   component_division.value = parseInt(route.query.cd);
@@ -167,6 +187,7 @@ const updateUrl = () => {
       td: time_division.value,
       v: cell_value.value,
       s: severity.value.join(","),
+      l: line.value,
     }
   });
 };
@@ -271,7 +292,7 @@ const time_get_bucket = (date) => {
 const render = (() => {
 
   const time_bucket_set = new Set();
-  const component_bucket_set = new Set();
+  const line_bucket_set = new Set();
 
   const data = Object
     .values(raw_data)
@@ -293,8 +314,27 @@ const render = (() => {
 
       const time_label = time_get_bucket(date);
       time_bucket_set.add(time_label)
-      for (const part of components_generator(cve.components)) {
-        component_bucket_set.add(part);
+      switch(line.value) {
+        case "components":
+          for (const part of components_generator(cve.components)) {
+            line_bucket_set.add(part);
+          }
+          break;
+        case "repositories":
+          const repos = new Set();
+          for (const sha in cve.commits) {
+            const commit = cve.commits[sha];
+            if (commit.repo) {
+              repos.add(commit.repo);
+            }
+          }
+          if (repos.length == 0) {
+            return 0;
+          }
+          for (const repo of repos) {
+            line_bucket_set.add(repo);
+          }
+          break;
       }
 
       return {
@@ -307,13 +347,13 @@ const render = (() => {
     .sort((a, b) => a.date - b.date)
 
   const time_buckets = Array.from(time_bucket_set).sort()
-  const component_buckets = Array.from(component_bucket_set).sort()
+  const line_buckets = Array.from(line_bucket_set).sort()
 
   // On the y axis, we have the date.
   table_columns.value = [
     {
-      field: "component",
-      label: "Component",
+      field: "line",
+      label: line.value == "components" ? "Component" : "Repository",
     }
   ]
   table_columns.value = time_buckets.map(time => {
@@ -323,37 +363,77 @@ const render = (() => {
     }
   })
 
-  // On the x axis, we have the component.
-  const components = new Set();
-  for (const cve of data) {
-    for (const part of components_generator(cve.cve.components)) {
-      components.add(part);
-    }
+  // On the y axis, we have the component.
+  const lines = new Set();
+  switch(line.value) {
+    case "components":
+      for (const cve of data) {
+        for (const part of components_generator(cve.cve.components)) {
+          lines.add(part);
+        }
+      }
+      break;
+    case "repositories":
+      for (const cve of data) {
+        const repos = new Array();
+        for (const sha in cve.cve.commits) {
+          const commit = cve.cve.commits[sha];
+          if (commit.repo) {
+            repos.push(commit.repo);
+          }
+        }
+        for (const repo of repos) {
+          lines.add(repo);
+        }
+      }
+      break;
   }
 
-  const component_array_index = new Map();
-  for (let i = 0; i < component_buckets.length; ++i) {
-    component_array_index.set(component_buckets[i], i);
+  const line_array_indexes = new Map();
+  for (let i = 0; i < line_buckets.length; ++i) {
+    line_array_indexes.set(line_buckets[i], i);
   }
 
   // Value is the vrp_reward for each component in each date.
-  let table_data_value = component_buckets.map(component => {
+  let table_data_value = line_buckets.map(line => {
     return {
-      component,
+      line: line,
     }
   })
 
   for (const cve of data) {
     const date = time_get_bucket(cve.date);
 
-    for (const component of components_generator(cve.cve.components)) {
-      const component_index = component_array_index.get(component);
-      if (component_index === undefined) {
-        continue;
-      }
+    switch(line.value) {
+      case "components":
+        for (const component of components_generator(cve.cve.components)) {
+          const component_index = line_array_indexes.get(component);
+          if (component_index === undefined) {
+            continue;
+          }
 
-      table_data_value[component_index][date] ||= [];
-      table_data_value[component_index][date].push(cve.cve);
+          table_data_value[component_index][date] ||= [];
+          table_data_value[component_index][date].push(cve.cve);
+        }
+        break;
+      case "repositories":
+        const repos = new Set();
+        for (const sha in cve.cve.commits) {
+          const commit = cve.cve.commits[sha];
+          if (commit.repo) {
+            repos.add(commit.repo);
+          }
+        }
+        for (const repo of repos) {
+          const repo_index = line_array_indexes.get(repo);
+          if (repo_index === undefined) {
+            continue;
+          }
+
+          table_data_value[repo_index][date] ||= [];
+          table_data_value[repo_index][date].push(cve.cve);
+        }
+        break;
     }
   }
 
@@ -513,7 +593,7 @@ const render = (() => {
   let max_value = 0;
   for (const row of table_data_value) {
     for (const field of time_buckets) {
-      if (field == "component") {
+      if (field == "line") {
         continue;
       }
 
@@ -538,6 +618,7 @@ const render = (() => {
 
 watch([
   cell_value,
+  line,
   component_division,
   dates,
   hide_low_count,

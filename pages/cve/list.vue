@@ -31,14 +31,19 @@
 
         <div class="columns">
           <div class="column" v-if="filter_component">
-          <b-notification type="is-warning" @close="filter_component = null">
-            Filtering by component: {{ filter_component }}
-          </b-notification>
+            <b-notification type="is-warning" @close="filter_component = null">
+              Filtering by component: {{ filter_component }}
+            </b-notification>
           </div>
           <div class="column" v-if="filter_date">
-          <b-notification type="is-warning" @close="filter_date = null">
-            Filtering by date: {{ filter_date }}
-          </b-notification>
+            <b-notification type="is-warning" @close="filter_date = null">
+              Filtering by date: {{ filter_date }}
+            </b-notification>
+          </div>
+          <div class="column" v-if="filter_repo">
+            <b-notification type="is-warning" @close="filter_repo = null">
+              Filtering by repository: {{ filter_repo }}
+            </b-notification>
           </div>
         </div>
 
@@ -158,6 +163,11 @@ if (route.query.date) {
   filter_date.value = route.query.date;
 }
 
+const filter_repo = ref(null);
+if (route.query.repo) {
+  filter_repo.value = route.query.repo;
+}
+
 const updateUrl = () => {
   const query = {
     group_by: group_by.value,
@@ -168,6 +178,9 @@ const updateUrl = () => {
   if (filter_date.value) {
     query.date = filter_date.value;
   }
+  if (filter_repo.value) {
+    query.repo = filter_repo.value;
+  }
 
   router.push({query})
 };
@@ -175,6 +188,7 @@ watch(
   [
     group_by,
     filter_component,
+    filter_repo,
     filter_date,
   ],
   updateUrl,
@@ -299,6 +313,20 @@ const refresh = async () => {
       let found = false;
       for(const component of cve.components || []) {
         if (component.startsWith(filter_component.value)) {
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        return false;
+      }
+    }
+
+    if (filter_repo.value) {
+      let found = false;
+      for(const sha in cve.commits) {
+        const commit = cve.commits[sha];
+        if (commit.repo == filter_repo.value) {
           found = true;
           break;
         }
