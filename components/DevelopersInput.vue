@@ -67,6 +67,20 @@ const colorizeDevelopers = () => {
             ++i;
         }
     }, 0);
+
+    // When the user click on "enter", the first suggestion is selected.
+    if (input.value.$el.querySelector("input") == null) {
+        return;
+    }
+    input.value.$el.querySelector("input").addEventListener("keydown", (e) => {
+        if (e.key == "Enter") {
+            const first = input.value.$el.querySelector(".dropdown-item");
+            if (first) {
+                first.click();
+            }
+        }
+    });
+
 };
 watch(developers, colorizeDevelopers);
 

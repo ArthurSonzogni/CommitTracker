@@ -5,7 +5,6 @@
         :data="filteredData"
         :columns="columns"
         height="100%"
-        sticky-header
         striped
       >
       </b-table>
