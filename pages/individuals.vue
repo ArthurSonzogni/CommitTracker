@@ -50,6 +50,19 @@
 
       <section class="section">
         <div class="container">
+          <h2 class="title">0. Counts</h2>
+          <TimelineCountBasic
+            :repositories="repositories"
+            :developers="developers"
+            :dates="dates"
+            :author="options.includes('author')"
+            :review="options.includes('review')"
+            />
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
           <h2 class="title">1. Timeline</h2>
           <TimelineChart
             :repositories="repositories"
@@ -130,7 +143,7 @@
 
       <section class="section">
         <div class="container">
-          <h2 class="title">4. Counts</h2>
+          <h2 class="title">4. Details</h2>
           <TimelineCount
             :repositories="repositories"
             :developers="developers"

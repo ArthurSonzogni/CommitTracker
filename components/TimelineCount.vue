@@ -35,7 +35,6 @@ const columns = shallowRef([])
 const full = ref<boolean>(false)
 
 const refreshFilteredData = async () => {
-
   const new_filtered_data = [];
 
   for(const d of data.value) {
