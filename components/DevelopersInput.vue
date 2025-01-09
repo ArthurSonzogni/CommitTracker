@@ -46,6 +46,10 @@ const fetchData = async () => {
 fetchData();
 
 const computeDevelopersListFiltered = (developer) => {
+    if (developer.length <= 2) {
+        developerListFiltered.value = [];
+        return;
+    }
     developer = developer.trim().toLowerCase();
 
     const filter = option => option.toLowerCase().indexOf(developer) == 0;
