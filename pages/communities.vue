@@ -11,8 +11,7 @@
         :filter="repo => repo.reviewers">
       </RepositorySelector>
 
-      <TimeRangeSelector v-model="time">
-      </TimeRangeSelector>
+      <TimeRangeSelector v-model="time" />
 
       <b-field grouped>
         <b-field grouped>
@@ -31,17 +30,6 @@
                                       v-if="!displayPlaceholder">
             Download
           </b-button>
-        </b-field>
-        <b-field label="Zoom" label-position="on-border" expanded>
-          <b-slider
-            v-model="zoom"
-            :min="0.1"
-            :max="6"
-            :step="0.05"
-            :tooltip="false"
-            lazy
-            indicator>
-          </b-slider>
         </b-field>
       </b-field>
     </section>
@@ -118,7 +106,7 @@ const route = useRoute();
 const router = useRouter();
 
 const repositories = ref(["v8"]);
-const time = ref("forever");
+const time = ref("1y");
 const zoom = ref(1);
 const displayReadme = ref(false);
 const displayPlaceholder = ref(false);
@@ -129,9 +117,6 @@ if (route.query.repositories) {
 }
 if (route.query.time) {
   time.value = route.query.time;
-}
-if (route.query.zoom) {
-  zoom.value = parseFloat(route.query.zoom);
 }
 
 const dataset = computed(() => {
@@ -188,7 +173,7 @@ const updateZoom = () => {
   svg.setAttribute("preserveAspectRatio", "xMinYMin meet");
   svg.setAttribute("margin", "auto")
   svg.setAttribute("aspect-ratio", "2")
-  svg.setAttribute("width", zoom.value * 95 + "vw");
+  svg.setAttribute("width", "80vw")
   svg.addEventListener("click", view);
 };
 
@@ -196,14 +181,13 @@ const updateUrl = () => {
   router.replace({
     query: {
       time: time.value,
-      zoom: zoom.value,
       repositories: repositories.value.join(","),
     }
   });
   updateSVG();
 };
 
-watch([time, zoom, repositories], updateUrl);
+watch([time, repositories], updateUrl);
 
 onMounted(() => {
   updateSVG();
@@ -224,42 +208,11 @@ svg {
   height: 100vh;
 }
 
-.zoomable{
-  overflow: scroll;
-  width: 100%;
-  height: 100%;
-}
-
-.zoomable::-webkit-scrollbar {
-  width: 3px;
-  height:3px;
-}
-
-.zoomable:hover::-webkit-scrollbar {
-  width: 10px;
-  height:10px;
-}
-
-.zoomable::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.zoomable::-webkit-scrollbar-thumb {
-  background-color: rgba(128,128,128,0.5);
-  border-radius: 8px;
-}
-
-.zoomable::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(128,128,128,1.0);
-}
-
 html {
   scroll-behavior: smooth;
 }
 
 .zoom {
-  backdrop-filter: blur(5px);
-  background-color: rgba(255, 255, 255, 0.5);
   margin-top:0;
   padding: 10px;
   padding-left:24px;
