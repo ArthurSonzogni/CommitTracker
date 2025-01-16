@@ -1,5 +1,6 @@
 import JSON5 from "json5";
 import fs from "fs/promises";
+import statusLine from '@alt-jero/status-line';
 
 const chromium_repo =
   "https://raw.githubusercontent.com/chromium/chromium/main";
@@ -47,7 +48,9 @@ await fs.writeFile(
 //  [...]
 // }
 const affiliation_response = await fetch(`${commit_stats}/affiliations.json5`);
-const affiliation = JSON5.parse(await affiliation_response.text());
+const affiliation_response_text = await affiliation_response.text();
+console.log(affiliation_response_text);
+const affiliation = JSON5.parse(affiliation_response_text);
 
 // -----------------------------------------------------------------------------
 
@@ -98,19 +101,16 @@ for (const repository of repositories) {
 
   const emails = JSON.parse(await fs.readFile(emails_filename, "utf8"));
   for (const email of emails) {
-    const organization = getOrganization(email, repository.date);
-
-    addOrganizationEmail(organizations_emails, organization, email);
-    addOrganizationEmail(organizations_emails_global, organization, email);
-
+    statusLine(`Processing ${repository.dirname} - ${email}`);
     const email_filename = `${repository_dir}/emails/${email}.json`;
-    const organization_filename = `${repository_dir}/organizations/${organization}.json`;
-
-    organizations[organization] ||= [];
-
     const email_data = JSON.parse(await fs.readFile(email_filename, "utf8"));
-
     for (const commit of email_data) {
+
+      const organization = getOrganization(email, commit.date);
+      addOrganizationEmail(organizations_emails, organization, email);
+      addOrganizationEmail(organizations_emails_global, organization, email);
+      organizations[organization] ||= [];
+
       commit.peers = commit.peers.map(email => {
         return getOrganization(email, commit.date);
       });
