@@ -189,7 +189,7 @@ onMounted(() => {
   flex-wrap: wrap;
   margin:0;
   padding:0.2rem;
-  max-height: 20vh;
+  max-height: 14vh;
   overflow-y: auto;
 }
 

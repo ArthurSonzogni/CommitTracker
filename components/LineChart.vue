@@ -84,7 +84,6 @@ const patchExtent = computed(() => {
 });
 
 const render = () => {
-  console.log("data = ", props.data)
   const margin = {
     top: 10,
     right: 30,

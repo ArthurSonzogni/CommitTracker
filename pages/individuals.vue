@@ -65,6 +65,7 @@
         <div class="container">
           <h2 class="title">1. Timeline</h2>
           <TimelineChart
+            chart="line"
             :repositories="repositories"
             :developers="developers"
             :dates="dates"
@@ -153,6 +154,22 @@
             />
         </div>
       </section>
+
+      <section class="section">
+        <div class="container">
+          <h2 class="title">5. Heatmap</h2>
+          <TimelineChart
+            chart="heatmap"
+            :repositories="repositories"
+            :developers="developers"
+            :dates="dates"
+            :author="options.includes('author')"
+            :review="options.includes('review')"
+            :stacked="options.includes('stacked')"
+            ></TimelineChart>
+        </div>
+      </section>
+
 
       <section class="section sticky bottom">
         <b-field expanded>

@@ -85,6 +85,7 @@ const organizations_emails_global = {}
 const repositories_file = await fs.readFile("../repositories.json5", "utf-8");
 const repositories = JSON5.parse(repositories_file);
 for (const repository of repositories) {
+  statusLine(`Processing ${repository.dirname} for organizations.`);
   // Write the `organizations.json` file.
   await fs.writeFile(
     `../public/data/${repository.dirname}/organizations.json`,
@@ -101,7 +102,6 @@ for (const repository of repositories) {
 
   const emails = JSON.parse(await fs.readFile(emails_filename, "utf8"));
   for (const email of emails) {
-    statusLine(`Processing ${repository.dirname} - ${email}`);
     const email_filename = `${repository_dir}/emails/${email}.json`;
     const email_data = JSON.parse(await fs.readFile(email_filename, "utf8"));
     for (const commit of email_data) {

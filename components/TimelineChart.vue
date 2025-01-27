@@ -1,11 +1,13 @@
 <template>
-  <LineChart :data="filteredData" />
+  <LineChart :data="filteredData" v-if="chart == 'line'" />
+  <CalendarHeatmap :data="filteredData" v-if="chart == 'heatmap'" />
 </template>
 
 <script setup lang="ts">
 
 const props = defineProps({
   repositories: { type: Array, default: () => ["chromium"] },
+  chart: { type: String, default: "line" },
   developers: { type: Array },
   dates: { type: Array },
   author: { type: Boolean },
@@ -59,6 +61,7 @@ const filteredData = computed(() => {
     });
   }
 
+
   // Accumulate patches:
   data_2 = data_2.map(entry => {
     let accu = 0;
@@ -68,7 +71,7 @@ const filteredData = computed(() => {
         accu++;
         return {
           x: time,
-          y: accu,
+          y: (props.chart == "line") ? accu : 1,
         };
       }),
     };
