@@ -9,6 +9,14 @@
       >
     </LineChart>
 
+    <BarChart
+      v-if="chart == 'bar'"
+      :timeLabel="timeLabel"
+      :formatter="formatter"
+      :data="bar_chart_data"
+      >
+    </BarChart>
+
     <b-field position="is-centered">
       <slot></slot>
 

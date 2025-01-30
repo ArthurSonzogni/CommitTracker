@@ -194,7 +194,10 @@ if (route.query.repositories) {
   repositories.value = route.query.repositories.split(",");
 }
 
-const organizations = ref<string[]>(["Google"]);
+const organizations = ref<string[]>([
+  "ARM","Adobe","Apple","ByteDance","Google","Igalia","Individuals","Intel",
+  "LGE","Microsoft","Nokia","Opera","Samsung","Unknown","WebKit","Yandex"
+])
 if (route.query.organizations) {
   if (route.query.organizations === "all") {
     organizations.value = all_organizations;
@@ -208,7 +211,7 @@ if (route.query.grouping) {
   grouping.value = route.query.grouping as string;
 }
 
-const colors = ref<string>("repositories");
+const colors = ref<string>("organizations");
 if (route.query.colors) {
   colors.value = route.query.colors as string;
 }
