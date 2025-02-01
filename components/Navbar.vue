@@ -18,17 +18,27 @@
         Community graph
       </b-navbar-item>
 
-      <b-navbar-item tag="router-link" :to="{ path: '/repositories' }">
-        <b-icon icon="source-branch" class="mr-2"></b-icon>
-        Repositories
-      </b-navbar-item>
-
       <b-navbar-item tag="router-link" :to="{ path: '/treemap' }">
         <b-icon icon="chart-tree" class="mr-2"></b-icon>
         Treemap
       </b-navbar-item>
 
       <div class="ml-6"></div>
+
+      <b-navbar-dropdown>
+        <template #label>
+          <b-icon icon="source-branch" class="mr-2"></b-icon>
+          Repositories
+        </template>
+        <b-navbar-item tag="router-link" :to="{ path: '/repositories' }">
+          <b-icon icon="format-list-bulleted" class="mr-2"></b-icon>
+          Charts
+        </b-navbar-item>
+        <b-navbar-item tag="router-link" :to="{ path: '/pulse' }">
+          <b-icon icon="pulse" class="mr-2"></b-icon>
+          Heatmap
+        </b-navbar-item>
+      </b-navbar-dropdown>
 
       <b-navbar-dropdown>
         <template #label>
