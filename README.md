@@ -1,9 +1,15 @@
 # CommitTracker
 
-An [web application](https://chrome-commit-tracker.arthursonzogni.com) to
-show statistics about the Chromium, and related repositories.
+An [web application](https://chrome-commit-tracker.arthursonzogni.com) to show
+statistics about web browsers commits, and related libraries.
 
-### Running the server locally.
+## Contributing
+
+Feel free to contribute to this project. You can open an issue for suggesting
+new visualizations, new data sources, or any other idea. You can also open a
+pull request to fix a bug, or to add a new feature.
+
+### Run the server
 
 Install [yarn](https://yarnpkg.com/) and run:
 
@@ -14,7 +20,7 @@ yarn generate-derived-data
 yarn dev
 ```
 
-### Refresh data locally:
+### Pull updated data
 
 The data is refreshed every day automatically. You can pull new data using:
 ```bash
@@ -22,11 +28,20 @@ yarn pull-data
 yarn generate-derived-data
 ```
 
-Internally, you can **produce** new data using:
+### Fetch new data
+
+You can **produce** new data using:
 ```bash
 cd importer
 npm install
-npm run main
-npm run users_info
-npm run graph
+
+# Fetch new data.
+npm run fetch_data  # Import new commits.
+npm run treemap     # Count source code specific lines.
+npm run graph       # Generate developers interactions graph.
+npm run fuzztest    # Retrieve new fuzz tests from sources.
+npm run cve         # Fetch new CVE data.
+
+# Pre-compute derived data.
+npm run derive_data
 ```
