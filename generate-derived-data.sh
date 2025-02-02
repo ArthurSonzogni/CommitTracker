@@ -2,8 +2,5 @@
 cd importer
 
 yarn install
-node project_to_usernames.mjs
-node project_to_organizations.mjs
-node summary.mjs
+yarn run derive_data
 node cleanup_organizations.mjs
-node commit_per_hour.mjs
