@@ -376,6 +376,16 @@ const fetchBugganizer = async (cve, page) => {
           }
         }
 
+        // Code Changes
+        if (el.textContent == ' Code Changes ') {
+          out.code_changes = Array.from(el.parentElement.parentElement.querySelectorAll('a')).map(el => el.href.trim());
+        }
+
+        // Fixed By Code Changes
+        if (el.textContent == ' Fixed By Code Changes ') {
+          out.fixed_by = Array.from(el.parentElement.parentElement.querySelectorAll('a')).map(el => el.href.trim());
+        }
+
       } catch (e) {
         out.errors.push("Error reading " + el.textContent);
       }
@@ -406,6 +416,7 @@ const fetchBugganizer = async (cve, page) => {
   cve.chromium_labels = extracted.chromium_labels;
   cve.bug_date = extracted.bug_date;
   cve.severity = extracted.severity;
+  cve.fixed_by = extracted.fixed_by;
 
   // Read the issues descriptions.
   const issues = await page.evaluate(() => {
@@ -419,10 +430,22 @@ const fetchBugganizer = async (cve, page) => {
   // Iterate over the issues, extract the commit hash.
   // Example:
   // commit 62d76556fcf250ecb0f63874be8cdd3db51f2a64
-  const commits = issues.map(issue => {
+  const commits = new Set();
+
+  for(const issue of issues) {
     const match = issue.match(/commit ([0-9a-f]{40})/)
-    return match ? match[1] : null
-  }).filter(Boolean)
+    if (match) {
+      commits.add(match[1])
+    }
+  }
+
+  for(const commit of extracted.fixed_by) {
+    commits.add(commit);
+  }
+
+  for(const commit of extracted.code_changes) {
+    commits.add(commit);
+  }
 
   cve.commits ||= {}
 
@@ -460,7 +483,7 @@ const augmentFromBugganizer = async (database) => {
       delete cve.import_stage;
     }
 
-    if (cve.vrp_reward != undefined) {
+    if (cve.vrp_reward != undefined && cve.commits?.length > 0) {
       console.log("Skipping", cve.bug, " vrp reward", cve.vrp_reward);
       continue;
     }
@@ -589,6 +612,20 @@ const augmentFromGit = async (database) => {
       }
     }
   }
+}
+
+const test = async () => {
+  const browser = await puppeteer.launch({
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  })
+  const page = await browser.newPage()
+  const cve = {
+    "id": "2025-0442",
+    "bug": "https://bugs.chromium.org/p/chromium/issues/detail?id=40940854",
+  };
+  await fetchBugganizer(cve, page)
+  await browser.close()
+  return;
 }
 
 const main = async () => {

@@ -9,43 +9,71 @@
 
     <section class="section">
       <div class="container content">
-        <h1 class="title">Chromium CVEs</h1>
+        <h1 class="title">
+            Chromium CVEs
+            <b-button
+              class="ml-4"
+              @click="readme = !readme"
+              :type="readme ? '' : 'is-info'"
+            >
+              Readme
+            </b-button>
+        </h1>
 
-        <p>
-          The list of publicly known vulnerabilities in the Chromium project.
-          This only includes the vulnerabilities that have been assigned a CVE
-          number. Internally found vulnerabilities are not listed here.
-          Bug are usually made public 90 days after they have been fixed.
-        </p>
+        <div v-if="readme">
+          <p>
+            The list of publicly known vulnerabilities in the Chromium project.
+            This only includes the vulnerabilities that have been assigned a CVE
+            number. Internally found vulnerabilities are not listed here.
+            Bug are usually made public 90 days after they have been fixed.
+          </p>
 
-        <ul>
-          <li><strong>{{ data_size }} CVEs</strong> in the database.</li>
-          <li>Latest published <strong>{{ latest_cve_duration }} ago.</strong></li>
+          <ul>
+            <li><strong>{{ data_size }} CVEs</strong> in the database.</li>
+            <li>Latest published <strong>{{ latest_cve_duration }} ago.</strong></li>
 
-          <li>Bugs are usually made public 90 days after they have been fixed.
-            Currently the latest public bug was published <strong>{{ latest_public_cve_duration }} ago.</strong>
-          </li>
-        </ul>
+            <li>Bugs are usually made public 90 days after they have been fixed.
+              Currently the latest public bug was published <strong>{{ latest_public_cve_duration }} ago.</strong>
+            </li>
+          </ul>
 
-        <div style="border-bottom: 1px solid #ccc; margin-bottom: 1em;"></div>
+          <div style="border-bottom: 1px solid #ccc; margin-bottom: 1em;"></div>
 
-        <div class="columns">
-          <div class="column" v-if="filter_component">
-            <b-notification type="is-warning" @close="filter_component = null">
-              Filtering by component: {{ filter_component }}
-            </b-notification>
-          </div>
-          <div class="column" v-if="filter_date">
-            <b-notification type="is-warning" @close="filter_date = null">
-              Filtering by date: {{ filter_date }}
-            </b-notification>
-          </div>
-          <div class="column" v-if="filter_repo">
-            <b-notification type="is-warning" @close="filter_repo = null">
-              Filtering by repository: {{ filter_repo }}
-            </b-notification>
-          </div>
         </div>
+
+        <b-field>
+
+          <b-field label="Year">
+            <b-select
+              v-model="filter_date"
+              placeholder="Year"
+              @change="updateUrl"
+              >
+              <option value="All">All</option>
+              <option v-for="year in all_years" :key="year" :value="year">
+              {{ year }}
+              </option>
+            </b-select>
+          </b-field>
+
+          <b-field label="Component" class="ml-2">
+            <b-select
+              v-model="filter_component"
+              placeholder="Component"
+              @change="updateUrl"
+              >
+              <option v-for="component in all_components" :key="component" :value="component">
+              {{ component }}
+              </option>
+            </b-select>
+          </b-field>
+
+          <b-field label="Private bugs" class="ml-2">
+            <!--<b-radio-button v-model="hide_private" native-value="true">Hide</b-radio-button>-->
+            <!--<b-radio-button v-model="hide_private" native-value="false">Show</b-radio-button>-->
+            <b-switch v-model="hide_private" @change="updateUrl">Show</b-switch>
+          </b-field>
+        </b-field>
 
         <b-field label="Group by">
           <b-radio-button v-model="group_by" native-value="version">Version</b-radio-button>
@@ -59,55 +87,56 @@
           <b-radio-button v-model="group_by" native-value="authors">Authors</b-radio-button>
           <b-radio-button v-model="group_by" native-value="reviewers">Reviewers</b-radio-button>
         </b-field>
+
       </div>
     </section>
 
 
     <section class="section" v-for="group in grouped" :key="group.key">
       <div class="container content">
-      <h3 class="title">
-        {{ group.key}}
-        <b-taglist attached style="display: inline-block;" class="mr-2
-        is-pulled-right">
-          <b-tag type="is-danger is-medium" style="background-color: black;">
-            {{ formatter(group.cves.total_reward) }}$
-          </b-tag>
-          <b-tag type="is-info is-medium">
-          {{ group.cves.length }} CVEs
-          </b-tag>
-        </b-taglist>
-      </h3>
+        <h3 class="title">
+          {{ group.key}}
+          <b-taglist attached style="display: inline-block;" class="mr-2
+          is-pulled-right">
+            <b-tag type="is-danger is-medium" style="background-color: black;">
+              {{ formatter(group.cves.total_reward) }}$
+            </b-tag>
+            <b-tag type="is-info is-medium">
+              {{ group.cves.length }} CVEs
+            </b-tag>
+          </b-taglist>
+        </h3>
 
-      <div class="grid">
-        <template v-for="cve in group.cves">
-          <NuxtLink :to="'/cve?id='+cve.id" class="cve-link">
-          {{ cve.id }}
-          </NuxtLink>
-          <div class="cve-description">
-            <b-tag type="is-danger is-small" class="ml-2"
-              v-if="!cve.bug_date">
-              Private bug
-            </b-tag>
-            <b-tag type="is-info is-small" class="ml-2"
-                                            v-if="cve.vrp_reward">
-              {{ cve.vrp_reward }}$
-            </b-tag>
-            <b-tag v-for="repo in cve.repos" class="ml-2"
-              :style="
-                {
-                  backgroundColor: repo_color.get(repo) || 'black',
-                  color: 'white',
-                }
-              "
-            >
-              {{ repo }}
-            </b-tag>
-            <span class="cve-description-text">
-              {{ cve.description }}
-            </span>
-          </div>
-        </template>
-      </div>
+        <div class="grid">
+          <template v-for="cve in group.cves">
+            <NuxtLink :to="'/cve?id='+cve.id" class="cve-link">
+            {{ cve.id }}
+            </NuxtLink>
+            <div class="cve-description">
+              <b-tag type="is-danger is-small" class="ml-2"
+                                               v-if="!cve.bug_date">
+                Private bug
+              </b-tag>
+              <b-tag type="is-info is-small" class="ml-2"
+                                             v-if="cve.vrp_reward">
+                {{ cve.vrp_reward }}$
+              </b-tag>
+              <b-tag v-for="repo in cve.repos" class="ml-2"
+                                               :style="
+                                               {
+                                               backgroundColor: repo_color.get(repo) || 'black',
+                                               color: 'white',
+                                               }
+                                               "
+                                               >
+                                               {{ repo }}
+              </b-tag>
+              <span class="cve-description-text">
+                {{ cve.description }}
+              </span>
+            </div>
+          </template>
+        </div>
       </div>
     </section>
 
@@ -135,8 +164,33 @@ const repo_color = new Map([
 const router = useRouter();
 const route = useRoute();
 
-const repositories = ref([]);
+const readme = ref(false);
+
 const data = ref([]);
+
+const all_components = computed(() => {
+  const all_components = new Set();
+  for(const cve of data.value) {
+    if (cve.components) {
+      for(const component of cve.components) {
+        all_components.add(component);
+      }
+    }
+  }
+  return Array.from(all_components).sort();
+});
+
+const all_years = computed(() => {
+  const all_years = new Set();
+  for(const cve of data.value) {
+    const year = cve.published.split("-")[0];
+    all_years.add(year);
+  }
+  return Array.from(all_years).sort().reverse();
+});
+
+const years = ref([]);
+
 const group_by = ref("version");
 const grouped = ref({});
 
@@ -168,6 +222,11 @@ if (route.query.repo) {
   filter_repo.value = route.query.repo;
 }
 
+const hide_private = ref(false);
+if (route.query.hide_private) {
+  hide_private.value = route.query.hide_private == "true";
+}
+
 const updateUrl = () => {
   const query = {
     group_by: group_by.value,
@@ -175,11 +234,14 @@ const updateUrl = () => {
   if (filter_component.value) {
     query.component = filter_component.value;
   }
-  if (filter_date.value) {
+  if (filter_date.value && filter_date.value != "All") {
     query.date = filter_date.value;
   }
   if (filter_repo.value) {
     query.repo = filter_repo.value;
+  }
+  if (hide_private.value) {
+    query.hide_private = "true";
   }
 
   router.push({query})
@@ -190,6 +252,7 @@ watch(
     filter_component,
     filter_repo,
     filter_date,
+    hide_private,
   ],
   updateUrl,
 );
@@ -288,7 +351,7 @@ const refresh = async () => {
   const date_filter_regex_quarter = /^\d{4}Q\d$/;
   const date_filter_regex_month = /^\d{4}M\d{2}$/;
 
-  if (filter_date.value) {
+  if (filter_date.value && filter_date.value != "All") {
     if (date_filter_regex_year.test(filter_date.value)) {
       date_filter_start = new Date(`${filter_date.value}-01-01`);
       date_filter_end = new Date(`${filter_date.value}-12-31`);
@@ -334,6 +397,10 @@ const refresh = async () => {
       if (!found) {
         return false;
       }
+    }
+
+    if (hide_private.value && !cve.bug_date) {
+      return false;
     }
 
     if (date < date_filter_start || date > date_filter_end) {
@@ -536,7 +603,7 @@ const refresh = async () => {
         return parseInt(b) - parseInt(a);
       });
       keys = moveToEnd(keys, key => {
-          return !isNaN(key);
+        return !isNaN(key);
       });
 
       break;
@@ -611,11 +678,12 @@ const refresh = async () => {
   }));
 };
 
-watch(() => [
-  data.value,
-  group_by.value,
-  filter_component.value,
-  filter_date.value,
+watch([
+  data,
+  group_by,
+  filter_component,
+  filter_date,
+  hide_private,
 ], refresh);
 
 
