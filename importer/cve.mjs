@@ -283,6 +283,41 @@ const retrieveCveList = async (database) => {
   }
 }
 
+// Convert
+//   https://chromium-review.googlesource.com/c/chromium/src/+/5973403
+//   https://skia-review.googlesource.com/c/skia/+/874976
+// Into:
+//  Icd518a869a06ad982767386d5d7a1528e6179e6c
+//  ...
+// Using gerrit API.
+//   GET /changes/myProject~5673403
+const gerritUrlToCommitHash = async (url) => {
+  try {
+    const parts = url.split('/');
+    const origin = parts[2];
+    const project = parts[4];
+    const id = parts[parts.length - 1];
+    const gerrit_url = `https://${origin}/changes/${id}?O=200`;
+    console.log("Fetching", gerrit_url);
+    const response = await fetch(gerrit_url);
+    const text = await response.text();
+    const json = JSON.parse(text.substring(4)); // Strip )]}' prefix.
+
+    for(const message of json.messages) {
+      const match = message.message.match(/submitted as ([0-9a-f]{40})/);
+      if (match) {
+        console.log(match[1]);
+        return match[1];
+      }
+    }
+  } catch (e) {
+    console.log("Error fetching", url, e);
+  }
+
+  return null;
+}
+
+
 const fetchBugganizer = async (cve, page) => {
   const url = cve.bug
   console.log("Fetching", url)
@@ -416,34 +451,38 @@ const fetchBugganizer = async (cve, page) => {
   cve.chromium_labels = extracted.chromium_labels;
   cve.bug_date = extracted.bug_date;
   cve.severity = extracted.severity;
-  cve.fixed_by = extracted.fixed_by;
+
+  const fixed_by = new Set();
+  for(const change of extracted.fixed_by) {
+    fixed_by.add(await gerritUrlToCommitHash(change));
+  }
+  cve.fixed_by = Array.from(fixed_by).sort();
 
   // Read the issues descriptions.
-  const issues = await page.evaluate(() => {
-    const issues = []
-    for (const el of document.querySelectorAll('.child')) {
-      issues.push(el.textContent)
+  const commits = new Set(fixed_by);
+  for (const change of extracted.code_changes) {
+    commits.add(await gerritUrlToCommitHash(change));
+  }
+  const issues_commits = await page.evaluate(() => {
+    // Find elements that contains hashes. For instance:
+    // commit 28cd41e26f60089929a31245f675b852f27edc5e
+    //
+    // This could be from any elements.
+
+    const hashes = new Set();
+    for(const el of document.querySelectorAll('div')) {
+      const text = el.textContent;
+      const matches = text.match(/[0-9a-f]{40}/g);
+      if (matches) {
+        for(const match of matches) {
+          hashes.add(match);
+        }
+      }
     }
-    return issues
+    return Array.from(hashes);
   })
 
-  // Iterate over the issues, extract the commit hash.
-  // Example:
-  // commit 62d76556fcf250ecb0f63874be8cdd3db51f2a64
-  const commits = new Set();
-
-  for(const issue of issues) {
-    const match = issue.match(/commit ([0-9a-f]{40})/)
-    if (match) {
-      commits.add(match[1])
-    }
-  }
-
-  for(const commit of extracted.fixed_by) {
-    commits.add(commit);
-  }
-
-  for(const commit of extracted.code_changes) {
+  for(const commit of issues_commits) {
     commits.add(commit);
   }
 
@@ -620,8 +659,8 @@ const test = async () => {
   })
   const page = await browser.newPage()
   const cve = {
-    "id": "2025-0442",
-    "bug": "https://bugs.chromium.org/p/chromium/issues/detail?id=40940854",
+    "id": "2018-6092",
+    "bug": "https://crbug.com/819869"
   };
   await fetchBugganizer(cve, page)
   await browser.close()
@@ -629,6 +668,9 @@ const test = async () => {
 }
 
 const main = async () => {
+  //await test();
+  //return;
+
   await fetchVersionHistory()
 
   const database = loadDatabase();

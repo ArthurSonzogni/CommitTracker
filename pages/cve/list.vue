@@ -56,7 +56,7 @@
             </b-select>
           </b-field>
 
-          <b-field label="Component" class="ml-2">
+          <b-field label="Component" class="ml-2" v-if="!filter_component">
             <b-select
               v-model="filter_component"
               placeholder="Component"
@@ -68,10 +68,18 @@
             </b-select>
           </b-field>
 
+          <b-field label="Component" class="ml-2" v-else>
+            <b-tag
+              closable
+              size="is-large"
+              @close="filter_component = null"
+              >
+              {{ filter_component }}
+            </b-tag>
+          </b-field>
+
           <b-field label="Private bugs" class="ml-2">
-            <!--<b-radio-button v-model="hide_private" native-value="true">Hide</b-radio-button>-->
-            <!--<b-radio-button v-model="hide_private" native-value="false">Show</b-radio-button>-->
-            <b-switch v-model="hide_private" @change="updateUrl">Show</b-switch>
+            <b-switch v-model="hide_private" @change="updateUrl">Hide</b-switch>
           </b-field>
         </b-field>
 
