@@ -208,6 +208,7 @@
     reviewers: false,
     treemap: false,
   },
+
   {
     name: "Ladybird",
     dirname: "ladybird",
@@ -217,6 +218,7 @@
     reviewers: false,
     treemap: false,
   },
+
   {
     name: "Servo",
     dirname: "servo",
@@ -225,5 +227,29 @@
     repository: "servo",
     reviewers: false,
     treemap: false,
-  }
+  },
+
+  {
+    name: "SpiderMonkey",
+    dirname: "spidermonkey",
+    color: "#e66000",
+    owner: "mozilla",
+    repository: "gecko-dev",
+    cone: "js",
+    parent: "gecko",
+    reviewers: false,
+    treemap: false,
+  },
+
+  {
+    name: "JSC",
+    dirname: "jsc",
+    color: "#1393ef",
+    owner: "WebKit",
+    repository: "WebKit",
+    cone: "Source/JavaScriptCore",
+    parent: "WebKit",
+    reviewers: false,
+    treemap: false,
+  },
 ]
