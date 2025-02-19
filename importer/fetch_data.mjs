@@ -78,6 +78,7 @@ const ProcessCommit = (data, commit) => {
 const ProcessRepository = async (repository) => {
   statusLine.logString(`-----`)
   statusLine.logString(`Processing ${repository.dirname}`);
+
   const repository_dir = `../public/data/${repository.dirname}`;
   const last_file = `${repository_dir}/last.json`;
   const emails_dir = `${repository_dir}/emails`;
@@ -87,6 +88,12 @@ const ProcessRepository = async (repository) => {
   // running this.
   await fs.mkdir(repository_dir, {recursive: true});
   await fs.mkdir(emails_dir, {recursive: true});
+
+  // Check if the emails.json file exists. If it doesn't, we won't try to abort
+  // after a certain number of duplicates.
+  const prexisting = await fs.stat(emails_file)
+    .then(() => true)
+    .catch(() => false);
 
   // Populate data from the current database -----------------------------------
   const emails = async () => {
@@ -147,7 +154,9 @@ const ProcessRepository = async (repository) => {
   let duplicate = 0;
   let retry_total = 0;
 
-  while(hasNextPage && duplicate<10) {
+  let max_duplicate = prexisting ? 30 : 1000000000;
+
+  while(hasNextPage && duplicate<max_duplicate) {
     if (index % 10000 == 0) {
       statusLine.logString(`Repo: ${repository.dirname} ${index}`);
     }
