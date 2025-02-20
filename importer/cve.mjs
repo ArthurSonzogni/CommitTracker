@@ -496,11 +496,11 @@ const fetchBugganizer = async (cve, page) => {
   }
 
   // Remove the previous commits that do not exist anymore.
-  //for(const sha in cve.commits) {
-    //if (!commits.has(sha)) {
-      //delete cve.commits[sha];
-    //}
-  //}
+  for(const sha in cve.commits) {
+    if (!commits.has(sha)) {
+      delete cve.commits[sha];
+    }
+  }
 
   // Add the new commits.
   for(const commit of commits) {
