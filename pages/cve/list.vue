@@ -81,6 +81,9 @@
           <b-field label="Private bugs" class="ml-2">
             <b-switch v-model="hide_private" @change="updateUrl">Hide</b-switch>
           </b-field>
+          <b-field label="Description" class="ml-2">
+            <b-switch v-model="show_description" @change="updateUrl">Show</b-switch>
+          </b-field>
         </b-field>
 
         <b-field label="Group by">
@@ -121,25 +124,48 @@
             {{ cve.id }}
             </NuxtLink>
             <div class="cve-description">
-              <b-tag type="is-danger is-small" class="ml-2"
-                                               v-if="!cve.bug_date">
-                Private bug
-              </b-tag>
-              <b-tag type="is-info is-small" class="ml-2"
-                                             v-if="cve.vrp_reward">
-                {{ cve.vrp_reward }}$
-              </b-tag>
-              <b-tag v-for="repo in cve.repos" class="ml-2"
-                                               :style="
-                                               {
-                                               backgroundColor: repo_color.get(repo) || 'black',
-                                               color: 'white',
-                                               }
-                                               "
-                                               >
-                                               {{ repo }}
-              </b-tag>
-              <span class="cve-description-text">
+              <div class="taglist">
+                <b-tag type="is-danger is-small" v-if="!cve.bug_date">
+                  Private bug
+                </b-tag>
+              </div>
+              <div class="taglist">
+                <b-tag type="is-info is-small" v-if="cve.vrp_reward">
+                  {{ cve.vrp_reward }}$
+                </b-tag>
+              </div>
+              <div class="taglist">
+                <b-tag v-for="repo in cve.repos" class="ml-2"
+                                                 :style="
+                                                 {
+                                                 backgroundColor: repo_color.get(repo) || 'black',
+                                                 color: 'white',
+                                                 }
+                                                 "
+                                                 >
+                                                 {{ repo }}
+                </b-tag>
+              </div>
+              <div class="taglist">
+                <b-tag v-if="cve.cweId" class="ml-2">
+                  {{ cve.cweId }} - {{ cweTitle.get(parseInt(cve.cweId)) }}
+                </b-tag>
+              </div>
+              <div class="taglist">
+                <b-tag v-if="cve.severity" class="ml-2" type="is-danger">
+                  {{ cve.severity }}
+                </b-tag>
+              </div>
+              <div class="taglist">
+                <b-tag v-for="component in cve.components"
+                       class="ml-2"
+                       type="is-warning"
+                >
+                  {{ component }}
+                </b-tag>
+              </div>
+              <br>
+              <span class="cve-description-text" v-if="show_description">
                 {{ cve.description }}
               </span>
             </div>
@@ -235,6 +261,11 @@ if (route.query.hide_private) {
   hide_private.value = route.query.hide_private == "true";
 }
 
+const show_description = ref(true);
+if (route.query.show_description) {
+  show_description.value = route.query.show_description == "true";
+}
+
 const updateUrl = () => {
   const query = {
     group_by: group_by.value,
@@ -251,6 +282,9 @@ const updateUrl = () => {
   if (hide_private.value) {
     query.hide_private = "true";
   }
+  if (!show_description.value) {
+    query.show_description = "false";
+  }
 
   router.push({query})
 };
@@ -261,13 +295,14 @@ watch(
     filter_repo,
     filter_date,
     hide_private,
+    show_description,
   ],
   updateUrl,
 );
 
 const cweTitle = new Map([
   [119, "Improper Restriction of Operations within the Bounds of a Memory Buffer"],
-  [120, "Buffer Copy without Checking Size of Input (‘Classic Buffer Overflow’)"],
+  [120, "Buffer overflow"],
   [122, "Heap-based Buffer Overflow"],
   [125, "Out-of-bounds Read"],
   [1284, "Improper Validation of Specified Quantity in Input"],
@@ -280,7 +315,7 @@ const cweTitle = new Map([
   [345, "Insufficient Verification of Data Authenticity"],
   [346, "Origin Validation Error"],
   [358, "Improperly Implemented Security Check for Standard"],
-  [362, "Concurrent Execution using Shared Resource with Improper Synchronization (‘Race Condition’)"],
+  [362, "Race condition"],
   [366, "Race Condition within a Thread"],
   [374, "Passing Mutable Objects to an Untrusted Method"],
   [416, "Use After Free"],
@@ -290,9 +325,9 @@ const cweTitle = new Map([
   [474, "Use of Function with Inconsistent Implementations"],
   [691, "Insufficient Control Flow Management"],
   [787, "Out-of-bounds Write"],
-  [79, "Improper Neutralization of Input During Web Page Generation (‘Cross-site Scripting’)"],
+  [79, "Cross-site scripting"],
   [807, "Reliance on Untrusted Inputs in a Security Decision"],
-  [843, "Access of Resource Using Incompatible Type (‘Type Confusion’)"],
+  [843, "Type confusion"],
   [863, "Incorrect Authorization"],
   [94, "Improper Control of Generation of Code (‘Code Injection’)"],
 ])
@@ -692,6 +727,7 @@ watch([
   filter_component,
   filter_date,
   hide_private,
+  show_description,
 ], refresh);
 
 
@@ -724,8 +760,8 @@ h3 {
   overflow: hidden;
 }
 
-.cve-description-text {
-  margin-left: 1em;
+.taglist {
+  display: inline-block;
 }
 
 </style>
