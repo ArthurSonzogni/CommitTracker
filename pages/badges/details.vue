@@ -26,7 +26,7 @@
 
               ({{ Math.round(rarity * 100)/100 }})
             </p>
-            <p> <strong>Recipient:</strong> {{ badge_data.recipients }}</p>
+            <p> <strong>Holder:</strong> {{ badge_data.recipients }} developers</p>
             <p> <strong>Category:</strong> {{ badge_data.category }}</p>
             <p> <strong>Unlocked:</strong>
               <b-icon
@@ -35,7 +35,8 @@
                 />
             </p>
 
-            <p> {{badge_data.description}}</p>
+            <p>{{ badge_data.description }}</p>
+            <p v-html="badge_data.details" v-if="unlocked"></p>
 
             <h1 class="title">Collection</h1>
             <div class="card_list_container">
@@ -96,8 +97,6 @@ const rarity = ref(0);
 
 const unlocked = ref(false);
 
-const data = ref(null);
-
 const main = async () => {
   const fetchJson = async (path) => {
     const data = await fetch(path);
@@ -106,24 +105,16 @@ const main = async () => {
   }
   const allBadges = await fetchJson(`/badges.json`);
 
-  console.log(allBadges);
-  console.log(badge.value);
-
   badge_data.value = allBadges.find((data) => data.name === badge.value);
-  console.log(badge_data.value);
-
 
   related_badges.value = allBadges.filter((data) => data.category ===
     badge_data.value.category);
-  console.log(related_badges.value);
 
   rarity.value = Math.log2(8200/badge_data.value.recipients) * 0.8
 
   // Fetch the developers's data.
   const developer_data = (
     await fetchJson(`/badges/${developer.value[0]}.json`))[developer.value];
-
-  console.log(developer_data);
 
   let unlocked_ = false;
   let data_ = null;
@@ -135,9 +126,16 @@ const main = async () => {
   }
   unlocked.value = unlocked_;
 
-  data.value = data_;
-  console.log(data_.value);
+  // Replace the description with the developer's data. The strings to replace
+  // are $0, $1, $2, etc.
+  badge_data.value.details = badge_data.value.details.replace(
+    /\$[0-9]/g, (match) => {
+      const index = parseInt(match[1]);
+      return data_[index];
+    }
+  );
 }
+
 
 main();
 

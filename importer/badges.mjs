@@ -50,8 +50,12 @@ const repositories_with_commit_count = [
 
 // To avoid opening too many files, cache the results.
 const user_commits = new Map();
+let username_index = 0;
 for (const username of usernames) {
-  statusLine(`Cache commits for ${username}`);
+  username_index++;
+  if (username_index % 100 == 0) {
+    statusLine(`Cache commits [${Math.round(username_index / usernames.size * 100)}%]`);
+  }
   const commits = [];
   for (const repository of repositories_with_commit_count) {
     const commit_file = `../public/data/${repository}/usernames/${username}.json`;
@@ -76,7 +80,8 @@ for(const level of [1, 2, 3]) {
   badges.push({
     category: "polyglot",
     name: `Polyglot n°${level}`,
-    description: `I contributed to multiples repositories! More than ${polyglot_levels[level-1]}+ repositories.`,
+    description: `I contributed to more than ${polyglot_levels[level-1]}+ repositories!`,
+    details: `I did $0.`,
     image: `/img/badges/polyglot_l${level}.jpeg`,
   });
 
@@ -136,6 +141,7 @@ for(const level of [1, 2, 3]) {
     category: "misc",
     name: "Old Commit",
     description: "I submitted a commit more than 10 years ago!",
+    details: "It was in $0.",
     image: "/img/badges/ancient.png",
   });
   for(const username of usernames) {
@@ -143,7 +149,7 @@ for(const level of [1, 2, 3]) {
     for(const commit of commits) {
       const date = new Date(commit.date);
       if (date.getFullYear() < 2012) {
-        GiveUserBadge(username, []);
+        GiveUserBadge(username, [date.getFullYear()]);
         break;
       }
     }
@@ -157,6 +163,7 @@ for(const level of [1, 2, 3]) {
     category: "misc",
     name: "New User",
     description: "I made my very first commit less than a year ago!",
+    details: "It was in $0 days ago.",
     image: "/img/badges/young.png",
   });
   for(const username of usernames) {
@@ -185,6 +192,7 @@ for(const level of [1, 2, 3]) {
     category: "misc",
     name: "Code Slayer",
     description: "I deleted more than 100k lines of code at once!",
+    details: "I removed $0 lines of code.",
     image: "/img/badges/code_slayer.jpeg",
   });
   for(const username of usernames) {
@@ -205,6 +213,7 @@ for(const level of [1, 2, 3]) {
     category: "misc",
     name: "Code Cleaner",
     description: "Cleanup time! I modified more than 1k files at once!",
+    details: "I modified $0 files.",
     image: "/img/badges/cleanup.jpeg",
   });
   for(const username of usernames) {
@@ -253,17 +262,18 @@ for(const level of [1, 2, 3]) {
     }
 
     // Find a buckets.
-    angles.set(username, Math.round(angle * 3) % 3);
+    angles.set(username, angle);
   }
 
   badges.push({
     category: "timezone",
     name: "AMER timezone",
     description: "I'm submitting commits from the AMER timezone!",
+    details: "",
     image: "/img/badges/timezone_3.jpeg",
   });
   for(const username of usernames) {
-    if (angles.get(username) === 2) {
+    if (Math.round(angles.get(username) * 3) % 3 == 2) {
       GiveUserBadge(username, []);
     }
   }
@@ -272,10 +282,11 @@ for(const level of [1, 2, 3]) {
     category: "timezone",
     name: "EMEA timezone",
     description: "I'm submitting commits from the EMEA timezone!",
+    details: "",
     image: "/img/badges/timezone_1.jpeg",
   });
   for(const username of usernames) {
-    if (angles.get(username) === 0) {
+    if (Math.round(angles.get(username) * 3) % 3 == 0) {
       GiveUserBadge(username, []);
     }
   }
@@ -285,10 +296,61 @@ for(const level of [1, 2, 3]) {
     name: "APAC timezone",
     image: "/img/badges/timezone_2.jpeg",
     description: "I'm submitting commits in from APAC timezone!",
+    details: "",
   });
   for(const username of usernames) {
-    if (angles.get(username) === 1) {
+    if (Math.round(angles.get(username) * 3) % 3 == 1) {
       GiveUserBadge(username, []);
+    }
+  }
+
+  // Badge for the most productive day of the week.
+  statusLine.logString(`Processing most productive day of the week badge...`);
+  const days_count = new Map();
+  // It contains [int*7] elements, each element is the number of commits for a
+  // specific day of the week.
+  for(const username of usernames) {
+    const accumulation = new Array(7).fill(0);
+
+    // To account for timezone, shift commit date by some amount to make the
+    // days of the week to fit the timezone.
+    const timezone_shift = angles.get(username) * 24 - 48;
+
+    for(const commit of user_commits.get(username)) {
+      if (commit.kind != "author") {
+        continue;
+      }
+      let date = new Date(commit.date);
+      date = new Date(date.getTime() + timezone_shift * 60 * 60 * 1000);
+      accumulation[date.getUTCDay()]++;
+    }
+
+    days_count.set(username, accumulation);
+  }
+
+  const day_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  for(const day of [0, 1, 2, 3, 4, 5, 6]) {
+    badges.push({
+      category: "weekday",
+      name: `Most Productive ${day_names[day]}`,
+      description: `I'm most productive on ${day_names[day]}!`,
+      details: `
+      <ul>
+        <li>Monday: $0</li>
+        <li>Tuesday: $1</li>
+        <li>Wednesday: $2</li>
+        <li>Thursday: $3</li>
+        <li>Friday: $4</li>
+        <li>Saturday: $5</li>
+        <li>Sunday: $6</li>
+      </ul>`,
+      image: `/img/badges/day_${day}.jpeg`,
+    });
+    for(const username of usernames) {
+      const max_count = Math.max(...days_count.get(username));
+      if (max_count == days_count.get(username)[day]) {
+        GiveUserBadge(username, days_count.get(username));
+      }
     }
   }
 }
@@ -305,6 +367,7 @@ for (const repository of repositories_with_commit_count) {
       //name: `${repository} commit Level ${i+1}`,
       name: `${repository} commit n°${i+1}`,
       description: `I have made ${badge_levels[i]} commits to ${repository}.`,
+      details: `I did $0 commits.`,
       image: `/img/badges/${repository}_l${i+1}.jpeg`,
     });
     const data = await fs.readFile(`../public/data/${repository}/usernames_summary_commit_forever_author.json`, "utf-8");
