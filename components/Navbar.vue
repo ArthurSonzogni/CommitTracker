@@ -94,10 +94,10 @@
           Leaderboard
         </b-navbar-item>
 
-        <!--<b-navbar-item tag="router-link" :to="{ path: '/badges/list' }">-->
-          <!--<b-icon icon="certificate" class="mr-2"></b-icon>-->
-          <!--Badges-->
-        <!--</b-navbar-item>-->
+        <b-navbar-item tag="router-link" :to="{ path: '/badges/list' }">
+          <b-icon icon="certificate" class="mr-2"></b-icon>
+          Badges
+        </b-navbar-item>
 
         <b-navbar-item tag="router-link" :to="{ path: '/fuzz-test' }">
           <b-icon icon="bug" class="mr-2"></b-icon>
