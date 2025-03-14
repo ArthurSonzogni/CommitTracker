@@ -59,6 +59,7 @@ const { $color } = useNuxtApp();
 let timeIndexModel = defineModel("timeIndex")
 
 const props = defineProps({
+  type: { type:String, default: "commit"},
   repositories: { type:Array[String], default: () => ["chromium"]},
   grouping: { type:String, default: "yearly"},
   kind: { type:String, default: "author"},
@@ -135,7 +136,7 @@ const orderByDate = (data) => {
 const fetchData = async () => {
   is_animating.value = false;
   const data = await Promise.all(props.repositories.map(repo => $usersInfo(repo,
-    props.grouping, props.kind)));
+    props.type, props.grouping, props.kind)));
   const merged = mergeDataForRepositories(data);
   const ordered = orderByDate(merged)
   ordered.sort((a,b) => b.date > a.date ? -1 : 1);
@@ -378,6 +379,7 @@ const animate = async (should_accumulate = false) => {
     return;
   }
   const data = await Promise.all(props.repositories.map(repo => $usersInfo(repo,
+    props.type,
     props.grouping, props.kind)));
   const merged = mergeDataForRepositories(data)
   const ordered = orderByDate(merged)

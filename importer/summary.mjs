@@ -32,15 +32,35 @@ const metric_functions = {
     return out;
   },
 
-  //"additions" : (commits, date_grouping) => {
-    //const out = {};
-    //commits.forEach(commit => {
-      //const date = date_grouping(commit.date);
-      //out[date] ||= 0;
-      //out[date] += commit.additions;
-    //});
-    //return out;
-  //},
+  "lines" : (commits, date_grouping) => {
+    const out = {};
+    commits.forEach(commit => {
+      const date = date_grouping(commit.date);
+      out[date] ||= 0;
+      out[date] += commit.additions + commit.deletions;
+    });
+    return out;
+  },
+
+  "added_lines" : (commits, date_grouping) => {
+    const out = {};
+    commits.forEach(commit => {
+      const date = date_grouping(commit.date);
+      out[date] ||= 0;
+      out[date] += Math.max(0, commit.additions - commit.deletions);
+    });
+    return out;
+  },
+
+  "deleted_lines" : (commits, date_grouping) => {
+    const out = {};
+    commits.forEach(commit => {
+      const date = date_grouping(commit.date);
+      out[date] ||= 0;
+      out[date] += Math.max(0, commit.deletions - commit.additions);
+    });
+    return out;
+  },
 
   //"deletions" : (commits, date_grouping) => {
     //const out = {};
