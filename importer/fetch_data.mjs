@@ -20,6 +20,15 @@ const ProcessCommit = (data, commit) => {
     return "invalid email";
   }
 
+  // Commit from the WPT repository in Gecko are authored by the original
+  // author, but committed by the wptsync bot.
+  //
+  // Note that other repositories like Chromium have all of their commit
+  // committed by a bot, so we can't just exclude all commits from a bot.
+  if (commit.committer.email.includes('wptsync')) {
+    return "wptsync";
+  }
+
   const author = mailMap(email);
   const date = commit.committedDate;
   // Ignore self-review:
@@ -188,6 +197,9 @@ const ProcessRepository = async (repository) => {
                             abbreviatedOid
                             messageBody
                             committedDate
+                            committer {
+                              email
+                            }
                             author {
                               email
                             }
