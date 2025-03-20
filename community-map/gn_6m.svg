@@ -1,0 +1,23 @@
+<svg width="4000" height="2000" viewBox="-0.025 -0.025 2.05 1.05" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    path {
+      fill: none;
+      stroke-linecap: round;
+      stroke-opacity: 0.4;
+    }
+
+    text {
+      text-anchor: middle;
+      alignment-baseline: hanging;
+    }
+  </style>
+  <g opacity="0.4">
+<path d="M1.877 0.555 Q1.474 0.632 1.536 0.846" stroke="hsl(0.0,100%,35%)" stroke-width="0.14000"></path>
+<path d="M1.877 0.555 Q1.697 0.498 1.545 0.573" stroke="hsl(0.0,100%,35%)" stroke-width="0.04000"></path>
+<path d="M1.877 0.555 Q1.745 0.588 1.779 0.659" stroke="hsl(0.0,100%,35%)" stroke-width="0.02000"></path>
+</g>
+<text x="1.877" y="0.485" font-size="0.141421" fill="hsl(0.0,100%,20%)">tikuta</text>
+<text x="1.536" y="0.787" font-size="0.118322" fill="hsl(0.0,100%,20%)">digit</text>
+<text x="1.545" y="0.541" font-size="0.063246" fill="hsl(0.0,100%,20%)">dpranke</text>
+<text x="1.779" y="0.637" font-size="0.044721" fill="hsl(0.0,100%,20%)">phosek</text>
+</svg>
