@@ -232,16 +232,22 @@ const cve_percent_format = format("+.1f");
 const router = useRouter();
 const route = useRoute();
 
-const severities = ref(["Low", "Medium", "High", "Critical"]);
+const severities = ref(["High", "Critical"]);
 
 if (route.query.severities) {
   severities.value = route.query.severities.split(",");
 }
 
 watch(severities, () => {
+  const has_default_severities =
+    severities.value.length === 2 &&
+    severities.value.includes("High") &&
+    severities.value.includes("Critical");
+
   router.push({
     query: {
-      severities: severities.value.length !== 4 ? severities.value.join(",") : null,
+      severities: has_default_severities ? undefined :
+      severities.value.join(","),
     }
   });
   render();
