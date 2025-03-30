@@ -61,6 +61,11 @@
           CVE
         </template>
 
+        <b-navbar-item tag="router-link" :to="{ path: '/cve/overview' }">
+          <b-icon icon="chart-pie" class="mr-2"></b-icon>
+          Overview
+        </b-navbar-item>
+
         <b-navbar-item tag="router-link" :to="{ path: '/cve/list' }">
           <b-icon icon="format-list-bulleted" class="mr-2"></b-icon>
           List
