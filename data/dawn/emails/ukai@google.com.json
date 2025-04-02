@@ -1,0 +1,43 @@
+[
+ {
+  "date": "2023-07-18T13:56:26Z",
+  "kind": "review",
+  "peers": [
+   "jwata@google.com"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2022-06-29T10:30:06Z",
+  "kind": "author",
+  "peers": [
+   "cwallez@chromium.org"
+  ],
+  "additions": 23,
+  "deletions": 22,
+  "files": 3
+ },
+ {
+  "date": "2022-04-22T10:08:52Z",
+  "kind": "author",
+  "peers": [
+   "cwallez@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2022-04-12T16:18:01Z",
+  "kind": "author",
+  "peers": [
+   "rharrison@chromium.org",
+   "bclayton@google.com"
+  ],
+  "additions": 14,
+  "deletions": 6,
+  "files": 2
+ }
+]
