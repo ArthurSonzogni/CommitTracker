@@ -1,21 +1,48 @@
 <template>
   <div>
-    <Navbar/>
+    <Navbar />
     <section class="section content">
-      <img
-        src="https://hits.seeyoufarm.com/api/count/graph/dailyhits.svg?url=https://chrome-commit-tracker.arthursonzogni.com"
-        alt="Hits"
-        />
+      <p>
+        Since <strong>2025-05-06</strong>, the website has been visited <strong>{{ json.total_hits }}</strong> times,
+        with <strong>{{ json.today_hits }}</strong> visits today.
+      </p>
 
+      <LineChart :data=data />
+
+
+      <hr>
+      <p class="has-text-centered">
+        <img
+          src="https://hitscounter.dev/api/hit?url=https%3A%2F%2Fchrome-commit-tracker.arthursonzogni.com%2F&label=commit-tracker&icon=heart-fill&color=%23fd86aa">
+        Powered by <a href="https://hitscounter.dev/">hitscounter</a>.
+      </p>
     </section>
 
-    <p class="has-text-centered">
-      Powered by <a href="https://hits.seeyoufarm.com/">HITS</a>.
-    </p>
-    <a href="https://hits.seeyoufarm.com"><img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fchrome-commit-tracker.arthursonzogni.com&count_bg=%2379C83D&title_bg=%23555555&icon=probot.svg&icon_color=%23E7E7E7&title=Page+view+since+2024-12-25&edge_flat=false"/></a>
+
   </div>
 </template>
 
+<script setup lang="ts">
+
+const target = new URL('https://chrome-commit-tracker.arthursonzogni.com');
+const hitscounter = new URL('https://hitscounter.dev/api/history');
+const proxy = new URL('https://api.cors.lol/');
+hitscounter.searchParams.append('url', target.toString());
+proxy.searchParams.append('url', hitscounter.toString());
+
+const response = await fetch(proxy);
+const json = await response.json();
+
+const data = ref([{
+  label: 'Page view',
+  values: json.history.map(item => ({
+    x: new Date(item.hit_date),
+    y: item.hit_count,
+  })),
+}]);
+console.log(data);
+
+</script>
 
 <style scoped>
 
