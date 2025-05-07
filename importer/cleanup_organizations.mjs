@@ -7,7 +7,7 @@ for (const repository of repositories) {
   // Clean up the `organizations/` directory if it exists
   const repository_dir = `../public/data/${repository.dirname}/organizations`;
   try {
-    await fs.rmdir(repository_dir, { recursive: true });
+    await fs.rm(repository_dir, { recursive: true });
     console.log(`Deleted ${repository_dir}`);
   } catch (error) {
     if (error.code === "ENOENT") {
