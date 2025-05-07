@@ -1,0 +1,27 @@
+<svg width="4000" height="2000" viewBox="-0.025 -0.025 2.05 1.05" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    path {
+      fill: none;
+      stroke-linecap: round;
+      stroke-opacity: 0.4;
+    }
+
+    text {
+      text-anchor: middle;
+      alignment-baseline: hanging;
+    }
+  </style>
+  <g opacity="0.4">
+<path d="M0.460 0.490 Q0.756 0.531 0.900 0.396" stroke="hsl(0.0,100%,35%)" stroke-width="0.01398"></path>
+<path d="M0.460 0.490 Q0.329 0.592 0.498 0.678" stroke="hsl(0.0,100%,35%)" stroke-width="0.04193"></path>
+<path d="M0.460 0.490 Q0.487 0.340 0.200 0.294" stroke="hsl(0.0,100%,35%)" stroke-width="0.01398"></path>
+<path d="M0.498 0.678 Q0.629 0.576 0.460 0.490" stroke="hsl(0.0,100%,35%)" stroke-width="0.09783"></path>
+<path d="M0.498 0.678 Q0.925 0.617 0.900 0.396" stroke="hsl(0.0,100%,35%)" stroke-width="0.02795"></path>
+<path d="M0.498 0.678 Q0.724 0.692 0.800 0.584" stroke="hsl(0.0,100%,35%)" stroke-width="0.02795"></path>
+</g>
+<text x="0.460" y="0.429" font-size="0.122474" fill="hsl(0.0,100%,20%)">digit</text>
+<text x="0.900" y="0.365" font-size="0.061237" fill="hsl(0.0,100%,20%)">dpranke</text>
+<text x="0.498" y="0.612" font-size="0.132288" fill="hsl(0.0,100%,20%)">tikuta</text>
+<text x="0.200" y="0.276" font-size="0.035355" fill="hsl(0.0,100%,20%)">thakis</text>
+<text x="0.800" y="0.559" font-size="0.050000" fill="hsl(0.0,100%,20%)">phosek</text>
+</svg>
