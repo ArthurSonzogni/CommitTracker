@@ -30,8 +30,18 @@ const proxy = new URL('https://api.cors.lol/');
 hitscounter.searchParams.append('url', target.toString());
 proxy.searchParams.append('url', hitscounter.toString());
 
-const response = await fetch(proxy);
-const json = await response.json();
+const fetchData = async () => {
+  try {
+    const response = await fetch(proxy);
+    const json = await response.json();
+    return json;
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    return {};
+  }
+};
+
+const json = await fetchData();
 
 const data = ref([{
   label: 'Page view',
