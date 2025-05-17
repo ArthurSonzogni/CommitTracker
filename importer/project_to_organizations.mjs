@@ -6,28 +6,48 @@ const chromium_repo =
   "https://raw.githubusercontent.com/chromium/chromium/main";
 const commit_stats = `${chromium_repo}/third_party/blink/tools/commit_stats/`;
 
+// -----------------------------------------------------------------------------
+
 // `org_list` is a comma separated list of organizations and their respective
 // emails. The file is expected to be in the following format:
 // ```
+// # Comments are ignored
 // org1,host1
 // org2,host2
 // [...]
 // ```
-//const org_list_response = await fetch(`${commit_stats}/org-list.txt`);
-//const org_list = await org_list_response.text();
+const org_list_response = await fetch(`${commit_stats}/org-list.txt`);
+const org_list = await org_list_response.text();
 
-// Import the `org-list.txt` file from the local file system.
-const org_list = await fs.readFile("../org-list.txt", "utf-8");
-console.log(org_list);
-const org = {};
-org_list.split("\n").forEach((line) => {
+// Import the `org-list.txt` file from the local file system, which might
+// supplement some additional organizations. They should eventually be
+// moved to the chromium repository.
+const org_list_patch = await fs.readFile("../org-list.txt", "utf-8");
+
+const org_mapping = {};
+
+[
+  org_list,
+  org_list_patch,
+]
+.join("\n")
+.split("\n")
+.forEach((line) => {
+  line = line.trim();
+  if (line.startsWith("#") || line.length == 0) {
+    return;
+  }
   const [org_name, org_email] = line.split(",");
   if (!org_name || !org_email) {
     return;
   }
-  org[org_email.toLowerCase()] = org_name;
+  if (org_email.toLowerCase() == undefined) {
+    console.error(`Invalid line: ${line}`);
+    return;
+  }
+  org_mapping[org_email.toLowerCase()] = org_name;
 });
-const organizations_list = [...new Set(Object.values(org))].sort();
+const organizations_list = [...new Set(Object.values(org_mapping))].sort();
 await fs.writeFile(
   "../public/data/organizations.json",
   JSON.stringify(organizations_list, null, 1)
@@ -68,7 +88,7 @@ function getHostname(email, date) {
 
 function getOrganization(email, date) {
   const hostname = getHostname(email, date);
-  return org[hostname] || "Unknown";
+  return org_mapping[hostname] || "Unknown";
 }
 
 // -----------------------------------------------------------------------------
@@ -89,7 +109,7 @@ for (const repository of repositories) {
   // Write the `organizations.json` file.
   await fs.writeFile(
     `../public/data/${repository.dirname}/organizations.json`,
-    JSON.stringify(Object.keys(org), null, 1)
+    JSON.stringify(Object.keys(org_mapping), null, 1)
   );
 
   // Write the `organizations/<org>.json` files:
