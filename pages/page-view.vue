@@ -26,13 +26,11 @@
 
 const target = new URL('https://chrome-commit-tracker.arthursonzogni.com');
 const hitscounter = new URL('https://hitscounter.dev/api/history');
-const proxy = new URL('https://api.cors.lol/');
 hitscounter.searchParams.append('url', target.toString());
-proxy.searchParams.append('url', hitscounter.toString());
 
 const fetchData = async () => {
   try {
-    const response = await fetch(proxy);
+    const response = await fetch(hitscounter.toString());
     const json = await response.json();
     return json;
   } catch (error) {
