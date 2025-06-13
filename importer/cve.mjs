@@ -476,7 +476,7 @@ const fetchBugganizer = async (cve, page) => {
       // The first is used in chromium, the other in v8/skia.
       const text = el.textContent;
       const matches = text.match(/commit ([0-9a-f]{40})/g) ||
-                      text.match(/Hash: ([0-9a-f]{40})/g);
+        text.match(/Hash: ([0-9a-f]{40})/g);
       if (matches) {
         hashes.add(matches[0].split(' ')[1]);
       }
@@ -520,6 +520,7 @@ const augmentFromBugganizer = async (database) => {
   let index = 0;
   for(const cve of database) {
     console.log("Processing", cve.id);
+
     if (cve.bug == undefined) {
       continue;
     }
@@ -532,7 +533,8 @@ const augmentFromBugganizer = async (database) => {
       delete cve.import_stage;
     }
 
-    if (cve.vrp_reward != undefined && cve.commits?.length > 0) {
+    //console.log("reward", cve.vrp_reward, "commits", cve.commits?.length);
+    if (cve.vrp_reward != undefined && cve.commits?.length > 1) {
       console.log("Skipping", cve.bug, " vrp reward", cve.vrp_reward);
       continue;
     }
@@ -544,9 +546,24 @@ const augmentFromBugganizer = async (database) => {
     const today = new Date();
     const weeks = (today - published) / (1000 * 60 * 60 * 24 * 7);
     let probability = 0.1;
-    if (weeks > 14) {
-      probability = Math.max(0.01, 0.1 - (weeks - 14) * 0.01);
+
+    if (weeks <= 12) {
+      // Bugs are usually private for the first 12 weeks. It is very unlikely
+      // that we will find any useful information in them.
+      probability = 0.1;
+    } else if (weeks <= 18) {
+      // After 12 weeks, the bugs are usually public. We want to fetch them
+      // as soon as possible.
+      probability = 1.0;
+    } else if (weeks <= 22) {
+      probability = 0.5;
+    } else if (weeks <= 26) {
+      probability = 0.1;
+    } else {
+      probability = 0.05;
     }
+    probability = 1.0;
+
     console.log("Weeks", weeks, "Probability", probability);
 
     if (Math.random() > probability) {
@@ -620,7 +637,6 @@ const augmentFromGit = async (database) => {
           });
 
           const data = response.data;
-
           const message = data.commit.message;
           const author = data.commit.author.email;
           const reviewers = ParseReviewers(message)
@@ -660,19 +676,19 @@ const augmentFromGit = async (database) => {
   }
 }
 
-const test = async () => {
-  const browser = await puppeteer.launch({
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  })
-  const page = await browser.newPage()
-  const cve = {
-    "id": "2025-0440",
-    "bug": "https://issues.chromium.org/issues/40067914",
-  };
-  await fetchBugganizer(cve, page)
-  await browser.close()
-  return;
-}
+//const test = async () => {
+  //const browser = await puppeteer.launch({
+    //args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  //})
+  //const page = await browser.newPage()
+  //const cve = {
+    //"id": "2025-0444",
+    //"bug": "https://issues.chromium.org/issues/390889644",
+  //};
+  //await fetchBugganizer(cve, page)
+  //await browser.close()
+  //return;
+//}
 
 const main = async () => {
   //await test();
