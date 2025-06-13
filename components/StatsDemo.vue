@@ -11,12 +11,13 @@
         <div class="column is-5 content">
           <p>
             It shows instantaneously:
-            <ul>
-              <li>The evolution of commits authored/reviewed over time.</li>
-              <li>The evolution during the day/week/month/year.</li>
-              <li>The list of peers</li>
-            </ul>
-            <br/>
+          </p>
+          <ul>
+            <li>The evolution of commits authored/reviewed over time.</li>
+            <li>The evolution during the day/week/month/year.</li>
+            <li>The list of peers</li>
+          </ul>
+          <p>
             You can dynamically filter by developer, authors, reviewers and
             date.
           </p>

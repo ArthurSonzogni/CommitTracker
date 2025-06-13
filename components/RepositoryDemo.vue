@@ -24,13 +24,13 @@
         <div class="column is-5 content">
           <p>
             Get statistics about every repositories:
-            <ul>
-              <li>Number of commits</li>
-              <li>Number of contributors</li>
-              <li>Number of newcomers</li>
-              <li>Individual statistics</li>
-            </ul>
           </p>
+          <ul>
+            <li>Number of commits</li>
+            <li>Number of contributors</li>
+            <li>Number of newcomers</li>
+            <li>Individual statistics</li>
+          </ul>
         </div>
       </div>
     </div>

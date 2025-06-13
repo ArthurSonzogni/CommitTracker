@@ -157,10 +157,12 @@
       <Lazy>
         <table class="table is-bordered is-striped is-narrow is-hoverable">
           <thead>
-            <th scope="col" ></th>
-            <th scope="col" v-for="project in project_list">
-              {{ project }}
-            </th>
+            <tr>
+              <th scope="col" ></th>
+              <th scope="col" v-for="project in project_list">
+                {{ project }}
+              </th>
+            </tr>
           </thead>
           <tbody>
             <tr v-for="(cves, cweId) in data.cves">
