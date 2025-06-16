@@ -547,23 +547,13 @@ const augmentFromBugganizer = async (database) => {
     const weeks = (today - published) / (1000 * 60 * 60 * 24 * 7);
     let probability = 0.1;
 
-    if (weeks <= 12) {
-      // Bugs are usually private for the first 12 weeks. It is very unlikely
-      // that we will find any useful information in them.
-      probability = 0.1;
-    } else if (weeks <= 18) {
-      // After 12 weeks, the bugs are usually public. We want to fetch them
-      // as soon as possible.
-      probability = 1.0;
-    } else if (weeks <= 22) {
-      probability = 0.5;
-    } else if (weeks <= 26) {
-      probability = 0.1;
-    } else {
-      probability = 0.05;
-    }
-    probability = 1.0;
-
+    // Bugs are usually public after 12 weeks, so we can fetch them at that time
+    // with a higher probability.
+    if (weeks <= 12) { probability = 0.1; }
+    else if (weeks <= 18) { probability = 1.0; }
+    else if (weeks <= 22) { probability = 0.5; }
+    else if (weeks <= 26) { probability = 0.1; }
+    else { probability = 0.05; }
     console.log("Weeks", weeks, "Probability", probability);
 
     if (Math.random() > probability) {
