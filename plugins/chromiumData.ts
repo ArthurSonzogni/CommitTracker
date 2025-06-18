@@ -1,27 +1,27 @@
 const cache = new Map();
 
-const fetchData = async (repo, user) => {
+const fetchData = async (repo, developer) => {
   try {
-    const response = await fetch(`/data/${repo}/usernames/${user}.json`);
+    const response =
+      developer.includes('@')
+        ? await fetch(`/data/${repo}/emails/${developer}.json`)
+        : await fetch(`/data/${repo}/usernames/${developer}.json`);
     const data = response.status == 200
       ? await response.json()
       : []
 
       // Remove developers reviewing themselves:
       for(const commit of data) {
-        const index = commit.peers.indexOf(user);
+        const index = commit.peers.indexOf(developer);
         if (index !== -1) {
           commit.peers.splice(index, 1);
         }
       }
 
-      return {
-        developer: user,
-        data: data,
-      }
+      return {developer, data};
   } catch (e) {
     return {
-      developer: user,
+      developer,
       data: [],
     }
   }

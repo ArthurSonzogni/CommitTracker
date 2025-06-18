@@ -13,7 +13,7 @@
         <b-field grouped>
 
           <b-field expanded>
-            <DevelopersInput v-model="developers"/>
+            <DevelopersInput v-model="developers" allowEmail allowUsername/>
           </b-field>
 
           <b-field>

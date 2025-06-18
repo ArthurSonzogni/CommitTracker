@@ -183,6 +183,10 @@ const render = () => {
         peer
           .attr("class", "peer")
           .text(d => d.peer)
+          .attr("font-size", d => {
+            // Adjust font size based on the length of the peer name
+            return Math.min(230/(1+d.peer.length), 16) + "px";
+          })
           .attr("text-anchor", "end")
           .attr("text-baseline", "middle")
           .attr("x", -5)
