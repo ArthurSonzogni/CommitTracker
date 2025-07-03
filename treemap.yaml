@@ -83,6 +83,14 @@ metrics:
   file: base_unretained
   tags: ["Memory Safety"]
 
+# Browser Modularization--------------------------------------------------------
+- name: "Browser Modularization"
+  description: The number of files required for browser modularization
+  script: >-
+    git grep -c -E 'TestBrowserWindow|BrowserWithTestWindowTest|TestWithBrowserView|CreateBrowserWithTestWindowForParams' -- ':!*ash*' ':!*chromeos*' '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
+  file: browser_modularization
+  tags: ["Browser Modularization"]
+
 # Misc -------------------------------------------------------------------------
 
 - name: TODO
