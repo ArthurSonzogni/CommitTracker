@@ -97,6 +97,15 @@
    ]
   },
   {
+   "name": "Browser Modularization",
+   "description": "The number of files required for browser modularization",
+   "script": "git grep -c -E 'TestBrowserWindow|BrowserWithTestWindowTest|TestWithBrowserView|CreateBrowserWithTestWindowForParams' -- ':!*ash*' ':!*chromeos*' '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'",
+   "file": "browser_modularization",
+   "tags": [
+    "Browser Modularization"
+   ]
+  },
+  {
    "name": "TODO",
    "description": "The number of TODO",
    "script": "git grep -c 'TODO' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'",
