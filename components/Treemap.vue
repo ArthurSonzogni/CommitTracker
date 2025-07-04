@@ -118,7 +118,12 @@ const svgHeight = ref(600);
 
 const getFieldColor = function(d) {
   let sum = 0;
-  for(const field of props.field_color) {
+
+  const props_field_color = props.field_color.length
+    ? props.field_color
+    : props.field_size;
+
+  for(const field of props_field_color) {
     sum += d.summed_data[field] || 0;
   }
   return sum;
@@ -126,7 +131,12 @@ const getFieldColor = function(d) {
 
 const getFieldSize = function(d) {
   let sum = 0;
-  for(const field of props.field_size) {
+
+  const props_field_size = props.field_size.length
+    ? props.field_size
+    : props.field_color;
+
+  for(const field of props_field_size) {
     sum += d.summed_data[field] || 0;
   }
   return sum;
@@ -176,6 +186,9 @@ const renderText = function(text, index, data) {
   const font_size = d => {
     const total_size = getFieldSize(data.data);
     const size = getFieldSize(d.data);
+    if (total_size == 0) {
+      return 0;
+    }
     const percent = size / total_size * 10;
     if (percent < 0.02) {
       return 0;
@@ -183,7 +196,7 @@ const renderText = function(text, index, data) {
     return Math.min(20, Math.sqrt(percent) * 30);
   }
 
-  return text
+  text
     .style("fill", d => {
       const color = getFieldColor(d.data);
       const size = getFieldSize(d.data);
@@ -464,9 +477,13 @@ const computeHistoricalData = async (raw_data) => {
   const min_date = formatDate(props.dates[0]);
   const max_date = formatDate(props.dates[1]);
 
-  const fields = []
-    .concat(props.field_size)
-    .concat(props.field_color)
+  let fields = [];
+
+  if (props.field_color.length) {
+    fields = props.field_color;
+  } else {
+    fields = props.field_size;
+  }
 
   const out = [];
   for(const field of fields) {
@@ -529,7 +546,6 @@ const computeHistoricalData = async (raw_data) => {
   history.value = out;
 
   const end = new Date();
-  console.log("Historical data computed in", (end - start) / 1000, "seconds");
 }
 
 const fetchEntries = async function() {
@@ -606,8 +622,6 @@ const refresh = async function() {
   await transition_refresh.end();
   await computeHistoricalData(data.data);
 
-
-  console.log("emit animationend");
   emits("animationend");
 };
 
