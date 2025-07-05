@@ -64,15 +64,17 @@
       <section class="section">
         <div class="container">
           <h2 class="title">1. Timeline</h2>
-          <TimelineChart
-            chart="line"
-            :repositories="repositories"
-            :developers="developers"
-            :dates="dates"
-            :author="options.includes('author')"
-            :review="options.includes('review')"
-            :stacked="options.includes('stacked')"
-            ></TimelineChart>
+          <div style="height: calc(50vh);">
+            <TimelineChart
+              chart="line"
+              :repositories="repositories"
+              :developers="developers"
+              :dates="dates"
+              :author="options.includes('author')"
+              :review="options.includes('review')"
+              :stacked="options.includes('stacked')"
+              ></TimelineChart>
+          </div>
         </div>
       </section>
 
@@ -323,6 +325,11 @@ html[data-scrolltop= "1"] .sticky.top {
 
 .anchor-link:hover {
   opacity: 1;
+}
+
+.test{
+  width: 100%;
+  height: 400px !important;
 }
 
 </style>

@@ -1,63 +1,37 @@
 <template>
   <div>
-    <div class="sticky top section">
+    <div class="m-5">
       <slot name="top"></slot>
     </div>
 
     <div class="section" style="padding-top: 0;">
-      <div class="container">
-        <div v-if="!fetchedData" style="height: 70vh;">
-          <b-skeleton
-            v-for="i in 20"
-            :key="i"
-            :width="(i*16546+13*i*i)%100 + '%'"
-            animated
-            ></b-skeleton>
-        </div>
-        <div v-else ref="container" >
-          <!-- Tooltip -->
-          <table class="treemap-tooltip" ref="tooltip">
-            <thead>
-              <tr>
-                <td> {{tooltip_title}} </td>
-                <td> . </td>
-                <td> .. </td>
-                <td> % </td>
-              </tr>
-            </thead>
-            <tbody>
-            </tbody>
-          </table>
+        <div class="split-view">
+          <div ref="container" class="treemap-container">
+            <!-- Tooltip -->
+            <table class="treemap-tooltip" ref="tooltip">
+              <thead>
+                <tr>
+                  <td> {{tooltip_title}} </td>
+                  <td> . </td>
+                  <td> .. </td>
+                  <td> % </td>
+                </tr>
+              </thead>
+              <tbody>
+              </tbody>
+            </table>
 
-          <!-- Treemap -->
-          <svg :width="svgWidth" :height="svgHeight">
-            <g ref="content"/>
-          </svg>
+            <!-- Treemap -->
+            <svg width="100%" height="100%">
+              <g ref="content"/>
+            </svg>
+          </div>
 
-          <slot name="colormap"></slot>
+          <div>
+            <LineChart v-if="history" :data="history" />
+          </div>
         </div>
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="container">
-        <!-- Timeline -->
-        <div :width="svgWidth" :height="svgHeight">
-          <LineChart
-            v-if="history"
-            :data="history"
-            :width="svgWidth"
-            :height="svgHeight"
-            />
-          <b-skeleton
-            v-else
-            v-for="i in 20"
-            :key="i"
-            :width="(i*16546+13*i*i)%100 + '%'"
-            animated
-            />
-        </div>
-      </div>
+        <slot name="colormap"></slot>
     </div>
 
     <div class="sticky bottom section">
@@ -113,8 +87,13 @@ const emits = defineEmits([
   "animationend",
 ]);
 
-const svgWidth = ref(600);
-const svgHeight = ref(600);
+const svgWidth = () => {
+  return container.value?.clientWidth;
+}
+
+const svgHeight = () => {
+  return container.value?.clientHeight;
+}
 
 const getFieldColor = function(d) {
   let sum = 0;
@@ -365,11 +344,11 @@ const zoom = async function(data_old, data_new) {
   {
     const x = scaleLinear()
       .domain([data_old.x0, data_old.x1])
-      .rangeRound([0, svgWidth.value])
+      .rangeRound([0, svgWidth()-20])
     ;
     const y = scaleLinear()
       .domain([data_old.y0, data_old.y1])
-      .rangeRound([0, svgHeight.value])
+      .rangeRound([0, svgHeight()-20])
     ;
     render(old_content, data_old, x, y, true, transition_imm)
     render(new_content, data_new, x, y, true, transition_imm)
@@ -379,11 +358,11 @@ const zoom = async function(data_old, data_new) {
   {
     const x = scaleLinear()
       .domain([data_new.x0, data_new.x1])
-      .rangeRound([0, svgWidth.value])
+      .rangeRound([0, svgWidth()-20])
     ;
     const y = scaleLinear()
       .domain([data_new.y0, data_new.y1])
-      .rangeRound([0, svgHeight.value])
+      .rangeRound([0, svgHeight()-20])
     ;
     render(old_content, data_old, x, y, true, transition_zoom)
     render(new_content, data_new, x, y, true, transition_zoom)
@@ -409,9 +388,8 @@ const zoom = async function(data_old, data_new) {
     .remove()
 
   // Delay the historical data computation to avoid blocking the rendering.
-  await transition_zoom.end();
-
   await computeHistoricalData(data_new.data);
+  await transition_zoom.end();
 };
 
 const mytreemap = function(data) {
@@ -420,7 +398,7 @@ const mytreemap = function(data) {
   });
   const map = treemap()
     .tile(treemapBinary)
-    .size([svgWidth.value, svgHeight.value*1.8])
+    .size([svgWidth(), svgHeight()])
     .round(true)
 
   const out = map(data_with_layout);
@@ -604,11 +582,11 @@ const refresh = async function() {
 
   const x = scaleLinear()
     .domain([data.x0, data.x1])
-    .rangeRound([0, svgWidth.value])
+    .rangeRound([0, svgWidth()-20])
   ;
   const y = scaleLinear()
     .domain([data.y0, data.y1])
-    .rangeRound([0, svgHeight.value])
+    .rangeRound([0, svgHeight()-20])
   ;
 
   const transition_refresh =
@@ -626,7 +604,6 @@ const refresh = async function() {
 };
 
 const paramsChanged = async function() {
-  await new Promise((resolve) => setTimeout(resolve, 0));
   computedSummedData(fetchedData.value);
   data.value = mytreemap(fetchedData.value);
   await refresh();
@@ -656,75 +633,16 @@ watch(() => [
 watch(path_wrapped, pathChanged);
 
 const resize = async function() {
-  // Wait for `container` to be set.
-  while(!container.value) {
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
-
-  svgWidth.value = container.value.clientWidth;
-  svgHeight.value = Math.max(
-    svgWidth.value * 0.5,
-    window.innerHeight - 300
-  )
   await paramsChanged();
 };
 
 onMounted(async () => {
   await fetchEntries();
   resize();
-  window.addEventListener("resize", resize);
+  (new ResizeObserver(resize)).observe(container.value);
 });
 
 </script>
-
-<style scoped>
-
-.sticky {
-  position: sticky;
-  width: 100%;
-  z-index: 2;
-}
-
-.sticky::before {
-  display: block;
-  left: 0;
-  top: 0;
-  height: 100%;
-  width: 100%;
-  z-index: 2;
-
-  backdrop-filter: blur(4px);
-  background-color: rgba(255, 255, 255, 0.5);
-  content: '';
-  position:absolute;
-  transition: all 0.1s ease-in-out;
-  transition: background-color 0.2s ease-in-out;
-}
-
-.sticky > * {
-  z-index: 3;
-  position: relative;
-}
-
-.sticky.top {
-  top: 0;
-  margin-top:0;
-  padding-top:15px;
-  margin-bottom:0;
-  padding-bottom:15px;
-}
-
-.sticky.bottom {
-  bottom: 0;
-  margin-bottom:0px;
-  padding-bottom:15px;
-}
-
-html[data-scrolltop= "1"] .sticky.top {
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-}
-
-</style>
 
 <style lang="scss">
 
@@ -759,6 +677,20 @@ html[data-scrolltop= "1"] .sticky.top {
       background-color:rgba(128, 128, 128, 0.35);
     }
   }
+}
+
+.split-view {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: center;
+  width: 100%;
+  height: 75vh;
+}
+
+.split-view > div {
+  flex: 1;
+  padding: 10px;
 }
 
 </style>

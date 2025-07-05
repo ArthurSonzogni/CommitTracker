@@ -1,6 +1,6 @@
 <template>
-  <div ref="container" align="center">
-    <svg :width="svgWidth" :height="svgHeight">
+  <div class="container" ref="container" align="center">
+    <svg>
       <g ref="content">
         <g ref="tooltip" />
         <g ref="legend" />
@@ -73,9 +73,6 @@ const props = defineProps({
   },
 });
 
-const svgWidth = ref<number>(500);
-const svgHeight = ref<number>(500);
-
 const dateExtent = computed(() => {
   return extent(props.data.map(e => e.values).flat().map(d => d.x))
 });
@@ -91,8 +88,8 @@ const render = () => {
     left: 60,
   };
 
-  const innerWidth = svgWidth.value - margin.left - margin.right;
-  const innerHeight = svgHeight.value - margin.top - margin.bottom;
+  const innerWidth = container.value?.clientWidth - margin.left - margin.right || 0;
+  const innerHeight = container.value?.clientHeight - margin.top - margin.bottom || 0;
 
   select(content.value)
     .attr("transform", `translate(${margin.left}, ${margin.top})`);
@@ -287,17 +284,9 @@ const render = () => {
 
 };
 
-const initialize = () => {
-  try {
-    svgWidth.value = container.value.clientWidth;
-    svgHeight.value = svgWidth.value * 0.5;
-  } catch (e) {}
-  render();
-  window.addEventListener("resize", initialize);
-};
-
 onMounted(() => {
-  initialize();
+  render();
+  (new ResizeObserver(render)).observe(container.value);
 });
 
 watch(() => props.data, render);
@@ -305,10 +294,14 @@ watch(() => props.data, render);
 </script>
 
 <style scoped>
-.svg-container {
+.container {
   width: 100%;
-  height:100%;
-  min-height:500px;
+  height: 100%;
+}
+
+svg {
+  width: 100%;
+  height: 100%;
 }
 
 </style>

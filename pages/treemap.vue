@@ -16,17 +16,52 @@
       >
 
       <template v-slot:top>
-          <b-field>
-            <TreemapInput
-              v-model:value="field_size"
-              placeholder="size"
-              class="mr-10"
-              />
-            <TreemapInput
-              v-model:value="field_color"
-              placeholder="color"
-              />
+        <b-field group group-multiline>
+          <TreemapInput
+            v-model:value="field_color"
+            placeholder="color/numerator"
+            class="mr-2"
+            />
+          <TreemapInput v-model:value="field_size"
+                        placeholder="size/denominator"
+                        class="mr-2"
+                        />
+          <b-field
+            label="Colormap"
+            expanded
+            label-position="inside"
+            class="mr-2"
+          >
+            <b-select
+              placeholder="Colormap"
+              v-model="colormap"
+              expanded
+              >
+              <option
+                v-for="option in colormap_list"
+                :value="option"
+                :key="option"
+                >
+                {{ option }}
+              </option>
+            </b-select>
           </b-field>
+
+          <b-field
+            label="Min" grouped label-position="inside"
+                                class="mr-2">
+
+            <b-input v-model="colormapMin"
+                     placeholder="Min"
+                     ></b-input>
+          </b-field>
+
+          <b-field label="Max" grouped label-position="inside">
+            <b-input v-model="colormapMax"
+                     placeholder="Max"></b-input>
+          </b-field>
+
+        </b-field>
 
           <b-breadcrumb align="is-left">
             <b-breadcrumb-item tag='a' v-on:click.native = "path = []">
@@ -44,38 +79,6 @@
       </template>
 
       <template v-slot:colormap>
-        <b-field grouped>
-          <b-field label="Min" grouped label-position="inside">
-            <b-input v-model="colormapMin"
-                     placeholder="Min"
-                     size="is-small"
-                     ></b-input>
-          </b-field>
-          <b-field label="Max" grouped label-position="inside">
-            <b-input v-model="colormapMax"
-                     size="is-small"
-                     placeholder="Max"></b-input>
-          </b-field>
-          <b-field
-            label="Colormap"
-            expanded
-            label-position="inside">
-            <b-select
-              placeholder="Colormap"
-              v-model="colormap"
-              size="is-small"
-              expanded
-              >
-              <option
-                v-for="option in colormap_list"
-                :value="option"
-                :key="option"
-                >
-                {{ option }}
-              </option>
-            </b-select>
-          </b-field>
-        </b-field>
       </template>
 
 
@@ -192,18 +195,10 @@ const colormap_list = ref(Object.keys($color_map));
 
 const increaseAnimateSpeed = () => {
   switch(animate_speed.value) {
-    case 1:
-      animate_speed.value = 2;
-      break;
-    case 2:
-      animate_speed.value = 5;
-      break;
-    case 5:
-      animate_speed.value = 10;
-      break;
-    case 10:
-      animate_speed.value = 1;
-      break;
+    case 1: animate_speed.value = 2; break;
+    case 2: animate_speed.value = 5; break;
+    case 5: animate_speed.value = 10; break;
+    case 10: animate_speed.value = 1; break;
   }
 }
 

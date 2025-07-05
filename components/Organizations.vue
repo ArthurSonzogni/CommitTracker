@@ -1,13 +1,15 @@
 <template>
   <div class="main">
 
-    <LineChart
-      class="line-chart"
-      v-if="chart == 'line'"
-      :data="line_chart_data"
-      :formatter="formatter"
-      >
-    </LineChart>
+    <div v-if="chart == 'line'"
+         style="aspect-ratio: 16/9;">
+      <LineChart
+        class="line-chart"
+        :data="line_chart_data"
+        :formatter="formatter"
+        >
+      </LineChart>
+    </div>
 
     <BarChart
       v-if="chart == 'bar'"
