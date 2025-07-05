@@ -1,0 +1,43 @@
+[
+ {
+  "date": "2022-11-02T22:40:25Z",
+  "kind": "review",
+  "peers": [
+   "zijiehe@google.com"
+  ],
+  "additions": 2,
+  "deletions": 3,
+  "changedFiles": 1
+ },
+ {
+  "date": "2019-01-23T20:23:06Z",
+  "kind": "review",
+  "peers": [
+   "wez@chromium.org"
+  ],
+  "additions": 9,
+  "deletions": 12,
+  "changedFiles": 3
+ },
+ {
+  "date": "2018-06-18T19:36:35Z",
+  "kind": "author",
+  "peers": [
+   "thakis@chromium.org"
+  ],
+  "additions": 124,
+  "deletions": 63,
+  "changedFiles": 13
+ },
+ {
+  "date": "2018-05-16T19:38:39Z",
+  "kind": "author",
+  "peers": [
+   "kinuko@chromium.org",
+   "thakis@chromium.org"
+  ],
+  "additions": 436,
+  "deletions": 421,
+  "changedFiles": 51
+ }
+]
