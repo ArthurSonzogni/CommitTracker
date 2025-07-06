@@ -119,6 +119,7 @@ const colorizeDevelopers = () => {
         return;
     }
     input.value.$el.querySelector("input").addEventListener("keydown", (e) => {
+        console.log("keydown", e);
         if (e.key == "Enter") {
             const first = input.value.$el.querySelector(".dropdown-item");
             if (first) {
@@ -129,5 +130,6 @@ const colorizeDevelopers = () => {
 
 };
 watch(developers, colorizeDevelopers);
+colorizeDevelopers();
 
 </script>

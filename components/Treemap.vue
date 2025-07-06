@@ -522,6 +522,7 @@ const computeHistoricalData = async (raw_data) => {
     });
   };
   history.value = out;
+  console.log(history.value);
 
   const end = new Date();
 }
@@ -603,10 +604,10 @@ const refresh = async function() {
   emits("animationend");
 };
 
-const paramsChanged = async function() {
+const full_refresh = function() {
   computedSummedData(fetchedData.value);
   data.value = mytreemap(fetchedData.value);
-  await refresh();
+  refresh();
 };
 
 const pathChanged = async function(new_path, old_path) {
@@ -622,7 +623,7 @@ watch(() => [
   props.field_size,
   props.field_color,
   props.dates,
-], paramsChanged);
+], full_refresh);
 
 watch(() => [
   props.colormap,
@@ -632,14 +633,10 @@ watch(() => [
 
 watch(path_wrapped, pathChanged);
 
-const resize = async function() {
-  await paramsChanged();
-};
-
 onMounted(async () => {
   await fetchEntries();
-  resize();
-  (new ResizeObserver(resize)).observe(container.value);
+  full_refresh();
+  (new ResizeObserver(full_refresh)).observe(container.value);
 });
 
 </script>

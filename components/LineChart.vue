@@ -217,7 +217,7 @@ const render = () => {
       .attr("stroke", d => $color(d.label))
       .attr("stroke-width", 0)
       .attr("d", d => valueZero(d.values))
-      .transition(500)
+      .transition()
       .duration(500)
       .attr("d", d => valueLines(d.values))
       .attr("stroke-width", 1.5),
