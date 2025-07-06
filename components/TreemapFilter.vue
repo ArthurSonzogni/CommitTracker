@@ -7,10 +7,6 @@
         :icon-right="active ? 'menu-up' : 'menu-down'" />
     </template>
 
-
-    <!--<b-dropdown-item aria-role="listitem">Action</b-dropdown-item>-->
-    <!--<b-dropdown-item aria-role="listitem">Another action</b-dropdown-item>-->
-    <!--<b-dropdown-item aria-role="listitem">Something else</b-dropdown-item>-->
     <b-dropdown-item aria-role="listitem" v-for="filter in filters" :key="filter">
         {{filter.name}}
         <p>{{filter.description}}</p>

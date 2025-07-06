@@ -1,6 +1,81 @@
 <template>
   <div>
     <Navbar/>
+    <div class="m-5">
+      <b-field group group-multiline>
+        <TreemapInput v-model:value="field_color"
+                      placeholder="color/numerator"
+                      class="mr-2" />
+        <TreemapInput v-model:value="field_size"
+                      placeholder="size/denominator"
+                      class="mr-2" />
+
+        <b-field expanded class="mr-2" label="Colormap"
+                                       label-position="on-border">
+          <b-dropdown
+            v-model="colormap"
+            expanded
+            trap
+            :triggers="['hover']"
+            scrollable
+            max-height="300px"
+            >
+            <template #trigger="{ active }">
+              <b-button
+                type="is-ghost"
+                :icon-right="active ? 'menu-up' : 'menu-down'"
+                >
+              {{ option }}
+                <span class="color-swatch"
+                      :style="{ background: $GetColormapGradient(colormap) }"/>
+                {{ colormap }}
+              </b-button>
+            </template>
+            <b-dropdown-item
+              v-for="option in colormap_list"
+              :key="option"
+              :value="option"
+              >
+              <span class="color-swatch"
+                    :style="{ background: $GetColormapGradient(option, 10) }"/>
+                {{ truncate(option, 5) }}
+            </b-dropdown-item>
+          </b-dropdown>
+        </b-field>
+
+        <b-field class="mr-2" label="Min" label-position="on-border">
+          <b-input
+            v-model="colormapMin"
+            placeholder="Min"
+            >
+          </b-input>
+        </b-field>
+
+        <b-field class="mr-2" label="Max" label-position="on-border">
+          <b-input
+            v-model="colormapMax"
+            placeholder="Max"
+            ></b-input>
+        </b-field>
+
+
+      </b-field>
+
+      <b-breadcrumb align="is-left">
+        <b-breadcrumb-item tag='a' v-on:click.native = "path = []">
+          &#60;root&#62;
+        </b-breadcrumb-item>
+        <b-breadcrumb-item
+          tag='a'
+          v-for="(component, index) in path"
+          :key="index"
+          v-on:click.native="path = path.slice(0, index+1)"
+          >
+          {{component}}
+        </b-breadcrumb-item>
+      </b-breadcrumb>
+    </div>
+
     <Treemap
       :repositories="repositories"
       :path="path"
@@ -14,109 +89,67 @@
       @zoomin="path.push($event); updateUrl(0, 1)"
       @animationend="animationEnd()"
       >
-
-      <template v-slot:top>
-        <b-field group group-multiline>
-          <TreemapInput
-            v-model:value="field_color"
-            placeholder="color/numerator"
-            class="mr-2"
-            />
-          <TreemapInput v-model:value="field_size"
-                        placeholder="size/denominator"
-                        class="mr-2"
-                        />
-          <b-field
-            label="Colormap"
-            expanded
-            label-position="inside"
-            class="mr-2"
-          >
-            <b-select
-              placeholder="Colormap"
-              v-model="colormap"
-              expanded
-              >
-              <option
-                v-for="option in colormap_list"
-                :value="option"
-                :key="option"
-                >
-                {{ option }}
-              </option>
-            </b-select>
-          </b-field>
-
-          <b-field
-            label="Min" grouped label-position="inside"
-                                class="mr-2">
-
-            <b-input v-model="colormapMin"
-                     placeholder="Min"
-                     ></b-input>
-          </b-field>
-
-          <b-field label="Max" grouped label-position="inside">
-            <b-input v-model="colormapMax"
-                     placeholder="Max"></b-input>
-          </b-field>
-
-        </b-field>
-
-          <b-breadcrumb align="is-left">
-            <b-breadcrumb-item tag='a' v-on:click.native = "path = []">
-              .
-            </b-breadcrumb-item>
-            <b-breadcrumb-item
-              tag='a'
-              v-for="(component, index) in path"
-              :key="index"
-              v-on:click.native="path = path.slice(0, index+1)"
-              >
-              {{component}}
-            </b-breadcrumb-item>
-          </b-breadcrumb>
-      </template>
-
-      <template v-slot:colormap>
-      </template>
-
-
-      <template v-slot:bottom>
-        <b-field grouped>
-          <b-field expanded>
-            <Timeline
-              v-model="dates"
-              :minDate="new Date('2020-01-01')"
-              ></Timeline>
-          </b-field>
-          <b-field grouped>
-            <b-button
-              class="ml-5"
-              @click="animate = !animate"
-              :disabled="dates[1].getTime() > new Date().getTime() - 10000000"
-              >
-              <b-icon
-                :icon="animate ? 'pause' : 'play'"
-                size="is-small"
-                ></b-icon>
-            </b-button>
-            <b-button
-              :disabled="dates[1].getTime() > new Date().getTime() - 10000000"
-              @click="increaseAnimateSpeed"
-              >
-              x{{animate_speed}}
-            </b-button>
-          </b-field>
-        </b-field>
-      </template>
     </Treemap>
+    <div class="section">
+      <b-field grouped>
+        <b-field expanded>
+          <Timeline
+            v-model="dates"
+            :minDate="new Date('2020-01-01')"
+            ></Timeline>
+        </b-field>
+        <b-field grouped>
+          <b-button
+            class="ml-5"
+            @click="toggleAnimate"
+            :disabled="dates[1].getTime() > new Date().getTime() - 100000000"
+            >
+            <b-icon
+              :icon="animate ? 'pause' : 'play'"
+              size="is-small"
+              ></b-icon>
+          </b-button>
+          <b-button
+            :disabled="dates[1].getTime() > new Date().getTime() - 100000000"
+            @click="increaseAnimateSpeed"
+            >
+            x{{animate_speed}}
+          </b-button>
+        </b-field>
+      </b-field>
+    </div>
 
-    <section class="section">
-      <p>
-        Content is updated weekly. Please add your own
+    <section class="section content">
+      <h2 class="title is-4">
+        How to read the treemap
+      </h2>
+      <ul>
+        <li>The area of rectangle is proportional to:
+          <span class="fraction">
+            {{ field_size_value.join(" + ") }}
+          </span>
+        </li>
+        <li> The color is the proportional to:
+          <div class="fraction">
+            <span class="numerator">
+              {{ field_color_value.join(" + ") }}
+            </span>
+            <span class="denominator">
+              {{ field_size_value.join(" + ") }}
+            </span>
+          </div>
+        </li>
+      </ul>
+      <h3 class="title is-5">
+        Datasets
+      </h3>
+      <p class="mt-2">
+        Content is updated <strong>weekly</strong>.
+        <br/>
+        To add a new dataset, please edit the
         <a href="https://github.com/ArthurSonzogni/ChromeCommitTracker/blob/main/treemap.yaml">
-          entries to track
+          <code>treemap.yaml</code>
+        file.
         </a>
       </p>
     </section>
@@ -190,7 +223,10 @@ if (route.query.repositories) {
 const animate = ref(false);
 const animate_speed = ref(1);
 
-const { $color_map } = useNuxtApp();
+const {
+  $color_map,
+  $GetColormapGradient
+} = useNuxtApp();
 const colormap_list = ref(Object.keys($color_map));
 
 const increaseAnimateSpeed = () => {
@@ -215,6 +251,11 @@ const updateUrl = (old_value, new_value) => {
   }
   router.push({ query });
 }
+
+const truncate = (str, n) => {
+  if (str.length <= n) return str;
+  return str.slice(0, n - 1) + '…';
+};
 
 watch(repositories, updateUrl);
 watch(colormap, updateUrl);
@@ -244,8 +285,7 @@ updateHasScrolled();
 document.addEventListener('scroll', updateHasScrolled, { passive: true });
 
 
-const animationEnd = () => {
-  console.log("animationEnd");
+const animationEnd = async () => {
   if (dates.value[1] > new Date()) {
     animate.value = false;
   }
@@ -263,10 +303,53 @@ watch(animate, () => {
   }
 })
 
+const toggleAnimate = () => {
+  animate.value = !animate.value;
+  if (animate.value) {
+    animationEnd();
+  }
+}
+
+console.log($color_map["Viridis"](0.5))
+console.log($GetColormapGradient("Viridis"))
+
 </script>
 
 <style scoped>
 section {
   margin-top: -40px;
 }
+
+.fraction {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 1.2em;
+  line-height: 1;
+  padding: 0 0.2em;
+  vertical-align: middle;
+
+  .numerator {
+    border-bottom: 1px solid black;
+    padding: 0.3em;
+  }
+
+  .denominator {
+    padding: 0.3em;
+  }
+
+}
+
+.color-swatch {
+  display: inline-block;
+  width: 120px;
+  height: 1em;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  margin-right: 0.5em;
+  vertical-align: middle;
+}
+
 </style>

@@ -11,9 +11,7 @@
         field="name"
         :placeholder="placeholder"
         type="is-primary"
-        size="is-medium"
         open-on-focus
-        append-to-body
         >
         <template v-slot="props">
             <strong class="mr-2 is-size-6"

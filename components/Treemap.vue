@@ -1,8 +1,5 @@
 <template>
-  <div>
-    <div class="m-5">
-      <slot name="top"></slot>
-    </div>
+  <div class="component-container">
 
     <div class="section" style="padding-top: 0;">
         <div class="split-view">
@@ -31,11 +28,6 @@
             <LineChart v-if="history" :data="history" />
           </div>
         </div>
-        <slot name="colormap"></slot>
-    </div>
-
-    <div class="sticky bottom section">
-      <slot name="bottom"></slot>
     </div>
   </div>
 </template>
@@ -676,6 +668,10 @@ onMounted(async () => {
   }
 }
 
+.component-container {
+  container-type: inline-size;
+}
+
 .split-view {
   display: flex;
   flex-direction: row;
@@ -689,5 +685,13 @@ onMounted(async () => {
   flex: 1;
   padding: 10px;
 }
+
+@container (width < 800px) {
+  .split-view {
+    flex-direction: column;
+    height: 150vh;
+  }
+}
+
 
 </style>

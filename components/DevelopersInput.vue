@@ -105,18 +105,19 @@ const computeDevelopersListFiltered = (developer) => {
 
 const { $color } = useNuxtApp();
 
-const colorizeDevelopers = () => {
-    setTimeout(() => {
-        let i = 0;
-        for(const element of input.value.$el.querySelectorAll(".tag")) {
-            element.style.backgroundColor = $color(developers.value[i]);
-            ++i;
-        }
-    }, 0);
+const colorizeDevelopers = async () => {
+    await new Promise(r => setTimeout(r, 100));
+    let i = 0;
+    for(const element of input.value.$el.querySelectorAll(".tag")) {
+        element.style.backgroundColor = $color(developers.value[i]);
+        ++i;
+    }
+}
 
-    // When the user click on "enter", the first suggestion is selected.
-    if (input.value.$el.querySelector("input") == null) {
-        return;
+// When the user click on "enter", the first suggestion is selected.
+const installInputHandler = async () => {
+    while (input.value == null) {
+        await new Promise(r => setTimeout(r, 100));
     }
     input.value.$el.querySelector("input").addEventListener("keydown", (e) => {
         console.log("keydown", e);
@@ -131,5 +132,6 @@ const colorizeDevelopers = () => {
 };
 watch(developers, colorizeDevelopers);
 colorizeDevelopers();
+installInputHandler();
 
 </script>

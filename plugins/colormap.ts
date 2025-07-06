@@ -80,10 +80,24 @@ const color_map = {
   YlOrRd: interpolateYlOrRd,
 };
 
+const GetColormapGradient = (name: string) => {
+  const gradientFunction = color_map[name];
+  if (!gradientFunction) {
+    throw new Error(`Color map "${name}" not found.`);
+  }
+  const steps = 10;
+  const stops = Array.from({ length: steps }, (_, i) => {
+    const t = i / (steps - 1);
+    return gradientFunction(t);
+  });
+  return `linear-gradient(to right, ${stops.join(', ')})`;
+};
+
 export default defineNuxtPlugin(() => {
   return {
     provide: {
-      color_map: color_map
+      color_map,
+      GetColormapGradient,
     },
   }
 })
