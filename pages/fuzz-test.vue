@@ -7,7 +7,9 @@
         <h1 class="title">
           <b-icon icon="strike" />{{ total }} fuzzers in chromium</h1>
 
-        <LineChart :data="graph" />
+        <div style="height: 50vh;">
+          <LineChart :data="graph" />
+        </div>
 
         <div class="container">
           <b-field>
