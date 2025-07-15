@@ -124,9 +124,7 @@ async function processRepository(repo, entries) {
 
   console.log(`Processing ${repo.owner}/${repo.repository}`)
 
-  await timed(`Cloning ${repo.owner}/${repo.repository}`, async () => {
-    await clone(repo);
-  })
+  await timed(`Cloning ${repo.owner}/${repo.repository}`, clone(repo));
 
   let root = {
     name: "/",
@@ -146,7 +144,7 @@ async function processRepository(repo, entries) {
   }
 
   const today = new Date();
-  let max_iterations = 10;
+  let max_iterations = incremental ? 10 : 10000000;
   while(incremental || (date < today && max_iterations--)) {
     const date_id = formatDate(date)
 
