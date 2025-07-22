@@ -72,6 +72,7 @@ const props = defineProps({
   },
   others: { type: Boolean, default: false},
   percent: { type: Boolean, default: false},
+  accumulative: { type: Boolean, default: false},
 })
 
 const repositoriesColor = new Map();
@@ -232,6 +233,31 @@ const consolidateData = async function() {
     if (!props.others) {
       for(const date in data) {
         delete data[date]["Others"];
+      }
+    }
+  }
+
+  if (props.accumulative) {
+    const sortedDates = Object.keys(data).sort();
+    const allLabels = new Set();
+
+    for (const date in data) {
+      for (const label in data[date]) {
+        allLabels.add(label);
+      }
+    }
+
+    const cumulativeValues = {};
+    for (const label of allLabels) {
+      cumulativeValues[label] = 0;
+    }
+
+    for (const date of sortedDates) {
+      for (const label of allLabels) {
+        if (data[date][label]) {
+          cumulativeValues[label] += data[date][label];
+        }
+        data[date][label] = cumulativeValues[label];
       }
     }
   }

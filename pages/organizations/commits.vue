@@ -129,7 +129,8 @@
           :chart="chart"
           :dates="dates"
           :others="others"
-          :percent="percent === 'percent'" >
+          :percent="percent === 'percent'"
+          :accumulative="percent === 'accumulative'" >
 
           <b-field class="has-addons">
             <b-radio-button size="small" name="metric"
@@ -156,6 +157,10 @@
             <b-radio-button size="small" name="percent"
               v-model="percent" native-value="percent" >
               Percent
+            </b-radio-button>
+            <b-radio-button size="small" name="percent"
+              v-model="percent" native-value="accumulative" >
+              Accumulative
             </b-radio-button>
           </b-field>
 
@@ -237,7 +242,7 @@ if (route.query.dates) {
 }
 
 const others = ref(route.query.others === null);
-const percent = ref(route.query.percent === null ? 'percent' : 'absolute');
+const percent = ref(route.query.percent === null ? 'percent' : route.query.percent || 'absolute');
 
 const updateUrl = () => {
   router.push({
@@ -253,7 +258,7 @@ const updateUrl = () => {
       chart: chart.value,
       dates: dates.value.map(d => d.toISOString().split("T")[0]).join(','),
       others: others.value ? null : undefined,
-      percent: percent.value === "percent" ? null : undefined,
+      percent: percent.value === "percent" ? null : percent.value === "absolute" ? undefined : percent.value,
     },
   });
 }
