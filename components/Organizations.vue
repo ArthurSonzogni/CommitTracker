@@ -71,8 +71,7 @@ const props = defineProps({
     default: () => [new Date("2000-01-01"), new Date()]
   },
   others: { type: Boolean, default: false},
-  percent: { type: Boolean, default: false},
-  accumulative: { type: Boolean, default: false},
+  display: { type: String, default: "absolute" },
 })
 
 const repositoriesColor = new Map();
@@ -174,7 +173,6 @@ const dataForRepository = async function(repository) {
     }
   }
 
-  console.log(data);
   return data;
 }
 
@@ -196,7 +194,7 @@ const consolidateData = async function() {
       }
     }
 
-    if (props.percent) {
+    if (props.display == "percent") {
       for(const date in data) {
         let total = 0;
         for(const repo in data[date]) {
@@ -218,7 +216,7 @@ const consolidateData = async function() {
       }
     }
 
-    if (props.percent) {
+    if (props.display == "percent") {
       for(const date in data) {
         let total = 0;
         for(const organization in data[date]) {
@@ -237,26 +235,25 @@ const consolidateData = async function() {
     }
   }
 
-  if (props.accumulative) {
-    const sortedDates = Object.keys(data).sort();
+  if (props.display == "accumulative") {
+    // Collect all labels:
     const allLabels = new Set();
-
     for (const date in data) {
       for (const label in data[date]) {
         allLabels.add(label);
       }
     }
 
+    // Initialize cumulative values:
     const cumulativeValues = {};
     for (const label of allLabels) {
       cumulativeValues[label] = 0;
     }
 
-    for (const date of sortedDates) {
+    // Accumulate values from earliest to latest date:
+    for (const date of Object.keys(data).sort()) {
       for (const label of allLabels) {
-        if (data[date][label]) {
-          cumulativeValues[label] += data[date][label];
-        }
+        cumulativeValues[label] += data[date][label] || 0;
         data[date][label] = cumulativeValues[label];
       }
     }
@@ -284,7 +281,7 @@ const consolidateData = async function() {
 const refresh = async function() {
   const data = await consolidateData();
 
-  formatter = props.percent
+  formatter = props.display == "percent"
     ? format(".2%")
     : props.metric == "commit"
       ? v => format(",d")(v) + ' ⚙️'

@@ -1,6 +1,7 @@
 <template>
   <div>
     <Navbar/>
+    {{ display }}
     <section class="section">
       <div class="container">
         <h1 class="title">Organizations contributions</h1>
@@ -129,8 +130,8 @@
           :chart="chart"
           :dates="dates"
           :others="others"
-          :percent="percent === 'percent'"
-          :accumulative="percent === 'accumulative'" >
+          :display="display"
+        >
 
           <b-field class="has-addons">
             <b-radio-button size="small" name="metric"
@@ -150,17 +151,19 @@
           <div class="mr-2"></div>
 
           <b-field class="has-addons">
-            <b-radio-button size="small" name="percent"
-              v-model="percent" native-value="absolute" >
+            <b-radio-button size="small" name="display"
+              v-model="display" native-value="accumulative"
+              :disabled="metric == 'contributor'"
+            >
+              Accumulative
+            </b-radio-button>
+            <b-radio-button size="small" name="display"
+              v-model="display" native-value="absolute" >
               Absolute
             </b-radio-button>
-            <b-radio-button size="small" name="percent"
-              v-model="percent" native-value="percent" >
-              Percent
-            </b-radio-button>
-            <b-radio-button size="small" name="percent"
-              v-model="percent" native-value="accumulative" >
-              Accumulative
+            <b-radio-button size="small" name="display"
+              v-model="display" native-value="percent" >
+              percent
             </b-radio-button>
           </b-field>
 
@@ -242,7 +245,12 @@ if (route.query.dates) {
 }
 
 const others = ref(route.query.others === null);
-const percent = ref(route.query.percent === null ? 'percent' : route.query.percent || 'absolute');
+const display = ref(
+  route.query.percent === null ? 'percent' :
+  route.query.accu === null ? 'accumulative' :
+  'absolute'
+);
+
 
 const updateUrl = () => {
   router.push({
@@ -258,7 +266,8 @@ const updateUrl = () => {
       chart: chart.value,
       dates: dates.value.map(d => d.toISOString().split("T")[0]).join(','),
       others: others.value ? null : undefined,
-      percent: percent.value === "percent" ? null : percent.value === "absolute" ? undefined : percent.value,
+      percent: display.value === "percent" ? null : undefined,
+      accu: display.value === "accumulative" ? null : undefined,
     },
   });
 }
@@ -273,8 +282,15 @@ watch([
   chart,
   dates,
   others,
-  percent,
+  display,
 ], updateUrl);
+
+// Avoid unsupported combinations:
+watch(metric, () => {
+  if (metric.value === "contributor" && display.value === "accumulative") {
+    display.value = "absolute";
+  }
+});
 
 </script>
 
