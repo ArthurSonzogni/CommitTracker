@@ -124,7 +124,9 @@ async function processRepository(repo, entries) {
 
   console.log(`Processing ${repo.owner}/${repo.repository}`)
 
-  await timed(`Cloning ${repo.owner}/${repo.repository}`, clone(repo));
+  await timed(`Cloning ${repo.owner}/${repo.repository}`, async () => {
+    await clone(repo);
+  })
 
   let root = {
     name: "/",
