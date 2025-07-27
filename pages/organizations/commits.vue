@@ -1,7 +1,6 @@
 <template>
   <div>
     <Navbar/>
-    {{ display }}
     <section class="section">
       <div class="container">
         <h1 class="title">Organizations contributions</h1>
