@@ -190,11 +190,11 @@
   },
 
   {
-    name: "Gecko",
-    dirname: "gecko",
+    name: "Firefox",
+    dirname: "firefox",
     color: "#e66000",
-    owner: "mozilla",
-    repository: "gecko-dev",
+    owner: "mozilla-firefox",
+    repository: "firefox",
     reviewers: false,
     treemap: false,
   },
