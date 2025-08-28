@@ -1,6 +1,6 @@
 <template>
   <div ref="container" align="center">
-    <svg ref="svg" :width="svgWidth" :height="svgHeight">
+    <svg ref="svg" :width="svgWidth" :height="svgWidth">
       <g ref="arcs"></g>
       <g ref="indicators"></g>
       <g ref="legend"></g>
@@ -60,7 +60,6 @@ interface Data {
 
 const data = ref<Data>([]);
 const svgWidth = ref<number>(300);
-const svgHeight = ref<number>(300);
 
 const modulo = computed(() => {
   switch(props.hourlyParam) {
@@ -149,12 +148,11 @@ const developersChanged = async () => {
 
 const initialize = () => {
   try {
-    svgWidth.value = container.value.clientWidth;
+    svgWidth.value = container.value?.clientWidth || 300;
     svgWidth.value = Math.min(svgWidth.value, 800);
     svgWidth.value = Math.min(svgWidth.value, window.innerWidth * 0.8);
     svgWidth.value = Math.min(svgWidth.value,
       Math.max(0, (window.innerHeight - 300) * 0.9));
-    svgHeight.value = svgWidth.value;
   } catch (e) {
     console.log(e);
   }
@@ -165,12 +163,12 @@ const initialize = () => {
 
 const render = () => {
   select(arcs.value)
-    .attr("transform", `translate(${svgWidth.value/2}, ${svgHeight.value/2})`);
+    .attr("transform", `translate(${svgWidth.value/2}, ${svgWidth.value/2})`);
   select(indicators.value)
-    .attr("transform", `translate(${svgWidth.value/2}, ${svgHeight.value/2})`);
+    .attr("transform", `translate(${svgWidth.value/2}, ${svgWidth.value/2})`);
 
-  const innerRadius = Math.max(svgWidth.value, svgHeight.value) * 0.2;
-  const outerRadius = Math.max(svgWidth.value, svgHeight.value) * 0.5;
+  const innerRadius = svgWidth.value * 0.2;
+  const outerRadius = svgWidth.value * 0.5;
 
   const x = scaleLinear()
     .domain([0, props.buckets])

@@ -1,6 +1,6 @@
 <template>
   <div ref="container" align="center">
-    <svg ref="svg" :width="svgWidth" :height="svgHeight">
+    <svg ref="svg" width="100%" :height="svgHeight">
       <g ref="axis"></g>
       <g ref="authors"></g>
     </svg>
@@ -45,12 +45,11 @@ interface Data {
 }
 
 const data = ref<Array<Data>>([]);
-const svgWidth = ref<number>(300);
-const svgHeight = ref<number>(300);
+const svgHeight = computed(() => props.take_n * 20 + 50);
 
-watch(() => [props.developers, props.repositories], async () => {
+const fetchData = async () => {
   data.value = await $chromiumDataAll(props.repositories[0], props.developers);
-});
+}
 
 const filteredData = computed(() => {
   // Filter and count peers for every developers.
@@ -136,9 +135,11 @@ const filteredData = computed(() => {
 });
 
 const render = () => {
+  const svgWidth = container.value?.clientWidth || 800;
+
   const scale = scaleLinear()
     .domain([0, max(filteredData.value, d => max(d.developers, d => d.right))])
-    .range([0, svgWidth.value - 200]);
+    .range([0, svgWidth - 200]);
 
   const axis_ = axisTop(scale)
 
@@ -261,17 +262,10 @@ const render = () => {
       },
     )
 }
+watch(() => [props.developers, props.repositories], fetchData);
+window.addEventListener("resize", render)
+onMounted(render);
 watch(filteredData, render);
-
-const initialize = async () => {
-  svgHeight.value = props.take_n * 20 + 50;
-  svgWidth.value = container.value.clientWidth;
-  render();
-  window.addEventListener("resize", initialize);
-}
-
-onMounted(() => {
-  initialize();
-});
+fetchData();
 
 </script>

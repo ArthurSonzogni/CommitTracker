@@ -34,9 +34,9 @@
       </b-field>
     </b-field>
 
-    <svg ref="svg_axis" :width="svgWidth" :height="31" class="sticky-top"></svg>
-    <svg ref="svg" :width="svgWidth" :height="svgHeight"></svg>
-    <svg ref="svg_title" :width="svgWidth" :height="80" class="sticky-bottom"> </svg>
+    <svg ref="svg_axis" width="100%" :height="31" class="sticky-top"></svg>
+    <svg ref="svg" width="100%" :height="svgHeight"></svg>
+    <svg ref="svg_title" width="100%" :height="80" class="sticky-bottom"> </svg>
   </div>
 </template>
 
@@ -71,12 +71,13 @@ const svg_axis = ref(null);
 const svg_title = ref(null);
 
 const take_n = 100;
+const svgHeight = take_n * 50;
 
 const animateWithAccu = ref<string>('instant');
-const svgWidth = ref<number>(300);
-const svgHeight = ref<number>(300);
 const date = ref<string[]>([]);
 const is_animating = ref<boolean>(false);
+
+const svgWidth = () => container.value?.clientWidth || 800;
 
 const timeLabel = computed(() => {
   switch(props.grouping) {
@@ -155,7 +156,7 @@ const axis = (svg) => {
 
   return (x, transition) => {
     const axis = axisTop(x)
-      .ticks(svgWidth.value / 100)
+      .ticks(svgWidth() / 100)
       .tickSizeOuter(0)
       .tickSizeInner(-svgHeight.value + 100)
       .tickFormat(d => format(".2s")(d).replace("G", "B"))
@@ -175,7 +176,7 @@ const axisSticky = (svg) => {
 
   return (x, transition) => {
     const axis = axisTop(x)
-      .ticks(svgWidth.value / 100)
+      .ticks(svgWidth() / 100)
 
     g.transition(transition).call(axis)
   };
@@ -421,8 +422,6 @@ const next = () => {
   timeIndexModel.value = Math.max(timeIndexModel.value - 1, 0);
 };
 
-watch(props, fetchData)
-
 let updateBars = null;
 let updateAxis = null;
 let updateAxisSticky = null;
@@ -434,7 +433,7 @@ const render = (frame, transition) => {
 
   const title_update = title => {
     return title
-      .attr("x", svgWidth.value - 10)
+      .attr("x", svgWidth() - 10)
       .attr("y", 80-32)
       .transition(transition)
       .text(d => d)
@@ -477,7 +476,7 @@ const render = (frame, transition) => {
 
   const x = scaleLinear()
     .domain([0, max_commit])
-    .range([25, svgWidth.value - 10]);
+    .range([25, svgWidth() - 10]);
 
   const y = scaleBand()
     .domain(range(take_n+1))
@@ -489,21 +488,14 @@ const render = (frame, transition) => {
   updateAxisSticky(x, transition);
 };
 
-const onResize = () => {
-  if (container.value) {
-    svgWidth.value = container.value.clientWidth;
-    svgHeight.value = take_n * 50;
-    fetchData();
-  }
-};
-window.addEventListener("resize", onResize);
+window.addEventListener("resize", fetchData);
+watch(props, fetchData)
 
 onMounted(() => {
   updateBars = bars(select(svg.value));
   updateAxis = axis(select(svg.value));
   updateAxisSticky = axisSticky(select(svg_axis.value))
-
-  onResize();
+  fetchData();
 });
 
 
