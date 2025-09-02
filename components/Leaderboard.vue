@@ -158,7 +158,7 @@ const axis = (svg) => {
     const axis = axisTop(x)
       .ticks(svgWidth() / 100)
       .tickSizeOuter(0)
-      .tickSizeInner(-svgHeight.value + 100)
+      .tickSizeInner(-svgHeight + 100)
       .tickFormat(d => format(".2s")(d).replace("G", "B"))
 
     g.transition(transition).call(axis)
@@ -480,7 +480,7 @@ const render = (frame, transition) => {
 
   const y = scaleBand()
     .domain(range(take_n+1))
-    .range([0, svgHeight.value - 60])
+    .range([0, svgHeight - 60])
     .padding(0.1);
 
   updateBars(x, y, frame, transition);
