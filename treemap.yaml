@@ -2,11 +2,18 @@ metrics:
 
 # General ----------------------------------------------------------------------
 
-- name: file
-  description: The number of c++ files.
+- name: C++ file
+  description: The number of C++ files.
   script: >-
     git ls-files -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
   file: file
+
+- name: C++ line
+  description: The number of lines in C++ files.
+  max_depth: 3
+  script: >-
+    find . -type f \( -name "*.c" -o -name "*.cpp" -o -name "*.cc" -o -name "*.h" -o -name "*.hpp" -o -name "*.hh" \) -exec wc -l {} + | awk 'NF==2 && $2 != "total" {print $2 ":" $1}'
+  file: line
 
 # MiraclePtr -------------------------------------------------------------------
 
