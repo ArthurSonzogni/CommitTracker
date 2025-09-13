@@ -88,15 +88,13 @@
       :animate="animate"
       @zoomin="path.push($event); updateUrl(0, 1)"
       @animationend="animationEnd()"
+      ref="treemap"
       >
     </Treemap>
     <div class="section">
       <b-field grouped>
         <b-field expanded>
-          <Timeline
-            v-model="dates"
-            :minDate="new Date('2020-01-01')"
-            ></Timeline>
+          <Timeline v-model="dates" ></Timeline>
         </b-field>
         <b-field grouped>
           <b-button
@@ -120,8 +118,25 @@
     </div>
 
     <section class="section content">
-      <h2 class="title is-4">
-        How to read the treemap
+      <h2 class="title is-5">
+        Download data:
+      </h2>
+
+      <ul>
+        <li>Temporal data:
+          <a @click="treemap.download('temporal_json')" > JSON </a>,
+          <a @click="treemap.download('temporal_csv')" > CSV </a>
+        </li>
+        <li>Spatial data:
+          <a @click="treemap.download('spatial_json')" > JSON </a>,
+          <a @click="treemap.download('spatial_csv')" > CSV </a>
+        </li>
+      </ul>
+    </section>
+
+    <section class="section content">
+      <h2 class="title is-5">
+        How to read the treemap:
       </h2>
       <ul>
         <li>The area of rectangle is proportional to:
@@ -160,7 +175,8 @@
 <script setup lang="ts">
 
 import entries from '../public/treemap/entries.json'
-console.log(entries.metrics)
+
+const treemap = ref(null);
 
 const route = useRoute()
 const router = useRouter()

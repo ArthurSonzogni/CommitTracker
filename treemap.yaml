@@ -2,11 +2,18 @@ metrics:
 
 # General ----------------------------------------------------------------------
 
-- name: file
-  description: The number of c++ files.
+- name: C++ file
+  description: The number of C++ files.
   script: >-
     git ls-files -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
   file: file
+
+- name: C++ line
+  description: The number of lines in C++ lines, omitting blank/comment/macro.
+  max_depth: 3
+  script: >-
+    python3 ../../scripts/cpp_lines.py
+  file: line
 
 # MiraclePtr -------------------------------------------------------------------
 
@@ -53,6 +60,14 @@ metrics:
   tags: ["MiraclePtr"]
 
 # Spanification ----------------------------------------------------------------
+#
+- name: "Unsafe Buffer Usage Lines"
+  description: The number of lines with UNSAFE_BUFFER_USAGE, calculated by a script.
+  max_depth: 3
+  script: >-
+    python3 ../../scripts/warn_unsafe_buffer_usage_lines.py
+  file: lines_unsafe_buffer_usage
+  tags: ["Spanification"]
 
 - name: allow_unsafe_buffers
   description: The number of files with allow_unsafe_buffers
