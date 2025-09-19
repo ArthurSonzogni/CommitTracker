@@ -3,12 +3,12 @@
     <Navbar/>
     <div class="m-5">
       <b-field group group-multiline>
-        <TreemapInput v-model:value="field_color"
-                      placeholder="color/numerator"
-                      class="mr-2" />
-        <TreemapInput v-model:value="field_size"
-                      placeholder="size/denominator"
-                      class="mr-2" />
+      <TreemapInput v-model:value="field_color"
+                    placeholder="color/numerator"/>
+      <b-checkbox v-model="history_color" class="ml-4"/>
+      <TreemapInput v-model:value="field_size"
+                    placeholder="size/denominator"/>
+      <b-checkbox v-model="history_size" class="ml-4"/>
 
         <b-field expanded class="mr-2" label="Colormap"
                                        label-position="on-border">
@@ -86,6 +86,8 @@
       :colormap="colormap"
       :dates="dates"
       :animate="animate"
+      :history_color="history_color"
+      :history_size="history_size"
       @zoomin="path.push($event); updateUrl(0, 1)"
       @animationend="animationEnd()"
       ref="treemap"
@@ -236,6 +238,16 @@ if (route.query.repositories) {
   repositories.value = route.query.repositories.split(",");
 }
 
+const history_color = ref(true);
+if (route.query.history_color == "0") {
+  history_color.value = false;
+}
+
+const history_size = ref(false);
+if (route.query.history_size == "1") {
+  history_size.value = true;
+}
+
 const animate = ref(false);
 const animate_speed = ref(1);
 
@@ -265,6 +277,13 @@ const updateUrl = (old_value, new_value) => {
     repositories: repositories.value.join(","),
     dates: dates.value.map(d => d.toISOString().split("T")[0]).join(","),
   }
+  if (history_color.value === false) {
+    query.history_color = "0"
+  }
+  if (history_size.value === true) {
+    query.history_size = "1"
+  }
+
   router.push({ query });
 }
 
@@ -281,6 +300,8 @@ watch(field_color, updateUrl);
 watch(field_size, updateUrl);
 watch(path, updateUrl);
 watch(dates, updateUrl);
+watch(history_color, updateUrl);
+watch(history_size, updateUrl);
 
 const updateHasScrolled = () => {
   const maxScroll = Math.max(

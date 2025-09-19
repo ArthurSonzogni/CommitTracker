@@ -71,6 +71,7 @@ const history = shallowRef([]);
 let colormapFunc = $color_map[0];
 
 const number_format = format(",d");
+const percent_format = format(".1%");
 
 const props = defineProps({
   repositories: { type:Array[String], default: () => ["chromium"],},
@@ -82,6 +83,8 @@ const props = defineProps({
   colormapMax: {},
   dates: {},
   animate: { type:Boolean, default: false },
+  history_color: { type:Boolean, default: true },
+  history_size: { type:Boolean, default: false },
 });
 
 const emits = defineEmits([
@@ -203,7 +206,7 @@ function download(kind) {
       }
     }
     get(getCurrentDataFromPath(props.path).data, props.path);
-    browserDownload(out, "spatial.json", "text/json");
+    browserDownload(out, "spatial.csv", "text/csv");
     return;
   }
 
@@ -307,15 +310,10 @@ const renderText = function(text, index, data) {
         const color = d.data.color;
         const size = d.data.area;
         if (color <= size) {
-          const percent = Math.floor(100 * color / size);
-          return `${number_format(color)}/${number_format(size)} (${percent}%)`;
+          return `${number_format(color)}/${number_format(size)} (${percent_format(color/size)})`;
         } else {
           const multiple = (color / size).toFixed(1);
           return `${number_format(color)}/${number_format(size)} (${multiple}x)`;
-        }
-        if (percent <= 100) {
-        } else {
-          return `${number_format(color)}/${number_format(size)} = ${percent}%`;
         }
       }
     })
@@ -627,10 +625,22 @@ const computeHistoryForField = (field) => {
 const computeHistory = () => {
   let fields = [];
 
-  if (props.field_color.length) {
+  // If there are only a single field, use it.
+  if (props.field_size.length == 0) {
     fields = props.field_color;
-  } else {
+  } else if (props.field_color.length == 0) {
     fields = props.field_size;
+  } else if (props.history_color && props.history_size) {
+    fields = []
+      .concat(props.field_size)
+      .concat(props.field_color);
+  } else if (props.history_color) {
+    fields = props.field_color;
+  } else if (props.history_size) {
+    fields = props.field_size;
+  } else {
+    history.value = [];
+    return;
   }
 
   const out = [];
@@ -870,6 +880,8 @@ watch(() => [
   props.field_size,
   props.field_color,
   props.dates,
+  props.history_color,
+  props.history_size,
 ], async () => {
   await fetchEntries();
   await render_refresh();
