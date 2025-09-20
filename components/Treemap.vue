@@ -57,11 +57,12 @@ const tooltip_title = ref("Tooltip");
 const tooltip_dir_dot = ref(".");
 const tooltip_dir_dotdot = ref("..");
 
-const fetchedData = shallowRef(undefined);
+let fetchedData = undefined;
 let dates = [];
 let file_index = {};
-const metrics = {};
-const metrics_accumulation = {};
+let file_index_excluding_test = {};
+let metrics = {};
+let metrics_accumulation = {};
 const data = shallowRef({});
 
 let current_date_id = -1;
@@ -85,6 +86,7 @@ const props = defineProps({
   animate: { type:Boolean, default: false },
   history_color: { type:Boolean, default: true },
   history_size: { type:Boolean, default: false },
+  exclude_test: { type:Boolean, default: false },
 });
 
 const emits = defineEmits([
@@ -326,8 +328,8 @@ const render = function(group, data, x, y, is_zoom = false, transition) {
       enter => {
         const group = enter.append("g");
         const rect = group.append("rect")
-        const text_1 = group.append("text")
-        const text_2 = group.append("text")
+        const text_1 = group.append("text").classed("text-1", true)
+        const text_2 = group.append("text").classed("text-2", true)
         renderGroup(group, x, y);
         renderRect(rect, x, y, false)
         initText(text_1, 0);
@@ -340,14 +342,12 @@ const render = function(group, data, x, y, is_zoom = false, transition) {
       update => {
         const group = update.transition(transition);
         const rect = group.select("rect");
-        const text = group.selectAll("text");
         renderGroup(group, x, y);
         renderRect(rect, x, y, false)
-        text.each((_d, i, nodes) => {
-          const node = select(nodes[i]);
-          const n = is_zoom ? node : node.transition(transition);
-          renderText(n, i, data);
-        });
+        const text_1 = group.select("text.text-1");
+        const text_2 = group.select("text.text-2");
+        renderText(text_1, 0, data);
+        renderText(text_2, 1, data);
         return update;
       },
 
@@ -700,14 +700,48 @@ async function FetchFileIndex() {
   const response = await
     fetch(`/treemap/${props.repositories[0]}/file_index.json`);
   file_index = await response.json();
+
+  // Compute a version of the file_index excluding test files.
+  const exclude = entry => {
+    const name = entry.name.toLowerCase();
+    const is_test =
+      name.includes("test") ||
+      name.includes("mock") ||
+      name.includes("example");
+    if (is_test) {
+      return null;
+    }
+
+    const out = {
+      name: entry.name,
+      id: entry.id,
+    };
+
+    if (!entry.children) {
+      return out;
+    }
+
+    out.children = [];
+    for(const child of entry.children) {
+      const child_out = exclude(child);
+      if (child_out) {
+        out.children.push(child_out);
+      }
+    }
+    if (out.children.length == 0) {
+      delete out.children;
+    }
+    return out;
+  };
+  file_index_excluding_test = exclude(file_index);
 }
 
-  // Fetch all the metrics files:
-  //
-  // Format:
-  // {
-  //  "<id>": [[<date_id>, value], ...],
-  //  ...
+// Fetch all the metrics files:
+//
+// Format:
+// {
+//  "<id>": [[<date_id>, value], ...],
+//  ...
 // }
 async function FetchMetrics()  {
   // Metrics to fetch:
@@ -750,13 +784,15 @@ function computeMetricsAccumulation() {
           metrics_accumulation[field][child.id];
       }
     }
-    accumulate(file_index);
+    accumulate(props.exclude_test ? file_index_excluding_test : file_index);
   }
 }
 
 function computeFetchedData() {
   // Finally, compute the value for each file.
-  const out = structuredClone(file_index);
+  const out = structuredClone(
+    props.exclude_test ? file_index_excluding_test : file_index
+  );
 
   // Compute area and color:
   const props_field_size = props.field_size.length
@@ -786,16 +822,7 @@ function computeFetchedData() {
   }
   compute(out);
 
-  // Display the metrics_accumulation for the root and the sum of the
-  // metrics_accumulation for all its children.
-  for(const field in metrics_accumulation) {
-    let sum = 0;
-    for(const child of file_index.children) {
-      sum += metrics_accumulation[field][child.id] || 0;
-    }
-  }
-
-  fetchedData.value = out;
+  fetchedData = out;
   return;
 }
 
@@ -863,7 +890,7 @@ async function refresh() {
 };
 
 async function render_refresh() {
-  data.value = mytreemap(fetchedData.value);
+  data.value = mytreemap(fetchedData);
   await refresh();
 };
 
@@ -881,6 +908,7 @@ watch(() => [
   props.field_color,
   props.dates,
   props.history_color,
+  props.exclude_test,
   props.history_size,
 ], async () => {
   await fetchEntries();

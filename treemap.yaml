@@ -10,7 +10,6 @@ metrics:
 
 - name: C++ line
   description: The number of lines in C++ lines, omitting blank/comment/macro.
-  max_depth: 3
   script: >-
     python3 ../../scripts/cpp_lines.py
   file: line
@@ -63,7 +62,6 @@ metrics:
 #
 - name: "Unsafe Buffer Usage Lines"
   description: The number of lines with UNSAFE_BUFFER_USAGE, calculated by a script.
-  max_depth: 3
   script: >-
     python3 ../../scripts/warn_unsafe_buffer_usage_lines.py
   file: lines_unsafe_buffer_usage

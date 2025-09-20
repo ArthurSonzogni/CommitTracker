@@ -58,6 +58,9 @@
             ></b-input>
         </b-field>
 
+        <b-checkbox v-model="exclude_test" class="ml-4">
+          Exclude tests
+        </b-checkbox>
 
       </b-field>
 
@@ -88,6 +91,7 @@
       :animate="animate"
       :history_color="history_color"
       :history_size="history_size"
+      :exclude_test="exclude_test"
       @zoomin="path.push($event); updateUrl(0, 1)"
       @animationend="animationEnd()"
       ref="treemap"
@@ -248,6 +252,11 @@ if (route.query.history_size == "1") {
   history_size.value = true;
 }
 
+const exclude_test = ref(false);
+if (route.query.exclude_test !== undefined) {
+  exclude_test.value = true;
+}
+
 const animate = ref(false);
 const animate_speed = ref(1);
 
@@ -283,6 +292,9 @@ const updateUrl = (old_value, new_value) => {
   if (history_size.value === true) {
     query.history_size = "1"
   }
+  if (exclude_test.value === true) {
+    query.exclude_test = null;
+  }
 
   router.push({ query });
 }
@@ -302,6 +314,7 @@ watch(path, updateUrl);
 watch(dates, updateUrl);
 watch(history_color, updateUrl);
 watch(history_size, updateUrl);
+watch(exclude_test, updateUrl);
 
 const updateHasScrolled = () => {
   const maxScroll = Math.max(
