@@ -61,6 +61,8 @@ let fetchedData = undefined;
 let dates = [];
 let file_index = {};
 let file_index_excluding_test = {};
+let file_index_excluding_third_party = {};
+let file_index_excluding_test_and_third_party = {};
 let metrics = {};
 let metrics_accumulation = {};
 const data = shallowRef({});
@@ -87,6 +89,7 @@ const props = defineProps({
   history_color: { type:Boolean, default: true },
   history_size: { type:Boolean, default: false },
   exclude_test: { type:Boolean, default: false },
+  exclude_third_party: { type:Boolean, default: false },
 });
 
 const emits = defineEmits([
@@ -217,6 +220,18 @@ function download(kind) {
 defineExpose({
   download,
 });
+
+const get_file_index = () => {
+  if (props.exclude_test && props.exclude_third_party) {
+    return file_index_excluding_test_and_third_party;
+  } else if (props.exclude_test) {
+    return file_index_excluding_test;
+  } else if (props.exclude_third_party) {
+    return file_index_excluding_third_party;
+  } else {
+    return file_index;
+  }
+}
 
 
 const metric_current_value = (field, file_id) => {
@@ -701,14 +716,31 @@ async function FetchFileIndex() {
     fetch(`/treemap/${props.repositories[0]}/file_index.json`);
   file_index = await response.json();
 
-  // Compute a version of the file_index excluding test files.
-  const exclude = entry => {
-    const name = entry.name.toLowerCase();
+  const exclude_test = (parent_name, child_name) => {
+    const name = child_name.toLowerCase();
     const is_test =
       name.includes("test") ||
       name.includes("mock") ||
       name.includes("example");
-    if (is_test) {
+    return is_test;
+  }
+
+  // Exclude third_party, exclude third_party/blink
+  const exclude_third_party = (parent_name, child_name) => {
+    const parent = parent_name.toLowerCase();
+    const name = child_name.toLowerCase();
+    if (parent == "root" && name == "third_party") {
+      return false;
+    }
+    if (parent == "third_party") {
+      return name != "blink";
+    }
+    return false;
+  }
+
+  // Compute a version of the file_index excluding test files.
+  const exclude = (entry, filter, parent) => {
+    if (filter(parent, entry.name)) {
       return null;
     }
 
@@ -723,7 +755,7 @@ async function FetchFileIndex() {
 
     out.children = [];
     for(const child of entry.children) {
-      const child_out = exclude(child);
+      const child_out = exclude(child, filter, entry.name);
       if (child_out) {
         out.children.push(child_out);
       }
@@ -733,7 +765,28 @@ async function FetchFileIndex() {
     }
     return out;
   };
-  file_index_excluding_test = exclude(file_index);
+
+  file_index_excluding_test = exclude(file_index, exclude_test, "root");
+  file_index_excluding_third_party = exclude(
+    file_index,
+    exclude_third_party,
+    "root"
+  );
+  file_index_excluding_test_and_third_party = exclude(
+    file_index,
+    (parent, child) =>
+      exclude_test(parent, child) || exclude_third_party(parent, child),
+    "root"
+  );
+
+  console.log("file_index", file_index);
+  console.log("file_index_excluding_test", file_index_excluding_test);
+  console.log("file_index_excluding_third_party",
+    file_index_excluding_third_party
+  );
+  console.log("file_index_excluding_test_and_third_party",
+    file_index_excluding_test_and_third_party
+  );
 }
 
 // Fetch all the metrics files:
@@ -784,15 +837,13 @@ function computeMetricsAccumulation() {
           metrics_accumulation[field][child.id];
       }
     }
-    accumulate(props.exclude_test ? file_index_excluding_test : file_index);
+    accumulate(get_file_index());
   }
 }
 
 function computeFetchedData() {
   // Finally, compute the value for each file.
-  const out = structuredClone(
-    props.exclude_test ? file_index_excluding_test : file_index
-  );
+  const out = structuredClone(get_file_index());
 
   // Compute area and color:
   const props_field_size = props.field_size.length
@@ -909,6 +960,7 @@ watch(() => [
   props.dates,
   props.history_color,
   props.exclude_test,
+  props.exclude_third_party,
   props.history_size,
 ], async () => {
   await fetchEntries();

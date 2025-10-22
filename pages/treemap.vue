@@ -62,6 +62,10 @@
           Exclude tests
         </b-checkbox>
 
+        <b-checkbox v-model="exclude_third_party" class="ml-4">
+          Exclude third parties
+        </b-checkbox>
+
       </b-field>
 
       <b-breadcrumb align="is-left">
@@ -92,6 +96,7 @@
       :history_color="history_color"
       :history_size="history_size"
       :exclude_test="exclude_test"
+      :exclude_third_party="exclude_third_party"
       @zoomin="path.push($event); updateUrl(0, 1)"
       @animationend="animationEnd()"
       ref="treemap"
@@ -257,6 +262,11 @@ if (route.query.exclude_test !== undefined) {
   exclude_test.value = true;
 }
 
+const exclude_third_party = ref(false);
+if (route.query.exclude_third_party !== undefined) {
+  exclude_third_party.value = true;
+}
+
 const animate = ref(false);
 const animate_speed = ref(1);
 
@@ -295,6 +305,9 @@ const updateUrl = (old_value, new_value) => {
   if (exclude_test.value === true) {
     query.exclude_test = null;
   }
+  if (exclude_third_party.value === true) {
+    query.exclude_third_party = null;
+  }
 
   router.push({ query });
 }
@@ -315,6 +328,7 @@ watch(dates, updateUrl);
 watch(history_color, updateUrl);
 watch(history_size, updateUrl);
 watch(exclude_test, updateUrl);
+watch(exclude_third_party, updateUrl);
 
 const updateHasScrolled = () => {
   const maxScroll = Math.max(
