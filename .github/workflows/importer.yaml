@@ -3,7 +3,7 @@ name: importer
 on:
   workflow_dispatch: {} # Allows manual trigger.
   schedule:
-    - cron:  '0 0 * * 3' # every week on Wednesday.
+    - cron: '0 0 * * 1,2,3,4,5' # On weekdays at midnight.
 
 jobs:
   importer:
@@ -13,7 +13,7 @@ jobs:
       - name: Setup node env
         uses: actions/setup-node@v3
         with:
-          node-version: 'latest'
+          node-version: '23'
 
       - name: Checkout main repository
         uses: actions/checkout@v4
