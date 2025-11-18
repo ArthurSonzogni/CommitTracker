@@ -227,6 +227,7 @@ import "d3-transition";
 import { transition } from "d3-transition";
 import {interpolatePath} from "d3-interpolate-path";
 import { easeCircleOut } from "d3-ease";
+import { jStat } from "jstat";
 
 const cve_count_format = format("+,d");
 const cve_percent_format = format("+.1f");
@@ -280,6 +281,44 @@ const project_list = [
   "v8",
   "webrtc"
 ];
+
+/**
+ * Calculates the projected interval, ensuring the Lower Bound
+ * never drops below the already observed count.
+ */
+function calculateProjectedInterval(count, timeFraction, confidence = 0.95) {
+    const alpha = 1 - confidence;
+
+    // 1. Calculate Exact Poisson limits for the current count
+    // Lower Bound (L):
+    const lowerLambda = count === 0
+        ? 0
+        : jStat.chisquare.inv(alpha / 2, 2 * count) / 2;
+
+    // Upper Bound (U):
+    const upperLambda = jStat.chisquare.inv(1 - alpha / 2, 2 * (count + 1)) / 2;
+
+    // 2. Extrapolate to full year
+    const projectedLowerRate = lowerLambda / timeFraction;
+    const projectedUpperRate = upperLambda / timeFraction;
+    const projectedMean = count / timeFraction;
+
+    // 3. Apply Constraints
+    // The year's total cannot be less than what has already happened.
+    const finalLower = Math.max(count, projectedLowerRate);
+    const finalUpper = Math.max(count, projectedUpperRate);
+
+    return {
+        observedCount: count,
+        timeFraction: timeFraction,
+        projectedMean: parseFloat(projectedMean.toFixed(2)),
+        confidenceInterval: {
+            lower: parseFloat(finalLower.toFixed(2)),
+            upper: parseFloat(finalUpper.toFixed(2)),
+            constraintApplied: finalLower === count ? "Yes (Floor)" : "No"
+        }
+    };
+}
 
 const filter_cve = (cve) => {
   return cve.severity && severities.value.includes(cve.severity)
@@ -384,13 +423,13 @@ const render = async () => {
     (now - new Date(`${now.getFullYear()}-01-01`)) /
     (new Date(`${now.getFullYear() + 1}-01-01`) - new Date(`${now.getFullYear()}-01-01`));
 
-  const mean = cve_list[0].total / year_percent;
-  projection_low.value = Math.max(
-    cve_list[0].total + 0.01,
-    Math.round(mean - 1.96 * Math.sqrt(mean))
+  const projection = calculateProjectedInterval(
+    cve_list[0].total,
+    year_percent,
+    0.95
   );
-  console.log(projection_low.value);
-  projection_high.value = Math.round(mean + 1.96 * Math.sqrt(mean));
+  projection_low.value = Math.round(projection.confidenceInterval.lower);
+  projection_high.value = Math.round(projection.confidenceInterval.upper);
 
   // Yield
   await new Promise((resolve) => setTimeout(resolve, 50));
@@ -419,7 +458,7 @@ const render = async () => {
     cve_dates[cve_dates.length - 1],
     [
       new Date(`${current_year + 1}-01-01`),
-      projection_low.value
+      projection_low.value + 0.01
     ]
   ];
 
