@@ -49,7 +49,7 @@
 
           <strong>Events</strong>
           <div class="events">
-            <div class="event" v-for="event in events">
+            <div class="event" v-for="event in events" :class="{ blur: event.blur }">
               <div class="duration">
                 <p v-if="event.absolute_delta != event.delta" class="delta">
                 (+{{
@@ -173,6 +173,16 @@ const getEvents = (cve) => {
 
   events.sort((a, b)=> a.date - b.date);
 
+  // Add indication of private bug if needed.
+  if (!cve.bug_date) {
+    events.unshift({
+      icon: 'lock',
+      title: `Private bug - details will be available 14 weeks after the fix is deployed.`,
+      date: new Date(events[0].date - 1), // 1 second before first event
+      blur: true,
+    });
+  }
+
   // Compute delta in between events
   for (let i=1; i < events.length; i++) {
     events[i].delta=events[i].date - events[i-1].date;
@@ -271,6 +281,13 @@ onMounted(async ()=> {
   font-size: 0.8em;
 }
 
+.event.blur {
+  filter: blur(4px);
+  user-select: none;
+  transition: filter 0.2s;
+}
 
-
+.event.blur:hover {
+  filter: none;
+}
 </style>
