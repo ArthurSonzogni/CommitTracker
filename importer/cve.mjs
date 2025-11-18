@@ -534,7 +534,9 @@ const augmentFromBugganizer = async (database) => {
     }
 
     //console.log("reward", cve.vrp_reward, "commits", cve.commits?.length);
-    if (cve.vrp_reward != undefined && cve.commits?.length > 1) {
+    if (cve.vrp_reward != undefined &&
+        cve.commits &&
+        (cve.commits.length > 0 || Object.keys(cve.commits).length > 0)) {
       console.log("Skipping", cve.bug, " vrp reward", cve.vrp_reward);
       continue;
     }
@@ -552,8 +554,8 @@ const augmentFromBugganizer = async (database) => {
     if (weeks <= 12) { probability = 0.1; }
     else if (weeks <= 18) { probability = 1.0; }
     else if (weeks <= 22) { probability = 0.5; }
-    else if (weeks <= 26) { probability = 0.1; }
-    else { probability = 0.05; }
+    else if (weeks <= 26) { probability = 0.2; }
+    else { probability = 0.1; }
     console.log("Weeks", weeks, "Probability", probability);
 
     if (Math.random() > probability) {

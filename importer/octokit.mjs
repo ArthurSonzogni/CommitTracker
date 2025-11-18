@@ -8,11 +8,6 @@ const MyOctokit = Octokit.plugin(throttling);
 const AuthToken = async () => {
   try {
     const token = await fs.readFile('.token', 'utf8');
-    if (token.length != 41) {
-      console.error("Token in .token file is not 40 characters long");
-      throw new Error("Invalid token length");
-    }
-
     console.log("Using token from .token file");
     return token;
   } catch (e) {}
