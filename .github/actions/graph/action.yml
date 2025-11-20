@@ -1,0 +1,34 @@
+name: 'Generate Graphs'
+description: 'Installs OpenMP, builds C++ project, generates graphs, and pushes community map'
+inputs:
+  github_token:
+    description: 'GitHub Token'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Install OpenMP
+      shell: bash
+      run: sudo apt-get install libomp-dev libomp5
+
+    - name: Build the C++ project
+      uses: threeal/cmake-action@v1.3.0
+      with:
+        source-dir: graph
+        build-dir: graph/build
+        args: -DCMAKE_BUILD_TYPE:STRING=Release
+        run-build: true
+
+    - name: Create Graphs
+      shell: bash
+      run: |
+        cd importer
+        yarn run graph
+
+    - name: Deploy community map
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ inputs.github_token }}
+        publish_dir: ./public/community-map/
+        publish_branch: community-map
+        force_orphan: true

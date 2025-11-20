@@ -1,0 +1,36 @@
+name: 'Fetch Commits'
+description: 'Fetches new commits, cleans data, pushes data, and generates derived data'
+inputs:
+  github_token:
+    description: 'GitHub Token'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Fetch new commits
+      shell: bash
+      run: |
+        cd importer
+        yarn run fetch_data
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+
+    - name: Cleanup derived data
+      shell: bash
+      run: |
+        yarn run clean-derived-data
+
+    - name: Push data
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ inputs.github_token }}
+        publish_dir: ./public/data/
+        publish_branch: data
+        force_orphan: true
+
+    - name: Generate derived data
+      shell: bash
+      run: |
+        yarn run generate-derived-data
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}

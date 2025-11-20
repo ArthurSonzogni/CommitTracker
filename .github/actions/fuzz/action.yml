@@ -1,0 +1,24 @@
+name: 'Fetch Fuzz Data'
+description: 'Fetches and pushes fuzz test data'
+inputs:
+  github_token:
+    description: 'GitHub Token'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Fetch fuzz data
+      shell: bash
+      run: |
+        cd importer
+        yarn run fuzztest
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+
+    - name: Push fuzz test data
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ inputs.github_token }}
+        publish_dir: ./public/fuzz-test/
+        publish_branch: fuzz-test
+        force_orphan: true

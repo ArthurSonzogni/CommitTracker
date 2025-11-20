@@ -1,15 +1,74 @@
 name: importer
 
 on:
-  workflow_dispatch: {} # Allows manual trigger.
+  workflow_dispatch:
+    inputs:
+      run_commits:
+        description: 'Fetch Commits & Update Data'
+        type: boolean
+        default: true
+      run_treemap:
+        description: 'Generate Treemap'
+        type: boolean
+        default: true
+      run_fuzz:
+        description: 'Fetch Fuzz Data'
+        type: boolean
+        default: true
+      run_cve:
+        description: 'Fetch CVE Data'
+        type: boolean
+        default: true
+      run_graph:
+        description: 'Generate C++ Graphs'
+        type: boolean
+        default: true
   schedule:
-    - cron: '0 0 * * 1,2,3,4,5' # On weekdays at midnight.
+    - cron: '0 0 * * 1,2,3,4,5'
 
 jobs:
   importer:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Configure Run Flags
+        id: config
+        run: |
+          # Default: Assume we do not run anything unless specified
+          DO_COMMITS="false"
+          DO_TREEMAP="false"
+          DO_FUZZ="false"
+          DO_CVE="false"
+          DO_GRAPH="false"
+
+          # Logic for Scheduled Runs (Cron)
+          if [[ "${{ github.event_name }}" == "schedule" ]]; then
+            # Commits run every day
+            DO_COMMITS="true"
+
+            DAY_OF_WEEK=$(date +%u)
+
+            if [[ "$DAY_OF_WEEK" == "1" ]]; then DO_TREEMAP="true"; fi
+            if [[ "$DAY_OF_WEEK" == "2" ]]; then DO_FUZZ="true"; fi
+            if [[ "$DAY_OF_WEEK" == "4" ]]; then DO_CVE="true"; fi
+            if [[ "$DAY_OF_WEEK" == "5" ]]; then DO_GRAPH="true"; fi
+          fi
+
+          # Logic for Manual Runs
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            DO_COMMITS="${{ inputs.run_commits }}"
+            DO_TREEMAP="${{ inputs.run_treemap }}"
+            DO_FUZZ="${{ inputs.run_fuzz }}"
+            DO_CVE="${{ inputs.run_cve }}"
+            DO_GRAPH="${{ inputs.run_graph }}"
+          fi
+
+          echo "run_commits=$DO_COMMITS" >> $GITHUB_OUTPUT
+          echo "run_treemap=$DO_TREEMAP" >> $GITHUB_OUTPUT
+          echo "run_fuzz=$DO_FUZZ" >> $GITHUB_OUTPUT
+          echo "run_cve=$DO_CVE" >> $GITHUB_OUTPUT
+          echo "run_graph=$DO_GRAPH" >> $GITHUB_OUTPUT
+
       - name: Setup node env
         uses: actions/setup-node@v3
         with:
@@ -18,116 +77,40 @@ jobs:
       - name: Checkout main repository
         uses: actions/checkout@v4
 
-      - name: Pull data
+      - name: Pull dependencies
         run: |
-          yarn
-          yarn install
+          yarn && yarn install
           yarn pull-data
-          cd importer
-          yarn
-          yarn install
+          cd importer && yarn && yarn install
 
-      # ------------------------------------------------------------------------
+      # --- MODULES (Composite Actions) ---
 
-      - name: Fetch new commits
-        run: |
-          cd importer
-          yarn run fetch_data
-
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Cleanup derived data
-        run: |
-          yarn run clean-derived-data
-
-      - name: Push data
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Run Commits Module
+        if: steps.config.outputs.run_commits == 'true'
+        uses: ./.github/actions/commits
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public/data/
-          publish_branch: data
-          force_orphan: true
 
-      - name: Generate derived data
-        run: |
-          yarn run generate-derived-data
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # ------------------------------------------------------------------------
-
-      - name: Generate treemap data
-        run: |
-          cd importer
-          yarn run treemap
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Push treemap data
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Run Treemap Module
+        if: steps.config.outputs.run_treemap == 'true'
+        uses: ./.github/actions/treemap
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public/treemap/
-          publish_branch: treemap
-          force_orphan: true
 
-      # ------------------------------------------------------------------------
-
-      - name: Fetch fuzz data
-        run: |
-          cd importer
-          yarn run fuzztest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Push fuzz test data
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Run Fuzz Module
+        if: steps.config.outputs.run_fuzz == 'true'
+        uses: ./.github/actions/fuzz
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public/fuzz-test/
-          publish_branch: fuzz-test
-          force_orphan: true
 
-      # ------------------------------------------------------------------------
-
-      - name: Fetch CVE data
-        run: |
-          cd importer
-          yarn run cve
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Push CVE data
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Run CVE Module
+        if: steps.config.outputs.run_cve == 'true'
+        uses: ./.github/actions/cve
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public/cve/
-          publish_branch: cve
-          force_orphan: true
 
-      # ------------------------------------------------------------------------
-
-      - name: Install OpenMP
-        run: sudo apt-get install libomp-dev libomp5
-
-      - name: Build the C++ project
-        uses: threeal/cmake-action@v1.3.0
-        with:
-          source-dir: graph
-          build-dir: graph/build
-          args: -DCMAKE_BUILD_TYPE:STRING=Release
-          run-build: true
-
-      - name: Create Graphs
-        run: |
-          cd importer
-          yarn run graph
-
-      - name: Deploy community map
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Run Graph Module
+        if: steps.config.outputs.run_graph == 'true'
+        uses: ./.github/actions/graph
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public/community-map/
-          publish_branch: community-map
-          force_orphan: true
