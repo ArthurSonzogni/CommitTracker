@@ -2,7 +2,14 @@
   <div>
     <Navbar/>
     <section class="section container">
-      <h1 class="title">Chromium Vulnerabilities</h1>
+      <h1 class="title">Chromium CVE</h1>
+      <p>
+        Note: vulnerabilities aren't always associated with a CVE. Bugs are
+        often fixed before affecting stable releases. Some are immediately found
+        using fuzzers, or internal audits. This page only display CVEs. For a
+        more complete view of Chromium security issues, please refer to <NuxtLink
+        to="https://crbug.com/issues?q=((componentid:1363614%2B%20type:vulnerability)%20%7C%20collaborator:security@chromium.org)%20-status:(new%20%7C%20duplicate%20%7C%20infeasible%20%7C%20intended_behavior%20%7C%20not_reproducible%20%7C%20obsolete)%20hotlistid:(5432902%20%7C%205432548)">the bug tracker</NuxtLink>.
+      </p>
     </section>
 
     <section class="section container sticky">
