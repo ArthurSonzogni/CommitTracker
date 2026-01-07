@@ -43,17 +43,17 @@
 
     <section
       class="section container"
-      v-for="(data,i) in cve_list_ref">
+      v-for="(data,i) in cve_by_year">
 
       <h2 class="title"> {{ data.year }} </h2>
 
       <ClientOnly>
         <CveProgressionGraph
-          v-if="raw_cve_data.length > 0"
+          v-if="filtered_cves.length > 0"
           :year="data.year"
-          :data="raw_cve_data"
+          :data="filtered_cves"
           :totalPrevious="data.total_previous || 0"
-          :projection="i === 0 ? { low: projection_low, high: projection_high } : undefined"
+          :projection="i === 0 ? { low: projection.low, high: projection.high } : undefined"
         />
       </ClientOnly>
 
@@ -64,21 +64,21 @@
         <template v-if="i === 0">
           <strong>Projection :</strong>
           [
-          {{ projection_low }}
+          {{ projection.low }}
           CVEs
           ,
-          {{ projection_high }}
+          {{ projection.high }}
           CVEs
           ]
           <strong>Y/Y projection :</strong>
           [
           {{
-          cve_percent_format((projection_low- data.total_previous) /
+          cve_percent_format((projection.low- data.total_previous) /
           data.total_previous * 100)
           }} %
           ,
           {{
-          cve_percent_format((projection_high - data.total_previous) /
+          cve_percent_format((projection.high - data.total_previous) /
           data.total_previous * 100)
           }} %
           ]
@@ -96,7 +96,6 @@
 
       <hr>
 
-      <Lazy>
         <table class="table is-bordered is-striped is-narrow is-hoverable">
           <thead>
             <tr>
@@ -150,7 +149,6 @@
             </tr>
           </tbody>
         </table>
-      </Lazy>
     </section>
   </div>
 </template>
@@ -159,6 +157,12 @@
 
 import { format } from "d3-format";
 import { jStat } from "jstat";
+
+interface Cve { id: string; published: string; year: number; project: string; [key: string]: any; }
+
+const getCveYear = (cve: Cve): number => {
+  return new Date(cve.published).getFullYear();
+};
 
 const cve_count_format = format("+,d");
 const cve_percent_format = format("+.1f");
@@ -184,14 +188,9 @@ watch(severities, () => {
       severities.value.join(","),
     }
   });
-  render();
 });
 
-const cve_list_ref = ref([]);
-const raw_cve_data = ref<any[]>([]);
-
-const projection_low = ref(0);
-const projection_high = ref(0);
+const all_cve_data = shallowRef<Cve[]>([]);
 
 const project_list = [
   "angle",
@@ -203,11 +202,26 @@ const project_list = [
   "webrtc"
 ];
 
+const cve_project = (cve: any) => {
+  if (!cve.description) {
+    return "???";
+  }
+  for (const project of project_list) {
+    if (project == "chromium") {
+      continue;
+    }
+    if (cve.description.toLowerCase().includes(project)) {
+      return project;
+    }
+  }
+  return "chromium";
+}
+
 /**
  * Calculates the projected interval, ensuring the Lower Bound
  * never drops below the already observed count.
  */
-function calculateProjectedInterval(count, timeFraction, confidence = 0.95) {
+function calculateProjectedInterval(count, timeFraction, confidence = 0.9) {
     const alpha = 1 - confidence;
 
     // 1. Calculate Exact Poisson limits for the current count
@@ -241,130 +255,104 @@ function calculateProjectedInterval(count, timeFraction, confidence = 0.95) {
     };
 }
 
-const filter_cve = (cve) => {
-  return cve.severity && severities.value.includes(cve.severity)
-    && cve.id > "2020";
-}
-
-const render = async () => {
-
+onMounted(async () => {
   const response = await fetch("/cve/data.json");
-  const data = (await response.json()).filter(filter_cve);
-  raw_cve_data.value = data;
+  const data = await response.json();
+  all_cve_data.value = data.map((cve: any) => ({
+    ...cve,
+    year: getCveYear(cve),
+    project: cve_project(cve),
+  }));
+});
 
-  const cve_project = cve => {
-    if (!cve.description) {
-      return "???";
-    }
-    for (const project of project_list) {
-      if (project == "chromium") {
-        continue;
-      }
-      if (cve.description.toLowerCase().includes(project)) {
-        return project;
-      }
-    }
-    return "chromium";
+const filtered_cves = computed(() => {
+  return all_cve_data.value.filter(cve => {
+    return cve.severity && severities.value.includes(cve.severity)
+      && cve.year > 2020;
+  });
+});
+
+const severity_map = new Map([
+  ["Low", 0],
+  ["Medium", 1],
+  ["High", 2],
+  ["Critical", 3],
+]);
+
+const cve_by_year = computed(() => {
+  const repo_data = filtered_cves.value;
+  
+  const year_list = Array
+    .from(new Set(repo_data.map((cve: Cve) => cve.year)))
+    .filter(x => x)
+    .sort((a,b) => b - a)
+  ;
+
+  const current_year = new Date().getFullYear();
+  if (!year_list.includes(current_year)) {
+    year_list.unshift(current_year);
   }
 
-  const repo_data = data.map((cve) => {
-    return {
-      ...cve,
-      project: cve_project(cve),
-    };
-  });
-
-  const severity_map = new Map([
-    ["Low", 0],
-    ["Medium", 1],
-    ["High", 2],
-    ["Critical", 3],
-  ]);
-
-  const filter_by_year = (year) => {
-    const year_string = year.toString();
-    let out = repo_data;
+  const list = year_list.map((year) => {
     // Filter by year.
-    out = out.filter((cve) => {
-      return cve.id && cve.id.startsWith(year_string);
-    });
-    out = out.reverse();
-
+    let out = repo_data.filter((cve: Cve) => cve.year === year);
+    
     // Sort by severity
     out = out.sort((a, b) => {
       return severity_map.get(a.severity) - severity_map.get(b.severity);
     });
 
     // GroupBy cweId
-    out = Object.groupBy(out, cve => cve.problem)
+    const cves_by_problem = Object.groupBy(out, cve => cve.problem);
 
     // GroupBy project
-    for (const cweId in out) {
-      out[cweId] = Object.groupBy(out[cweId], cve => cve.project);
+    for (const cweId in cves_by_problem) {
+      cves_by_problem[cweId] = Object.groupBy(cves_by_problem[cweId], cve => cve.project);
     }
 
-    return out;
-  }
-
-  const year_list = Array
-    .from(new Set(repo_data.map((cve) => cve.id?.slice(0, 4))))
-    .filter(x => x)
-    .sort()
-    .reverse()
-    .map(x => parseInt(x))
-  ;
-
-  const cve_list = year_list.map((year) => {
     return {
       year: year,
-      cves: filter_by_year(year),
+      cves: cves_by_problem,
+      total: out.length,
+      total_previous: 0 // Will be filled below
     };
-  })
+  });
 
-  // Make sure the current year is included even if no CVEs yet.
-  const current_year = new Date().getFullYear();
-  if (!cve_list.find((entry) => entry.year === current_year)) {
-    cve_list.unshift({
-      year: current_year,
-      cves: {},
-    });
-  }
-
-  cve_list_ref.value = cve_list;
-
-  // Compute total for each year.
-  for (let i = 0; i < cve_list.length; i++) {
-    let total = 0
-    Object.values(cve_list[i].cves).forEach((cves) => {
-      Object.values(cves).forEach((cve) => {
-        total += Object.values(cve).length;
-      });
-    });
-    cve_list[i].total = total;
-    if (i > 0) {
-      cve_list[i-1].total_previous = total;
+  // Compute previous totals
+  for (let i = 0; i < list.length - 1; i++) {
+    // list[i] is current year in loop (descending), list[i+1] is previous year
+    // Wait, the original logic was:
+    // if (i > 0) cve_list[i-1].total_previous = total;
+    // list is descending: [2025, 2024, 2023...]
+    // So list[1] (2024) is "previous" to list[0] (2025).
+    // So list[0].total_previous should be list[1].total.
+    if (list[i+1]) {
+        list[i].total_previous = list[i+1].total;
     }
   }
+  
+  return list;
+});
 
-  // Compute the estimated number of vulnerabilities for the current year by
-  // interpolation based on the date.
+const projection = computed(() => {
+  if (cve_by_year.value.length === 0) return { low: 0, high: 0 };
+  
   const now = new Date();
   const year_percent =
     (now.getTime() - new Date(`${now.getFullYear()}-01-01`).getTime()) /
     (new Date(`${now.getFullYear() + 1}-01-01`).getTime() - new Date(`${now.getFullYear()}-01-01`).getTime());
 
-  if (cve_list.length > 0) {
-      const projection = calculateProjectedInterval(
-        cve_list[0].total,
-        year_percent,
-        0.95
-      );
-      projection_low.value = Math.round(projection.confidenceInterval.lower);
-      projection_high.value = Math.round(projection.confidenceInterval.upper);
-  }
-}
-
-render();
+  const proj = calculateProjectedInterval(
+    cve_by_year.value[0].total,
+    year_percent,
+    0.95
+  );
+  
+  return {
+      low: Math.round(proj.confidenceInterval.lower),
+      high: Math.round(proj.confidenceInterval.upper)
+  };
+});
 
 </script>
 
