@@ -23,6 +23,10 @@ on:
         description: 'Generate C++ Graphs'
         type: boolean
         default: true
+      run_commit_rates:
+        description: 'Generate commit rates'
+        type: boolean
+        default: true
   schedule:
     - cron: '0 0 * * 1,2,3,4,5'
 
@@ -40,6 +44,7 @@ jobs:
           DO_FUZZ="false"
           DO_CVE="false"
           DO_GRAPH="false"
+          DO_COMMIT_RATES="false"
 
           # Logic for Scheduled Runs (Cron)
           if [[ "${{ github.event_name }}" == "schedule" ]]; then
@@ -50,6 +55,7 @@ jobs:
 
             if [[ "$DAY_OF_WEEK" == "1" ]]; then DO_TREEMAP="true"; fi
             if [[ "$DAY_OF_WEEK" == "2" ]]; then DO_FUZZ="true"; fi
+            if [[ "$DAY_OF_WEEK" == "3" ]]; then DO_COMMIT_RATES="true"; fi
             if [[ "$DAY_OF_WEEK" == "4" ]]; then DO_CVE="true"; fi
             if [[ "$DAY_OF_WEEK" == "5" ]]; then DO_GRAPH="true"; fi
           fi
@@ -61,6 +67,7 @@ jobs:
             DO_FUZZ="${{ inputs.run_fuzz }}"
             DO_CVE="${{ inputs.run_cve }}"
             DO_GRAPH="${{ inputs.run_graph }}"
+            DO_COMMIT_RATES="${{ inputs.run_commit_rates }}"
           fi
 
           echo "run_commits=$DO_COMMITS" >> $GITHUB_OUTPUT
@@ -68,6 +75,7 @@ jobs:
           echo "run_fuzz=$DO_FUZZ" >> $GITHUB_OUTPUT
           echo "run_cve=$DO_CVE" >> $GITHUB_OUTPUT
           echo "run_graph=$DO_GRAPH" >> $GITHUB_OUTPUT
+          echo "run_commit_rates=$DO_COMMIT_RATES" >> $GITHUB_OUTPUT
 
       - name: Setup node env
         uses: actions/setup-node@v3
@@ -114,3 +122,11 @@ jobs:
         uses: ./.github/actions/graph
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Commit Rates Module
+        if: steps.config.outputs.run_commit_rates == 'true'
+        uses: ./.github/actions/commit_rates
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+
