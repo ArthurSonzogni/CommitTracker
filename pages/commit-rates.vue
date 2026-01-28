@@ -1,201 +1,203 @@
 <template>
   <div>
     <Navbar />
-    <section class="section">
-      <div class="container">
+    <RepositorySelector
+      class="ml-4 mr-4"
+      size="is-medium"
+      v-model="repositories"
+      :allowMultiple="false"
+      :allowAll="false"
+      :filter="(repo) => !repo.cone"
+    />
+    <div class="container">
+      <div>
+        Smoothing Window: <strong>{{ smoothingWindow }} week{{ smoothingWindow
+          === 1 ? '' : 's' }}</strong>, displaying activity over <strong>{{
+          displayedDurationLabel }}</strong>.
 
-        <div>
-          <b-field>
-            <RepositorySelector
-              v-model="repositories"
-              :allowMultiple="false"
-              :allowAll="false"
-              :filter="(repo) => !repo.cone"
-            />
-          </b-field>
+        <b-field>
+          <b-slider
+            v-model="smoothingWindow"
+            :min="1"
+            :max="52"
+            :step="1"
+            size="is-medium"
+            type="is-info"
+            ></b-slider>
+        </b-field>
 
-          <b-field>
-            <b-slider
-              v-model="smoothingWindow"
-              :min="1"
-              :max="52"
-              :step="1"
-              size="is-medium"
-              type="is-info"
-              ></b-slider>
-          </b-field>
 
-          Smoothing Window: <strong>{{ smoothingWindow }} week{{ smoothingWindow
-            === 1 ? '' : 's' }}</strong>, displaying activity over <strong>{{
-            displayedDurationLabel }}</strong>.
+        <b-field>
+          <b-checkbox v-model="showDeleted">
+            Show deleted files
+          </b-checkbox>
+        </b-field>
+      </div>
 
-          <b-field>
-            <b-checkbox v-model="showDeleted">
-              Show deleted files
-            </b-checkbox>
-          </b-field>
+      <div class="level mb-4">
+        <div class="level-left">
+           <nav class="breadcrumb has-succeeds-separator mb-0" aria-label="breadcrumbs">
+            <ul>
+              <li :class="{ 'is-active': currentPath === '.' }">
+                <a @click.prevent="navigate('.')">{{ repositories[0] }}</a>
+              </li>
+              <li
+                v-for="(part, index) in pathParts"
+                :key="index"
+                :class="{ 'is-active': index === pathParts.length - 1 }"
+              >
+                <a @click.prevent="navigate(part.fullPath)">{{ part.name }}</a>
+              </li>
+            </ul>
+          </nav>
         </div>
 
-        <div class="level mb-4">
-          <div class="level-left">
-             <nav class="breadcrumb has-succeeds-separator mb-0" aria-label="breadcrumbs">
-              <ul>
-                <li :class="{ 'is-active': currentPath === '.' }">
-                  <a @click.prevent="navigate('.')">{{ repositories[0] }}</a>
-                </li>
-                <li
-                  v-for="(part, index) in pathParts"
-                  :key="index"
-                  :class="{ 'is-active': index === pathParts.length - 1 }"
-                >
-                  <a @click.prevent="navigate(part.fullPath)">{{ part.name }}</a>
-                </li>
-              </ul>
-            </nav>
-          </div>
-
-          <div class="level-right">
-             <div class="field has-addons mb-0">
-               <div class="has-icons-left">
-                 <input
-                   ref="searchInput"
-                   class="input"
-                   type="text"
-                   placeholder="Find in this folder..."
-                   v-model="searchQuery"
-                 >
-                 <span class="icon is-small is-left">
-                   <i class="fas fa-search"></i>
-                 </span>
-               </div>
-               <div class="control" v-if="searchQuery">
-                 <button class="button" @click="searchQuery = ''">
-                   <span class="icon is-small"><i class="fas fa-times"></i></span>
-                 </button>
-               </div>
+        <div class="level-right">
+           <div class="field has-addons mb-0">
+             <div class="has-icons-left">
+               <input
+                 ref="searchInput"
+                 class="input"
+                 type="text"
+                 placeholder="Find in this folder..."
+                 v-model="searchQuery"
+               >
+               <span class="icon is-small is-left">
+                 <i class="fas fa-search"></i>
+               </span>
              </div>
+             <div class="control" v-if="searchQuery">
+               <button class="button" @click="searchQuery = ''">
+                 <span class="icon is-small"><i class="fas fa-times"></i></span>
+               </button>
+             </div>
+           </div>
+        </div>
+      </div>
+
+      <div v-if="loading" class="notification">Loading data...</div>
+      <div v-else-if="error" class="notification is-danger">{{ error }}</div>
+
+      <div v-else class="box p-0" style="overflow: hidden;">
+
+        <div class="virtual-header columns is-mobile m-0 has-background-light has-text-weight-bold is-size-7-mobile">
+          <div class="column is-4 is-clickable select-none" @click="toggleSort('name')">
+            File / Directory
+            <span class="icon is-small ml-1" v-if="sortBy === 'name'">
+              <i :class="sortDesc ? 'fas fa-angle-down' : 'fas fa-angle-up'"></i>
+            </span>
+          </div>
+
+          <div class="column is-2 is-clickable select-none" @click="toggleSort('score')">
+            Liveness
+            <span class="icon is-small ml-1" v-if="sortBy === 'score'">
+              <i :class="sortDesc ? 'fas fa-angle-down' : 'fas fa-angle-up'"></i>
+            </span>
+          </div>
+
+          <div class="column is-2 has-text-right is-clickable select-none" @click="toggleSort('total')">
+            Total
+            <span class="icon is-small ml-1" v-if="sortBy === 'total'">
+              <i :class="sortDesc ? 'fas fa-angle-down' : 'fas fa-angle-up'"></i>
+            </span>
+          </div>
+
+          <div class="column is-2 has-text-right is-clickable select-none" @click="toggleSort('window')">
+            Last {{ smoothingWindow }}w
+            <span class="icon is-small ml-1" v-if="sortBy === 'window'">
+              <i :class="sortDesc ? 'fas fa-angle-down' : 'fas fa-angle-up'"></i>
+            </span>
+          </div>
+
+          <div class="column is-2">
+            Activity
           </div>
         </div>
 
-        <div v-if="loading" class="notification">Loading data...</div>
-        <div v-else-if="error" class="notification is-danger">{{ error }}</div>
-
-        <div v-else class="box p-0" style="overflow: hidden;">
-
-          <div class="virtual-header columns is-mobile m-0 has-background-light has-text-weight-bold is-size-7-mobile">
-            <div class="column is-4 is-clickable select-none" @click="toggleSort('name')">
-              File / Directory
-              <span class="icon is-small ml-1" v-if="sortBy === 'name'">
-                <i :class="sortDesc ? 'fas fa-angle-down' : 'fas fa-angle-up'"></i>
-              </span>
-            </div>
-
-            <div class="column is-2 is-clickable select-none" @click="toggleSort('score')">
-              Liveness
-              <span class="icon is-small ml-1" v-if="sortBy === 'score'">
-                <i :class="sortDesc ? 'fas fa-angle-down' : 'fas fa-angle-up'"></i>
-              </span>
-            </div>
-
-            <div class="column is-2 has-text-right is-clickable select-none" @click="toggleSort('total')">
-              Total
-              <span class="icon is-small ml-1" v-if="sortBy === 'total'">
-                <i :class="sortDesc ? 'fas fa-angle-down' : 'fas fa-angle-up'"></i>
-              </span>
-            </div>
-
-            <div class="column is-2 has-text-right is-clickable select-none" @click="toggleSort('window')">
-              Last {{ smoothingWindow }}w
-              <span class="icon is-small ml-1" v-if="sortBy === 'window'">
-                <i :class="sortDesc ? 'fas fa-angle-down' : 'fas fa-angle-up'"></i>
-              </span>
-            </div>
-
-            <div class="column is-2">
-              Activity
-            </div>
-          </div>
+        <div
+          class="virtual-scroll-container"
+          ref="scrollContainer"
+          @scroll="onScroll"
+        >
+          <div :style="{ height: totalHeight + 'px' }"></div>
 
           <div
-            class="virtual-scroll-container"
-            ref="scrollContainer"
-            @scroll="onScroll"
+            v-for="item in visibleItems"
+            :key="item.name"
+            class="virtual-row columns is-mobile m-0"
+            :class="{
+              'has-text-grey-light': item.isDeleted,
+              'is-clickable': item.isDirectory
+            }"
+            :style="{ transform: `translateY(${item.offset}px)` }"
+            @click="onItemClick(item)"
           >
-            <div :style="{ height: totalHeight + 'px' }"></div>
-
-            <div
-              v-for="item in visibleItems"
-              :key="item.name"
-              class="virtual-row columns is-mobile m-0 is-clickable"
-              :class="{ 'has-text-grey-light': item.isDeleted }"
-              :style="{ transform: `translateY(${item.offset}px)` }"
-              @click="onItemClick(item)"
-            >
-              <div class="column is-4 is-flex is-align-items-center is-clipped">
-                <span class="icon is-small is-left mr-2" :class="item.isDeleted ? 'has-text-grey-lighter' : 'has-text-grey'">
-                  <i :class="item.isDirectory ? 'fas fa-folder' : 'fas fa-file'"></i>
-                </span>
-                <span
-                  class="is-clipped"
-                  :class="{
-                    'has-text-weight-bold': item.isDirectory,
-                    'is-deleted-name': item.isDeleted
-                  }"
-                  :title="item.name + (item.isDeleted ? ' (Deleted)' : '')"
-                >
-                  {{ item.name }}
-                </span>
-              </div>
-
-              <div class="column is-2 is-flex is-align-items-center">
-                 <b-progress
-                   :value="5+item.activityScore * 95"
-                   :type="getScoreColor(item.activityScore)"
-                   size="is-small"
-                   style="width: 100%; margin-bottom: 0; opacity: 0.8;"
-                 ></b-progress>
-              </div>
-
-              <div class="column is-2 has-text-right is-family-monospace is-flex is-align-items-center is-justify-content-flex-end">
-                {{ formatNumber(item.totalCommits) }}
-              </div>
-
-              <div class="column is-2 has-text-right is-family-monospace is-flex is-align-items-center is-justify-content-flex-end">
-                {{ formatNumber(item.windowCommits) }}
-              </div>
-
-              <div class="column is-2 p-0 is-flex is-align-items-center" :style="{ opacity: item.isDeleted ? 0.4 : 1 }">
-                <svg width="150" height="40" class="sparkline">
-                  <path
-                    :d="getSparklinePath(item.smoothedRates)"
-                    fill="none"
-                    stroke="#3e8ed0"
-                    stroke-width="2"
-                  />
-                  <path
-                    :d="getSparklinePath(item.smoothedRates, true)"
-                    fill="#3e8ed0"
-                    fill-opacity="0.1"
-                    stroke="none"
-                  />
-                </svg>
-              </div>
+            <div class="column is-4 is-flex is-align-items-center is-clipped">
+              <span class="icon is-small is-left mr-2" :class="item.isDeleted ? 'has-text-grey-lighter' : 'has-text-grey'">
+                <i :class="item.isDirectory ? 'fas fa-folder' : 'fas fa-file'"></i>
+              </span>
+              <span
+                class="is-clipped"
+                :class="{
+                  'has-text-weight-bold': item.isDirectory,
+                  'is-deleted-name': item.isDeleted
+                }"
+                :title="item.name + (item.isDeleted ? ' (Deleted)' : '')"
+              >
+                {{ item.name }}
+              </span>
             </div>
 
-            <div v-if="sortedDirectoryItems.length === 0" class="has-text-centered p-6 has-text-grey">
-              <span v-if="searchQuery">No matching files found.</span>
-              <span v-else>Empty directory or no data found.</span>
+            <div class="column is-2 is-flex is-align-items-center">
+                <b-progress
+                  :value="5+item.activityScore * 95"
+                  :type="getScoreColor(item.activityScore)"
+                  size="is-small"
+                  style="width: 100%; margin-bottom: 0; opacity: 0.8;"
+                ></b-progress>
             </div>
 
+            <div class="column is-2 has-text-right is-family-monospace is-flex is-align-items-center is-justify-content-flex-end">
+              {{ formatNumber(item.totalCommits) }}
+            </div>
+
+            <div class="column is-2 has-text-right is-family-monospace is-flex is-align-items-center is-justify-content-flex-end">
+              {{ formatNumber(item.windowCommits) }}
+            </div>
+
+            <div class="column is-2 p-0 is-flex is-align-items-center" :style="{ opacity: item.isDeleted ? 0.4 : 1 }">
+              <svg width="150" height="40" class="sparkline">
+                <path
+                  :d="getSparklinePath(item.smoothedRates)"
+                  fill="none"
+                  stroke="#3e8ed0"
+                  stroke-width="2"
+                />
+                <path
+                  :d="getSparklinePath(item.smoothedRates, true)"
+                  fill="#3e8ed0"
+                  fill-opacity="0.1"
+                  stroke="none"
+                />
+              </svg>
+            </div>
           </div>
-        </div>
 
+          <div v-if="sortedDirectoryItems.length === 0" class="has-text-centered p-6 has-text-grey">
+            <span v-if="searchQuery">No matching files found.</span>
+            <span v-else>Empty directory or no data found.</span>
+          </div>
+
+        </div>
       </div>
-    </section>
+
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { format } from 'd3-format';
 
 // --- Types ---
@@ -208,8 +210,9 @@ interface DirectoryItem {
   totalCommits: number;
   windowCommits: number;
   activityScore: number;
-  isDeleted: boolean; // NEW
-  deletedAt: number | null; // NEW
+  isDeleted: boolean;
+  deletedAt: number | null;
+  isFile: boolean;
 }
 type SortOption = 'name' | 'total' | 'window' | 'score';
 
@@ -224,7 +227,7 @@ const BUFFER_SIZE = 10;
 const repositories = ref<string[]>(["chromium"]);
 const currentPath = ref('.');
 const rawDirectoryItems = ref<Omit<DirectoryItem, 'totalCommits' | 'windowCommits' | 'activityScore' | 'smoothedRates'>[]>([]);
-const repoTotalRates = ref<number[]>([]); // NEW: Store total repository rates
+const repoTotalRates = ref<number[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
 const smoothingWindow = ref(40);
@@ -256,45 +259,65 @@ onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleKeydown);
 });
 
-if (route.query.repository) {
-  const queryRepo = Array.isArray(route.query.repository)
-    ? route.query.repository[0]
-    : route.query.repository;
-  repositories.value = [queryRepo as string];
-}
-if (route.query.path) {
-  currentPath.value = route.query.path as string;
-}
-if (route.query.smoothing) {
-  const smoothing = parseInt(route.query.smoothing as string, 10);
-  if (!isNaN(smoothing) && smoothing >= 1 && smoothing <= 52) {
-    smoothingWindow.value = smoothing;
+// Update State from URL.
+const parseUrl = () => {
+  if (route.query.repository) {
+    const queryRepo = Array.isArray(route.query.repository)
+      ? route.query.repository[0]
+      : route.query.repository;
+    repositories.value = [queryRepo as string];
   }
-}
-if (route.query.showDeleted) {
+
+  currentPath.value = (route.query.path as string) || '.';
+
+  if (route.query.smoothing) {
+    const val = parseInt(route.query.smoothing as string, 10);
+    if (!isNaN(val) && val >= 1 && val <= 52) {
+      smoothingWindow.value = val;
+    } else {
+      smoothingWindow.value = 40;
+    }
+  } else {
+    smoothingWindow.value = 40;
+  }
+
   showDeleted.value = route.query.showDeleted === 'true';
-}
-if (route.query.search) {
-  searchQuery.value = route.query.search as string;
-}
-if (route.query.sortBy) {
+
+  searchQuery.value = (route.query.search as string) || '';
+
   const sort = route.query.sortBy as SortOption;
   if (['name', 'total', 'window', 'score'].includes(sort)) {
     sortBy.value = sort;
+  } else {
+    sortBy.value = 'name'; // Default
   }
-}
-if (route.query.sortDesc) {
+
   sortDesc.value = route.query.sortDesc === 'true';
 }
 
+parseUrl();
+watch(route, parseUrl); // Watch for back/forward navigation
+
+
 function handleKeydown(e: KeyboardEvent) {
-  // Check for both lower and upper case 'f' to handle Caps Lock or Shift
-  // Also check e.code for layout independence
+  // Ctrl+F or Cmd+F to focus search input
   if ((e.ctrlKey || e.metaKey) && (e.key === 'f' || e.key === 'F' || e.code === 'KeyF')) {
     e.preventDefault();
     if (searchInput.value) {
       searchInput.value.focus();
-      searchInput.value.select(); // Select existing text for quick replacement
+      searchInput.value.select();
+    }
+  }
+
+  // Enter to navigate to the first search result.
+  if (e.key === 'Enter' && searchQuery.value) {
+    if (sortedDirectoryItems.value.length == 1 ||
+        sortedDirectoryItems.value.length > 1 &&
+      sortedDirectoryItems.value[0].name.toLowerCase() ===
+      searchQuery.value.toLowerCase()) {
+      const firstItem = sortedDirectoryItems.value[0];
+      onItemClick(firstItem);
+      return;
     }
   }
 }
@@ -351,43 +374,35 @@ const pathParts = computed(() => {
 
 const processedItems = computed(() => {
   const totalWeeks = maxAvailableWeeks.value;
-  // Get current window size (default to 4 if missing/zero to avoid Infinity)
   const windowSize = smoothingWindow.value || 4;
 
-  // Dynamic Decay: 0.5 ^ (1 / windowSize)
   const DECAY_FACTOR = Math.pow(0.5, 1 / windowSize);
 
-  // --- Phase 0: Prepare Total Rates (if available) ---
   let smoothedTotal: number[] = [];
   if (repoTotalRates.value.length > 0) {
     let tr = [...repoTotalRates.value];
-    // Pad totals to match totalWeeks logic
     if (tr.length < totalWeeks) {
       tr = tr.concat(new Array(totalWeeks - tr.length).fill(0));
     }
     smoothedTotal = applyMovingSum(tr, windowSize);
   }
 
-  // --- Phase 1: Pre-calculation (Padding + Weighted Sums + Peak Calculation) ---
   const preProcessed = rawDirectoryItems.value.map(item => {
     let rates = item.rates;
 
-    // Zero-Pad
     if (rates.length < totalWeeks) {
       const gap = totalWeeks - rates.length;
       const padding = new Array(gap).fill(0);
       rates = rates.concat(padding);
     }
 
-    // 1. Weighted Sum (for Contribution Score)
     let weightedSum = 0;
     for (let i = 0; i < rates.length; i++) {
-      const commits = rates[rates.length - 1 - i]; // Start at newest
-      const weight = Math.pow(DECAY_FACTOR, i);    // Decay based on weeks back
+      const commits = rates[rates.length - 1 - i];
+      const weight = Math.pow(DECAY_FACTOR, i);
       weightedSum += commits * weight;
     }
 
-    // 2. Smoothed Data (for Peak Ratio Score)
     const smoothed = applyMovingSum(rates, windowSize);
     const currentActivity = smoothed[smoothed.length - 1] || 0;
     const peakActivity = Math.max(...smoothed, 1);
@@ -403,25 +418,18 @@ const processedItems = computed(() => {
     };
   });
 
-  // --- Phase 2: Calculate Parent Total (The "Standard") ---
   const parentTotalWeighted = preProcessed.reduce((acc, item) => {
-    // Sum of all weighted sums in this view
     return acc + item.weightedSum;
   }, 0);
 
-  // --- Phase 3: Finalize (Combine Scores) ---
   const items = preProcessed.map(item => {
-    // Score A: Contribution to Parent Activity (0.0 to 1.0)
     const contributionScore = parentTotalWeighted > 0
       ? item.weightedSum / parentTotalWeighted
       : 0;
 
-    // Score C: Market Share Retention (NEW)
-    // Peak of (Activity / Total Activity) vs Current (Activity / Total Activity)
     let shareScore = 0;
     if (smoothedTotal.length > 0) {
       let maxShare = 0;
-      // Arrays are padded to totalWeeks, so lengths match
       const len = Math.min(item.smoothed.length, smoothedTotal.length);
 
       for (let i = 0; i < len; i++) {
@@ -437,13 +445,14 @@ const processedItems = computed(() => {
       shareScore = maxShare > 0 ? currentShare / maxShare : 0;
     }
 
-    // Final Score: Max of all three metrics
-    const score = Math.max(
-      contributionScore, // The file's contribution to parent activity.
-      item.peakScore,    // The file's retention compared to its own peak.
-      shareScore         // The file's share of commit compare to its peak share.
-    );
+    const metrics = [
+      contributionScore,
+      item.peakScore,
+      shareScore
+    ];
 
+    const score = 0.7 * Math.max(...metrics) +
+                  0.3 * (metrics.reduce((a, b) => a + b, 0) / metrics.length);
 
     const total = item.rates.reduce((sum, val) => sum + val, 0);
 
@@ -456,7 +465,6 @@ const processedItems = computed(() => {
     };
   });
 
-  // 2. Filter Deleted (unless showDeleted is true)
   if (!showDeleted.value) {
     return items.filter(i => !i.isDeleted);
   }
@@ -464,19 +472,15 @@ const processedItems = computed(() => {
   return items;
 });
 
-// Chain: Process -> Filter (Search) -> Sort
 const sortedDirectoryItems = computed(() => {
   let items = [...processedItems.value];
 
-  // Search Filter
   if (searchQuery.value) {
     const q = searchQuery.value.toLowerCase();
     items = items.filter(i => i.name.toLowerCase().includes(q));
   }
 
-  // Sort
   return items.sort((a, b) => {
-    // Directories first
     if (a.isDirectory !== b.isDirectory) return a.isDirectory ? -1 : 1;
 
     let valA: any, valB: any;
@@ -528,8 +532,6 @@ const visibleItems = computed(() => {
 function onScroll(e: Event) {
   scrollTop.value = (e.target as HTMLElement).scrollTop;
 }
-
-// --- Actions ---
 
 function toggleSort(key: SortOption) {
   if (sortBy.value === key) {
@@ -609,7 +611,6 @@ function getSparklinePath(smoothedData: number[], isArea = false): string {
 
 async function fetchRepoTotal(repo: string) {
   try {
-    // Attempt to load the repository total file
     const url = `${BASE_URL}/${repo}/total.json`;
     const res = await fetch(url);
     if (!res.ok) {
@@ -618,7 +619,6 @@ async function fetchRepoTotal(repo: string) {
     }
     const data = await res.json();
 
-    // Robustly handle format: Array or { r: ... } or { total: ... }
     if (Array.isArray(data)) {
         repoTotalRates.value = data;
     } else if (data.r) {
@@ -635,10 +635,6 @@ async function fetchRepoTotal(repo: string) {
 }
 
 async function fetchDirectoryData(repo: string, path: string) {
-  loading.value = true;
-  error.value = null;
-  rawDirectoryItems.value = [];
-  searchQuery.value = '';
   if (scrollContainer.value) scrollContainer.value.scrollTop = 0;
 
   try {
@@ -662,26 +658,23 @@ async function fetchDirectoryData(repo: string, path: string) {
 
     if (!targetDir) throw new Error(`Directory data missing for path: ${path}`);
 
-    // UPDATED PARSING LOGIC FOR CLEANER FORMAT
-    // Every item is { r: [...], d: number | undefined }
     const items = Object.entries(targetDir).map(([name, data]: [string, any]) => {
-
       const compressed = data.r;
-
-      // Determine deletion status based on 'd' property existence/type
-      // If 'd' is a number, it's deleted. If it's missing/undefined, it's active.
       const deletedAt = (typeof data.d === 'number') ? data.d : null;
       const isDeleted = deletedAt !== null;
+      const isDirectory = data.f == undefined || data.f != 1;
 
       return {
         name,
         rates: decompressRates(compressed),
-        isDirectory: !name.includes('.'), // Heuristic
+        isDirectory,
         isDeleted,
-        deletedAt
+        deletedAt,
       };
     });
 
+    loading.value = true;
+    error.value = null;
     rawDirectoryItems.value = items;
   } catch (err: any) {
     console.error(err);
@@ -692,11 +685,14 @@ async function fetchDirectoryData(repo: string, path: string) {
 }
 
 function navigate(path: string) {
+  history.pushState(null, '', window.location.href);
+  searchQuery.value = '';
   currentPath.value = path;
 }
 
 function onItemClick(item: DirectoryItem) {
-  if (item.name.includes('.')) return;
+  if (!item.isDirectory) return;
+
   const nextPath = currentPath.value === '.' ? item.name : `${currentPath.value}/${item.name}`;
   navigate(nextPath);
 }
@@ -785,7 +781,7 @@ watch([
 }
 
 .virtual-scroll-container {
-  height: calc(100vh - 500px);
+  height: calc(100vh - 470px);
   overflow-y: auto;
   position: relative;
 }

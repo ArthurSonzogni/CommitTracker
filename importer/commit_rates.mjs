@@ -93,6 +93,7 @@ function decompressRates(compressed) {
 }
 
 async function runCommand(command, args, cwd = process.cwd(), env = process.env, liveLineCallback = null) {
+  console.log(`  Running command: ${command} ${args.join(' ')} (cwd: ${cwd})`);
   if (typeof env === 'function') {
     liveLineCallback = env;
     env = process.env;
@@ -143,10 +144,8 @@ function loadBucket(jsonContent, globalRates, deletionMap, childMap) {
       childrenSet.add(childName);
       const childFullPath = (dirPath === '.' || dirPath === '') ? childName : `${dirPath}/${childName}`;
 
-      // Handle the object format: { r: [...], d: number | undefined }
       const rates = decompressRates(data.r);
 
-      // Load deletion timestamp if it exists
       if (data.d !== undefined) {
           deletionMap.set(childFullPath, data.d);
       }
@@ -192,12 +191,10 @@ async function ensureRepo(repo, bucketsState) {
   const gitDir = path.join(repo.dirname, '.git');
   const repoUrl = repo.url || `https://github.com/${repo.owner}/${repo.repository}`;
 
-  // Calculate the fetch start date based on previous state
   let shallowSince = CONFIG.startDate;
   if (bucketsState && bucketsState.lastCommitDate) {
     const lastDate = new Date(bucketsState.lastCommitDate);
     if (!isNaN(lastDate.getTime())) {
-      // Add a safety margin (e.g., 30 days) to ensure we overlap slightly and catch everything
       lastDate.setDate(lastDate.getDate() - 30);
       shallowSince = lastDate.toISOString();
     }
@@ -212,8 +209,7 @@ async function ensureRepo(repo, bucketsState) {
   }
 }
 
-// Updated: Accepts totalRates to count unique commits per week
-async function processCommits(repo, lastCommit, totalRates, callback) {
+async function processCommits(repo, lastCommit, callback) {
   const currentHead = await runCommand('git', ['rev-parse', 'HEAD'], repo.dirname);
   if (lastCommit === currentHead) {
     console.log("  No new commits since last run.");
@@ -224,76 +220,73 @@ async function processCommits(repo, lastCommit, totalRates, callback) {
   let args = [];
   if (lastCommit) {
     console.log(`  Running git log (Incremental: ${lastCommit.substring(0,7)}..HEAD) ...`);
-    args = ['log', `${lastCommit}..HEAD`, '--name-status', '--no-renames', `--pretty=format:${delimiter}%h %ae %aI`, '.'];
+    args = ['log', `${lastCommit}..HEAD`, '--name-status', '--no-renames', ,'--ignore-submodules', `--pretty=format:${delimiter}%h %ae %aI`, '.'];
   } else {
     console.log(`  Running git log (First run: Full history) ...`);
-    args = ['log', '--name-status', '--no-renames', `--pretty=format:${delimiter}%h %ae %aI`, '.'];
+    args = ['log', '--name-status', '--no-renames', '--ignore-submodules', `--pretty=format:${delimiter}%h %ae %aI`, '.'];
   }
 
   const env = { 'GIT_NO_LAZY_FETCH': '1' };
-  let currentCommitDate = null;
-  let currentCommitIsValid = false;
-  let processedCommits = 0;
-  let processedFiles = 0;
 
-  // Capture the date of the newest commit (which comes first in git log)
+  let processedCommits = 0;
   let headDate = null;
+
+  // Buffer to hold the commit currently being parsed
+  let currentCommit = null;
+
+  const flushCurrentCommit = () => {
+    if (currentCommit) {
+      callback(currentCommit);
+      processedCommits++;
+      if (process.stdout.isTTY && processedCommits % 100 === 0) {
+        process.stdout.write(`\r    [${processedCommits}] ${currentCommit.hash} - ${currentCommit.files.length} files`);
+      }
+    }
+  };
 
   const onLine = (line) => {
     line = line.trim();
     if (!line) return;
+
     if (line.startsWith(delimiter)) {
+      // 1. Finish the previous commit
+      flushCurrentCommit();
+
+      // 2. Start new commit
       const rest = line.substring(delimiter.length).trim();
       const parts = rest.split(' ');
       const hash = parts[0];
       const email = parts[1];
       const dateStr = parts[2];
 
-      // Capture the date of the very first commit we see (HEAD)
       if (!headDate && dateStr) {
         headDate = dateStr;
       }
 
-      currentCommitIsValid = IsEmailValid(email);
-      if (currentCommitIsValid && dateStr) {
-        currentCommitDate = new Date(dateStr);
+      currentCommit = {
+        hash,
+        email,
+        date: dateStr ? new Date(dateStr) : null,
+        files: [] // Accumulate files here
+      };
+      return;
+    }
 
-        // --- NEW: Update Total Commit Count ---
-        const weekIdx = getTimeBucketIndex(currentCommitDate);
-        if (weekIdx >= 0) {
-            while (totalRates.length <= weekIdx) totalRates.push(0);
-            totalRates[weekIdx]++;
-        }
-        // --------------------------------------
-      }
-
-      // Even if invalid, we might need the date for deletion logic
-      if (!currentCommitIsValid && dateStr) {
-         currentCommitDate = new Date(dateStr);
-      }
-
-      processedCommits++;
-      if (process.stdout.isTTY && processedCommits % 100 === 0) {
-        process.stdout.write(`\r    [${processedCommits}] ${hash} - ${processedFiles} files`);
-      }
-    } else {
-      if (currentCommitDate) {
-        const firstTab = line.indexOf('\t');
-        if (firstTab > 0) {
-          const status = line.substring(0, firstTab);
-          const filepath = line.substring(firstTab + 1);
-
-          if (currentCommitIsValid || status.startsWith('D')) {
-            callback(filepath, status, currentCommitDate, currentCommitIsValid);
-            processedFiles++;
-          }
-        }
+    // It's a file line (status + path)
+    if (currentCommit && currentCommit.date) {
+      const firstTab = line.indexOf('\t');
+      if (firstTab > 0) {
+        const status = line.substring(0, firstTab);
+        const filepath = line.substring(firstTab + 1);
+        currentCommit.files.push({ status, filepath });
       }
     }
   };
 
   try {
     await runCommand('git', args, repo.dirname, env, onLine);
+    // Flush the very last commit encountered
+    flushCurrentCommit();
     if (process.stdout.isTTY) process.stdout.write('\n');
   } catch (e) {
     if (e.message.includes('lazy fetch')) return { head: currentHead, headDate: headDate };
@@ -305,12 +298,10 @@ async function processCommits(repo, lastCommit, totalRates, callback) {
 async function processRepository(repo) {
   const outputDir = path.join(CONFIG.baseOutputDir, repo.dirname);
   const bucketsFile = path.join(outputDir, 'buckets.json');
-  // NEW: Total file path
   const totalFile = path.join(outputDir, 'total.json');
 
   await fs.mkdir(outputDir, { recursive: true });
 
-  // Read buckets state BEFORE ensuring repo to check for last commit date
   let bucketsState = { lastCommit: null, lastCommitDate: null };
   try {
     const data = await fs.readFile(bucketsFile, 'utf8');
@@ -322,7 +313,6 @@ async function processRepository(repo) {
     await ensureRepo(repo, bucketsState);
   });
 
-  // NEW: Load existing total.json if it exists (for incremental updates)
   let totalRates = [];
   try {
       const data = await fs.readFile(totalFile, 'utf8');
@@ -360,35 +350,71 @@ async function processRepository(repo) {
   const lastFileEvents = new Map();
 
   await timed(`Analyzing commits`, async () => {
-    // Pass totalRates to processCommits
-    const result = await processCommits(repo, bucketsState.lastCommit, totalRates, (filepath, status, date, authorIsValid) => {
-      // We only care about the latest event.
-      if (!lastFileEvents.has(filepath) || lastFileEvents.get(filepath).date < date) {
-        lastFileEvents.set(filepath, { status, date });
+    // Callback now receives a full commit object
+    const result = await processCommits(repo, bucketsState.lastCommit, (commit) => {
+
+      // 1. Process deletions and last-seen dates for FILES
+      for (const file of commit.files) {
+        const { filepath, status } = file;
+        // We only care about the latest event.
+        if (!lastFileEvents.has(filepath) || lastFileEvents.get(filepath).date < commit.date) {
+          lastFileEvents.set(filepath, { status, date: commit.date });
+        }
       }
 
-      if (!authorIsValid) return;
+      // Check email is not a known bot.
+      if (!IsEmailValid(commit.email)) {
+        return;
+      }
 
-      const weekIdx = getTimeBucketIndex(date);
+      const weekIdx = getTimeBucketIndex(commit.date);
       if (weekIdx < 0) return;
 
-      let currentPath = filepath;
-      while (true) {
-        if (!globalRates.has(currentPath)) globalRates.set(currentPath, []);
-        const rates = globalRates.get(currentPath);
+      if (commit.files.length === 0) return;
+
+      // 2. Identify all unique file/directories affected by this commit
+      const unique = new Set();
+      for (const file of commit.files) {
+
+        const { filepath } = file;
+
+        // Filter out invalid paths.
+        if (filepath.includes('"') || filepath.includes("'") || filepath.includes('..')) {
+          continue;
+        }
+
+        unique.add(filepath);
+
+        let currentPath = filepath;
+        while (currentPath !== '.' && currentPath !== '') {
+          const parent = path.posix.dirname(currentPath);
+          const childName = path.posix.basename(currentPath);
+          const parentKey = (parent === '.' || parent === '/') ? '.' : parent;
+
+          // Always ensure the hierarchy exists in childMap
+          if (!childMap.has(parentKey)) childMap.set(parentKey, new Set());
+          childMap.get(parentKey).add(childName);
+
+          unique.add(parentKey);
+          currentPath = parentKey;
+        }
+      }
+
+      const incrementRates = rates => {
         while (rates.length <= weekIdx) rates.push(0);
         rates[weekIdx]++;
-
-        // Recursively add to parent directories
-        if (currentPath === '.' || currentPath === '') break;
-        const parent = path.posix.dirname(currentPath);
-        const childName = path.posix.basename(currentPath);
-        const parentKey = (parent === '.' || parent === '/') ? '.' : parent;
-        if (!childMap.has(parentKey)) childMap.set(parentKey, new Set());
-        childMap.get(parentKey).add(childName);
-        currentPath = parentKey;
       }
+
+      // 3. Increment the DIRECTORY rates (Once per commit)
+      for (const dirPath of unique) {
+        if (!globalRates.has(dirPath)) globalRates.set(dirPath, []);
+        incrementRates(globalRates.get(dirPath));
+      }
+
+      // 4. Increment TOTAL rates.
+      incrementRates(totalRates);
     });
+
     newHead = result.head;
     newHeadDate = result.headDate;
   });
@@ -448,7 +474,6 @@ async function processRepository(repo) {
   });
 
   await timed(`Saving data`, async () => {
-    // NEW: Save total.json
     await fs.writeFile(totalFile, JSON.stringify(totalRates));
 
     const bucketGroups = new Map();
@@ -478,6 +503,11 @@ async function processRepository(repo) {
           const itemObj = { r: compressed };
           if (deletedAt !== undefined) {
               itemObj.d = deletedAt;
+          }
+
+          // Check if it's a directory. If NOT in childMap, it is a file.
+          if (!childMap.has(childFullPath)) {
+              itemObj.f = 1;
           }
 
           childrenObj[childName] = itemObj;
@@ -513,7 +543,6 @@ async function processRepository(repo) {
   });
 
   bucketsState.lastCommit = newHead;
-  // Save the date of the last processed commit to use for future delta fetches
   if (newHeadDate) {
       bucketsState.lastCommitDate = newHeadDate;
   }
@@ -528,6 +557,7 @@ async function main() {
   for (const repository of repositories) {
     if (repository.cone) {
       console.log(`Skipping cone repository: ${repository.owner}/${repository.repository}`);
+      continue;
     }
     await timed(`Processing ${repository.owner}/${repository.repository}`, async () => {
       await processRepository(repository);
