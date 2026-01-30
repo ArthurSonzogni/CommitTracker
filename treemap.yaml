@@ -1,5 +1,13 @@
 metrics:
 
+# Activity ---------------------------------------------------------------------
+
+#- name: "Commit rate (1 month)"
+  #description: The number of commits per file during the last month.
+  #script: >-
+    #python3 ../../scripts/commit_rate_1m.py
+  #file: commit_rate_1m
+
 # General ----------------------------------------------------------------------
 
 - name: C++ file

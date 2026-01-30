@@ -74,17 +74,57 @@ const clone = async (repo, incremental) => {
     return;
   } catch (e) { }
 
-  await fs.writeFile("script.sh", `
-    git clone \
-    --progress \
-    --verbose \
-    ${incremental ? "--depth=1" : ""} \
-    https://github.com/${repo.owner}/${repo.repository} ${repo.dirname}
+  // If not incremental, we can clone a full clone, with blobs. This can be
+  // restricted to the CONFIG.full.begin date.
+  if (!incremental) {
+    const since_date = CONFIG.full.begin.toISOString().split('T')[0];
+    await fs.writeFile("script.sh", `
+      git clone \
+      --progress \
+      --verbose \
+      --shallow-since="${since_date}" \
+      https://github.com/${repo.owner}/${repo.repository} \
+      ${repo.dirname}
     `)
-  const shell = spawn("sh", ["./script.sh"]);
-  shell.stdout.on("data", chunk => { console.log(chunk.toString()); });
-  shell.stderr.on("data", chunk => { console.log(chunk.toString()); });
-  await new Promise(r => shell.on("close", r));
+    const shell = spawn("sh", ["./script.sh"]);
+    shell.stdout.on("data", chunk => { console.log(chunk.toString()); });
+    shell.stderr.on("data", chunk => { console.log(chunk.toString()); });
+    await new Promise(r => shell.on("close", r));
+    return;
+  }
+
+  // Incremental clone: first do a shallow clone without blobs.
+  {
+    await fs.writeFile("script.sh", `
+      git clone \
+      --filter=blob:none \
+      --no-checkout \
+      --progress \
+      --verbose \
+      --depth 1 \
+      https://github.com/${repo.owner}/${repo.repository} ${repo.dirname}
+      `)
+    const shell = spawn("sh", ["./script.sh"]);
+    shell.stdout.on("data", chunk => { console.log(chunk.toString()); });
+    shell.stderr.on("data", chunk => { console.log(chunk.toString()); });
+    await new Promise(r => shell.on("close", r));
+  }
+
+  // Then fetch the history, still without blobs, but going back one month.
+  {
+    await fs.writeFile("script.sh", `
+      cd ${repo.dirname}
+      git fetch \
+        --verbose \
+        --progress \
+        --shallow-since="1 month ago" \
+        --filter=blob:none
+    `)
+    const shell = spawn("sh", ["./script.sh"]);
+    shell.stdout.on("data", chunk => { console.log(chunk.toString()); });
+    shell.stderr.on("data", chunk => { console.log(chunk.toString()); });
+    await new Promise(r => shell.on("close", r));
+  }
 }
 
 // Entry layout:
@@ -263,6 +303,10 @@ async function processRepository(repo, entries) {
     processed_dates.push(date_string);
 
     await timed(`Checking out at date ${date_string}`, async () => {
+      if (incremental) {
+        console.log("Incremental mode, skipping checkout.");
+        return;
+      }
       await fs.writeFile("script.sh", `
         cd ./${repo.dirname}
         commit_at_date() {

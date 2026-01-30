@@ -134,10 +134,6 @@
       </ul>
     </div>
   </section>
-
-
-
-
 </template>
 
 <script setup lang="ts">
@@ -213,10 +209,15 @@ const tooltipRef = ref<HTMLDivElement | null>(null);
 const tooltipData = ref({ name: '', path: '', value: 0, percent: '' });
 
 // Caching & Concurrency Control
+// 1. dirCache: Stores processed RateData[] for a specific path to avoid re-parsing
 const dirCache = new Map<string, RateData[]>();
+// 2. bucketCache: Stores the PROMISE of the raw JSON fetch. This prevents two requests
+//    for the same bucket file (which contains multiple paths) from firing simultaneously.
+const bucketCache = new Map<string, Promise<Record<string, any>>>();
+
 let renderRequestId = 0;
 
-// --- Computed Props (New) ---
+// --- Computed Props ---
 const startYear = computed(() => new Date(CONFIG_START_DATE).getFullYear());
 
 const maxAvailableWeeks = computed(() => {
@@ -304,7 +305,6 @@ function decompressRates(compressed: any[]): number[] {
     rates.push(0);
   }
 
-
   return rates;
 }
 
@@ -340,25 +340,66 @@ function getCustomSankeyPath(d: any) {
           Z`;
 }
 
-// --- Data Fetching ---
+// --- Data Fetching Logic ---
+
+// Helper to determine URL
+function getBucketUrl(repo: string, path: string): string {
+  if (path === '.') {
+    return `${BASE_URL}/${repo}/main.json`;
+  }
+  const bucketId = getBucketId(path);
+  return `${BASE_URL}/${repo}/${bucketId}.json`;
+}
+
+// Core fetcher with Promise Caching (Deduplication)
+function fetchBucket(repo: string, url: string): Promise<Record<string, any>> {
+  // Return existing promise if we are already fetching this bucket
+  if (bucketCache.has(url)) {
+    return bucketCache.get(url)!;
+  }
+
+  // Create new promise
+  const promise = fetch(url).then(async (res) => {
+    if (!res.ok) {
+       throw new Error(`Failed to load bucket (Status: ${res.status})`);
+    }
+    return res.json();
+  }).catch(err => {
+    // If it fails, remove from cache so we can try again later
+    bucketCache.delete(url);
+    throw err;
+  });
+
+  bucketCache.set(url, promise);
+  return promise;
+}
+
+// Speculative Fetching
+function prefetchBuckets(repo: string, paths: string[]) {
+  for (const path of paths) {
+    const url = getBucketUrl(repo, path);
+    // Only fetch if not already in cache (bucketCache check happens inside fetchBucket too,
+    // but we check here to avoid unnecessary function calls)
+    if (!bucketCache.has(url)) {
+      // Fire and forget - don't await.
+      // fetchPathItems will attach to this promise later if needed.
+      fetchBucket(repo, url).catch(() => {
+        // errors handled in main fetch flow
+      });
+    }
+  }
+}
 
 async function fetchPathItems(repo: string, path: string): Promise<RateData[]> {
   const cacheKey = `${repo}:${path}`;
   if (dirCache.has(cacheKey)) return dirCache.get(cacheKey)!;
 
-  let url = '';
-  if (path === '.') {
-    url = `${BASE_URL}/${repo}/main.json`;
-  } else {
-    const bucketId = getBucketId(path);
-    url = `${BASE_URL}/${repo}/${bucketId}.json`;
-  }
+  const url = getBucketUrl(repo, path);
 
   try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`Failed to load ${path} (Status: ${res.status})`);
-
-    const bucketData = await res.json();
+    // This will join an existing request if prefetch initiated it,
+    // or start a new one if it didn't.
+    const bucketData = await fetchBucket(repo, url);
     const targetDir = bucketData[path];
 
     if (!targetDir) return [];
@@ -367,8 +408,6 @@ async function fetchPathItems(repo: string, path: string): Promise<RateData[]> {
       if (data.d && typeof data.d === 'number') return null;
       const deletedAt = (typeof data.d === 'number') ? data.d : null;
       const isDeleted = deletedAt !== null;
-      if (name == "WebKit")
-        console.log(data);
 
       return {
         name,
@@ -407,8 +446,8 @@ async function buildGraphData(startPath: string) {
     node: 0,
     name: rootName,
     path: startPath,
-    activity: 0, // Will be filled based on children sum
-    height: 0,   // Will be filled based on children sum
+    activity: 0,
+    height: 0,
     depth: 0
   });
   nodeMap.set(startPath, 0);
@@ -416,6 +455,15 @@ async function buildGraphData(startPath: string) {
   const queue: string[] = [startPath];
 
   while (queue.length > 0 && nodes.length < MAX_NODES) {
+    // --- Speculative Fetching ---
+    // Look ahead in the queue and trigger fetches for the next few items
+    // Since fetchPathItems awaits the promise, triggering them here allows parallel downloading
+    // while we process the current item.
+    const nextBatch = queue.slice(0, 5); // Look at next 5 items
+    if (nextBatch.length > 0) {
+      prefetchBuckets(repository.value, nextBatch);
+    }
+
     const currentPath = queue.shift()!;
     const parentIndex = nodeMap.get(currentPath)!;
 
@@ -449,7 +497,6 @@ async function buildGraphData(startPath: string) {
       const childIndex = nodes.length;
 
       // Calculate relative height
-      // Formula: (Child Activity / Sum of Siblings Activity) * Parent Height
       let relativeHeight = 0;
       if (totalSiblingsActivity > 0) {
         relativeHeight = (child.activity / totalSiblingsActivity) * parentHeight;
@@ -459,8 +506,8 @@ async function buildGraphData(startPath: string) {
         node: childIndex,
         name: child.name,
         path: child.path,
-        activity: child.activity, // Real world value
-        height: relativeHeight,   // Visual calculation value
+        activity: child.activity,
+        height: relativeHeight,
         depth: parentNode.depth + 1,
         parent: parentIndex
       });
@@ -469,7 +516,7 @@ async function buildGraphData(startPath: string) {
       links.push({
         source: parentIndex,
         target: childIndex,
-        value: relativeHeight // Link width based on visual height
+        value: relativeHeight
       });
 
       if (child.isDirectory && nodes.length < MAX_NODES) {
@@ -620,14 +667,16 @@ async function render() {
       hideTooltip();
     });
 
-    // --- Labels ---
+    // --- Labels (Names) ---
+    // Modified selector to be specific to name labels
     const labelSelection = select(layerLabels.value)
-      .selectAll<SVGTextElement, GraphNode>("text")
+      .selectAll<SVGTextElement, GraphNode>("text.name-label")
       .data(graph.nodes, (d) => d.path);
 
     labelSelection.join(
       enter => {
         const text = enter.append("text")
+          .attr("class", "name-label")
           .attr("x", d => d.x0 < width.value / 2 ? d.x1 + 6 : d.x0 - 6)
           .attr("y", d => (d.y1 + d.y0) / 2)
           .attr("dy", "0.35em")
@@ -650,6 +699,50 @@ async function render() {
     )
     .attr("pointer-events", "none")
     .style("display", d => (d.y1 - d.y0) > 12 ? "block" : "none");
+
+    // --- Labels (Commit Values) ---
+    // New selection for values inside the nodes
+    const valueSelection = select(layerLabels.value)
+      .selectAll<SVGTextElement, GraphNode>("text.value-label")
+      .data(graph.nodes, (d) => d.path);
+
+    valueSelection.join(
+      enter => {
+        const text = enter.append("text")
+          .attr("class", "value-label")
+          .attr("x", d => (d.x0 + d.x1) / 2)
+          .attr("y", d => (d.y0 + d.y1) / 2)
+          .attr("dy", "0.35em")
+          .attr("text-anchor", "middle")
+          .attr("opacity", 0)
+          .style("font-size", "11px")
+          .style("font-weight", "bold")
+          .style("fill", "#fff")
+          .style("pointer-events", "none")
+          .style("text-shadow", "0px 0px 3px rgba(0,0,0,0.8)")
+          .text(d => formatNumber(d.activity));
+
+        text.transition(enter_transition).attr("opacity", 1);
+        return text;
+      },
+      update => {
+        return update.transition(update_transition)
+          .attr("x", d => (d.x0 + d.x1) / 2)
+          .attr("y", d => (d.y0 + d.y1) / 2)
+          .text(d => formatNumber(d.activity))
+          .attr("opacity", 1);
+      },
+      exit => exit.transition(exit_transition).attr("opacity", 0).remove()
+    )
+    .style("display", d => {
+        const val = formatNumber(d.activity);
+        // Approx width calc: 7px per char for 11px font
+        const textWidth = val.length * 7;
+        const nodeWidth = d.x1 - d.x0;
+        const nodeHeight = d.y1 - d.y0;
+        // Check width AND height (must be at least 14px high to fit text)
+        return (nodeWidth >= textWidth && nodeHeight > 14) ? "block" : "none";
+    });
 
   } catch (err: any) {
     console.error("Render error:", err);
@@ -716,6 +809,7 @@ watch(
     if (newRepo && newRepo !== repository.value) {
       repository.value = newRepo as string;
       dirCache.clear();
+      bucketCache.clear(); // Clear bucket cache on repo change
       needsRender = true;
     }
     const newPath = (Array.isArray(newQuery.path) ? newQuery.path[0] : newQuery.path) || '.';
