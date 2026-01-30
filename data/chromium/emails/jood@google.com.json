@@ -1,0 +1,6630 @@
+[
+ {
+  "date": "2024-03-29T13:27:53Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org",
+   "jlebel@chromium.org"
+  ],
+  "additions": 16,
+  "deletions": 154,
+  "files": 14
+ },
+ {
+  "date": "2024-03-28T13:26:10Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 24,
+  "deletions": 16,
+  "files": 2
+ },
+ {
+  "date": "2024-03-27T13:58:38Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 26,
+  "deletions": 22,
+  "files": 4
+ },
+ {
+  "date": "2024-03-26T19:05:28Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 22,
+  "files": 2
+ },
+ {
+  "date": "2024-03-20T11:46:35Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2024-03-19T15:14:39Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org",
+   "jlebel@chromium.org"
+  ],
+  "additions": 389,
+  "deletions": 5,
+  "files": 16
+ },
+ {
+  "date": "2024-03-19T15:06:21Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 14,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2024-03-18T08:31:21Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 14,
+  "deletions": 5,
+  "files": 2
+ },
+ {
+  "date": "2024-03-13T12:47:01Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 53,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2024-02-28T11:21:53Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 293,
+  "deletions": 400,
+  "files": 13
+ },
+ {
+  "date": "2024-02-27T18:13:34Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 48,
+  "deletions": 32,
+  "files": 3
+ },
+ {
+  "date": "2024-02-26T11:05:12Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org",
+   "jlebel@chromium.org"
+  ],
+  "additions": 461,
+  "deletions": 178,
+  "files": 9
+ },
+ {
+  "date": "2024-02-22T14:32:43Z",
+  "kind": "author",
+  "peers": [
+   "mamir@chromium.org",
+   "sdefresne@chromium.org"
+  ],
+  "additions": 91,
+  "deletions": 1,
+  "files": 7
+ },
+ {
+  "date": "2024-02-22T13:28:06Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org"
+  ],
+  "additions": 39,
+  "deletions": 23,
+  "files": 9
+ },
+ {
+  "date": "2024-02-19T11:00:46Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2024-02-14T12:27:12Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org"
+  ],
+  "additions": 274,
+  "deletions": 56,
+  "files": 11
+ },
+ {
+  "date": "2024-02-14T11:46:07Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2024-02-14T11:15:56Z",
+  "kind": "author",
+  "peers": [
+   "fernandex@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 3,
+  "files": 1
+ },
+ {
+  "date": "2024-02-14T10:40:53Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 20,
+  "deletions": 0,
+  "files": 3
+ },
+ {
+  "date": "2024-02-13T17:48:40Z",
+  "kind": "author",
+  "peers": [
+   "rushans@google.com"
+  ],
+  "additions": 9,
+  "deletions": 8,
+  "files": 5
+ },
+ {
+  "date": "2024-02-13T15:25:44Z",
+  "kind": "author",
+  "peers": [
+   "sdefresne@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 11,
+  "files": 2
+ },
+ {
+  "date": "2024-02-12T17:39:45Z",
+  "kind": "review",
+  "peers": [
+   "tedchoc@chromium.org"
+  ],
+  "additions": 62,
+  "deletions": 52,
+  "files": 9
+ },
+ {
+  "date": "2024-02-12T17:17:28Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 17,
+  "files": 3
+ },
+ {
+  "date": "2024-02-09T17:19:51Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 144,
+  "deletions": 0,
+  "files": 4
+ },
+ {
+  "date": "2024-02-09T15:44:45Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org",
+   "gambard@chromium.org"
+  ],
+  "additions": 27,
+  "deletions": 29,
+  "files": 5
+ },
+ {
+  "date": "2024-02-09T15:39:46Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org",
+   "gambard@chromium.org"
+  ],
+  "additions": 197,
+  "deletions": 31,
+  "files": 21
+ },
+ {
+  "date": "2024-02-09T14:04:31Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 78,
+  "deletions": 40,
+  "files": 6
+ },
+ {
+  "date": "2024-02-07T17:19:01Z",
+  "kind": "review",
+  "peers": [
+   "ankushkush@google.com"
+  ],
+  "additions": 43,
+  "deletions": 53,
+  "files": 2
+ },
+ {
+  "date": "2024-02-06T17:43:14Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 86,
+  "deletions": 0,
+  "files": 4
+ },
+ {
+  "date": "2024-02-05T11:22:26Z",
+  "kind": "review",
+  "peers": [
+   "bsazonov@chromium.org"
+  ],
+  "additions": 44,
+  "deletions": 9,
+  "files": 5
+ },
+ {
+  "date": "2024-02-02T17:12:37Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org"
+  ],
+  "additions": 34,
+  "deletions": 6,
+  "files": 5
+ },
+ {
+  "date": "2024-02-02T12:46:25Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org",
+   "victorvianna@google.com"
+  ],
+  "additions": 169,
+  "deletions": 30,
+  "files": 9
+ },
+ {
+  "date": "2024-02-01T12:48:54Z",
+  "kind": "review",
+  "peers": [
+   "gabolvr@google.com"
+  ],
+  "additions": 88,
+  "deletions": 29,
+  "files": 20
+ },
+ {
+  "date": "2024-01-30T14:18:34Z",
+  "kind": "review",
+  "peers": [
+   "rushans@google.com"
+  ],
+  "additions": 11,
+  "deletions": 30,
+  "files": 8
+ },
+ {
+  "date": "2024-01-29T17:20:52Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 168,
+  "deletions": 4,
+  "files": 8
+ },
+ {
+  "date": "2024-01-26T15:20:36Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2024-01-26T12:50:45Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 29,
+  "deletions": 0,
+  "files": 6
+ },
+ {
+  "date": "2024-01-22T19:04:19Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2024-01-18T18:53:21Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2024-01-18T16:01:03Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 4,
+  "files": 4
+ },
+ {
+  "date": "2024-01-17T13:30:02Z",
+  "kind": "author",
+  "peers": [
+   "fhorschig@chromium.org"
+  ],
+  "additions": 35,
+  "deletions": 30,
+  "files": 8
+ },
+ {
+  "date": "2024-01-17T13:18:41Z",
+  "kind": "review",
+  "peers": [
+   "rushans@google.com"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2024-01-17T11:36:32Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 61,
+  "deletions": 52,
+  "files": 11
+ },
+ {
+  "date": "2024-01-16T18:03:13Z",
+  "kind": "review",
+  "peers": [
+   "dbertoni@chromium.org"
+  ],
+  "additions": 28,
+  "deletions": 3,
+  "files": 5
+ },
+ {
+  "date": "2024-01-15T18:19:28Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 11,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2024-01-15T13:09:11Z",
+  "kind": "author",
+  "peers": [
+   "triploblastic@google.com"
+  ],
+  "additions": 2,
+  "deletions": 3,
+  "files": 1
+ },
+ {
+  "date": "2024-01-15T12:25:21Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org",
+   "treib@chromium.org"
+  ],
+  "additions": 20,
+  "deletions": 14,
+  "files": 4
+ },
+ {
+  "date": "2024-01-12T15:30:53Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 19,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2024-01-12T07:58:09Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 191,
+  "deletions": 7,
+  "files": 10
+ },
+ {
+  "date": "2024-01-11T13:25:28Z",
+  "kind": "author",
+  "peers": [
+   "triploblastic@google.com"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2024-01-10T16:10:45Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 7,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2024-01-10T13:37:53Z",
+  "kind": "author",
+  "peers": [
+   "droger@chromium.org"
+  ],
+  "additions": 115,
+  "deletions": 0,
+  "files": 8
+ },
+ {
+  "date": "2024-01-09T13:43:36Z",
+  "kind": "author",
+  "peers": [
+   "sdefresne@chromium.org"
+  ],
+  "additions": 32,
+  "deletions": 3,
+  "files": 2
+ },
+ {
+  "date": "2024-01-09T11:38:31Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 145,
+  "deletions": 1,
+  "files": 2
+ },
+ {
+  "date": "2024-01-08T17:29:29Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org",
+   "droger@chromium.org"
+  ],
+  "additions": 115,
+  "deletions": 0,
+  "files": 8
+ },
+ {
+  "date": "2024-01-08T16:04:31Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 7,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2024-01-08T12:06:22Z",
+  "kind": "author",
+  "peers": [
+   "victorvianna@google.com"
+  ],
+  "additions": 4,
+  "deletions": 2,
+  "files": 4
+ },
+ {
+  "date": "2024-01-08T11:18:02Z",
+  "kind": "author",
+  "peers": [
+   "mmrashad@google.com"
+  ],
+  "additions": 3,
+  "deletions": 3,
+  "files": 2
+ },
+ {
+  "date": "2024-01-05T10:38:39Z",
+  "kind": "author",
+  "peers": [
+   "triploblastic@google.com"
+  ],
+  "additions": 72,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2024-01-05T10:32:26Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 7,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2024-01-04T16:48:34Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 13,
+  "deletions": 4,
+  "files": 2
+ },
+ {
+  "date": "2024-01-03T21:36:32Z",
+  "kind": "review",
+  "peers": [
+   "ahijazi@chromium.org"
+  ],
+  "additions": 7,
+  "deletions": 6,
+  "files": 2
+ },
+ {
+  "date": "2024-01-02T17:05:31Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org",
+   "caitlinfischer@google.com"
+  ],
+  "additions": 56,
+  "deletions": 3,
+  "files": 2
+ },
+ {
+  "date": "2024-01-02T10:55:44Z",
+  "kind": "author",
+  "peers": [
+   "triploblastic@google.com",
+   "gambard@chromium.org"
+  ],
+  "additions": 77,
+  "deletions": 1,
+  "files": 4
+ },
+ {
+  "date": "2023-12-29T10:21:55Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org",
+   "jlebel@chromium.org"
+  ],
+  "additions": 195,
+  "deletions": 72,
+  "files": 8
+ },
+ {
+  "date": "2023-12-27T13:05:00Z",
+  "kind": "review",
+  "peers": [
+   "rushans@google.com"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2023-12-21T17:59:32Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org"
+  ],
+  "additions": 108,
+  "deletions": 4,
+  "files": 8
+ },
+ {
+  "date": "2023-12-20T15:29:09Z",
+  "kind": "review",
+  "peers": [
+   "mmoskvitin@google.com"
+  ],
+  "additions": 30,
+  "deletions": 13,
+  "files": 1
+ },
+ {
+  "date": "2023-12-20T13:35:55Z",
+  "kind": "author",
+  "peers": [
+   "victorvianna@google.com"
+  ],
+  "additions": 11,
+  "deletions": 1,
+  "files": 3
+ },
+ {
+  "date": "2023-12-19T12:04:47Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org"
+  ],
+  "additions": 313,
+  "deletions": 12,
+  "files": 8
+ },
+ {
+  "date": "2023-12-18T21:10:05Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 46,
+  "deletions": 2,
+  "files": 10
+ },
+ {
+  "date": "2023-12-18T13:20:11Z",
+  "kind": "review",
+  "peers": [
+   "mmoskvitin@google.com"
+  ],
+  "additions": 112,
+  "deletions": 140,
+  "files": 4
+ },
+ {
+  "date": "2023-12-15T16:15:29Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 281,
+  "deletions": 2,
+  "files": 8
+ },
+ {
+  "date": "2023-11-30T14:03:29Z",
+  "kind": "review",
+  "peers": [
+   "ankushkush@google.com"
+  ],
+  "additions": 170,
+  "deletions": 0,
+  "files": 3
+ },
+ {
+  "date": "2023-11-29T15:32:21Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 60,
+  "deletions": 4,
+  "files": 7
+ },
+ {
+  "date": "2023-11-28T17:22:24Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 11,
+  "files": 1
+ },
+ {
+  "date": "2023-11-27T12:36:58Z",
+  "kind": "author",
+  "peers": [
+   "tmartino@chromium.org",
+   "gambard@chromium.org"
+  ],
+  "additions": 92,
+  "deletions": 15,
+  "files": 2
+ },
+ {
+  "date": "2023-11-27T12:24:42Z",
+  "kind": "author",
+  "peers": [
+   "myuu@google.com"
+  ],
+  "additions": 120,
+  "deletions": 26,
+  "files": 9
+ },
+ {
+  "date": "2023-11-23T12:42:12Z",
+  "kind": "review",
+  "peers": [
+   "sugoi@chromium.org"
+  ],
+  "additions": 16,
+  "deletions": 13,
+  "files": 1
+ },
+ {
+  "date": "2023-11-21T13:59:11Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org",
+   "myuu@google.com"
+  ],
+  "additions": 94,
+  "deletions": 15,
+  "files": 13
+ },
+ {
+  "date": "2023-11-17T20:04:13Z",
+  "kind": "author",
+  "peers": [
+   "myuu@google.com",
+   "gambard@chromium.org"
+  ],
+  "additions": 24,
+  "deletions": 23,
+  "files": 10
+ },
+ {
+  "date": "2023-11-17T18:18:39Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 36,
+  "files": 2
+ },
+ {
+  "date": "2023-11-16T14:35:38Z",
+  "kind": "review",
+  "peers": [
+   "mastiz@chromium.org"
+  ],
+  "additions": 119,
+  "deletions": 129,
+  "files": 16
+ },
+ {
+  "date": "2023-11-14T10:32:07Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 11,
+  "deletions": 1,
+  "files": 3
+ },
+ {
+  "date": "2023-11-06T09:33:10Z",
+  "kind": "author",
+  "peers": [
+   "tmartino@chromium.org"
+  ],
+  "additions": 40,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2023-11-03T10:58:41Z",
+  "kind": "author",
+  "peers": [
+   "triploblastic@google.com"
+  ],
+  "additions": 75,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2023-10-31T17:03:27Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 43,
+  "deletions": 1,
+  "files": 2
+ },
+ {
+  "date": "2023-10-31T11:44:31Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 39,
+  "deletions": 1,
+  "files": 2
+ },
+ {
+  "date": "2023-10-30T11:17:02Z",
+  "kind": "review",
+  "peers": [
+   "victorvianna@google.com"
+  ],
+  "additions": 36,
+  "deletions": 10,
+  "files": 5
+ },
+ {
+  "date": "2023-10-26T09:47:51Z",
+  "kind": "author",
+  "peers": [
+   "tmartino@chromium.org"
+  ],
+  "additions": 132,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2023-10-25T10:17:15Z",
+  "kind": "review",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 163,
+  "deletions": 12,
+  "files": 4
+ },
+ {
+  "date": "2023-10-24T15:53:33Z",
+  "kind": "author",
+  "peers": [
+   "tmartino@chromium.org"
+  ],
+  "additions": 133,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2023-10-24T15:01:49Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2023-10-23T17:13:35Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org"
+  ],
+  "additions": 5,
+  "deletions": 9,
+  "files": 1
+ },
+ {
+  "date": "2023-10-19T07:35:42Z",
+  "kind": "author",
+  "peers": [
+   "veronguyen@google.com"
+  ],
+  "additions": 82,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2023-10-18T13:15:19Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 314,
+  "deletions": 640,
+  "files": 17
+ },
+ {
+  "date": "2023-10-18T11:00:41Z",
+  "kind": "review",
+  "peers": [
+   "meiring@google.com"
+  ],
+  "additions": 17,
+  "deletions": 138,
+  "files": 20
+ },
+ {
+  "date": "2023-10-17T12:32:48Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org",
+   "jlebel@chromium.org"
+  ],
+  "additions": 37,
+  "deletions": 19,
+  "files": 2
+ },
+ {
+  "date": "2023-10-16T10:25:29Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 7,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2023-10-13T10:52:02Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org",
+   "treib@chromium.org"
+  ],
+  "additions": 14,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2023-10-12T17:04:42Z",
+  "kind": "review",
+  "peers": [
+   "victorvianna@google.com"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2023-10-09T17:17:31Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org"
+  ],
+  "additions": 22,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2023-10-09T09:13:39Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org",
+   "vincb@google.com"
+  ],
+  "additions": 6,
+  "deletions": 9,
+  "files": 1
+ },
+ {
+  "date": "2023-10-05T17:23:12Z",
+  "kind": "review",
+  "peers": [
+   "ankushkush@google.com"
+  ],
+  "additions": 0,
+  "deletions": 53,
+  "files": 3
+ },
+ {
+  "date": "2023-10-05T14:46:06Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 83,
+  "deletions": 1,
+  "files": 2
+ },
+ {
+  "date": "2023-10-02T12:12:44Z",
+  "kind": "review",
+  "peers": [
+   "mastiz@chromium.org"
+  ],
+  "additions": 6,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2023-09-26T11:10:31Z",
+  "kind": "author",
+  "peers": [
+   "mastiz@chromium.org",
+   "igorruvinov@chromium.org",
+   "isherman@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 59,
+  "files": 2
+ },
+ {
+  "date": "2023-09-25T09:29:24Z",
+  "kind": "author",
+  "peers": [
+   "mastiz@chromium.org",
+   "rushans@google.com"
+  ],
+  "additions": 0,
+  "deletions": 34,
+  "files": 2
+ },
+ {
+  "date": "2023-09-20T19:10:53Z",
+  "kind": "review",
+  "peers": [
+   "zhumatthew@google.com"
+  ],
+  "additions": 188,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2023-09-19T15:11:33Z",
+  "kind": "author",
+  "peers": [
+   "rushans@google.com"
+  ],
+  "additions": 0,
+  "deletions": 32,
+  "files": 1
+ },
+ {
+  "date": "2023-09-18T09:59:55Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2023-09-14T11:37:12Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2023-09-08T15:21:43Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 106,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2023-09-08T12:07:29Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 4,
+  "files": 2
+ },
+ {
+  "date": "2023-09-07T08:21:18Z",
+  "kind": "review",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 10,
+  "deletions": 15,
+  "files": 3
+ },
+ {
+  "date": "2023-09-06T13:54:10Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 59,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2023-09-06T12:56:58Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 14,
+  "deletions": 30,
+  "files": 3
+ },
+ {
+  "date": "2023-09-06T09:32:25Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 19,
+  "deletions": 11,
+  "files": 3
+ },
+ {
+  "date": "2023-09-05T19:45:37Z",
+  "kind": "review",
+  "peers": [
+   "mfoltz@chromium.org"
+  ],
+  "additions": 66,
+  "deletions": 66,
+  "files": 66
+ },
+ {
+  "date": "2023-09-05T12:20:55Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 20,
+  "files": 4
+ },
+ {
+  "date": "2023-09-05T10:23:01Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 67,
+  "deletions": 57,
+  "files": 2
+ },
+ {
+  "date": "2023-09-01T08:48:43Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 24,
+  "deletions": 7,
+  "files": 1
+ },
+ {
+  "date": "2023-08-31T13:53:07Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 187,
+  "deletions": 48,
+  "files": 1
+ },
+ {
+  "date": "2023-08-31T13:52:00Z",
+  "kind": "review",
+  "peers": [
+   "ankushkush@google.com"
+  ],
+  "additions": 66,
+  "deletions": 0,
+  "files": 5
+ },
+ {
+  "date": "2023-08-30T17:10:26Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 222,
+  "deletions": 2,
+  "files": 9
+ },
+ {
+  "date": "2023-08-29T08:49:22Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org",
+   "jlebel@chromium.org"
+  ],
+  "additions": 6,
+  "deletions": 5,
+  "files": 1
+ },
+ {
+  "date": "2023-08-28T12:37:18Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 104,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2023-08-25T09:18:36Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 18,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2023-08-24T10:43:49Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org",
+   "treib@chromium.org"
+  ],
+  "additions": 5,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2023-08-23T14:17:41Z",
+  "kind": "author",
+  "peers": [
+   "vincb@google.com"
+  ],
+  "additions": 17,
+  "deletions": 5,
+  "files": 3
+ },
+ {
+  "date": "2023-08-23T08:34:54Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2023-08-22T17:05:37Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 68,
+  "deletions": 1,
+  "files": 2
+ },
+ {
+  "date": "2023-08-22T12:38:09Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 22,
+  "deletions": 11,
+  "files": 2
+ },
+ {
+  "date": "2023-08-21T15:04:35Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 29,
+  "files": 7
+ },
+ {
+  "date": "2023-08-18T14:10:09Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 35,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2023-08-18T09:43:12Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 7,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2023-08-17T16:00:24Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 46,
+  "deletions": 55,
+  "files": 2
+ },
+ {
+  "date": "2023-08-17T14:25:32Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 6,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2023-08-17T14:03:13Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org"
+  ],
+  "additions": 9,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2023-08-17T09:30:30Z",
+  "kind": "review",
+  "peers": [
+   "victorvianna@google.com"
+  ],
+  "additions": 84,
+  "deletions": 122,
+  "files": 35
+ },
+ {
+  "date": "2023-08-16T14:21:43Z",
+  "kind": "review",
+  "peers": [
+   "victorvianna@google.com"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2023-08-16T14:15:03Z",
+  "kind": "review",
+  "peers": [
+   "victorvianna@google.com"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2023-08-16T10:46:20Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 9,
+  "files": 4
+ },
+ {
+  "date": "2023-08-11T12:27:34Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2023-08-09T08:47:15Z",
+  "kind": "review",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2023-08-08T14:29:02Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 11,
+  "deletions": 12,
+  "files": 2
+ },
+ {
+  "date": "2023-08-08T14:16:02Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 31,
+  "deletions": 7,
+  "files": 1
+ },
+ {
+  "date": "2023-08-07T14:37:50Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 139,
+  "deletions": 8,
+  "files": 2
+ },
+ {
+  "date": "2023-07-31T10:01:38Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org",
+   "treib@chromium.org"
+  ],
+  "additions": 20,
+  "deletions": 2,
+  "files": 3
+ },
+ {
+  "date": "2023-07-28T13:42:26Z",
+  "kind": "review",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2023-07-28T12:23:16Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 25,
+  "deletions": 1,
+  "files": 3
+ },
+ {
+  "date": "2023-07-27T09:52:28Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org",
+   "jlebel@chromium.org"
+  ],
+  "additions": 25,
+  "deletions": 10,
+  "files": 5
+ },
+ {
+  "date": "2023-07-26T20:12:51Z",
+  "kind": "review",
+  "peers": [
+   "greengrape@google.com"
+  ],
+  "additions": 44,
+  "deletions": 64,
+  "files": 7
+ },
+ {
+  "date": "2023-07-25T15:51:35Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 27,
+  "deletions": 29,
+  "files": 10
+ },
+ {
+  "date": "2023-07-24T13:59:02Z",
+  "kind": "review",
+  "peers": [
+   "mastiz@chromium.org"
+  ],
+  "additions": 9,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2023-07-19T14:21:56Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 16,
+  "deletions": 8,
+  "files": 5
+ },
+ {
+  "date": "2023-07-06T14:49:53Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 92,
+  "deletions": 0,
+  "files": 9
+ },
+ {
+  "date": "2023-07-06T10:54:26Z",
+  "kind": "review",
+  "peers": [
+   "mastiz@chromium.org"
+  ],
+  "additions": 63,
+  "deletions": 70,
+  "files": 6
+ },
+ {
+  "date": "2023-07-04T15:26:57Z",
+  "kind": "author",
+  "peers": [
+   "fernandex@chromium.org"
+  ],
+  "additions": 73,
+  "deletions": 13,
+  "files": 7
+ },
+ {
+  "date": "2023-07-04T14:57:53Z",
+  "kind": "review",
+  "peers": [
+   "victorvianna@google.com"
+  ],
+  "additions": 108,
+  "deletions": 106,
+  "files": 2
+ },
+ {
+  "date": "2023-07-03T15:26:55Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org",
+   "alexilin@chromium.org"
+  ],
+  "additions": 203,
+  "deletions": 41,
+  "files": 10
+ },
+ {
+  "date": "2023-06-29T16:04:27Z",
+  "kind": "author",
+  "peers": [
+   "fleimgruber@google.com",
+   "treib@chromium.org",
+   "bsazonov@chromium.org",
+   "mamir@chromium.org"
+  ],
+  "additions": 54,
+  "deletions": 49,
+  "files": 22
+ },
+ {
+  "date": "2023-06-26T17:11:02Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 25,
+  "deletions": 9,
+  "files": 4
+ },
+ {
+  "date": "2023-06-26T14:46:42Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org",
+   "jlebel@chromium.org"
+  ],
+  "additions": 95,
+  "deletions": 9,
+  "files": 5
+ },
+ {
+  "date": "2023-06-26T14:34:36Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 8,
+  "deletions": 3,
+  "files": 1
+ },
+ {
+  "date": "2023-06-23T14:49:03Z",
+  "kind": "author",
+  "peers": [
+   "mmrashad@google.com"
+  ],
+  "additions": 74,
+  "deletions": 51,
+  "files": 4
+ },
+ {
+  "date": "2023-06-22T18:41:16Z",
+  "kind": "author",
+  "peers": [
+   "fernandex@chromium.org",
+   "treib@chromium.org"
+  ],
+  "additions": 115,
+  "deletions": 31,
+  "files": 2
+ },
+ {
+  "date": "2023-06-22T14:24:35Z",
+  "kind": "author",
+  "peers": [
+   "fernandex@chromium.org",
+   "treib@chromium.org"
+  ],
+  "additions": 8,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2023-06-21T15:59:26Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org",
+   "bsazonov@chromium.org",
+   "fernandex@chromium.org"
+  ],
+  "additions": 53,
+  "deletions": 21,
+  "files": 7
+ },
+ {
+  "date": "2023-06-21T11:31:20Z",
+  "kind": "author",
+  "peers": [
+   "victorvianna@google.com",
+   "fernandex@chromium.org",
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 80,
+  "deletions": 3,
+  "files": 7
+ },
+ {
+  "date": "2023-06-16T13:35:53Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 36,
+  "deletions": 0,
+  "files": 6
+ },
+ {
+  "date": "2023-06-16T13:24:16Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org",
+   "treib@chromium.org"
+  ],
+  "additions": 87,
+  "deletions": 9,
+  "files": 6
+ },
+ {
+  "date": "2023-06-15T10:44:20Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 22,
+  "deletions": 1,
+  "files": 3
+ },
+ {
+  "date": "2023-06-15T09:17:33Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 158,
+  "deletions": 29,
+  "files": 5
+ },
+ {
+  "date": "2023-06-14T18:10:34Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 25,
+  "deletions": 7,
+  "files": 4
+ },
+ {
+  "date": "2023-06-14T10:36:45Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 327,
+  "deletions": 13,
+  "files": 5
+ },
+ {
+  "date": "2023-06-09T14:22:37Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org",
+   "jlebel@chromium.org"
+  ],
+  "additions": 17,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2023-06-09T13:31:06Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2023-06-09T13:06:27Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 306,
+  "deletions": 0,
+  "files": 8
+ },
+ {
+  "date": "2023-06-09T12:54:26Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org",
+   "jlebel@chromium.org"
+  ],
+  "additions": 82,
+  "deletions": 50,
+  "files": 10
+ },
+ {
+  "date": "2023-06-05T12:14:12Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org",
+   "jlebel@chromium.org"
+  ],
+  "additions": 283,
+  "deletions": 107,
+  "files": 13
+ },
+ {
+  "date": "2023-05-31T09:25:37Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 11,
+  "deletions": 8,
+  "files": 5
+ },
+ {
+  "date": "2023-05-22T13:38:47Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 26,
+  "deletions": 0,
+  "files": 6
+ },
+ {
+  "date": "2023-05-19T11:12:54Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 112,
+  "deletions": 5,
+  "files": 10
+ },
+ {
+  "date": "2023-05-17T13:01:21Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 208,
+  "deletions": 73,
+  "files": 13
+ },
+ {
+  "date": "2023-05-16T10:34:21Z",
+  "kind": "author",
+  "peers": [
+   "mamir@chromium.org",
+   "treib@chromium.org",
+   "gambard@chromium.org",
+   "msarda@chromium.org"
+  ],
+  "additions": 258,
+  "deletions": 220,
+  "files": 65
+ },
+ {
+  "date": "2023-05-12T12:25:54Z",
+  "kind": "author",
+  "peers": [
+   "rkaplow@chromium.org",
+   "gambard@chromium.org",
+   "msarda@chromium.org",
+   "dullweber@chromium.org",
+   "treib@chromium.org"
+  ],
+  "additions": 216,
+  "deletions": 159,
+  "files": 57
+ },
+ {
+  "date": "2023-05-05T13:18:28Z",
+  "kind": "author",
+  "peers": [
+   "mastiz@chromium.org"
+  ],
+  "additions": 37,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2023-05-05T12:29:56Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org",
+   "mastiz@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 3,
+  "files": 2
+ },
+ {
+  "date": "2023-05-05T10:21:14Z",
+  "kind": "author",
+  "peers": [
+   "mastiz@chromium.org"
+  ],
+  "additions": 36,
+  "deletions": 0,
+  "files": 5
+ },
+ {
+  "date": "2023-05-02T17:42:44Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org",
+   "jlebel@chromium.org"
+  ],
+  "additions": 27,
+  "deletions": 15,
+  "files": 5
+ },
+ {
+  "date": "2023-04-27T17:42:38Z",
+  "kind": "author",
+  "peers": [
+   "victorvianna@google.com",
+   "droger@chromium.org",
+   "mamir@chromium.org"
+  ],
+  "additions": 15,
+  "deletions": 144,
+  "files": 12
+ },
+ {
+  "date": "2023-04-27T15:33:14Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 70,
+  "deletions": 9,
+  "files": 7
+ },
+ {
+  "date": "2023-04-26T12:59:42Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org",
+   "treib@chromium.org"
+  ],
+  "additions": 97,
+  "deletions": 151,
+  "files": 16
+ },
+ {
+  "date": "2023-04-20T10:03:23Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 18,
+  "deletions": 13,
+  "files": 5
+ },
+ {
+  "date": "2023-04-12T14:07:17Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org",
+   "victorvianna@google.com"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2023-03-22T15:51:38Z",
+  "kind": "author",
+  "peers": [
+   "joemerramos@chromium.org",
+   "victorvianna@google.com"
+  ],
+  "additions": 6,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2023-03-21T20:44:00Z",
+  "kind": "author",
+  "peers": [
+   "victorvianna@google.com",
+   "tmartino@chromium.org"
+  ],
+  "additions": 26,
+  "deletions": 9,
+  "files": 5
+ },
+ {
+  "date": "2023-03-21T16:13:32Z",
+  "kind": "author",
+  "peers": [
+   "victorvianna@google.com",
+   "droger@chromium.org"
+  ],
+  "additions": 15,
+  "deletions": 3,
+  "files": 1
+ },
+ {
+  "date": "2023-03-19T19:26:58Z",
+  "kind": "author",
+  "peers": [
+   "tmartino@chromium.org",
+   "victorvianna@google.com"
+  ],
+  "additions": 139,
+  "deletions": 27,
+  "files": 11
+ },
+ {
+  "date": "2023-03-14T17:19:32Z",
+  "kind": "author",
+  "peers": [
+   "mamir@chromium.org",
+   "victorvianna@google.com",
+   "kazinova@google.com"
+  ],
+  "additions": 24,
+  "deletions": 4,
+  "files": 3
+ },
+ {
+  "date": "2023-03-14T13:15:59Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org",
+   "victorvianna@google.com"
+  ],
+  "additions": 2,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2023-03-02T16:00:57Z",
+  "kind": "author",
+  "peers": [
+   "victorvianna@google.com",
+   "tmartino@chromium.org"
+  ],
+  "additions": 39,
+  "deletions": 18,
+  "files": 6
+ },
+ {
+  "date": "2023-02-28T11:46:58Z",
+  "kind": "author",
+  "peers": [
+   "tmartino@chromium.org"
+  ],
+  "additions": 8,
+  "deletions": 0,
+  "files": 3
+ },
+ {
+  "date": "2023-02-27T15:13:46Z",
+  "kind": "author",
+  "peers": [
+   "victorvianna@google.com"
+  ],
+  "additions": 175,
+  "deletions": 25,
+  "files": 13
+ },
+ {
+  "date": "2023-02-17T12:47:21Z",
+  "kind": "author",
+  "peers": [
+   "victorvianna@google.com",
+   "tmartino@chromium.org"
+  ],
+  "additions": 58,
+  "deletions": 0,
+  "files": 6
+ },
+ {
+  "date": "2023-01-30T19:26:03Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org"
+  ],
+  "additions": 210,
+  "deletions": 169,
+  "files": 8
+ },
+ {
+  "date": "2023-01-26T21:49:24Z",
+  "kind": "author",
+  "peers": [
+   "thegreenfrog@chromium.org"
+  ],
+  "additions": 13,
+  "deletions": 2,
+  "files": 4
+ },
+ {
+  "date": "2023-01-25T11:38:58Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org"
+  ],
+  "additions": 175,
+  "deletions": 160,
+  "files": 2
+ },
+ {
+  "date": "2023-01-19T19:38:13Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org",
+   "victorvianna@google.com"
+  ],
+  "additions": 340,
+  "deletions": 7,
+  "files": 8
+ },
+ {
+  "date": "2023-01-18T18:13:08Z",
+  "kind": "author",
+  "peers": [
+   "rushans@google.com",
+   "sophey@chromium.org"
+  ],
+  "additions": 28,
+  "deletions": 13,
+  "files": 2
+ },
+ {
+  "date": "2023-01-18T17:08:47Z",
+  "kind": "author",
+  "peers": [
+   "mmoskvitin@google.com",
+   "gambard@chromium.org",
+   "sky@chromium.org"
+  ],
+  "additions": 92,
+  "deletions": 61,
+  "files": 17
+ },
+ {
+  "date": "2023-01-18T15:22:47Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org",
+   "mahmadi@chromium.org",
+   "mmoskvitin@google.com",
+   "sky@chromium.org"
+  ],
+  "additions": 45,
+  "deletions": 35,
+  "files": 16
+ },
+ {
+  "date": "2023-01-17T23:04:53Z",
+  "kind": "author",
+  "peers": [
+   "victorvianna@google.com",
+   "mamir@chromium.org",
+   "thegreenfrog@chromium.org"
+  ],
+  "additions": 120,
+  "deletions": 12,
+  "files": 11
+ },
+ {
+  "date": "2023-01-13T15:21:31Z",
+  "kind": "author",
+  "peers": [
+   "victorvianna@google.com",
+   "thegreenfrog@chromium.org",
+   "kazinova@google.com"
+  ],
+  "additions": 121,
+  "deletions": 81,
+  "files": 10
+ },
+ {
+  "date": "2023-01-13T09:54:29Z",
+  "kind": "author",
+  "peers": [
+   "victorvianna@google.com",
+   "thegreenfrog@chromium.org"
+  ],
+  "additions": 28,
+  "deletions": 23,
+  "files": 3
+ },
+ {
+  "date": "2022-12-05T22:53:17Z",
+  "kind": "author",
+  "peers": [
+   "kazinova@google.com",
+   "victorvianna@google.com"
+  ],
+  "additions": 129,
+  "deletions": 215,
+  "files": 5
+ },
+ {
+  "date": "2022-12-02T15:26:06Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 17,
+  "deletions": 10,
+  "files": 3
+ },
+ {
+  "date": "2022-12-01T15:12:08Z",
+  "kind": "author",
+  "peers": [
+   "mmoskvitin@google.com"
+  ],
+  "additions": 48,
+  "deletions": 3,
+  "files": 3
+ },
+ {
+  "date": "2022-12-01T14:07:28Z",
+  "kind": "author",
+  "peers": [
+   "rushans@google.com",
+   "mmoskvitin@google.com",
+   "ssid@chromium.org"
+  ],
+  "additions": 113,
+  "deletions": 83,
+  "files": 12
+ },
+ {
+  "date": "2022-11-21T12:02:19Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org",
+   "mmoskvitin@google.com"
+  ],
+  "additions": 222,
+  "deletions": 88,
+  "files": 17
+ },
+ {
+  "date": "2022-11-18T10:14:39Z",
+  "kind": "author",
+  "peers": [
+   "tedchoc@chromium.org",
+   "gambard@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 19,
+  "files": 4
+ },
+ {
+  "date": "2022-11-17T17:48:03Z",
+  "kind": "author",
+  "peers": [
+   "mmoskvitin@google.com"
+  ],
+  "additions": 8,
+  "deletions": 15,
+  "files": 3
+ },
+ {
+  "date": "2022-11-17T11:01:34Z",
+  "kind": "author",
+  "peers": [
+   "mmoskvitin@google.com"
+  ],
+  "additions": 44,
+  "deletions": 0,
+  "files": 6
+ },
+ {
+  "date": "2022-11-09T15:11:54Z",
+  "kind": "author",
+  "peers": [
+   "mmoskvitin@google.com"
+  ],
+  "additions": 25,
+  "deletions": 0,
+  "files": 3
+ },
+ {
+  "date": "2022-11-09T09:55:11Z",
+  "kind": "author",
+  "peers": [
+   "mmoskvitin@google.com"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2022-11-08T09:53:54Z",
+  "kind": "author",
+  "peers": [
+   "mmoskvitin@google.com",
+   "mahmadi@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 28,
+  "files": 3
+ },
+ {
+  "date": "2022-10-20T10:02:48Z",
+  "kind": "author",
+  "peers": [
+   "tommycli@chromium.org",
+   "mmoskvitin@google.com",
+   "jhorwich@chromium.org"
+  ],
+  "additions": 13,
+  "deletions": 10,
+  "files": 2
+ },
+ {
+  "date": "2022-10-17T11:15:35Z",
+  "kind": "author",
+  "peers": [
+   "mmoskvitin@google.com",
+   "rushans@google.com"
+  ],
+  "additions": 28,
+  "deletions": 39,
+  "files": 6
+ },
+ {
+  "date": "2022-10-12T12:41:09Z",
+  "kind": "author",
+  "peers": [
+   "mmoskvitin@google.com",
+   "djean@chromium.org",
+   "rushans@google.com",
+   "vasilii@chromium.org",
+   "msarda@chromium.org",
+   "fleimgruber@google.com",
+   "drubery@chromium.org"
+  ],
+  "additions": 250,
+  "deletions": 140,
+  "files": 25
+ },
+ {
+  "date": "2022-10-12T12:09:27Z",
+  "kind": "author",
+  "peers": [
+   "smaier@chromium.org",
+   "jeffreycohen@chromium.org",
+   "mmoskvitin@google.com"
+  ],
+  "additions": 103,
+  "deletions": 105,
+  "files": 20
+ },
+ {
+  "date": "2022-09-27T12:05:45Z",
+  "kind": "author",
+  "peers": [
+   "rushans@google.com",
+   "ellyjones@chromium.org",
+   "mmoskvitin@google.com"
+  ],
+  "additions": 288,
+  "deletions": 64,
+  "files": 18
+ },
+ {
+  "date": "2022-09-12T10:54:06Z",
+  "kind": "author",
+  "peers": [
+   "mmoskvitin@google.com",
+   "twellington@chromium.org"
+  ],
+  "additions": 177,
+  "deletions": 166,
+  "files": 20
+ },
+ {
+  "date": "2022-08-26T15:44:50Z",
+  "kind": "author",
+  "peers": [
+   "mmoskvitin@google.com",
+   "schwering@google.com",
+   "isherman@chromium.org",
+   "djean@chromium.org",
+   "kolos@chromium.org"
+  ],
+  "additions": 168,
+  "deletions": 96,
+  "files": 12
+ },
+ {
+  "date": "2022-08-09T13:32:37Z",
+  "kind": "author",
+  "peers": [
+   "droger@chromium.org",
+   "mmoskvitin@google.com",
+   "treib@chromium.org"
+  ],
+  "additions": 34,
+  "deletions": 35,
+  "files": 17
+ },
+ {
+  "date": "2024-04-18T17:08:57Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 35,
+  "deletions": 33,
+  "files": 3
+ },
+ {
+  "date": "2024-04-18T16:41:45Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org",
+   "jlebel@chromium.org"
+  ],
+  "additions": 21,
+  "deletions": 146,
+  "files": 13
+ },
+ {
+  "date": "2024-04-26T11:58:23Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 13,
+  "files": 1
+ },
+ {
+  "date": "2024-04-25T16:43:25Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 46,
+  "deletions": 41,
+  "files": 8
+ },
+ {
+  "date": "2024-04-24T20:28:58Z",
+  "kind": "review",
+  "peers": [
+   "stevenjb@chromium.org"
+  ],
+  "additions": 109,
+  "deletions": 321,
+  "files": 20
+ },
+ {
+  "date": "2024-04-22T14:28:18Z",
+  "kind": "review",
+  "peers": [
+   "pmonette@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2024-04-30T11:46:32Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 34,
+  "deletions": 19,
+  "files": 2
+ },
+ {
+  "date": "2024-04-30T11:25:14Z",
+  "kind": "review",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 3,
+  "files": 1
+ },
+ {
+  "date": "2024-04-29T15:17:21Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org",
+   "gambard@chromium.org"
+  ],
+  "additions": 280,
+  "deletions": 34,
+  "files": 8
+ },
+ {
+  "date": "2024-04-29T13:05:32Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2024-04-29T12:32:37Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2024-05-03T09:37:28Z",
+  "kind": "author",
+  "peers": [
+   "mastiz@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 22,
+  "files": 2
+ },
+ {
+  "date": "2024-05-02T09:45:46Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 127,
+  "deletions": 0,
+  "files": 5
+ },
+ {
+  "date": "2024-05-06T16:40:19Z",
+  "kind": "author",
+  "peers": [
+   "fernandex@chromium.org"
+  ],
+  "additions": 147,
+  "deletions": 8,
+  "files": 6
+ },
+ {
+  "date": "2024-05-17T11:42:33Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 60,
+  "deletions": 3,
+  "files": 1
+ },
+ {
+  "date": "2024-05-17T08:41:30Z",
+  "kind": "author",
+  "peers": [
+   "sdefresne@chromium.org",
+   "treib@chromium.org"
+  ],
+  "additions": 18,
+  "deletions": 10,
+  "files": 4
+ },
+ {
+  "date": "2024-05-16T21:37:43Z",
+  "kind": "review",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 47,
+  "deletions": 3,
+  "files": 4
+ },
+ {
+  "date": "2024-05-14T09:27:46Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 22,
+  "deletions": 5,
+  "files": 6
+ },
+ {
+  "date": "2024-05-23T09:05:50Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org"
+  ],
+  "additions": 27,
+  "deletions": 1,
+  "files": 4
+ },
+ {
+  "date": "2024-05-22T16:08:55Z",
+  "kind": "review",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 36,
+  "files": 2
+ },
+ {
+  "date": "2024-05-22T14:57:50Z",
+  "kind": "review",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 56,
+  "deletions": 74,
+  "files": 3
+ },
+ {
+  "date": "2024-05-21T14:23:58Z",
+  "kind": "review",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 51,
+  "deletions": 83,
+  "files": 9
+ },
+ {
+  "date": "2024-05-29T14:39:13Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 151,
+  "files": 6
+ },
+ {
+  "date": "2024-05-29T13:03:55Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org"
+  ],
+  "additions": 38,
+  "deletions": 9,
+  "files": 4
+ },
+ {
+  "date": "2024-06-07T14:59:47Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org",
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 19,
+  "deletions": 5,
+  "files": 1
+ },
+ {
+  "date": "2024-06-06T11:01:15Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 132,
+  "files": 8
+ },
+ {
+  "date": "2024-06-06T10:10:14Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 14,
+  "files": 3
+ },
+ {
+  "date": "2024-06-05T13:10:12Z",
+  "kind": "author",
+  "peers": [
+   "olivierrobin@chromium.org",
+   "jlebel@chromium.org"
+  ],
+  "additions": 22,
+  "deletions": 83,
+  "files": 8
+ },
+ {
+  "date": "2024-06-05T10:35:29Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 22,
+  "files": 2
+ },
+ {
+  "date": "2024-06-03T09:52:11Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 6,
+  "deletions": 10,
+  "files": 1
+ },
+ {
+  "date": "2024-06-10T15:27:32Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2024-06-10T09:28:54Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 5,
+  "deletions": 33,
+  "files": 6
+ },
+ {
+  "date": "2024-06-13T11:39:39Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 31,
+  "deletions": 0,
+  "files": 4
+ },
+ {
+  "date": "2024-06-19T15:53:28Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org",
+   "droger@chromium.org"
+  ],
+  "additions": 104,
+  "deletions": 105,
+  "files": 16
+ },
+ {
+  "date": "2024-06-19T09:29:35Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2024-06-17T13:20:35Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org",
+   "gambard@chromium.org"
+  ],
+  "additions": 117,
+  "deletions": 1,
+  "files": 6
+ },
+ {
+  "date": "2024-06-17T09:17:12Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2024-06-17T09:14:50Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2024-06-25T08:35:24Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 80,
+  "deletions": 5,
+  "files": 7
+ },
+ {
+  "date": "2024-06-24T14:10:52Z",
+  "kind": "review",
+  "peers": [
+   "mmoskvitin@google.com"
+  ],
+  "additions": 0,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2024-06-25T15:56:56Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 20,
+  "deletions": 6,
+  "files": 3
+ },
+ {
+  "date": "2024-06-25T15:16:33Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 32,
+  "deletions": 74,
+  "files": 5
+ },
+ {
+  "date": "2024-07-01T17:05:19Z",
+  "kind": "review",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 7,
+  "files": 1
+ },
+ {
+  "date": "2024-07-01T12:39:36Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 136,
+  "deletions": 9,
+  "files": 4
+ },
+ {
+  "date": "2024-07-01T09:58:54Z",
+  "kind": "review",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 17,
+  "deletions": 12,
+  "files": 3
+ },
+ {
+  "date": "2024-06-28T16:52:33Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 10,
+  "deletions": 1,
+  "files": 2
+ },
+ {
+  "date": "2024-06-27T16:08:34Z",
+  "kind": "review",
+  "peers": [
+   "mmoskvitin@google.com"
+  ],
+  "additions": 0,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2024-06-27T14:26:43Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2024-06-26T17:59:35Z",
+  "kind": "review",
+  "peers": [
+   "skym@chromium.org"
+  ],
+  "additions": 77,
+  "deletions": 38,
+  "files": 8
+ },
+ {
+  "date": "2024-06-26T13:14:48Z",
+  "kind": "review",
+  "peers": [
+   "mmoskvitin@google.com"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2024-07-09T16:40:35Z",
+  "kind": "review",
+  "peers": [
+   "mlbipin@google.com"
+  ],
+  "additions": 27,
+  "deletions": 26,
+  "files": 7
+ },
+ {
+  "date": "2024-07-08T14:05:35Z",
+  "kind": "review",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 19,
+  "deletions": 19,
+  "files": 9
+ },
+ {
+  "date": "2024-07-08T11:21:03Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 39,
+  "deletions": 8,
+  "files": 5
+ },
+ {
+  "date": "2024-07-05T09:10:15Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 95,
+  "deletions": 19,
+  "files": 9
+ },
+ {
+  "date": "2024-07-12T08:12:16Z",
+  "kind": "review",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 51,
+  "deletions": 3,
+  "files": 1
+ },
+ {
+  "date": "2024-07-15T16:20:13Z",
+  "kind": "review",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 30,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2024-07-19T13:04:53Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org"
+  ],
+  "additions": 45,
+  "deletions": 3,
+  "files": 2
+ },
+ {
+  "date": "2024-07-18T15:00:55Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org"
+  ],
+  "additions": 80,
+  "deletions": 1,
+  "files": 6
+ },
+ {
+  "date": "2024-07-18T12:39:12Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 5,
+  "deletions": 15,
+  "files": 2
+ },
+ {
+  "date": "2024-07-18T12:17:13Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 30,
+  "deletions": 24,
+  "files": 3
+ },
+ {
+  "date": "2024-07-17T16:11:48Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 9,
+  "files": 1
+ },
+ {
+  "date": "2024-07-17T12:36:28Z",
+  "kind": "author",
+  "peers": [
+   "sdefresne@chromium.org"
+  ],
+  "additions": 21,
+  "deletions": 0,
+  "files": 4
+ },
+ {
+  "date": "2024-07-17T11:09:36Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 174,
+  "deletions": 8,
+  "files": 5
+ },
+ {
+  "date": "2024-07-17T10:26:45Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org"
+  ],
+  "additions": 211,
+  "deletions": 0,
+  "files": 6
+ },
+ {
+  "date": "2024-07-29T11:59:36Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 27,
+  "files": 4
+ },
+ {
+  "date": "2024-07-24T15:21:25Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org",
+   "droger@chromium.org"
+  ],
+  "additions": 51,
+  "deletions": 17,
+  "files": 6
+ },
+ {
+  "date": "2024-07-31T17:43:06Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 28,
+  "deletions": 33,
+  "files": 12
+ },
+ {
+  "date": "2024-07-31T14:32:20Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 1044,
+  "deletions": 33,
+  "files": 9
+ },
+ {
+  "date": "2024-07-31T10:46:44Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 281,
+  "deletions": 79,
+  "files": 8
+ },
+ {
+  "date": "2024-07-30T09:34:05Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org"
+  ],
+  "additions": 121,
+  "deletions": 1,
+  "files": 9
+ },
+ {
+  "date": "2024-07-29T16:15:35Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 31,
+  "deletions": 1,
+  "files": 4
+ },
+ {
+  "date": "2024-07-29T13:36:53Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 31,
+  "deletions": 1,
+  "files": 4
+ },
+ {
+  "date": "2024-08-01T14:24:10Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org"
+  ],
+  "additions": 75,
+  "deletions": 12,
+  "files": 4
+ },
+ {
+  "date": "2024-08-01T10:54:17Z",
+  "kind": "review",
+  "peers": [
+   "fleimgruber@google.com"
+  ],
+  "additions": 8,
+  "deletions": 13,
+  "files": 4
+ },
+ {
+  "date": "2024-08-06T10:59:17Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 238,
+  "deletions": 5,
+  "files": 8
+ },
+ {
+  "date": "2024-08-05T15:03:05Z",
+  "kind": "author",
+  "peers": [
+   "sdefresne@chromium.org"
+  ],
+  "additions": 162,
+  "deletions": 23,
+  "files": 13
+ },
+ {
+  "date": "2024-08-13T00:59:58Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 15,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2024-08-12T13:03:53Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 98,
+  "deletions": 5,
+  "files": 8
+ },
+ {
+  "date": "2024-08-12T09:52:05Z",
+  "kind": "review",
+  "peers": [
+   "ankushkush@google.com"
+  ],
+  "additions": 8,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2024-08-07T13:34:36Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 39,
+  "deletions": 58,
+  "files": 4
+ },
+ {
+  "date": "2024-08-20T16:25:49Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 436,
+  "deletions": 10,
+  "files": 16
+ },
+ {
+  "date": "2024-08-20T13:03:22Z",
+  "kind": "review",
+  "peers": [
+   "victorvianna@google.com"
+  ],
+  "additions": 155,
+  "deletions": 160,
+  "files": 9
+ },
+ {
+  "date": "2024-08-19T20:15:44Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 122,
+  "deletions": 10,
+  "files": 6
+ },
+ {
+  "date": "2024-08-19T19:50:40Z",
+  "kind": "review",
+  "peers": [
+   "dbertoni@chromium.org"
+  ],
+  "additions": 25,
+  "deletions": 33,
+  "files": 6
+ },
+ {
+  "date": "2024-08-19T11:41:00Z",
+  "kind": "author",
+  "peers": [
+   "thegreenfrog@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2024-08-27T17:37:46Z",
+  "kind": "review",
+  "peers": [
+   "rushans@google.com"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2024-08-27T09:55:11Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org",
+   "fernandex@chromium.org"
+  ],
+  "additions": 88,
+  "deletions": 1,
+  "files": 6
+ },
+ {
+  "date": "2024-08-27T09:36:10Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 5,
+  "deletions": 5,
+  "files": 1
+ },
+ {
+  "date": "2024-08-22T14:33:58Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 170,
+  "deletions": 0,
+  "files": 4
+ },
+ {
+  "date": "2024-08-21T16:56:43Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 53,
+  "deletions": 3,
+  "files": 3
+ },
+ {
+  "date": "2024-08-21T11:56:44Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 621,
+  "deletions": 387,
+  "files": 6
+ },
+ {
+  "date": "2024-09-02T19:26:35Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 8,
+  "deletions": 8,
+  "files": 1
+ },
+ {
+  "date": "2024-09-02T19:05:41Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 31,
+  "deletions": 1,
+  "files": 3
+ },
+ {
+  "date": "2024-09-02T18:12:48Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 6,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2024-08-30T13:52:20Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 7,
+  "deletions": 7,
+  "files": 1
+ },
+ {
+  "date": "2024-08-29T14:16:52Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org",
+   "jlebel@chromium.org"
+  ],
+  "additions": 82,
+  "deletions": 0,
+  "files": 8
+ },
+ {
+  "date": "2024-08-29T13:34:06Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org",
+   "jlebel@chromium.org"
+  ],
+  "additions": 271,
+  "deletions": 4,
+  "files": 10
+ },
+ {
+  "date": "2024-09-10T09:12:15Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2024-09-09T14:31:45Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 24,
+  "deletions": 15,
+  "files": 2
+ },
+ {
+  "date": "2024-09-09T13:55:18Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2024-09-09T13:18:21Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 70,
+  "deletions": 37,
+  "files": 5
+ },
+ {
+  "date": "2024-09-09T12:25:51Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 24,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2024-09-09T10:22:21Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 228,
+  "deletions": 162,
+  "files": 12
+ },
+ {
+  "date": "2024-09-09T10:14:21Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2024-09-06T19:38:13Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 7,
+  "deletions": 5,
+  "files": 1
+ },
+ {
+  "date": "2024-09-06T11:38:02Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 7,
+  "deletions": 37,
+  "files": 4
+ },
+ {
+  "date": "2024-09-05T17:06:55Z",
+  "kind": "author",
+  "peers": [
+   "marq@chromium.org",
+   "treib@chromium.org"
+  ],
+  "additions": 129,
+  "deletions": 57,
+  "files": 8
+ },
+ {
+  "date": "2024-09-05T14:20:50Z",
+  "kind": "review",
+  "peers": [
+   "nicolaso@chromium.org"
+  ],
+  "additions": 10,
+  "deletions": 8,
+  "files": 1
+ },
+ {
+  "date": "2024-09-05T11:56:58Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2024-09-05T10:00:39Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 5,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2024-09-04T15:40:12Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org",
+   "jlebel@chromium.org"
+  ],
+  "additions": 97,
+  "deletions": 16,
+  "files": 13
+ },
+ {
+  "date": "2024-09-04T10:01:56Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 44,
+  "deletions": 43,
+  "files": 1
+ },
+ {
+  "date": "2024-09-17T14:54:11Z",
+  "kind": "author",
+  "peers": [
+   "marq@chromium.org"
+  ],
+  "additions": 30,
+  "deletions": 9,
+  "files": 2
+ },
+ {
+  "date": "2024-09-17T09:03:45Z",
+  "kind": "review",
+  "peers": [
+   "alexandertekle@google.com"
+  ],
+  "additions": 12,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2024-09-16T16:27:12Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2024-09-16T16:07:01Z",
+  "kind": "author",
+  "peers": [
+   "marq@chromium.org"
+  ],
+  "additions": 98,
+  "deletions": 14,
+  "files": 4
+ },
+ {
+  "date": "2024-09-16T14:59:40Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 8,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2024-09-16T14:54:57Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 16,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2024-09-16T11:23:48Z",
+  "kind": "author",
+  "peers": [
+   "fernandex@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2024-09-16T10:51:10Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2024-09-16T10:25:09Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2024-09-16T09:36:20Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org",
+   "marq@chromium.org"
+  ],
+  "additions": 538,
+  "deletions": 277,
+  "files": 13
+ },
+ {
+  "date": "2024-09-16T08:33:53Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 27,
+  "deletions": 11,
+  "files": 5
+ },
+ {
+  "date": "2024-09-13T17:35:31Z",
+  "kind": "review",
+  "peers": [
+   "kelvinjiang@chromium.org"
+  ],
+  "additions": 35,
+  "deletions": 14,
+  "files": 4
+ },
+ {
+  "date": "2024-09-13T16:36:33Z",
+  "kind": "review",
+  "peers": [
+   "nicolaso@chromium.org"
+  ],
+  "additions": 72,
+  "deletions": 28,
+  "files": 2
+ },
+ {
+  "date": "2024-09-13T14:56:44Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 16,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2024-09-13T08:46:20Z",
+  "kind": "author",
+  "peers": [
+   "droger@chromium.org",
+   "thegreenfrog@chromium.org"
+  ],
+  "additions": 158,
+  "deletions": 19,
+  "files": 11
+ },
+ {
+  "date": "2024-09-13T08:35:51Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 35,
+  "deletions": 0,
+  "files": 5
+ },
+ {
+  "date": "2024-09-12T11:32:20Z",
+  "kind": "author",
+  "peers": [
+   "ankushkush@google.com"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2024-09-12T10:11:53Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 85,
+  "deletions": 21,
+  "files": 3
+ },
+ {
+  "date": "2024-09-23T14:22:58Z",
+  "kind": "review",
+  "peers": [
+   "ankushkush@google.com"
+  ],
+  "additions": 40,
+  "deletions": 30,
+  "files": 2
+ },
+ {
+  "date": "2024-09-23T09:23:02Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 17,
+  "files": 1
+ },
+ {
+  "date": "2024-09-20T09:19:13Z",
+  "kind": "review",
+  "peers": [
+   "droger@chromium.org"
+  ],
+  "additions": 14,
+  "deletions": 10,
+  "files": 2
+ },
+ {
+  "date": "2024-09-19T13:35:23Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 6,
+  "files": 1
+ },
+ {
+  "date": "2024-09-18T17:10:29Z",
+  "kind": "review",
+  "peers": [
+   "nicolaso@chromium.org"
+  ],
+  "additions": 11,
+  "deletions": 15,
+  "files": 1
+ },
+ {
+  "date": "2024-09-18T15:26:44Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 8,
+  "deletions": 5,
+  "files": 1
+ },
+ {
+  "date": "2024-09-18T15:07:11Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 8,
+  "deletions": 22,
+  "files": 5
+ },
+ {
+  "date": "2024-09-18T12:56:23Z",
+  "kind": "review",
+  "peers": [
+   "victorvianna@google.com"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2024-10-01T13:05:06Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 14,
+  "deletions": 32,
+  "files": 1
+ },
+ {
+  "date": "2024-10-01T13:00:23Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 34,
+  "deletions": 7,
+  "files": 4
+ },
+ {
+  "date": "2024-09-30T09:51:34Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 41,
+  "deletions": 6,
+  "files": 3
+ },
+ {
+  "date": "2024-09-27T11:36:55Z",
+  "kind": "review",
+  "peers": [
+   "bwwilliams@google.com"
+  ],
+  "additions": 0,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2024-09-27T11:15:57Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 14,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2024-09-27T11:01:05Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 127,
+  "deletions": 28,
+  "files": 13
+ },
+ {
+  "date": "2024-09-26T17:09:41Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org",
+   "stkhapugin@chromium.org"
+  ],
+  "additions": 32,
+  "deletions": 0,
+  "files": 4
+ },
+ {
+  "date": "2024-09-26T11:33:09Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 9,
+  "deletions": 9,
+  "files": 4
+ },
+ {
+  "date": "2024-10-08T14:48:59Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 81,
+  "deletions": 37,
+  "files": 3
+ },
+ {
+  "date": "2024-10-02T15:06:43Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 6,
+  "files": 1
+ },
+ {
+  "date": "2024-10-15T12:45:16Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 4,
+  "files": 3
+ },
+ {
+  "date": "2024-10-14T14:11:13Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 13,
+  "files": 2
+ },
+ {
+  "date": "2024-10-10T13:35:18Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2024-10-22T10:02:57Z",
+  "kind": "review",
+  "peers": [
+   "mmoskvitin@google.com"
+  ],
+  "additions": 36,
+  "deletions": 86,
+  "files": 3
+ },
+ {
+  "date": "2024-10-21T16:53:01Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 308,
+  "files": 2
+ },
+ {
+  "date": "2024-10-21T16:12:42Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 46,
+  "deletions": 22,
+  "files": 4
+ },
+ {
+  "date": "2024-10-16T14:40:58Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2024-10-23T18:03:49Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 9,
+  "files": 1
+ },
+ {
+  "date": "2024-10-23T17:24:31Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 9,
+  "deletions": 6,
+  "files": 1
+ },
+ {
+  "date": "2024-10-23T11:24:49Z",
+  "kind": "review",
+  "peers": [
+   "mastiz@chromium.org"
+  ],
+  "additions": 87,
+  "deletions": 11,
+  "files": 5
+ },
+ {
+  "date": "2024-11-26T15:13:15Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 5,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2024-11-25T15:40:42Z",
+  "kind": "review",
+  "peers": [
+   "christianxu@google.com"
+  ],
+  "additions": 2,
+  "deletions": 43,
+  "files": 7
+ },
+ {
+  "date": "2024-12-03T13:48:06Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 15,
+  "files": 2
+ },
+ {
+  "date": "2024-11-29T14:19:15Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2024-11-28T16:23:13Z",
+  "kind": "review",
+  "peers": [
+   "sorin@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2024-11-28T13:58:50Z",
+  "kind": "review",
+  "peers": [
+   "samarchehade@google.com"
+  ],
+  "additions": 0,
+  "deletions": 70,
+  "files": 2
+ },
+ {
+  "date": "2024-11-28T11:50:47Z",
+  "kind": "review",
+  "peers": [
+   "christianxu@google.com"
+  ],
+  "additions": 1062,
+  "deletions": 1092,
+  "files": 143
+ },
+ {
+  "date": "2024-11-28T09:38:30Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org"
+  ],
+  "additions": 53,
+  "deletions": 53,
+  "files": 9
+ },
+ {
+  "date": "2024-11-27T12:48:44Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 6,
+  "deletions": 0,
+  "files": 3
+ },
+ {
+  "date": "2024-11-27T12:47:53Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2024-12-17T14:15:27Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 95,
+  "deletions": 4,
+  "files": 5
+ },
+ {
+  "date": "2024-12-17T11:27:19Z",
+  "kind": "review",
+  "peers": [
+   "lpromero@google.com"
+  ],
+  "additions": 7,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2024-12-16T15:51:40Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org",
+   "sdefresne@chromium.org"
+  ],
+  "additions": 209,
+  "deletions": 0,
+  "files": 7
+ },
+ {
+  "date": "2024-12-18T10:00:19Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 69,
+  "deletions": 8,
+  "files": 8
+ },
+ {
+  "date": "2024-12-24T11:41:53Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 29,
+  "deletions": 16,
+  "files": 1
+ },
+ {
+  "date": "2024-12-20T09:45:17Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 26,
+  "deletions": 34,
+  "files": 4
+ },
+ {
+  "date": "2024-12-19T19:00:09Z",
+  "kind": "review",
+  "peers": [
+   "pkasting@chromium.org"
+  ],
+  "additions": 483,
+  "deletions": 433,
+  "files": 41
+ },
+ {
+  "date": "2024-12-19T18:07:54Z",
+  "kind": "author",
+  "peers": [
+   "sdefresne@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2024-12-19T17:45:21Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 130,
+  "deletions": 18,
+  "files": 5
+ },
+ {
+  "date": "2024-12-19T10:35:25Z",
+  "kind": "review",
+  "peers": [
+   "mastiz@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2025-01-02T13:38:26Z",
+  "kind": "review",
+  "peers": [
+   "mastiz@chromium.org"
+  ],
+  "additions": 148,
+  "deletions": 126,
+  "files": 13
+ },
+ {
+  "date": "2025-01-10T16:08:54Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 7,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2025-01-09T11:10:28Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 12,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-01-08T17:40:05Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 28,
+  "deletions": 3,
+  "files": 3
+ },
+ {
+  "date": "2025-01-08T10:13:55Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 5,
+  "deletions": 6,
+  "files": 2
+ },
+ {
+  "date": "2025-01-13T16:39:16Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 13,
+  "deletions": 33,
+  "files": 1
+ },
+ {
+  "date": "2025-01-10T17:05:13Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 6,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2025-01-21T15:47:02Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 33,
+  "deletions": 34,
+  "files": 9
+ },
+ {
+  "date": "2025-01-20T16:15:01Z",
+  "kind": "review",
+  "peers": [
+   "fedegermi@google.com"
+  ],
+  "additions": 52,
+  "deletions": 0,
+  "files": 3
+ },
+ {
+  "date": "2025-01-16T19:12:45Z",
+  "kind": "review",
+  "peers": [
+   "cfredric@chromium.org"
+  ],
+  "additions": 277,
+  "deletions": 171,
+  "files": 11
+ },
+ {
+  "date": "2025-01-16T11:55:22Z",
+  "kind": "review",
+  "peers": [
+   "vizcay@google.com"
+  ],
+  "additions": 5,
+  "deletions": 39,
+  "files": 9
+ },
+ {
+  "date": "2025-01-16T11:15:16Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 16,
+  "files": 1
+ },
+ {
+  "date": "2025-01-15T14:35:42Z",
+  "kind": "author",
+  "peers": [
+   "fedegermi@google.com"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2025-01-15T13:22:47Z",
+  "kind": "author",
+  "peers": [
+   "alexilin@chromium.org",
+   "jlebel@chromium.org"
+  ],
+  "additions": 14,
+  "deletions": 13,
+  "files": 4
+ },
+ {
+  "date": "2025-01-15T12:52:21Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 63,
+  "deletions": 0,
+  "files": 4
+ },
+ {
+  "date": "2025-01-28T03:40:02Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 33,
+  "deletions": 27,
+  "files": 1
+ },
+ {
+  "date": "2025-01-27T17:37:42Z",
+  "kind": "author",
+  "peers": [
+   "sdefresne@chromium.org",
+   "jlebel@chromium.org"
+  ],
+  "additions": 95,
+  "deletions": 112,
+  "files": 23
+ },
+ {
+  "date": "2025-01-27T16:51:01Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 21,
+  "deletions": 1,
+  "files": 4
+ },
+ {
+  "date": "2025-01-24T15:22:18Z",
+  "kind": "author",
+  "peers": [
+   "sdefresne@chromium.org"
+  ],
+  "additions": 15,
+  "deletions": 8,
+  "files": 2
+ },
+ {
+  "date": "2025-01-23T17:44:10Z",
+  "kind": "author",
+  "peers": [
+   "sdefresne@chromium.org"
+  ],
+  "additions": 6,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2025-01-22T14:29:25Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org",
+   "mmoskvitin@google.com"
+  ],
+  "additions": 9,
+  "deletions": 227,
+  "files": 11
+ },
+ {
+  "date": "2025-01-28T13:12:12Z",
+  "kind": "author",
+  "peers": [
+   "sdefresne@chromium.org",
+   "gambard@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 8,
+  "files": 1
+ },
+ {
+  "date": "2025-02-04T16:06:18Z",
+  "kind": "author",
+  "peers": [
+   "fernandex@google.com"
+  ],
+  "additions": 7,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2025-02-04T12:28:00Z",
+  "kind": "author",
+  "peers": [
+   "fernandex@google.com"
+  ],
+  "additions": 0,
+  "deletions": 36,
+  "files": 1
+ },
+ {
+  "date": "2025-02-03T17:38:34Z",
+  "kind": "author",
+  "peers": [
+   "fernandex@google.com"
+  ],
+  "additions": 0,
+  "deletions": 36,
+  "files": 1
+ },
+ {
+  "date": "2025-02-03T17:03:09Z",
+  "kind": "author",
+  "peers": [
+   "fernandex@google.com"
+  ],
+  "additions": 1,
+  "deletions": 20,
+  "files": 2
+ },
+ {
+  "date": "2025-02-03T12:49:22Z",
+  "kind": "author",
+  "peers": [
+   "fernandex@google.com"
+  ],
+  "additions": 111,
+  "deletions": 701,
+  "files": 18
+ },
+ {
+  "date": "2025-02-03T10:24:15Z",
+  "kind": "review",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 13,
+  "deletions": 20,
+  "files": 3
+ },
+ {
+  "date": "2025-01-31T13:53:50Z",
+  "kind": "review",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 22,
+  "deletions": 25,
+  "files": 7
+ },
+ {
+  "date": "2025-01-30T13:33:59Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 677,
+  "files": 1
+ },
+ {
+  "date": "2025-01-30T11:18:01Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 45,
+  "deletions": 12,
+  "files": 1
+ },
+ {
+  "date": "2025-01-29T13:44:03Z",
+  "kind": "author",
+  "peers": [
+   "fernandex@google.com"
+  ],
+  "additions": 32,
+  "deletions": 403,
+  "files": 15
+ },
+ {
+  "date": "2025-01-29T10:37:09Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 5,
+  "deletions": 30,
+  "files": 2
+ },
+ {
+  "date": "2025-01-29T09:19:07Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 65,
+  "deletions": 162,
+  "files": 22
+ },
+ {
+  "date": "2025-02-10T11:50:43Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org",
+   "sczs@chromium.org"
+  ],
+  "additions": 12,
+  "deletions": 462,
+  "files": 32
+ },
+ {
+  "date": "2025-02-05T16:10:11Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2025-02-05T11:39:49Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org",
+   "mmoskvitin@google.com"
+  ],
+  "additions": 7,
+  "deletions": 184,
+  "files": 3
+ },
+ {
+  "date": "2025-02-18T15:10:35Z",
+  "kind": "review",
+  "peers": [
+   "fedegermi@google.com"
+  ],
+  "additions": 61,
+  "deletions": 0,
+  "files": 3
+ },
+ {
+  "date": "2025-02-18T14:47:32Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 3,
+  "files": 2
+ },
+ {
+  "date": "2025-02-18T12:22:12Z",
+  "kind": "review",
+  "peers": [
+   "fedegermi@google.com"
+  ],
+  "additions": 50,
+  "deletions": 0,
+  "files": 3
+ },
+ {
+  "date": "2025-02-18T11:52:44Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 95,
+  "deletions": 11,
+  "files": 13
+ },
+ {
+  "date": "2025-02-18T11:48:07Z",
+  "kind": "review",
+  "peers": [
+   "fedegermi@google.com"
+  ],
+  "additions": 50,
+  "deletions": 0,
+  "files": 3
+ },
+ {
+  "date": "2025-02-17T16:31:45Z",
+  "kind": "review",
+  "peers": [
+   "fedegermi@google.com"
+  ],
+  "additions": 88,
+  "deletions": 0,
+  "files": 4
+ },
+ {
+  "date": "2025-02-17T13:44:50Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 79,
+  "deletions": 9,
+  "files": 13
+ },
+ {
+  "date": "2025-02-14T12:11:24Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 72,
+  "deletions": 5,
+  "files": 5
+ },
+ {
+  "date": "2025-02-12T16:12:56Z",
+  "kind": "review",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 45,
+  "files": 5
+ },
+ {
+  "date": "2025-02-18T16:58:50Z",
+  "kind": "review",
+  "peers": [
+   "fedegermi@google.com"
+  ],
+  "additions": 50,
+  "deletions": 0,
+  "files": 3
+ },
+ {
+  "date": "2025-02-18T16:53:13Z",
+  "kind": "review",
+  "peers": [
+   "fedegermi@google.com"
+  ],
+  "additions": 50,
+  "deletions": 0,
+  "files": 3
+ },
+ {
+  "date": "2025-02-19T10:35:18Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 17,
+  "deletions": 31,
+  "files": 2
+ },
+ {
+  "date": "2025-02-24T15:25:54Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org"
+  ],
+  "additions": 15,
+  "deletions": 8,
+  "files": 1
+ },
+ {
+  "date": "2025-02-24T13:38:42Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org"
+  ],
+  "additions": 131,
+  "deletions": 23,
+  "files": 5
+ },
+ {
+  "date": "2025-02-21T09:45:06Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 87,
+  "deletions": 16,
+  "files": 7
+ },
+ {
+  "date": "2025-02-20T17:02:27Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org"
+  ],
+  "additions": 29,
+  "deletions": 1,
+  "files": 3
+ },
+ {
+  "date": "2025-02-20T14:36:52Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 11,
+  "files": 2
+ },
+ {
+  "date": "2025-02-19T16:05:22Z",
+  "kind": "review",
+  "peers": [
+   "huitingyu@google.com"
+  ],
+  "additions": 2,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2025-03-04T15:25:45Z",
+  "kind": "review",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 15,
+  "files": 2
+ },
+ {
+  "date": "2025-03-03T14:57:57Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 45,
+  "deletions": 179,
+  "files": 6
+ },
+ {
+  "date": "2025-03-03T13:50:52Z",
+  "kind": "review",
+  "peers": [
+   "ankushkush@google.com"
+  ],
+  "additions": 2,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2025-03-03T12:27:14Z",
+  "kind": "review",
+  "peers": [
+   "ankushkush@google.com"
+  ],
+  "additions": 8,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2025-03-03T12:10:03Z",
+  "kind": "review",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 259,
+  "deletions": 185,
+  "files": 3
+ },
+ {
+  "date": "2025-02-28T15:25:13Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 28,
+  "deletions": 12,
+  "files": 9
+ },
+ {
+  "date": "2025-02-28T15:24:14Z",
+  "kind": "review",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 43,
+  "deletions": 46,
+  "files": 1
+ },
+ {
+  "date": "2025-02-28T13:47:25Z",
+  "kind": "review",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 105,
+  "deletions": 98,
+  "files": 32
+ },
+ {
+  "date": "2025-02-28T12:15:32Z",
+  "kind": "review",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 69,
+  "deletions": 57,
+  "files": 5
+ },
+ {
+  "date": "2025-02-28T12:13:27Z",
+  "kind": "review",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 56,
+  "deletions": 2,
+  "files": 5
+ },
+ {
+  "date": "2025-02-28T09:45:38Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 23,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-02-27T11:55:43Z",
+  "kind": "review",
+  "peers": [
+   "rushans@google.com"
+  ],
+  "additions": 2,
+  "deletions": 7,
+  "files": 1
+ },
+ {
+  "date": "2025-02-27T11:40:07Z",
+  "kind": "review",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 14,
+  "deletions": 20,
+  "files": 1
+ },
+ {
+  "date": "2025-03-11T17:04:59Z",
+  "kind": "author",
+  "peers": [
+   "sdefresne@chromium.org"
+  ],
+  "additions": 186,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2025-03-11T14:44:24Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 22,
+  "files": 1
+ },
+ {
+  "date": "2025-03-11T11:08:51Z",
+  "kind": "author",
+  "peers": [
+   "sdefresne@chromium.org"
+  ],
+  "additions": 176,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2025-03-05T16:06:40Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 16,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-03-05T14:44:51Z",
+  "kind": "review",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 54,
+  "deletions": 48,
+  "files": 6
+ },
+ {
+  "date": "2025-03-18T22:08:28Z",
+  "kind": "review",
+  "peers": [
+   "stkhapugin@chromium.org"
+  ],
+  "additions": 6,
+  "deletions": 10,
+  "files": 1
+ },
+ {
+  "date": "2025-03-18T09:59:13Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 9,
+  "files": 1
+ },
+ {
+  "date": "2025-03-17T12:08:02Z",
+  "kind": "author",
+  "peers": [
+   "myuu@google.com"
+  ],
+  "additions": 1,
+  "deletions": 6,
+  "files": 1
+ },
+ {
+  "date": "2025-03-14T15:16:03Z",
+  "kind": "review",
+  "peers": [
+   "slobodan@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-03-14T14:58:09Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 10,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-03-14T14:14:12Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1,
+  "deletions": 9,
+  "files": 1
+ },
+ {
+  "date": "2025-03-14T13:23:05Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org",
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 167,
+  "deletions": 1,
+  "files": 5
+ },
+ {
+  "date": "2025-03-14T11:57:14Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 59,
+  "deletions": 46,
+  "files": 1
+ },
+ {
+  "date": "2025-03-14T10:11:03Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-03-13T15:43:41Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2025-03-12T15:34:57Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org"
+  ],
+  "additions": 113,
+  "deletions": 28,
+  "files": 8
+ },
+ {
+  "date": "2025-03-19T15:20:24Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org",
+   "gambard@chromium.org"
+  ],
+  "additions": 62,
+  "deletions": 62,
+  "files": 10
+ },
+ {
+  "date": "2025-04-08T16:37:52Z",
+  "kind": "review",
+  "peers": [
+   "jagadeshjai1999@gmail.com"
+  ],
+  "additions": 2,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2025-04-07T11:33:10Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-04-22T13:57:08Z",
+  "kind": "review",
+  "peers": [
+   "jkeitel@google.com"
+  ],
+  "additions": 4,
+  "deletions": 8,
+  "files": 2
+ },
+ {
+  "date": "2025-04-22T12:55:37Z",
+  "kind": "review",
+  "peers": [
+   "rgod@google.com"
+  ],
+  "additions": 74,
+  "deletions": 2,
+  "files": 6
+ },
+ {
+  "date": "2025-04-22T11:10:38Z",
+  "kind": "review",
+  "peers": [
+   "lpromero@google.com"
+  ],
+  "additions": 7,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2025-04-17T14:07:53Z",
+  "kind": "author",
+  "peers": [
+   "ydago@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 8,
+  "files": 4
+ },
+ {
+  "date": "2025-04-17T12:45:06Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 8,
+  "files": 6
+ },
+ {
+  "date": "2025-04-16T16:00:25Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2025-04-29T14:24:59Z",
+  "kind": "author",
+  "peers": [
+   "bsazonov@chromium.org",
+   "gambard@chromium.org"
+  ],
+  "additions": 15,
+  "deletions": 11,
+  "files": 1
+ },
+ {
+  "date": "2025-04-28T12:48:22Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 44,
+  "deletions": 18,
+  "files": 1
+ },
+ {
+  "date": "2025-04-28T10:42:43Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 24,
+  "deletions": 19,
+  "files": 3
+ },
+ {
+  "date": "2025-04-28T10:04:58Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org"
+  ],
+  "additions": 15,
+  "deletions": 36,
+  "files": 7
+ },
+ {
+  "date": "2025-04-28T09:12:37Z",
+  "kind": "author",
+  "peers": [
+   "ydago@chromium.org",
+   "jlebel@chromium.org"
+  ],
+  "additions": 10,
+  "deletions": 13,
+  "files": 6
+ },
+ {
+  "date": "2025-04-28T09:11:45Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org"
+  ],
+  "additions": 22,
+  "deletions": 132,
+  "files": 5
+ },
+ {
+  "date": "2025-04-28T08:57:27Z",
+  "kind": "review",
+  "peers": [
+   "victorvianna@google.com"
+  ],
+  "additions": 8,
+  "deletions": 46,
+  "files": 4
+ },
+ {
+  "date": "2025-04-25T14:06:34Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 5,
+  "files": 2
+ },
+ {
+  "date": "2025-04-24T16:29:19Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 24,
+  "deletions": 19,
+  "files": 3
+ },
+ {
+  "date": "2025-05-13T16:55:45Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 23,
+  "files": 1
+ },
+ {
+  "date": "2025-05-13T16:25:03Z",
+  "kind": "author",
+  "peers": [
+   "ydago@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2025-05-13T14:25:29Z",
+  "kind": "review",
+  "peers": [
+   "fedegermi@google.com"
+  ],
+  "additions": 0,
+  "deletions": 261,
+  "files": 11
+ },
+ {
+  "date": "2025-05-13T13:00:41Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 5,
+  "deletions": 7,
+  "files": 1
+ },
+ {
+  "date": "2025-05-13T11:40:46Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 11,
+  "files": 1
+ },
+ {
+  "date": "2025-05-13T01:33:29Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@google.com"
+  ],
+  "additions": 82,
+  "deletions": 23,
+  "files": 5
+ },
+ {
+  "date": "2025-05-12T16:32:46Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 10,
+  "files": 1
+ },
+ {
+  "date": "2025-05-12T16:21:51Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 29,
+  "deletions": 10,
+  "files": 3
+ },
+ {
+  "date": "2025-05-12T14:29:32Z",
+  "kind": "review",
+  "peers": [
+   "ankushkush@google.com"
+  ],
+  "additions": 0,
+  "deletions": 6,
+  "files": 2
+ },
+ {
+  "date": "2025-05-12T13:05:05Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@google.com"
+  ],
+  "additions": 12,
+  "deletions": 45,
+  "files": 5
+ },
+ {
+  "date": "2025-05-12T13:04:44Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@google.com"
+  ],
+  "additions": 109,
+  "deletions": 101,
+  "files": 1
+ },
+ {
+  "date": "2025-05-08T10:43:21Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 84,
+  "files": 3
+ },
+ {
+  "date": "2025-05-07T09:43:53Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-05-06T09:40:00Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 27,
+  "deletions": 5,
+  "files": 4
+ },
+ {
+  "date": "2025-05-05T15:27:29Z",
+  "kind": "review",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 14,
+  "deletions": 4,
+  "files": 2
+ },
+ {
+  "date": "2025-05-05T15:27:08Z",
+  "kind": "author",
+  "peers": [
+   "droger@chromium.org"
+  ],
+  "additions": 13,
+  "deletions": 5,
+  "files": 4
+ },
+ {
+  "date": "2025-05-05T12:31:49Z",
+  "kind": "review",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 13,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2025-05-05T10:34:17Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 14,
+  "deletions": 12,
+  "files": 7
+ },
+ {
+  "date": "2025-05-02T11:23:13Z",
+  "kind": "review",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 8,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2025-05-02T11:19:28Z",
+  "kind": "review",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 14,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2025-04-30T13:15:25Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org",
+   "gambard@chromium.org"
+  ],
+  "additions": 53,
+  "deletions": 25,
+  "files": 14
+ },
+ {
+  "date": "2025-04-30T12:43:14Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org",
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 36,
+  "deletions": 28,
+  "files": 7
+ },
+ {
+  "date": "2025-05-20T17:37:46Z",
+  "kind": "review",
+  "peers": [
+   "ydago@chromium.org"
+  ],
+  "additions": 20,
+  "deletions": 9,
+  "files": 3
+ },
+ {
+  "date": "2025-05-19T10:52:48Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 14,
+  "deletions": 3,
+  "files": 3
+ },
+ {
+  "date": "2025-05-16T15:53:51Z",
+  "kind": "review",
+  "peers": [
+   "ydago@chromium.org"
+  ],
+  "additions": 63,
+  "deletions": 31,
+  "files": 10
+ },
+ {
+  "date": "2025-05-15T11:20:45Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@google.com"
+  ],
+  "additions": 11,
+  "deletions": 68,
+  "files": 5
+ },
+ {
+  "date": "2025-05-14T09:26:40Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@google.com"
+  ],
+  "additions": 26,
+  "deletions": 10,
+  "files": 2
+ },
+ {
+  "date": "2025-05-24T00:44:56Z",
+  "kind": "review",
+  "peers": [
+   "ydago@chromium.org"
+  ],
+  "additions": 10,
+  "deletions": 3,
+  "files": 2
+ },
+ {
+  "date": "2025-05-23T15:19:10Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org",
+   "rsult@google.com"
+  ],
+  "additions": 49,
+  "deletions": 0,
+  "files": 3
+ },
+ {
+  "date": "2025-05-23T10:57:26Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org",
+   "droger@chromium.org",
+   "treib@chromium.org"
+  ],
+  "additions": 256,
+  "deletions": 29,
+  "files": 14
+ },
+ {
+  "date": "2025-05-23T10:37:52Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@google.com"
+  ],
+  "additions": 3,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2025-05-22T16:39:03Z",
+  "kind": "review",
+  "peers": [
+   "mipa@google.com"
+  ],
+  "additions": 7,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2025-05-22T16:37:50Z",
+  "kind": "review",
+  "peers": [
+   "mipa@google.com"
+  ],
+  "additions": 6,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2025-05-22T16:37:18Z",
+  "kind": "review",
+  "peers": [
+   "mipa@google.com"
+  ],
+  "additions": 3,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-05-22T16:36:38Z",
+  "kind": "review",
+  "peers": [
+   "mipa@google.com"
+  ],
+  "additions": 8,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2025-05-21T18:00:46Z",
+  "kind": "review",
+  "peers": [
+   "mipa@google.com"
+  ],
+  "additions": 9,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2025-05-21T16:01:18Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 14,
+  "deletions": 28,
+  "files": 5
+ },
+ {
+  "date": "2025-05-21T11:19:14Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 6,
+  "deletions": 6,
+  "files": 4
+ },
+ {
+  "date": "2025-05-21T10:29:29Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 23,
+  "deletions": 3,
+  "files": 1
+ },
+ {
+  "date": "2025-06-03T10:06:00Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-06-02T17:23:16Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@google.com"
+  ],
+  "additions": 0,
+  "deletions": 6,
+  "files": 1
+ },
+ {
+  "date": "2025-06-02T17:21:50Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 17,
+  "deletions": 16,
+  "files": 1
+ },
+ {
+  "date": "2025-06-02T16:14:32Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 10,
+  "deletions": 13,
+  "files": 1
+ },
+ {
+  "date": "2025-06-02T15:59:09Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-05-30T16:35:43Z",
+  "kind": "author",
+  "peers": [
+   "ydago@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 6,
+  "files": 1
+ },
+ {
+  "date": "2025-05-28T12:57:40Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org",
+   "droger@chromium.org"
+  ],
+  "additions": 96,
+  "deletions": 1,
+  "files": 3
+ },
+ {
+  "date": "2025-05-28T11:45:59Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@google.com"
+  ],
+  "additions": 7,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2025-05-28T10:20:35Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 129,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-05-28T09:36:21Z",
+  "kind": "review",
+  "peers": [
+   "rushans@google.com"
+  ],
+  "additions": 24,
+  "deletions": 459,
+  "files": 28
+ },
+ {
+  "date": "2025-06-04T16:24:58Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@google.com"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-06-13T11:46:29Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 9,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-06-12T12:28:16Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 40,
+  "deletions": 33,
+  "files": 3
+ },
+ {
+  "date": "2025-06-12T11:17:54Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 6,
+  "files": 1
+ },
+ {
+  "date": "2025-06-12T11:10:10Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 9,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-06-12T07:42:21Z",
+  "kind": "review",
+  "peers": [
+   "ewannpv@chromium.org"
+  ],
+  "additions": 10,
+  "deletions": 6,
+  "files": 2
+ },
+ {
+  "date": "2025-06-11T11:22:16Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org"
+  ],
+  "additions": 6,
+  "deletions": 39,
+  "files": 1
+ },
+ {
+  "date": "2025-06-11T10:24:07Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 3,
+  "files": 1
+ },
+ {
+  "date": "2025-06-11T09:58:22Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org",
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 12,
+  "deletions": 154,
+  "files": 17
+ },
+ {
+  "date": "2025-06-16T14:37:33Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@google.com"
+  ],
+  "additions": 17,
+  "deletions": 3,
+  "files": 1
+ },
+ {
+  "date": "2025-06-17T08:43:12Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 7,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-07-01T12:47:59Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org",
+   "jlebel@chromium.org"
+  ],
+  "additions": 343,
+  "deletions": 55,
+  "files": 6
+ },
+ {
+  "date": "2025-06-27T14:21:38Z",
+  "kind": "review",
+  "peers": [
+   "ankushkush@google.com"
+  ],
+  "additions": 55,
+  "deletions": 28,
+  "files": 4
+ },
+ {
+  "date": "2025-06-26T10:23:13Z",
+  "kind": "author",
+  "peers": [
+   "jlebel@chromium.org",
+   "treib@chromium.org",
+   "bsazonov@chromium.org"
+  ],
+  "additions": 67,
+  "deletions": 43,
+  "files": 2
+ },
+ {
+  "date": "2025-07-08T09:40:17Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@google.com"
+  ],
+  "additions": 4,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2025-07-07T10:12:46Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org",
+   "jlebel@chromium.org",
+   "droger@chromium.org"
+  ],
+  "additions": 233,
+  "deletions": 8,
+  "files": 14
+ },
+ {
+  "date": "2025-07-22T10:43:35Z",
+  "kind": "review",
+  "peers": [
+   "vizcay@google.com"
+  ],
+  "additions": 27,
+  "deletions": 1,
+  "files": 3
+ },
+ {
+  "date": "2025-07-21T18:17:44Z",
+  "kind": "review",
+  "peers": [
+   "tluk@chromium.org"
+  ],
+  "additions": 212,
+  "deletions": 168,
+  "files": 3
+ },
+ {
+  "date": "2025-07-17T14:15:00Z",
+  "kind": "review",
+  "peers": [
+   "alexandrasp@google.com"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2025-07-17T11:30:25Z",
+  "kind": "author",
+  "peers": [
+   "gambard@chromium.org",
+   "treib@chromium.org",
+   "ashleynewson@chromium.org"
+  ],
+  "additions": 73,
+  "deletions": 2,
+  "files": 5
+ },
+ {
+  "date": "2025-07-16T19:49:04Z",
+  "kind": "review",
+  "peers": [
+   "kelvinjiang@chromium.org"
+  ],
+  "additions": 364,
+  "deletions": 49,
+  "files": 13
+ },
+ {
+  "date": "2025-07-25T11:35:28Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 23,
+  "deletions": 12,
+  "files": 2
+ },
+ {
+  "date": "2025-07-25T10:42:31Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2025-07-24T23:06:56Z",
+  "kind": "review",
+  "peers": [
+   "mmoskvitin@google.com"
+  ],
+  "additions": 16,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2025-08-05T10:11:03Z",
+  "kind": "review",
+  "peers": [
+   "ankushkush@google.com"
+  ],
+  "additions": 2,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2025-08-04T16:58:27Z",
+  "kind": "review",
+  "peers": [
+   "dft@google.com"
+  ],
+  "additions": 34,
+  "deletions": 23,
+  "files": 9
+ },
+ {
+  "date": "2025-08-01T11:20:36Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@google.com"
+  ],
+  "additions": 1,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2025-08-08T09:02:52Z",
+  "kind": "author",
+  "peers": [
+   "sdefresne@chromium.org",
+   "jlebel@chromium.org"
+  ],
+  "additions": 85,
+  "deletions": 10,
+  "files": 10
+ },
+ {
+  "date": "2025-08-07T14:15:47Z",
+  "kind": "review",
+  "peers": [
+   "victorvianna@google.com"
+  ],
+  "additions": 38,
+  "deletions": 1599,
+  "files": 37
+ },
+ {
+  "date": "2025-08-18T15:27:13Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@google.com"
+  ],
+  "additions": 390,
+  "deletions": 245,
+  "files": 10
+ },
+ {
+  "date": "2025-08-18T14:44:29Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@google.com"
+  ],
+  "additions": 1,
+  "deletions": 7,
+  "files": 1
+ },
+ {
+  "date": "2025-08-26T07:48:39Z",
+  "kind": "review",
+  "peers": [
+   "mtatarski@google.com"
+  ],
+  "additions": 23,
+  "deletions": 29,
+  "files": 1
+ },
+ {
+  "date": "2025-08-27T13:31:40Z",
+  "kind": "review",
+  "peers": [
+   "mtatarski@google.com"
+  ],
+  "additions": 14,
+  "deletions": 6,
+  "files": 3
+ },
+ {
+  "date": "2025-08-27T13:07:50Z",
+  "kind": "review",
+  "peers": [
+   "mtatarski@google.com"
+  ],
+  "additions": 4,
+  "deletions": 5,
+  "files": 2
+ },
+ {
+  "date": "2025-08-29T10:35:29Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 6,
+  "files": 1
+ },
+ {
+  "date": "2025-09-09T10:52:13Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@google.com"
+  ],
+  "additions": 6,
+  "deletions": 0,
+  "files": 3
+ },
+ {
+  "date": "2025-09-08T14:11:47Z",
+  "kind": "review",
+  "peers": [
+   "dongguoz@google.com"
+  ],
+  "additions": 89,
+  "deletions": 85,
+  "files": 68
+ },
+ {
+  "date": "2025-09-08T13:34:32Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@google.com"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2025-09-08T13:25:38Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@google.com"
+  ],
+  "additions": 5,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-09-05T10:09:41Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 21,
+  "deletions": 46,
+  "files": 1
+ },
+ {
+  "date": "2025-09-04T12:57:21Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 59,
+  "files": 5
+ },
+ {
+  "date": "2025-09-03T00:37:52Z",
+  "kind": "review",
+  "peers": [
+   "dongguoz@google.com"
+  ],
+  "additions": 88,
+  "deletions": 84,
+  "files": 67
+ },
+ {
+  "date": "2025-09-16T16:19:07Z",
+  "kind": "review",
+  "peers": [
+   "dongguoz@google.com"
+  ],
+  "additions": 174,
+  "deletions": 251,
+  "files": 81
+ },
+ {
+  "date": "2025-09-15T14:41:01Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org",
+   "sdefresne@chromium.org"
+  ],
+  "additions": 8,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2025-09-15T09:35:11Z",
+  "kind": "review",
+  "peers": [
+   "fedegermi@google.com"
+  ],
+  "additions": 0,
+  "deletions": 5,
+  "files": 1
+ },
+ {
+  "date": "2025-09-10T08:58:05Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@google.com"
+  ],
+  "additions": 47,
+  "deletions": 4,
+  "files": 4
+ },
+ {
+  "date": "2025-09-22T10:42:59Z",
+  "kind": "review",
+  "peers": [
+   "mtatarski@google.com"
+  ],
+  "additions": 48,
+  "deletions": 38,
+  "files": 3
+ },
+ {
+  "date": "2025-09-19T13:27:27Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@google.com"
+  ],
+  "additions": 37,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2025-09-17T12:50:36Z",
+  "kind": "review",
+  "peers": [
+   "mtatarski@google.com"
+  ],
+  "additions": 10,
+  "deletions": 8,
+  "files": 8
+ },
+ {
+  "date": "2025-09-25T15:53:29Z",
+  "kind": "review",
+  "peers": [
+   "rushans@google.com"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2025-09-25T14:30:07Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 7,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2025-09-24T13:34:27Z",
+  "kind": "review",
+  "peers": [
+   "mtatarski@google.com"
+  ],
+  "additions": 16,
+  "deletions": 9,
+  "files": 1
+ },
+ {
+  "date": "2025-09-24T12:23:28Z",
+  "kind": "review",
+  "peers": [
+   "thomasth@google.com"
+  ],
+  "additions": 14,
+  "deletions": 92,
+  "files": 6
+ },
+ {
+  "date": "2025-10-06T14:05:38Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 18,
+  "files": 4
+ },
+ {
+  "date": "2025-10-06T12:00:37Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 9,
+  "deletions": 0,
+  "files": 4
+ },
+ {
+  "date": "2025-10-02T13:04:51Z",
+  "kind": "review",
+  "peers": [
+   "mtatarski@google.com"
+  ],
+  "additions": 52,
+  "deletions": 34,
+  "files": 2
+ },
+ {
+  "date": "2025-10-14T11:27:47Z",
+  "kind": "review",
+  "peers": [
+   "amelies@google.com"
+  ],
+  "additions": 60,
+  "deletions": 2,
+  "files": 6
+ },
+ {
+  "date": "2025-10-21T18:59:33Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@google.com"
+  ],
+  "additions": 101,
+  "deletions": 71,
+  "files": 7
+ },
+ {
+  "date": "2025-10-21T18:39:35Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@google.com"
+  ],
+  "additions": 1,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2025-10-16T12:06:13Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 15,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-10-16T05:11:25Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@google.com"
+  ],
+  "additions": 23,
+  "deletions": 16,
+  "files": 6
+ },
+ {
+  "date": "2025-10-30T18:14:14Z",
+  "kind": "review",
+  "peers": [
+   "joenotcharles@google.com"
+  ],
+  "additions": 175,
+  "deletions": 22,
+  "files": 9
+ },
+ {
+  "date": "2025-11-03T17:51:31Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 65,
+  "deletions": 63,
+  "files": 14
+ },
+ {
+  "date": "2025-11-05T15:41:40Z",
+  "kind": "review",
+  "peers": [
+   "sdefresne@chromium.org"
+  ],
+  "additions": 45,
+  "deletions": 138,
+  "files": 4
+ },
+ {
+  "date": "2025-11-11T13:54:39Z",
+  "kind": "author",
+  "peers": [
+   "ankushkush@google.com"
+  ],
+  "additions": 621,
+  "deletions": 883,
+  "files": 32
+ },
+ {
+  "date": "2025-11-18T13:37:03Z",
+  "kind": "review",
+  "peers": [
+   "mmrashad@google.com"
+  ],
+  "additions": 14,
+  "deletions": 26,
+  "files": 1
+ },
+ {
+  "date": "2025-11-25T15:30:11Z",
+  "kind": "review",
+  "peers": [
+   "ankushkush@google.com"
+  ],
+  "additions": 5,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-11-26T17:40:50Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 19,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2025-11-26T15:46:30Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 125,
+  "deletions": 73,
+  "files": 1
+ },
+ {
+  "date": "2025-11-26T13:58:09Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 140,
+  "deletions": 62,
+  "files": 3
+ },
+ {
+  "date": "2025-11-27T14:31:31Z",
+  "kind": "review",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 22,
+  "deletions": 3,
+  "files": 1
+ },
+ {
+  "date": "2025-12-02T14:20:07Z",
+  "kind": "review",
+  "peers": [
+   "msalama@chromium.org"
+  ],
+  "additions": 8,
+  "deletions": 6,
+  "files": 1
+ },
+ {
+  "date": "2025-12-02T10:25:45Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org"
+  ],
+  "additions": 6,
+  "deletions": 8,
+  "files": 1
+ },
+ {
+  "date": "2025-12-08T08:15:15Z",
+  "kind": "review",
+  "peers": [
+   "arthurmilchior@google.com"
+  ],
+  "additions": 12,
+  "deletions": 14,
+  "files": 2
+ },
+ {
+  "date": "2025-12-17T18:53:44Z",
+  "kind": "review",
+  "peers": [
+   "kristislee@google.com"
+  ],
+  "additions": 43,
+  "deletions": 2,
+  "files": 6
+ },
+ {
+  "date": "2025-12-18T14:46:28Z",
+  "kind": "review",
+  "peers": [
+   "awillia@chromium.org"
+  ],
+  "additions": 6,
+  "deletions": 5,
+  "files": 1
+ },
+ {
+  "date": "2025-12-29T16:50:36Z",
+  "kind": "review",
+  "peers": [
+   "hiramahmood@google.com"
+  ],
+  "additions": 315,
+  "deletions": 30,
+  "files": 38
+ },
+ {
+  "date": "2026-01-13T08:18:20Z",
+  "kind": "review",
+  "peers": [
+   "nhiroki@chromium.org"
+  ],
+  "additions": 43,
+  "deletions": 59,
+  "files": 5
+ },
+ {
+  "date": "2026-01-14T15:39:56Z",
+  "kind": "author",
+  "peers": [
+   "treib@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 16,
+  "files": 2
+ },
+ {
+  "date": "2026-01-14T14:33:28Z",
+  "kind": "review",
+  "peers": [
+   "amelies@google.com"
+  ],
+  "additions": 134,
+  "deletions": 90,
+  "files": 4
+ },
+ {
+  "date": "2026-01-17T07:43:14Z",
+  "kind": "review",
+  "peers": [
+   "rushans@google.com"
+  ],
+  "additions": 140,
+  "deletions": 6,
+  "files": 3
+ },
+ {
+  "date": "2026-01-16T08:55:50Z",
+  "kind": "review",
+  "peers": [
+   "mtatarski@google.com"
+  ],
+  "additions": 168,
+  "deletions": 27,
+  "files": 22
+ },
+ {
+  "date": "2026-01-19T14:15:17Z",
+  "kind": "author",
+  "peers": [
+   "arthurmilchior@chromium.org",
+   "sdefresne@chromium.org"
+  ],
+  "additions": 6,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2026-01-19T12:59:47Z",
+  "kind": "review",
+  "peers": [
+   "mtatarski@google.com"
+  ],
+  "additions": 4,
+  "deletions": 1,
+  "files": 2
+ },
+ {
+  "date": "2026-01-27T11:28:43Z",
+  "kind": "review",
+  "peers": [
+   "hiroshige@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 1,
+  "files": 1
+ }
+]
