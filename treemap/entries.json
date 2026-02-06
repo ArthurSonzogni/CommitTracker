@@ -1,0 +1,142 @@
+{
+ "metrics": [
+  {
+   "name": "C++ file",
+   "description": "The number of C++ files.",
+   "script": "git ls-files -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'",
+   "file": "file"
+  },
+  {
+   "name": "C++ line",
+   "description": "The number of lines in C++ lines, omitting blank/comment/macro.",
+   "script": "python3 ../../scripts/cpp_lines.py",
+   "file": "line"
+  },
+  {
+   "name": "raw_ptr",
+   "description": "The number of raw_ptr<T>",
+   "script": "git grep -c 'raw_ptr<' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'",
+   "file": "raw_ptr",
+   "tags": [
+    "MiraclePtr"
+   ]
+  },
+  {
+   "name": "raw_ref",
+   "description": "The number of raw_ref<T>",
+   "script": "git grep -c 'raw_ref<' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'",
+   "file": "raw_ref",
+   "tags": [
+    "MiraclePtr"
+   ]
+  },
+  {
+   "name": "RAW_PTR_EXCLUSION",
+   "description": "The number of RAW_PTR_EXCLUSION",
+   "script": "git grep -c 'RAW_PTR_EXCLUSION ' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'",
+   "file": "raw_ptr_exclusion",
+   "tags": [
+    "MiraclePtr"
+   ]
+  },
+  {
+   "name": "DanglingUntriaged",
+   "description": "The number of DanglingUntriaged",
+   "script": "git grep -c 'DanglingUntriaged' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'",
+   "file": "dangling_untriaged",
+   "tags": [
+    "MiraclePtr"
+   ]
+  },
+  {
+   "name": "AllowPtrArithmetic",
+   "description": "The number of AllowPtrArithmetic",
+   "script": "git grep -c 'AllowPtrArithmetic' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'",
+   "file": "allow_ptr_arithmetic",
+   "tags": [
+    "MiraclePtr"
+   ]
+  },
+  {
+   "name": "ContainerExperimental",
+   "description": "The number of VectorExperimental, SetExperimental, CtnExperimental",
+   "script": "git grep -cE \"(Vector|Set|Ctn)Experimental\" -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'",
+   "file": "ctrn_expr",
+   "tags": [
+    "MiraclePtr"
+   ]
+  },
+  {
+   "name": "Unsafe Buffer Usage Lines",
+   "description": "The number of lines with UNSAFE_BUFFER_USAGE, calculated by a script.",
+   "script": "python3 ../../scripts/warn_unsafe_buffer_usage_lines.py",
+   "file": "lines_unsafe_buffer_usage",
+   "tags": [
+    "Spanification"
+   ]
+  },
+  {
+   "name": "allow_unsafe_buffers",
+   "description": "The number of files with allow_unsafe_buffers",
+   "script": "git grep -c 'allow_unsafe_buffers' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'",
+   "file": "allow_unsafe_buffers",
+   "tags": [
+    "Spanification"
+   ]
+  },
+  {
+   "name": "UNSAFE_BUFFER_USAGE",
+   "description": "The occurrences of UNSAFE_BUFFER_USAGE",
+   "script": "git grep -c 'UNSAFE_BUFFER_USAGE' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'",
+   "file": "unsafe_buffer_usage",
+   "tags": [
+    "Spanification"
+   ]
+  },
+  {
+   "name": "UNSAFE_BUFFERS",
+   "description": "The occurrences of UNSAFE_BUFFERS(...)",
+   "script": "git grep -c 'UNSAFE_BUFFERS(' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'",
+   "file": "unsafe_buffers",
+   "tags": [
+    "Spanification"
+   ]
+  },
+  {
+   "name": "UNSAFE_TODO",
+   "description": "The occurrences of UNSAFE_TODO(...)",
+   "script": "git grep -c 'UNSAFE_TODO(' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'",
+   "file": "unsafe_todo",
+   "tags": [
+    "Spanification"
+   ]
+  },
+  {
+   "name": "base::Unretained",
+   "description": "The occurrences of base::Unretained",
+   "script": "git grep -c 'base::Unretained' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'",
+   "file": "base_unretained",
+   "tags": [
+    "Memory Safety"
+   ]
+  },
+  {
+   "name": "Browser Modularization",
+   "description": "The number of files required for browser modularization",
+   "script": "git grep -c -E 'TestBrowserWindow|BrowserWithTestWindowTest|TestWithBrowserView|CreateBrowserWithTestWindowForParams' -- ':!*ash*' ':!*chromeos*' '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'",
+   "file": "browser_modularization",
+   "tags": [
+    "Browser Modularization"
+   ]
+  },
+  {
+   "name": "TODO",
+   "description": "The number of TODO",
+   "script": "git grep -c 'TODO' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'",
+   "file": "todo",
+   "tags": [
+    "Misc"
+   ]
+  }
+ ]
+}

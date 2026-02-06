@@ -1,0 +1,1724 @@
+[
+ {
+  "date": "2025-03-11T12:12:51Z",
+  "kind": "author",
+  "peers": [
+   "mlippautz@chromium.org",
+   "machenbach@chromium.org"
+  ],
+  "additions": 42,
+  "deletions": 1,
+  "files": 4
+ },
+ {
+  "date": "2025-05-08T21:44:30Z",
+  "kind": "author",
+  "peers": [
+   "syg@chromium.org",
+   "verwaest@chromium.org"
+  ],
+  "additions": 491,
+  "deletions": 199,
+  "files": 15
+ },
+ {
+  "date": "2025-05-08T07:33:17Z",
+  "kind": "author",
+  "peers": [
+   "syg@chromium.org",
+   "machenbach@chromium.org"
+  ],
+  "additions": 631,
+  "deletions": 463,
+  "files": 26
+ },
+ {
+  "date": "2025-05-07T18:32:30Z",
+  "kind": "author",
+  "peers": [
+   "syg@chromium.org",
+   "gdeepti@chromium.org"
+  ],
+  "additions": 471,
+  "deletions": 19433,
+  "files": 24
+ },
+ {
+  "date": "2025-05-20T09:47:25Z",
+  "kind": "author",
+  "peers": [
+   "machenbach@chromium.org",
+   "mlippautz@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2025-05-22T09:14:24Z",
+  "kind": "author",
+  "peers": [
+   "machenbach@chromium.org",
+   "leszeks@chromium.org"
+  ],
+  "additions": 13,
+  "deletions": 1,
+  "files": 2
+ },
+ {
+  "date": "2025-06-03T09:13:13Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 238,
+  "deletions": 207,
+  "files": 16
+ },
+ {
+  "date": "2025-06-03T08:20:39Z",
+  "kind": "author",
+  "peers": [
+   "mliedtke@chromium.org",
+   "ishell@chromium.org"
+  ],
+  "additions": 190,
+  "deletions": 310,
+  "files": 7
+ },
+ {
+  "date": "2025-06-02T16:06:16Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org",
+   "machenbach@chromium.org"
+  ],
+  "additions": 26,
+  "deletions": 15,
+  "files": 1
+ },
+ {
+  "date": "2025-06-02T07:59:09Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org",
+   "syg@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 145,
+  "files": 7
+ },
+ {
+  "date": "2025-05-30T22:49:50Z",
+  "kind": "author",
+  "peers": [
+   "syg@chromium.org",
+   "leszeks@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 334,
+  "files": 14
+ },
+ {
+  "date": "2025-05-30T22:48:44Z",
+  "kind": "author",
+  "peers": [
+   "syg@chromium.org",
+   "leszeks@chromium.org"
+  ],
+  "additions": 190,
+  "deletions": 310,
+  "files": 7
+ },
+ {
+  "date": "2025-05-29T19:36:20Z",
+  "kind": "author",
+  "peers": [
+   "rezvan@chromium.org",
+   "syg@chromium.org"
+  ],
+  "additions": 831,
+  "deletions": 155,
+  "files": 8
+ },
+ {
+  "date": "2025-05-28T23:04:37Z",
+  "kind": "author",
+  "peers": [
+   "gdeepti@chromium.org",
+   "syg@chromium.org"
+  ],
+  "additions": 100,
+  "deletions": 104,
+  "files": 1
+ },
+ {
+  "date": "2025-06-10T18:29:40Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org",
+   "ishell@chromium.org",
+   "jgruber@chromium.org"
+  ],
+  "additions": 25,
+  "deletions": 23,
+  "files": 13
+ },
+ {
+  "date": "2025-06-10T17:21:35Z",
+  "kind": "author",
+  "peers": [
+   "mlippautz@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 7,
+  "files": 1
+ },
+ {
+  "date": "2025-06-10T16:02:48Z",
+  "kind": "author",
+  "peers": [
+   "ishell@chromium.org",
+   "leszeks@chromium.org"
+  ],
+  "additions": 30,
+  "deletions": 60,
+  "files": 7
+ },
+ {
+  "date": "2025-06-10T15:44:51Z",
+  "kind": "author",
+  "peers": [
+   "ishell@chromium.org",
+   "leszeks@chromium.org"
+  ],
+  "additions": 74,
+  "deletions": 31,
+  "files": 3
+ },
+ {
+  "date": "2025-06-10T15:43:47Z",
+  "kind": "author",
+  "peers": [
+   "jgruber@chromium.org",
+   "ishell@chromium.org",
+   "leszeks@chromium.org"
+  ],
+  "additions": 166,
+  "deletions": 166,
+  "files": 11
+ },
+ {
+  "date": "2025-06-09T23:34:10Z",
+  "kind": "author",
+  "peers": [
+   "rezvan@chromium.org"
+  ],
+  "additions": 12,
+  "deletions": 5,
+  "files": 1
+ },
+ {
+  "date": "2025-06-06T19:07:59Z",
+  "kind": "review",
+  "peers": [
+   "lukasza@chromium.org"
+  ],
+  "additions": 22,
+  "deletions": 22,
+  "files": 7
+ },
+ {
+  "date": "2025-06-06T16:45:14Z",
+  "kind": "author",
+  "peers": [
+   "machenbach@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 7,
+  "files": 1
+ },
+ {
+  "date": "2025-06-06T08:39:41Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 10,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2025-06-06T08:38:36Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 165,
+  "deletions": 131,
+  "files": 16
+ },
+ {
+  "date": "2025-06-06T08:36:57Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 60,
+  "deletions": 36,
+  "files": 3
+ },
+ {
+  "date": "2025-06-05T16:59:17Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org",
+   "ishell@chromium.org"
+  ],
+  "additions": 204,
+  "deletions": 39,
+  "files": 1
+ },
+ {
+  "date": "2025-06-05T01:06:55Z",
+  "kind": "author",
+  "peers": [
+   "rezvan@chromium.org"
+  ],
+  "additions": 205,
+  "deletions": 232,
+  "files": 2
+ },
+ {
+  "date": "2025-06-04T17:41:25Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 691,
+  "deletions": 235,
+  "files": 5
+ },
+ {
+  "date": "2025-06-11T17:10:56Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org",
+   "ishell@chromium.org"
+  ],
+  "additions": 486,
+  "deletions": 16,
+  "files": 1
+ },
+ {
+  "date": "2025-06-17T15:44:07Z",
+  "kind": "author",
+  "peers": [
+   "jgruber@chromium.org"
+  ],
+  "additions": 267,
+  "deletions": 22,
+  "files": 1
+ },
+ {
+  "date": "2025-06-17T08:43:59Z",
+  "kind": "author",
+  "peers": [
+   "jgruber@chromium.org",
+   "mlippautz@chromium.org"
+  ],
+  "additions": 640,
+  "deletions": 71,
+  "files": 1
+ },
+ {
+  "date": "2025-06-16T18:14:46Z",
+  "kind": "author",
+  "peers": [
+   "ishell@chromium.org"
+  ],
+  "additions": 93,
+  "deletions": 141,
+  "files": 1
+ },
+ {
+  "date": "2025-06-16T17:37:08Z",
+  "kind": "author",
+  "peers": [
+   "ishell@chromium.org",
+   "jgruber@chromium.org"
+  ],
+  "additions": 721,
+  "deletions": 708,
+  "files": 7
+ },
+ {
+  "date": "2025-06-16T17:36:03Z",
+  "kind": "author",
+  "peers": [
+   "mlippautz@chromium.org",
+   "ishell@chromium.org"
+  ],
+  "additions": 203,
+  "deletions": 305,
+  "files": 10
+ },
+ {
+  "date": "2025-06-16T17:28:23Z",
+  "kind": "author",
+  "peers": [
+   "ishell@chromium.org"
+  ],
+  "additions": 860,
+  "deletions": 21,
+  "files": 1
+ },
+ {
+  "date": "2025-06-24T22:13:36Z",
+  "kind": "author",
+  "peers": [
+   "ishell@chromium.org"
+  ],
+  "additions": 236,
+  "deletions": 70,
+  "files": 1
+ },
+ {
+  "date": "2025-06-24T21:12:52Z",
+  "kind": "author",
+  "peers": [
+   "jgruber@chromium.org"
+  ],
+  "additions": 49,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2025-06-24T21:11:02Z",
+  "kind": "author",
+  "peers": [
+   "rezvan@chromium.org"
+  ],
+  "additions": 59,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-06-24T15:44:58Z",
+  "kind": "author",
+  "peers": [
+   "verwaest@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2025-06-24T15:33:38Z",
+  "kind": "author",
+  "peers": [
+   "jkummerow@chromium.org"
+  ],
+  "additions": 19,
+  "deletions": 7,
+  "files": 1
+ },
+ {
+  "date": "2025-06-24T15:32:35Z",
+  "kind": "author",
+  "peers": [
+   "ishell@chromium.org"
+  ],
+  "additions": 307,
+  "deletions": 175,
+  "files": 1
+ },
+ {
+  "date": "2025-06-23T21:04:43Z",
+  "kind": "author",
+  "peers": [
+   "rezvan@chromium.org"
+  ],
+  "additions": 965,
+  "deletions": 907,
+  "files": 18
+ },
+ {
+  "date": "2025-06-23T09:34:04Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 89,
+  "deletions": 7,
+  "files": 2
+ },
+ {
+  "date": "2025-06-23T09:33:01Z",
+  "kind": "author",
+  "peers": [
+   "mlippautz@chromium.org"
+  ],
+  "additions": 37,
+  "deletions": 35,
+  "files": 2
+ },
+ {
+  "date": "2025-06-23T09:31:58Z",
+  "kind": "author",
+  "peers": [
+   "jgruber@chromium.org"
+  ],
+  "additions": 125,
+  "deletions": 216,
+  "files": 2
+ },
+ {
+  "date": "2025-06-23T09:28:46Z",
+  "kind": "author",
+  "peers": [
+   "jgruber@chromium.org"
+  ],
+  "additions": 102,
+  "deletions": 8,
+  "files": 1
+ },
+ {
+  "date": "2025-06-23T09:27:42Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 165,
+  "deletions": 70,
+  "files": 6
+ },
+ {
+  "date": "2025-06-23T09:26:38Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 75,
+  "deletions": 36,
+  "files": 1
+ },
+ {
+  "date": "2025-06-20T20:53:46Z",
+  "kind": "author",
+  "peers": [
+   "rezvan@chromium.org"
+  ],
+  "additions": 114,
+  "deletions": 94,
+  "files": 3
+ },
+ {
+  "date": "2025-06-19T16:29:49Z",
+  "kind": "author",
+  "peers": [
+   "ishell@chromium.org"
+  ],
+  "additions": 9,
+  "deletions": 5,
+  "files": 2
+ },
+ {
+  "date": "2025-06-18T23:38:37Z",
+  "kind": "author",
+  "peers": [
+   "ishell@chromium.org"
+  ],
+  "additions": 382,
+  "deletions": 38,
+  "files": 2
+ },
+ {
+  "date": "2025-06-18T22:00:34Z",
+  "kind": "author",
+  "peers": [
+   "ishell@chromium.org"
+  ],
+  "additions": 179,
+  "deletions": 191,
+  "files": 1
+ },
+ {
+  "date": "2025-06-18T18:53:13Z",
+  "kind": "author",
+  "peers": [
+   "mlippautz@chromium.org",
+   "gdeepti@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2025-07-01T16:02:30Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 154,
+  "deletions": 98,
+  "files": 7
+ },
+ {
+  "date": "2025-06-30T19:37:02Z",
+  "kind": "author",
+  "peers": [
+   "rezvan@chromium.org"
+  ],
+  "additions": 36,
+  "deletions": 50,
+  "files": 8
+ },
+ {
+  "date": "2025-06-30T19:30:21Z",
+  "kind": "author",
+  "peers": [
+   "rezvan@chromium.org"
+  ],
+  "additions": 87,
+  "deletions": 53,
+  "files": 5
+ },
+ {
+  "date": "2025-06-30T17:04:56Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 120,
+  "deletions": 70,
+  "files": 10
+ },
+ {
+  "date": "2025-06-30T13:02:12Z",
+  "kind": "author",
+  "peers": [
+   "mlippautz@chromium.org",
+   "ishell@chromium.org",
+   "jgruber@chromium.org"
+  ],
+  "additions": 52,
+  "deletions": 38,
+  "files": 3
+ },
+ {
+  "date": "2025-06-30T11:18:56Z",
+  "kind": "author",
+  "peers": [
+   "jgruber@chromium.org"
+  ],
+  "additions": 168,
+  "deletions": 309,
+  "files": 19
+ },
+ {
+  "date": "2025-06-30T08:03:20Z",
+  "kind": "author",
+  "peers": [
+   "jgruber@chromium.org",
+   "mlippautz@chromium.org"
+  ],
+  "additions": 24,
+  "deletions": 5,
+  "files": 3
+ },
+ {
+  "date": "2025-06-30T06:13:14Z",
+  "kind": "author",
+  "peers": [
+   "jgruber@chromium.org"
+  ],
+  "additions": 79,
+  "deletions": 146,
+  "files": 2
+ },
+ {
+  "date": "2025-06-27T17:26:52Z",
+  "kind": "author",
+  "peers": [
+   "rezvan@chromium.org"
+  ],
+  "additions": 672,
+  "deletions": 486,
+  "files": 3
+ },
+ {
+  "date": "2025-06-27T09:11:17Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 308,
+  "deletions": 120,
+  "files": 5
+ },
+ {
+  "date": "2025-06-27T08:34:31Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 73,
+  "deletions": 32,
+  "files": 1
+ },
+ {
+  "date": "2025-06-26T14:31:31Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 143,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2025-06-26T14:02:57Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 31,
+  "deletions": 12,
+  "files": 2
+ },
+ {
+  "date": "2025-06-26T13:23:15Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 23,
+  "deletions": 3,
+  "files": 1
+ },
+ {
+  "date": "2025-06-25T17:07:10Z",
+  "kind": "author",
+  "peers": [
+   "ishell@chromium.org"
+  ],
+  "additions": 83,
+  "deletions": 54,
+  "files": 1
+ },
+ {
+  "date": "2025-06-25T07:52:11Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 380,
+  "deletions": 59,
+  "files": 1
+ },
+ {
+  "date": "2025-07-08T18:43:48Z",
+  "kind": "author",
+  "peers": [
+   "mlippautz@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 3846,
+  "files": 8
+ },
+ {
+  "date": "2025-07-04T16:24:36Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 26,
+  "deletions": 7,
+  "files": 3
+ },
+ {
+  "date": "2025-07-04T16:18:50Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 14,
+  "deletions": 4,
+  "files": 2
+ },
+ {
+  "date": "2025-07-03T16:35:04Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 183,
+  "deletions": 92,
+  "files": 1
+ },
+ {
+  "date": "2025-07-03T07:23:21Z",
+  "kind": "author",
+  "peers": [
+   "olivf@chromium.org"
+  ],
+  "additions": 363,
+  "deletions": 405,
+  "files": 21
+ },
+ {
+  "date": "2025-07-03T05:08:28Z",
+  "kind": "author",
+  "peers": [
+   "jgruber@chromium.org"
+  ],
+  "additions": 706,
+  "deletions": 1028,
+  "files": 23
+ },
+ {
+  "date": "2025-07-15T08:55:05Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 3,
+  "files": 1
+ },
+ {
+  "date": "2025-07-22T17:19:03Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 70,
+  "deletions": 14,
+  "files": 5
+ },
+ {
+  "date": "2025-07-22T17:09:41Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 87,
+  "deletions": 133,
+  "files": 1
+ },
+ {
+  "date": "2025-07-22T09:35:53Z",
+  "kind": "review",
+  "peers": [
+   "mlippautz@chromium.org"
+  ],
+  "additions": 87,
+  "deletions": 82,
+  "files": 21
+ },
+ {
+  "date": "2025-07-21T19:43:36Z",
+  "kind": "author",
+  "peers": [
+   "rezvan@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-07-21T07:41:35Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2025-07-18T22:15:28Z",
+  "kind": "author",
+  "peers": [
+   "rezvan@chromium.org"
+  ],
+  "additions": 62,
+  "deletions": 26,
+  "files": 2
+ },
+ {
+  "date": "2025-07-17T21:10:06Z",
+  "kind": "review",
+  "peers": [
+   "ftang@chromium.org"
+  ],
+  "additions": 457,
+  "deletions": 76,
+  "files": 17
+ },
+ {
+  "date": "2025-07-17T14:04:35Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 26,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2025-07-16T23:31:23Z",
+  "kind": "author",
+  "peers": [
+   "rezvan@chromium.org"
+  ],
+  "additions": 1348,
+  "deletions": 1344,
+  "files": 6
+ },
+ {
+  "date": "2025-07-16T23:04:49Z",
+  "kind": "author",
+  "peers": [
+   "rezvan@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2025-07-16T09:04:51Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 199,
+  "deletions": 188,
+  "files": 1
+ },
+ {
+  "date": "2025-07-25T07:40:51Z",
+  "kind": "author",
+  "peers": [
+   "machenbach@chromium.org"
+  ],
+  "additions": 18,
+  "deletions": 3,
+  "files": 1
+ },
+ {
+  "date": "2025-07-24T09:03:25Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 204,
+  "deletions": 138,
+  "files": 1
+ },
+ {
+  "date": "2025-07-23T21:05:25Z",
+  "kind": "author",
+  "peers": [
+   "rezvan@chromium.org"
+  ],
+  "additions": 30,
+  "deletions": 37,
+  "files": 2
+ },
+ {
+  "date": "2025-07-23T16:50:35Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 28,
+  "deletions": 19,
+  "files": 2
+ },
+ {
+  "date": "2025-07-23T16:49:30Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 118,
+  "deletions": 13,
+  "files": 2
+ },
+ {
+  "date": "2025-07-23T10:03:01Z",
+  "kind": "review",
+  "peers": [
+   "ftang@chromium.org"
+  ],
+  "additions": 995,
+  "deletions": 271,
+  "files": 20
+ },
+ {
+  "date": "2025-07-23T09:46:46Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2025-07-28T08:03:15Z",
+  "kind": "author",
+  "peers": [
+   "machenbach@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-08-05T07:33:34Z",
+  "kind": "author",
+  "peers": [
+   "machenbach@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 16,
+  "files": 2
+ },
+ {
+  "date": "2025-08-05T01:35:33Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 36,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-08-04T12:24:00Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 278,
+  "deletions": 195,
+  "files": 2
+ },
+ {
+  "date": "2025-08-04T11:02:10Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 177,
+  "deletions": 69,
+  "files": 2
+ },
+ {
+  "date": "2025-07-31T15:56:48Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 10,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2025-07-31T09:29:56Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2025-08-11T15:16:23Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2025-08-11T14:32:22Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2025-08-11T10:04:42Z",
+  "kind": "author",
+  "peers": [
+   "ishell@chromium.org"
+  ],
+  "additions": 13,
+  "deletions": 20,
+  "files": 1
+ },
+ {
+  "date": "2025-08-08T09:42:27Z",
+  "kind": "author",
+  "peers": [
+   "ishell@chromium.org"
+  ],
+  "additions": 16,
+  "deletions": 12,
+  "files": 2
+ },
+ {
+  "date": "2025-08-08T08:59:26Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 8,
+  "deletions": 12,
+  "files": 1
+ },
+ {
+  "date": "2025-08-07T10:23:13Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 116,
+  "deletions": 360,
+  "files": 4
+ },
+ {
+  "date": "2025-08-26T07:47:16Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 22,
+  "deletions": 37,
+  "files": 2
+ },
+ {
+  "date": "2025-08-26T07:13:19Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 7,
+  "deletions": 4,
+  "files": 2
+ },
+ {
+  "date": "2025-08-25T17:06:06Z",
+  "kind": "author",
+  "peers": [
+   "mliedtke@chromium.org"
+  ],
+  "additions": 25,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2025-08-22T14:32:13Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2025-08-21T16:26:49Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 16,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2025-08-21T16:19:08Z",
+  "kind": "author",
+  "peers": [
+   "mliedtke@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2025-08-21T16:15:10Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 214,
+  "deletions": 238,
+  "files": 2
+ },
+ {
+  "date": "2025-08-27T18:35:46Z",
+  "kind": "author",
+  "peers": [
+   "machenbach@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-08-27T17:52:58Z",
+  "kind": "author",
+  "peers": [
+   "machenbach@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-08-27T10:02:36Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 5,
+  "deletions": 48,
+  "files": 3
+ },
+ {
+  "date": "2025-09-15T07:05:05Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 95,
+  "deletions": 46,
+  "files": 1
+ },
+ {
+  "date": "2025-09-15T06:59:42Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 20,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2025-09-11T22:22:46Z",
+  "kind": "author",
+  "peers": [
+   "gdeepti@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2025-09-11T19:40:14Z",
+  "kind": "author",
+  "peers": [
+   "machenbach@chromium.org",
+   "leszeks@chromium.org"
+  ],
+  "additions": 375,
+  "deletions": 84,
+  "files": 5
+ },
+ {
+  "date": "2025-09-11T18:36:20Z",
+  "kind": "author",
+  "peers": [
+   "rezvan@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2025-09-10T09:11:03Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 12,
+  "deletions": 6,
+  "files": 1
+ },
+ {
+  "date": "2025-09-19T00:28:36Z",
+  "kind": "author",
+  "peers": [
+   "rezvan@chromium.org"
+  ],
+  "additions": 6,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2025-09-24T09:02:11Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 41,
+  "deletions": 119,
+  "files": 2
+ },
+ {
+  "date": "2025-09-24T08:27:47Z",
+  "kind": "author",
+  "peers": [
+   "machenbach@chromium.org",
+   "leszeks@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2025-10-23T21:26:35Z",
+  "kind": "review",
+  "peers": [
+   "ftang@chromium.org"
+  ],
+  "additions": 10,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2025-10-28T23:18:19Z",
+  "kind": "author",
+  "peers": [
+   "gdeepti@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-10-29T20:43:15Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 6,
+  "deletions": 52,
+  "files": 3
+ },
+ {
+  "date": "2025-10-30T07:23:04Z",
+  "kind": "author",
+  "peers": [
+   "machenbach@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 5,
+  "files": 2
+ },
+ {
+  "date": "2025-11-04T17:47:07Z",
+  "kind": "author",
+  "peers": [
+   "olivf@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 3,
+  "files": 1
+ },
+ {
+  "date": "2025-11-04T16:46:35Z",
+  "kind": "author",
+  "peers": [
+   "ishell@chromium.org"
+  ],
+  "additions": 14,
+  "deletions": 16,
+  "files": 1
+ },
+ {
+  "date": "2025-11-04T16:36:44Z",
+  "kind": "author",
+  "peers": [
+   "machenbach@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 5050,
+  "files": 116
+ },
+ {
+  "date": "2025-11-04T16:02:49Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 54,
+  "deletions": 25,
+  "files": 6
+ },
+ {
+  "date": "2025-11-05T18:36:03Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 3,
+  "files": 1
+ },
+ {
+  "date": "2025-11-05T10:55:11Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 238,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2025-11-05T07:11:16Z",
+  "kind": "author",
+  "peers": [
+   "gdeepti@chromium.org"
+  ],
+  "additions": 5,
+  "deletions": 17,
+  "files": 2
+ },
+ {
+  "date": "2025-11-06T17:54:47Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 9,
+  "deletions": 12,
+  "files": 1
+ },
+ {
+  "date": "2025-11-06T15:52:33Z",
+  "kind": "author",
+  "peers": [
+   "machenbach@chromium.org"
+  ],
+  "additions": 8,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-11-06T10:10:26Z",
+  "kind": "author",
+  "peers": [
+   "leszeks@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 7,
+  "files": 4
+ },
+ {
+  "date": "2025-11-06T01:49:05Z",
+  "kind": "author",
+  "peers": [
+   "rezvan@chromium.org"
+  ],
+  "additions": 5,
+  "deletions": 59,
+  "files": 1
+ },
+ {
+  "date": "2025-11-07T17:09:17Z",
+  "kind": "author",
+  "peers": [
+   "mlippautz@chromium.org"
+  ],
+  "additions": 5,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2025-11-10T18:40:05Z",
+  "kind": "author",
+  "peers": [
+   "rezvan@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2025-11-11T23:24:18Z",
+  "kind": "author",
+  "peers": [
+   "rezvan@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 12,
+  "files": 2
+ },
+ {
+  "date": "2025-11-11T00:07:19Z",
+  "kind": "author",
+  "peers": [
+   "rezvan@chromium.org"
+  ],
+  "additions": 12,
+  "deletions": 14,
+  "files": 1
+ },
+ {
+  "date": "2025-11-12T16:59:12Z",
+  "kind": "author",
+  "peers": [
+   "machenbach@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-11-12T09:08:09Z",
+  "kind": "author",
+  "peers": [
+   "olivf@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2025-11-13T07:29:14Z",
+  "kind": "author",
+  "peers": [
+   "machenbach@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 4,
+  "files": 2
+ },
+ {
+  "date": "2025-11-17T18:16:42Z",
+  "kind": "author",
+  "peers": [
+   "rezvan@chromium.org"
+  ],
+  "additions": 23,
+  "deletions": 26,
+  "files": 2
+ },
+ {
+  "date": "2025-11-24T23:06:05Z",
+  "kind": "author",
+  "peers": [
+   "rezvan@chromium.org"
+  ],
+  "additions": 82,
+  "deletions": 78,
+  "files": 1
+ },
+ {
+  "date": "2025-11-25T18:22:29Z",
+  "kind": "author",
+  "peers": [
+   "rezvan@chromium.org"
+  ],
+  "additions": 38,
+  "deletions": 14,
+  "files": 2
+ },
+ {
+  "date": "2025-11-26T20:41:24Z",
+  "kind": "author",
+  "peers": [
+   "machenbach@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-11-26T19:33:14Z",
+  "kind": "author",
+  "peers": [
+   "rezvan@chromium.org"
+  ],
+  "additions": 39,
+  "deletions": 23,
+  "files": 2
+ },
+ {
+  "date": "2025-11-27T00:42:16Z",
+  "kind": "author",
+  "peers": [
+   "rezvan@chromium.org"
+  ],
+  "additions": 120,
+  "deletions": 46,
+  "files": 2
+ },
+ {
+  "date": "2025-11-28T06:58:52Z",
+  "kind": "author",
+  "peers": [
+   "machenbach@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-12-02T19:25:12Z",
+  "kind": "author",
+  "peers": [
+   "rezvan@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 8,
+  "files": 2
+ },
+ {
+  "date": "2025-12-03T09:11:23Z",
+  "kind": "review",
+  "peers": [
+   "mfarazma@ibm.com"
+  ],
+  "additions": 1,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2025-12-09T17:11:32Z",
+  "kind": "author",
+  "peers": [
+   "rezvan@chromium.org"
+  ],
+  "additions": 29,
+  "deletions": 13,
+  "files": 2
+ },
+ {
+  "date": "2025-12-16T14:00:53Z",
+  "kind": "author",
+  "peers": [
+   "olivf@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 19,
+  "files": 2
+ },
+ {
+  "date": "2026-01-09T10:03:26Z",
+  "kind": "review",
+  "peers": [
+   "snek@chromium.org"
+  ],
+  "additions": 12,
+  "deletions": 14,
+  "files": 1
+ },
+ {
+  "date": "2026-01-13T23:57:11Z",
+  "kind": "author",
+  "peers": [
+   "rezvan@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 34,
+  "files": 2
+ },
+ {
+  "date": "2026-01-20T18:20:29Z",
+  "kind": "author",
+  "peers": [
+   "rezvan@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2026-01-22T20:21:40Z",
+  "kind": "author",
+  "peers": [
+   "rezvan@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 41,
+  "files": 2
+ },
+ {
+  "date": "2026-01-27T01:58:19Z",
+  "kind": "author",
+  "peers": [
+   "rezvan@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2026-01-28T15:56:04Z",
+  "kind": "review",
+  "peers": [
+   "mliedtke@chromium.org"
+  ],
+  "additions": 7,
+  "deletions": 7,
+  "files": 1
+ },
+ {
+  "date": "2026-01-28T08:53:29Z",
+  "kind": "author",
+  "peers": [
+   "olivf@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 30,
+  "files": 2
+ },
+ {
+  "date": "2026-01-29T09:55:16Z",
+  "kind": "author",
+  "peers": [
+   "mliedtke@chromium.org",
+   "olivf@chromium.org",
+   "rezvan@chromium.org"
+  ],
+  "additions": 18,
+  "deletions": 1,
+  "files": 2
+ },
+ {
+  "date": "2026-02-02T21:46:25Z",
+  "kind": "author",
+  "peers": [
+   "rezvan@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 13,
+  "files": 1
+ },
+ {
+  "date": "2026-02-04T09:10:22Z",
+  "kind": "author",
+  "peers": [
+   "clemensb@chromium.org"
+  ],
+  "additions": 36,
+  "deletions": 31,
+  "files": 4
+ }
+]

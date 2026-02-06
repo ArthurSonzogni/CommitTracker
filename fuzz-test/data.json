@@ -1,0 +1,6552 @@
+[
+ {
+  "file": "chrome/browser/apps/app_service/app_install/app_install_navigation_throttle_fuzztests.cc",
+  "line": 18,
+  "suite_name": "AppInstallNavigationThrottleFuzzTest",
+  "function": "ExtractQueryParamsCanParseAnyString",
+  "type": "FUZZ_TEST",
+  "sha": "7614eb12ad8d18ed4774cd4b961d90738d8f0afc",
+  "author": "tsergeant@chromium.org",
+  "date": "2024-03-25T21:45:38Z"
+ },
+ {
+  "file": "chrome/browser/web_applications/isolated_web_apps/update_manifest/update_manifest_fuzzer.cc",
+  "line": 44,
+  "suite_name": "UpdateManifestFuzzTest",
+  "function": "UpdateManifestCanSuccessfullyParseAnyString",
+  "type": "FUZZ_TEST",
+  "sha": "66dd279c46a4023a44a811509786e58483ce07ad",
+  "author": "cmfcmf@chromium.org",
+  "date": "2024-01-22T12:27:44Z"
+ },
+ {
+  "file": "chrome/services/file_util/single_file_tar_reader_fuzzer.cc",
+  "line": 21,
+  "suite_name": "SingleFileTarReaderTest",
+  "function": "ExtractChunkNeverCrashes",
+  "type": "FUZZ_TEST",
+  "sha": "cb9a43496d0285aa939fc0c7fad78281f7e7afb5",
+  "author": "ianbenz@google.com",
+  "date": "2023-12-20T17:58:26Z"
+ },
+ {
+  "file": "components/attribution_reporting/filters_fuzztest.cc",
+  "line": 39,
+  "suite_name": "FilterDataTest",
+  "function": "Matches",
+  "type": "FUZZ_TEST",
+  "sha": "fc12008b28036d8539649fae95d7a750eec56436",
+  "author": "apaseltiner@chromium.org",
+  "date": "2024-04-10T16:40:14Z"
+ },
+ {
+  "file": "components/attribution_reporting/privacy_math_fuzztest.cc",
+  "line": 40,
+  "suite_name": "PrivacyMathTest",
+  "function": "SingleSpecNumStatesMatchesRecursive",
+  "type": "FUZZ_TEST",
+  "sha": "3b5f83caef3c6fb816223ad7680be69028c85eba",
+  "author": "apaseltiner@chromium.org",
+  "date": "2024-03-14T13:08:57Z"
+ },
+ {
+  "file": "components/facilitated_payments/core/validation/pix_code_validator_fuzzer.cc",
+  "line": 18,
+  "suite_name": "IsValidPixCodeTest",
+  "function": "IsValidPixCodeCanParseAnyString",
+  "type": "FUZZ_TEST",
+  "sha": "cc8adb4822c2a4dfef6f4b7846df334a625701a6",
+  "author": "rouslan@chromium.org",
+  "date": "2024-02-06T17:54:32Z"
+ },
+ {
+  "file": "media/formats/ac3/ac3_util_fuzzer.cc",
+  "line": 27,
+  "suite_name": "Ac3UtilTest",
+  "function": "ParseTotalEac3SampleCountNeverCrashes",
+  "type": "FUZZ_TEST",
+  "sha": "f622164178740368408b6e909f57dec4d369282e",
+  "author": "ianbenz@google.com",
+  "date": "2023-12-19T23:04:57Z"
+ },
+ {
+  "file": "net/cert/x509_certificate_fuzztest.cc",
+  "line": 17,
+  "suite_name": "X509CertificateFuzzTest",
+  "function": "FuzzCreateFromDERCertChain",
+  "type": "FUZZ_TEST",
+  "sha": "0b1813cf5a4f47e20ee6f45d1c8194a8b9c11ff9",
+  "author": "hchao@chromium.org",
+  "date": "2024-01-19T14:15:44Z"
+ },
+ {
+  "file": "net/http/http_cookie_indices_fuzztest.cc",
+  "line": 28,
+  "suite_name": "CookieIndicesFuzzTest",
+  "function": "FuzzParseFromHeader",
+  "type": "FUZZ_TEST",
+  "sha": "cdbe190c1f88fa891da621a9303ef1a284a69b19",
+  "author": "jbroman@chromium.org",
+  "date": "2024-03-11T16:50:26Z"
+ },
+ {
+  "file": "testing/libfuzzer/fuzzers/libyuv_scale_fuzztest.cc",
+  "line": 26,
+  "suite_name": "ScaleFuzz",
+  "function": "ScaleDoesNotCrash",
+  "type": "FUZZ_TEST",
+  "sha": "ec394c127957147a0a15d901276517b27a1df8d1",
+  "author": "adetaylor@chromium.org",
+  "date": "2023-10-25T14:00:37Z"
+ },
+ {
+  "file": "testing/libfuzzer/tests/fuzztest_smoketest.cc",
+  "line": 13,
+  "suite_name": "FuzzTestSmokeTest",
+  "function": "StringsAlwaysOccupyPositiveSpace",
+  "type": "FUZZ_TEST",
+  "sha": "11f0b422ab381d3d33ebec5acd812cf1b5d26d69",
+  "author": "adetaylor@chromium.org",
+  "date": "2023-10-30T17:38:26Z"
+ },
+ {
+  "file": "third_party/libaom/fuzz/av1_encoder_fuzz_test.cc",
+  "line": 328,
+  "suite_name": "AV1EncodeFuzzTest",
+  "function": "AV1EncodeSucceeds",
+  "type": "FUZZ_TEST",
+  "sha": "73c83584facb5ffaa7f9be127719dc51fca952ac",
+  "author": "wtc@google.com",
+  "date": "2023-12-18T22:37:52Z"
+ },
+ {
+  "file": "third_party/libvpx/tests/fuzzer/vp8_encoder_fuzz_test.cc",
+  "line": 265,
+  "suite_name": "VP8EncodeFuzzTest",
+  "function": "VP8EncodeSucceeds",
+  "type": "FUZZ_TEST",
+  "sha": "bbfdee3ffc64e76d20485679da1ed0b4f6c90717",
+  "author": "wtc@google.com",
+  "date": "2023-11-01T18:59:21Z"
+ },
+ {
+  "file": "third_party/libvpx/tests/fuzzer/vp9_encoder_fuzz_test.cc",
+  "line": 324,
+  "suite_name": "VP9EncodeFuzzTest",
+  "function": "VP9EncodeSucceeds",
+  "type": "FUZZ_TEST",
+  "sha": "c6f9ec2d01c08bdbbc3c3989bc01d8f3afc507bb",
+  "author": "wtc@google.com",
+  "date": "2023-12-18T21:35:45Z"
+ },
+ {
+  "file": "ash/quick_pair/fast_pair_handshake/BUILD.gn",
+  "line": 122,
+  "suite_name": "fast_pair_encryption_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "280fd87d777198ac4798a8358d8dcc4d5b952593",
+  "author": "shanefitz@google.com",
+  "date": "2021-11-30T22:04:45Z"
+ },
+ {
+  "file": "ash/webui/eche_app_ui/BUILD.gn",
+  "line": 320,
+  "suite_name": "accessibility_event_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "ac8388aeee6f40f80f574173e21c35c66dd093e6",
+  "author": "francisjp@google.com",
+  "date": "2023-04-25T20:43:49Z"
+ },
+ {
+  "file": "base/BUILD.gn",
+  "line": 5957,
+  "suite_name": "base64_decode_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "45a9833453ae06f05e0261269be5f90155eeceb4",
+  "author": "csharrison@chromium.org",
+  "date": "2017-10-20T03:39:27Z"
+ },
+ {
+  "file": "base/BUILD.gn",
+  "line": 5962,
+  "suite_name": "base64_encode_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "45a9833453ae06f05e0261269be5f90155eeceb4",
+  "author": "csharrison@chromium.org",
+  "date": "2017-10-20T03:39:27Z"
+ },
+ {
+  "file": "base/BUILD.gn",
+  "line": 5970,
+  "suite_name": "base64url_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "7fa05faaf03edebc5ae5f642b35d7cfc34926f3e",
+  "author": "emaxx@google.com",
+  "date": "2022-11-04T18:58:48Z"
+ },
+ {
+  "file": "base/BUILD.gn",
+  "line": 5975,
+  "suite_name": "base_json_correctness_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "022c9c2dd56926d03f2dd21036ebde0da869ee7b",
+  "author": "aizatsky@chromium.org",
+  "date": "2016-10-31T21:47:05Z"
+ },
+ {
+  "file": "base/BUILD.gn",
+  "line": 5981,
+  "suite_name": "base_json_reader_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "fe827606fc60d45a61ec69db056aeb3cadeeed57",
+  "author": "inferno@chromium.org",
+  "date": "2018-03-20T20:32:58Z"
+ },
+ {
+  "file": "base/BUILD.gn",
+  "line": 5987,
+  "suite_name": "base_json_string_escape_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "fe827606fc60d45a61ec69db056aeb3cadeeed57",
+  "author": "inferno@chromium.org",
+  "date": "2018-03-20T20:32:58Z"
+ },
+ {
+  "file": "base/BUILD.gn",
+  "line": 6007,
+  "suite_name": "base_mach_port_rendezvous_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "d45d88cf3d69928d8fe026bc88aa3d7a25853937",
+  "author": "rsesek@chromium.org",
+  "date": "2019-03-19T14:14:30Z"
+ },
+ {
+  "file": "base/BUILD.gn",
+  "line": 6019,
+  "suite_name": "command_line_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "71181d3bef0259313c64d90d6ba732da2f598067",
+  "author": "emaxx@google.com",
+  "date": "2022-11-04T03:22:31Z"
+ },
+ {
+  "file": "base/BUILD.gn",
+  "line": 5987,
+  "suite_name": "escape_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "fe827606fc60d45a61ec69db056aeb3cadeeed57",
+  "author": "inferno@chromium.org",
+  "date": "2018-03-20T20:32:58Z"
+ },
+ {
+  "file": "base/BUILD.gn",
+  "line": 6029,
+  "suite_name": "file_path_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "e011a61ccf53d09a9710193af2196299d4617419",
+  "author": "emaxx@chromium.org",
+  "date": "2022-11-25T03:14:35Z"
+ },
+ {
+  "file": "base/BUILD.gn",
+  "line": 6035,
+  "suite_name": "mime_util_xdg_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "264c759ed35022f847193ca3608ed4f9994c1064",
+  "author": "joelhockey@chromium.org",
+  "date": "2023-10-29T23:32:49Z"
+ },
+ {
+  "file": "base/BUILD.gn",
+  "line": 6041,
+  "suite_name": "base_persistent_histogram_allocator_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "5c4a7868d75277c5dd96727b1f346b8c45c9ec6f",
+  "author": "tiszka@chromium.org",
+  "date": "2024-02-24T21:04:57Z"
+ },
+ {
+  "file": "base/BUILD.gn",
+  "line": 6047,
+  "suite_name": "string_number_conversions_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "71c382b1b30b5b8dcd299e3dba157bbbc36df840",
+  "author": "inferno@chromium.org",
+  "date": "2018-03-21T00:11:06Z"
+ },
+ {
+  "file": "base/BUILD.gn",
+  "line": 6052,
+  "suite_name": "string_pattern_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "f73e68de56fbee07b5cc1645b5616931ac288165",
+  "author": "emaxx@chromium.org",
+  "date": "2022-11-04T19:32:28Z"
+ },
+ {
+  "file": "base/BUILD.gn",
+  "line": 6057,
+  "suite_name": "string_tokenizer_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "71c382b1b30b5b8dcd299e3dba157bbbc36df840",
+  "author": "inferno@chromium.org",
+  "date": "2018-03-21T00:11:06Z"
+ },
+ {
+  "file": "base/BUILD.gn",
+  "line": 6062,
+  "suite_name": "substring_set_matcher_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "b915f81abca3bf8931bcc294ee8d1991fa08f0a3",
+  "author": "emaxx@chromium.org",
+  "date": "2022-11-04T17:52:40Z"
+ },
+ {
+  "file": "base/BUILD.gn",
+  "line": 6067,
+  "suite_name": "sys_string_conversions_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "8d8a1caddbb06099452a3c5bf3f569c89b165aa5",
+  "author": "emaxx@chromium.org",
+  "date": "2022-11-16T23:39:59Z"
+ },
+ {
+  "file": "base/BUILD.gn",
+  "line": 6072,
+  "suite_name": "time_delta_from_string_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "ec827987f9691c11dfbe70bdbf4c45bd02c5db22",
+  "author": "dhoss@chromium.org",
+  "date": "2021-11-12T15:12:30Z"
+ },
+ {
+  "file": "base/BUILD.gn",
+  "line": 6077,
+  "suite_name": "time_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "ec827987f9691c11dfbe70bdbf4c45bd02c5db22",
+  "author": "dhoss@chromium.org",
+  "date": "2021-11-12T15:12:30Z"
+ },
+ {
+  "file": "base/BUILD.gn",
+  "line": 6085,
+  "suite_name": "utf_string_conversions_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "d117debb8e399f33cdd7ed34813be931bfd84fbc",
+  "author": "inferno@chromium.org",
+  "date": "2018-03-23T01:53:39Z"
+ },
+ {
+  "file": "base/BUILD.gn",
+  "line": 6090,
+  "suite_name": "pickle_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "7404c058244b48008231f057b9e779e07f49eebc",
+  "author": "amistry@chromium.org",
+  "date": "2018-11-21T16:17:51Z"
+ },
+ {
+  "file": "cc/paint/BUILD.gn",
+  "line": 173,
+  "suite_name": "paint_op_raster_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "6df935b3fa181d51096074fb4a66f4ff1d3dec77",
+  "author": "tiszka@chromium.org",
+  "date": "2024-04-08T15:02:55Z"
+ },
+ {
+  "file": "cc/paint/BUILD.gn",
+  "line": 188,
+  "suite_name": "paint_op_buffer_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "6df935b3fa181d51096074fb4a66f4ff1d3dec77",
+  "author": "tiszka@chromium.org",
+  "date": "2024-04-08T15:02:55Z"
+ },
+ {
+  "file": "cc/paint/BUILD.gn",
+  "line": 199,
+  "suite_name": "transfer_cache_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "b346beb380ac646762daa5c561d088afc12f6877",
+  "author": "enne@chromium.org",
+  "date": "2018-03-07T02:09:54Z"
+ },
+ {
+  "file": "cc/paint/BUILD.gn",
+  "line": 211,
+  "suite_name": "paint_op_reader_security_constrainted_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "5a5a9047059ccf173b7396117215eb4bde6631a9",
+  "author": "tiszka@chromium.org",
+  "date": "2024-02-28T18:51:07Z"
+ },
+ {
+  "file": "chrome/browser/BUILD.gn",
+  "line": 9318,
+  "suite_name": "nearby_sharing_instantmessaging_stream_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "",
+  "author": "",
+  "date": "2024-06-21T15:31:10.300Z"
+ },
+ {
+  "file": "chrome/browser/browser_switcher/BUILD.gn",
+  "line": 155,
+  "suite_name": "browser_switcher_ieem_sitelist_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "",
+  "author": "",
+  "date": "2024-06-21T15:31:10.300Z"
+ },
+ {
+  "file": "chrome/browser/ash/smb_client/BUILD.gn",
+  "line": 179,
+  "suite_name": "smb_url_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "eee558bd6d1cb167fbb72c4afc249dfc03482821",
+  "author": "hferreiro@igalia.com",
+  "date": "2022-09-20T17:02:25Z"
+ },
+ {
+  "file": "chrome/browser/ash/printing/BUILD.gn",
+  "line": 259,
+  "suite_name": "zeroconf_printer_detector_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "eee558bd6d1cb167fbb72c4afc249dfc03482821",
+  "author": "hferreiro@igalia.com",
+  "date": "2022-09-20T17:02:25Z"
+ },
+ {
+  "file": "chrome/browser/ash/extensions/file_manager/BUILD.gn",
+  "line": 259,
+  "suite_name": "create_fnmatch_query_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "1f5a5af3eb1bbdf9e4566c3e6d2051e68de112eb",
+  "author": "majewski@chromium.org",
+  "date": "2023-05-01T06:08:44Z"
+ },
+ {
+  "file": "chrome/browser/ash/extensions/file_manager/BUILD.gn",
+  "line": 269,
+  "suite_name": "search_by_pattern_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "ef32ddc1d952a18743f882a92e1d06f12c5a31b5",
+  "author": "majewski@chromium.org",
+  "date": "2023-05-02T05:47:32Z"
+ },
+ {
+  "file": "chrome/browser/ash/policy/fuzzer/BUILD.gn",
+  "line": 13,
+  "suite_name": "policy_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "eee558bd6d1cb167fbb72c4afc249dfc03482821",
+  "author": "hferreiro@igalia.com",
+  "date": "2022-09-20T17:02:25Z"
+ },
+ {
+  "file": "chrome/browser/ash/policy/reporting/BUILD.gn",
+  "line": 185,
+  "suite_name": "policy_single_install_event_log_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "eee558bd6d1cb167fbb72c4afc249dfc03482821",
+  "author": "hferreiro@igalia.com",
+  "date": "2022-09-20T17:02:25Z"
+ },
+ {
+  "file": "chrome/browser/ash/policy/remote_commands/BUILD.gn",
+  "line": 276,
+  "suite_name": "policy_remote_commands_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "eee558bd6d1cb167fbb72c4afc249dfc03482821",
+  "author": "hferreiro@igalia.com",
+  "date": "2022-09-20T17:02:25Z"
+ },
+ {
+  "file": "chrome/browser/extensions/BUILD.gn",
+  "line": 1676,
+  "suite_name": "extension_management_internal_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "6fc8720953f027cbf0e17a8bd5aa79fc13b3affa",
+  "author": "emaxx@chromium.org",
+  "date": "2022-11-05T00:33:38Z"
+ },
+ {
+  "file": "chrome/browser/first_party_sets/BUILD.gn",
+  "line": 44,
+  "suite_name": "first_party_sets_overrides_policy_handler_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "70d93b522ba6e92f2be8bd07dc71b74ab8374d07",
+  "author": "kaklilu@chromium.org",
+  "date": "2022-03-22T20:31:38Z"
+ },
+ {
+  "file": "chrome/browser/media/router/BUILD.gn",
+  "line": 449,
+  "suite_name": "dial_internal_message_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "b9677adface09d5824a6e7371cd32556d4fb92b9",
+  "author": "takumif@chromium.org",
+  "date": "2019-05-15T21:05:17Z"
+ },
+ {
+  "file": "chrome/common/BUILD.gn",
+  "line": 27,
+  "suite_name": "ini_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "db94fa681537f7fe4ee3d767e20413b9b7228828",
+  "author": "xrosado@google.com",
+  "date": "2023-05-30T21:14:56Z"
+ },
+ {
+  "file": "chrome/elevation_service/BUILD.gn",
+  "line": 153,
+  "suite_name": "caller_validation_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "be080a1a3f3e85e67d4bd362de0e1e85814a2f3e",
+  "author": "wfh@chromium.org",
+  "date": "2024-04-10T17:36:02Z"
+ },
+ {
+  "file": "chrome/services/ipp_parser/public/cpp/BUILD.gn",
+  "line": 30,
+  "suite_name": "ipp_message_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "90f8fec5b6ec6ea9c28388d72c35b0fa153ccdab",
+  "author": "luum@chromium.org",
+  "date": "2019-02-26T00:45:56Z"
+ },
+ {
+  "file": "chrome/services/media_gallery_util/BUILD.gn",
+  "line": 71,
+  "suite_name": "media_metadata_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "c86ab313f0467ef7a47cabc5c2b9757b851d52d7",
+  "author": "tobyhuang@chromium.org",
+  "date": "2022-09-27T19:34:27Z"
+ },
+ {
+  "file": "chrome/services/sharing/nearby/decoder/BUILD.gn",
+  "line": 45,
+  "suite_name": "nearby_decoder_decode_advertisement_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "1fe5ba7f65f7db2d150af221132ba558c0e7e23e",
+  "author": "knollr@chromium.org",
+  "date": "2020-08-25T17:31:17Z"
+ },
+ {
+  "file": "chrome/services/sharing/nearby/decoder/BUILD.gn",
+  "line": 54,
+  "suite_name": "nearby_decoder_decode_frame_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "1fe5ba7f65f7db2d150af221132ba558c0e7e23e",
+  "author": "knollr@chromium.org",
+  "date": "2020-08-25T17:31:17Z"
+ },
+ {
+  "file": "chrome/test/BUILD.gn",
+  "line": 12809,
+  "suite_name": "safe_browsing_binary_feature_extractor_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "",
+  "author": "",
+  "date": "2024-06-21T15:31:43.888Z"
+ },
+ {
+  "file": "chrome/utility/safe_browsing/mac/BUILD.gn",
+  "line": 49,
+  "suite_name": "safe_browsing_dmg_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "a8abcd3183b56f96a99155ece7b6e13b56606c11",
+  "author": "rsesek@chromium.org",
+  "date": "2016-09-12T23:02:59Z"
+ },
+ {
+  "file": "chrome/utility/safe_browsing/mac/BUILD.gn",
+  "line": 58,
+  "suite_name": "safe_browsing_hfs_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "902112f50d2142fe611aac017954cfd5024023e6",
+  "author": "rsesek@chromium.org",
+  "date": "2017-10-17T16:24:36Z"
+ },
+ {
+  "file": "chromecast/device/bluetooth/le/BUILD.gn",
+  "line": 116,
+  "suite_name": "le_scan_result_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "b1c7cfd4c4859733482fd3dece083a95b11e090f",
+  "author": "bcf@chromium.org",
+  "date": "2018-08-31T20:58:42Z"
+ },
+ {
+  "file": "chromecast/media/audio/capture_service/BUILD.gn",
+  "line": 73,
+  "suite_name": "message_parsing_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "a7d24332e6f5dcce6ea1b4f9399b55ad18091e05",
+  "author": "kehuangli@chromium.org",
+  "date": "2019-07-09T23:10:17Z"
+ },
+ {
+  "file": "chromeos/ash/components/network/onc/BUILD.gn",
+  "line": 84,
+  "suite_name": "onc_normalizer_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "e5bfbeedeab3cb458c276c191e500d503ce9e337",
+  "author": "ychoi@igalia.com",
+  "date": "2022-05-27T01:37:50Z"
+ },
+ {
+  "file": "chromeos/ash/components/string_matching/BUILD.gn",
+  "line": 63,
+  "suite_name": "tokenized_string_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "a024d5e48565bd05ac1226c9452ebf01527013a0",
+  "author": "thanhdng@chromium.org",
+  "date": "2020-07-16T03:36:14Z"
+ },
+ {
+  "file": "chromeos/ash/components/system/BUILD.gn",
+  "line": 52,
+  "suite_name": "name_value_pairs_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "a10bd86e90b183b9609eb7760b48f49c643e808c",
+  "author": "ychoi@igalia.com",
+  "date": "2022-12-15T02:34:51Z"
+ },
+ {
+  "file": "chromeos/ash/services/quick_pair/BUILD.gn",
+  "line": 87,
+  "suite_name": "fast_pair_data_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "13e87c95272fdb496cfc5d0643819f4f98b91f31",
+  "author": "dclasson@google.com",
+  "date": "2021-11-10T23:32:16Z"
+ },
+ {
+  "file": "chromeos/ash/services/quick_pair/BUILD.gn",
+  "line": 99,
+  "suite_name": "fast_pair_decryption_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "a091bcd30710dae49405cc00e57bb169e0871a99",
+  "author": "dclasson@google.com",
+  "date": "2021-11-11T05:15:01Z"
+ },
+ {
+  "file": "chromeos/ash/components/kcer/BUILD.gn",
+  "line": 144,
+  "suite_name": "kcer_nss_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "7612a5102524c122cf0e33f2b6a6cce955209a1a",
+  "author": "miersh@google.com",
+  "date": "2023-07-14T12:42:34Z"
+ },
+ {
+  "file": "chromeos/components/onc/BUILD.gn",
+  "line": 75,
+  "suite_name": "variable_expander_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "06586a71a56578fb4ee08a9cf0da7502bb3b5ce3",
+  "author": "miersh@google.com",
+  "date": "2021-12-10T13:49:39Z"
+ },
+ {
+  "file": "chromeos/components/onc/BUILD.gn",
+  "line": 86,
+  "suite_name": "onc_validator_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "06586a71a56578fb4ee08a9cf0da7502bb3b5ce3",
+  "author": "miersh@google.com",
+  "date": "2021-12-10T13:49:39Z"
+ },
+ {
+  "file": "chromeos/printing/BUILD.gn",
+  "line": 101,
+  "suite_name": "ppd_line_reader_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "cd98b506895459b9cd21f2589bcab784a5be7bba",
+  "author": "ychoi@igalia.com",
+  "date": "2021-12-02T06:53:23Z"
+ },
+ {
+  "file": "chromeos/printing/BUILD.gn",
+  "line": 106,
+  "suite_name": "uri_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "cd98b506895459b9cd21f2589bcab784a5be7bba",
+  "author": "ychoi@igalia.com",
+  "date": "2021-12-02T06:53:23Z"
+ },
+ {
+  "file": "components/affiliations/core/browser/BUILD.gn",
+  "line": 133,
+  "suite_name": "lookup_affiliation_response_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "085fcf5f9b49f64700c0651ba7ca61b68a03c39b",
+  "author": "jkeitel@google.com",
+  "date": "2024-02-15T09:12:36Z"
+ },
+ {
+  "file": "components/apdu/BUILD.gn",
+  "line": 32,
+  "suite_name": "apdu_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "3545f505b3de5ab199d8d1e45c887d0d945f927c",
+  "author": "hongjunchoi@chromium.org",
+  "date": "2018-03-14T01:30:00Z"
+ },
+ {
+  "file": "components/attribution_reporting/BUILD.gn",
+  "line": 212,
+  "suite_name": "parse_info_header_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "a55c219bae44f03bca9db91dc9ae27106d870d4e",
+  "author": "linnan@chromium.org",
+  "date": "2024-03-05T20:47:22Z"
+ },
+ {
+  "file": "components/attribution_reporting/BUILD.gn",
+  "line": 224,
+  "suite_name": "parse_os_header_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "10a43c1dda57f40bf7b4bf0bfcb4a3a073274d58",
+  "author": "apaseltiner@chromium.org",
+  "date": "2022-12-13T03:22:27Z"
+ },
+ {
+  "file": "components/attribution_reporting/BUILD.gn",
+  "line": 236,
+  "suite_name": "source_registration_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "de34cc486f696463203cc9310cc7acb56285a13b",
+  "author": "apaseltiner@chromium.org",
+  "date": "2022-11-08T04:29:57Z"
+ },
+ {
+  "file": "components/attribution_reporting/BUILD.gn",
+  "line": 250,
+  "suite_name": "trigger_registration_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "17f597909e5dbdaeeee0d8919df9dd45a4be442b",
+  "author": "linnan@chromium.org",
+  "date": "2022-11-22T02:21:44Z"
+ },
+ {
+  "file": "components/autofill/core/browser/BUILD.gn",
+  "line": 1923,
+  "suite_name": "form_structure_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "2f31e5cb84484af3a2f8ffb33c82126ae97a0c0f",
+  "author": "vabr@chromium.org",
+  "date": "2018-03-28T18:37:19Z"
+ },
+ {
+  "file": "components/autofill/core/browser/BUILD.gn",
+  "line": 1945,
+  "suite_name": "form_structure_process_query_response_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "5f2502b0944e416c39e05bea12c04e4258d99d34",
+  "author": "vabr@chromium.org",
+  "date": "2018-07-26T20:40:23Z"
+ },
+ {
+  "file": "components/autofill/core/browser/BUILD.gn",
+  "line": 1964,
+  "suite_name": "autofill_phone_number_i18n_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "57d7dded44f76ed86c845232d22b678fdb441e46",
+  "author": "vabr@chromium.org",
+  "date": "2018-10-17T18:56:45Z"
+ },
+ {
+  "file": "components/autofill/core/browser/BUILD.gn",
+  "line": 1978,
+  "suite_name": "autofill_legal_message_line_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "18308e29df31ab18caef6febbc84ccec2fa36156",
+  "author": "emaxx@chromium.org",
+  "date": "2022-10-29T00:02:42Z"
+ },
+ {
+  "file": "components/autofill/core/common/BUILD.gn",
+  "line": 204,
+  "suite_name": "autofill_autocomplete_parsing_util_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "ebab357f195c6eada2a1a63e296b4e78ec83b14c",
+  "author": "emaxx@chromium.org",
+  "date": "2022-11-02T11:01:06Z"
+ },
+ {
+  "file": "components/autofill/ios/form_util/BUILD.gn",
+  "line": 349,
+  "suite_name": "form_activity_tab_helper_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "95338cc778863ada585cb8b2cc773d2d9bd22692",
+  "author": "zhaoyangli@chromium.org",
+  "date": "2021-11-05T04:49:07Z"
+ },
+ {
+  "file": "components/base32/BUILD.gn",
+  "line": 27,
+  "suite_name": "base32_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "b9bc53ed56f63833615122dad556c26ae48c6200",
+  "author": "dhoss@chromium.org",
+  "date": "2019-10-22T02:21:53Z"
+ },
+ {
+  "file": "components/bookmarks/browser/BUILD.gn",
+  "line": 179,
+  "suite_name": "bookmark_node_data_read_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "77675718b9c048353dfa7e37f4b67df580ebb1ad",
+  "author": "mbarbella@chromium.org",
+  "date": "2019-05-02T18:49:03Z"
+ },
+ {
+  "file": "components/browsing_topics/BUILD.gn",
+  "line": 130,
+  "suite_name": "browsing_topics_annotator_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "2f15ed63722f313756e9e1082a2c283be540aa5c",
+  "author": "robertogden@chromium.org",
+  "date": "2023-05-03T21:15:23Z"
+ },
+ {
+  "file": "components/cbor/BUILD.gn",
+  "line": 48,
+  "suite_name": "reader_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "e0e46cdf7ba25f893a0ec409bdc01a95193ade36",
+  "author": "agl@chromium.org",
+  "date": "2018-10-29T19:23:16Z"
+ },
+ {
+  "file": "components/client_update_protocol/BUILD.gn",
+  "line": 31,
+  "suite_name": "ecdsa_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "794bb4c25a3aa57a637801b416a95aebad72df65",
+  "author": "waffles@chromium.org",
+  "date": "2022-11-02T20:37:34Z"
+ },
+ {
+  "file": "components/content_settings/core/common/BUILD.gn",
+  "line": 166,
+  "suite_name": "content_settings_pattern_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "952f580da0423746c4bddc58dfa28ca1b0870373",
+  "author": "dmcardle@chromium.org",
+  "date": "2020-07-26T19:15:13Z"
+ },
+ {
+  "file": "components/desks_storage/BUILD.gn",
+  "line": 112,
+  "suite_name": "desk_template_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "af8cfb9a83b647c5c1a9a411d5f50768aface12b",
+  "author": "avynn@google.com",
+  "date": "2023-08-23T20:31:19Z"
+ },
+ {
+  "file": "components/exo/wayland/fuzzer/BUILD.gn",
+  "line": 79,
+  "suite_name": "wayland_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "2ff59f8c53177bd5edcc6c2c347c91e90679fa8c",
+  "author": "hollingum@google.com",
+  "date": "2019-06-11T00:57:15Z"
+ },
+ {
+  "file": "components/favicon_base/BUILD.gn",
+  "line": 56,
+  "suite_name": "favicon_url_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "c06321cbffa0b2bcefe406b259208becd1f9b0c0",
+  "author": "dhoss@chromium.org",
+  "date": "2019-10-16T17:52:33Z"
+ },
+ {
+  "file": "components/feedback/BUILD.gn",
+  "line": 81,
+  "suite_name": "redaction_tool_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "3ea5768ca199f824699e4b9860fac15d1d613851",
+  "author": "sdefresne@chromium.org",
+  "date": "2021-03-03T15:39:57Z"
+ },
+ {
+  "file": "components/gwp_asan/common/BUILD.gn",
+  "line": 44,
+  "suite_name": "pack_stack_trace_unpack_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "2fc74f70c95b76d944dfbf5cdc78fc9bb5347cbe",
+  "author": "vtsyrklevich@chromium.org",
+  "date": "2019-01-31T08:47:40Z"
+ },
+ {
+  "file": "components/gwp_asan/common/BUILD.gn",
+  "line": 52,
+  "suite_name": "pack_stack_trace_differential_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "2fc74f70c95b76d944dfbf5cdc78fc9bb5347cbe",
+  "author": "vtsyrklevich@chromium.org",
+  "date": "2019-01-31T08:47:40Z"
+ },
+ {
+  "file": "components/link_header_util/BUILD.gn",
+  "line": 31,
+  "suite_name": "link_header_util_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "378b918f272fb3fa94b0742cf090f70f987559fb",
+  "author": "palmer@chromium.org",
+  "date": "2019-07-26T23:13:08Z"
+ },
+ {
+  "file": "components/lookalikes/core/BUILD.gn",
+  "line": 91,
+  "suite_name": "lookalike_url_util_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "5f003027b9828f172065df3749e3b706cef12c88",
+  "author": "adetaylor@chromium.org",
+  "date": "2023-09-28T00:49:45Z"
+ },
+ {
+  "file": "components/media_router/common/providers/cast/channel/BUILD.gn",
+  "line": 125,
+  "suite_name": "cast_auth_util_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "0052701854870cd3ed5147b5b7f85b84b458e32a",
+  "author": "btolsch@chromium.org",
+  "date": "2021-07-27T15:57:18Z"
+ },
+ {
+  "file": "components/media_router/common/providers/cast/channel/BUILD.gn",
+  "line": 200,
+  "suite_name": "cast_message_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "b56def8da2b40d2c9424b3333acba5356f7412fe",
+  "author": "imcheng@chromium.org",
+  "date": "2018-03-13T18:36:45Z"
+ },
+ {
+  "file": "components/media_router/common/providers/cast/channel/BUILD.gn",
+  "line": 215,
+  "suite_name": "cast_framer_serialize_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "3ab3e21a256db25806ca9e3d0df9dc7dd58da521",
+  "author": "jrw@google.com",
+  "date": "2020-05-27T19:10:51Z"
+ },
+ {
+  "file": "components/media_router/common/providers/cast/channel/BUILD.gn",
+  "line": 225,
+  "suite_name": "cast_message_util_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "3ab3e21a256db25806ca9e3d0df9dc7dd58da521",
+  "author": "jrw@google.com",
+  "date": "2020-05-27T19:10:51Z"
+ },
+ {
+  "file": "components/media_router/common/providers/cast/channel/BUILD.gn",
+  "line": 236,
+  "suite_name": "openscreen_cast_auth_util_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "0052701854870cd3ed5147b5b7f85b84b458e32a",
+  "author": "btolsch@chromium.org",
+  "date": "2021-07-27T15:57:18Z"
+ },
+ {
+  "file": "components/media_router/common/providers/cast/channel/BUILD.gn",
+  "line": 256,
+  "suite_name": "openscreen_message_framer_deserialize_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "07bc4c2efe8a1c250ea730c378e62669558a6c3f",
+  "author": "btolsch@chromium.org",
+  "date": "2021-07-26T08:54:18Z"
+ },
+ {
+  "file": "components/media_router/common/providers/cast/channel/BUILD.gn",
+  "line": 268,
+  "suite_name": "openscreen_message_framer_serialize_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "07bc4c2efe8a1c250ea730c378e62669558a6c3f",
+  "author": "btolsch@chromium.org",
+  "date": "2021-07-26T08:54:18Z"
+ },
+ {
+  "file": "components/omnibox/browser/BUILD.gn",
+  "line": 972,
+  "suite_name": "autocomplete_input_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "9c2d3ec8e65eb601f44df4885d4983b5fb1976f6",
+  "author": "krb@chromium.org",
+  "date": "2019-10-16T21:11:53Z"
+ },
+ {
+  "file": "components/omnibox/browser/BUILD.gn",
+  "line": 983,
+  "suite_name": "omnibox_view_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "1650ecd0771102fb77bd9262d8369c00b2b02d9b",
+  "author": "tommycli@chromium.org",
+  "date": "2019-10-18T21:41:12Z"
+ },
+ {
+  "file": "components/omnibox/browser/BUILD.gn",
+  "line": 991,
+  "suite_name": "search_suggestion_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "e21081092aec07fab16aaa99b4ec46b8025d6ab3",
+  "author": "krb@chromium.org",
+  "date": "2019-10-21T20:49:48Z"
+ },
+ {
+  "file": "components/page_content_annotations/core/BUILD.gn",
+  "line": 146,
+  "suite_name": "optimization_guide_page_visibility_model_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "5f3ddc4f7dedf092a6ae755b6fff3dc03a1886ff",
+  "author": "robertogden@chromium.org",
+  "date": "2022-11-16T17:37:39Z"
+ },
+ {
+  "file": "components/password_manager/core/browser/form_parsing/fuzzer/BUILD.gn",
+  "line": 46,
+  "suite_name": "password_manager_form_data_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "65d02f66566e504879eaa43ace9241820c4f29fd",
+  "author": "ktrajkovski@google.com",
+  "date": "2023-07-13T11:38:43Z"
+ },
+ {
+  "file": "components/password_manager/core/browser/form_parsing/fuzzer/BUILD.gn",
+  "line": 61,
+  "suite_name": "password_manager_form_data_parser_proto_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "65d02f66566e504879eaa43ace9241820c4f29fd",
+  "author": "ktrajkovski@google.com",
+  "date": "2023-07-13T11:38:43Z"
+ },
+ {
+  "file": "components/password_manager/core/browser/generation/BUILD.gn",
+  "line": 55,
+  "suite_name": "password_generator_proto_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "257124470cb08e402fe6f48999a947c628261db5",
+  "author": "vsemeniuk@google.com",
+  "date": "2023-09-22T13:03:08Z"
+ },
+ {
+  "file": "components/password_manager/core/browser/import/BUILD.gn",
+  "line": 101,
+  "suite_name": "csv_reader_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "a4b0383bd915e21027f28bb9091462d63a422571",
+  "author": "eliaskh@chromium.org",
+  "date": "2022-07-27T12:00:52Z"
+ },
+ {
+  "file": "components/password_manager/core/browser/leak_detection/fuzzer/BUILD.gn",
+  "line": 7,
+  "suite_name": "cipher_encrypt_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "73428a9f308dd934f00fe31e06b067a7317f7fcf",
+  "author": "vasilii@chromium.org",
+  "date": "2019-08-26T11:18:46Z"
+ },
+ {
+  "file": "components/password_manager/core/browser/leak_detection/fuzzer/BUILD.gn",
+  "line": 12,
+  "suite_name": "cypher_encrypt_with_key_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "73428a9f308dd934f00fe31e06b067a7317f7fcf",
+  "author": "vasilii@chromium.org",
+  "date": "2019-08-26T11:18:46Z"
+ },
+ {
+  "file": "components/password_manager/core/browser/leak_detection/fuzzer/BUILD.gn",
+  "line": 20,
+  "suite_name": "cypher_reencrypt_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "73428a9f308dd934f00fe31e06b067a7317f7fcf",
+  "author": "vasilii@chromium.org",
+  "date": "2019-08-26T11:18:46Z"
+ },
+ {
+  "file": "components/password_manager/core/browser/leak_detection/fuzzer/BUILD.gn",
+  "line": 25,
+  "suite_name": "cypher_decrypt_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "73428a9f308dd934f00fe31e06b067a7317f7fcf",
+  "author": "vasilii@chromium.org",
+  "date": "2019-08-26T11:18:46Z"
+ },
+ {
+  "file": "components/payments/content/utility/BUILD.gn",
+  "line": 42,
+  "suite_name": "payment_method_manifest_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "56e93031321664d3a0bea8f64c24f0169f0a2e47",
+  "author": "rouslan@chromium.org",
+  "date": "2017-09-14T20:07:16Z"
+ },
+ {
+  "file": "components/payments/content/utility/BUILD.gn",
+  "line": 56,
+  "suite_name": "payment_web_app_manifest_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "ede5b7ba5097c53177bf75deb052bd3ee17a32a6",
+  "author": "rouslan@chromium.org",
+  "date": "2017-09-15T15:43:13Z"
+ },
+ {
+  "file": "components/payments/content/utility/BUILD.gn",
+  "line": 69,
+  "suite_name": "fingerprint_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "9b8074b61ef131ba393a420541c96c3c9c72922a",
+  "author": "rouslan@chromium.org",
+  "date": "2017-09-14T22:54:12Z"
+ },
+ {
+  "file": "components/policy/core/common/BUILD.gn",
+  "line": 677,
+  "suite_name": "policy_schema_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "7be6a384bf5690970bb17b67eea255211ae9c8fd",
+  "author": "emaxx@chromium.org",
+  "date": "2021-10-29T12:20:08Z"
+ },
+ {
+  "file": "components/privacy_sandbox/privacy_sandbox_attestations/BUILD.gn",
+  "line": 78,
+  "suite_name": "parser_proto_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "d5430ec6c6b1f883488735c8e28b1c2c81d9663f",
+  "author": "xiaochenzh@chromium.org",
+  "date": "2023-11-28T14:25:38Z"
+ },
+ {
+  "file": "components/qr_code_generator/BUILD.gn",
+  "line": 84,
+  "suite_name": "qr_code_generator_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "fc7a2497a80a46facc79a0e6b46db5cffb900dba",
+  "author": "wfh@chromium.org",
+  "date": "2023-03-03T21:07:36Z"
+ },
+ {
+  "file": "components/query_parser/BUILD.gn",
+  "line": 35,
+  "suite_name": "query_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "f4d4c68787bb920eff8c9265d3cff6948ff8187b",
+  "author": "dmcardle@chromium.org",
+  "date": "2019-10-10T13:58:52Z"
+ },
+ {
+  "file": "components/safe_browsing/content/renderer/phishing_classifier/BUILD.gn",
+  "line": 101,
+  "suite_name": "client_side_phishing_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "812e2436691a9689c140961709d17d04e6dd9f61",
+  "author": "andysjlim@chromium.org",
+  "date": "2023-08-23T18:39:54Z"
+ },
+ {
+  "file": "components/safe_browsing/core/browser/db/BUILD.gn",
+  "line": 391,
+  "suite_name": "v4_get_hash_protocol_manager_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "e0ef719deba25526017f31e0d4d7975508d47a44",
+  "author": "csharrison@chromium.org",
+  "date": "2017-10-21T01:25:08Z"
+ },
+ {
+  "file": "components/safe_browsing/core/browser/db/BUILD.gn",
+  "line": 399,
+  "suite_name": "v4_store_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "fbd3f949baf9fa2378ec53f7b6d278bcbf32f021",
+  "author": "vakh@chromium.org",
+  "date": "2019-03-01T01:07:48Z"
+ },
+ {
+  "file": "components/segmentation_platform/internal/BUILD.gn",
+  "line": 438,
+  "suite_name": "segmentation_platform_config_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "1e3e34491874fe32b277e412275a556d8f6361fc",
+  "author": "adetaylor@chromium.org",
+  "date": "2023-11-27T17:29:50Z"
+ },
+ {
+  "file": "components/subresource_filter/core/common/BUILD.gn",
+  "line": 104,
+  "suite_name": "indexed_ruleset_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "c3af72154b2e03dd1f48f46e20d100e306936b29",
+  "author": "csharrison@chromium.org",
+  "date": "2018-05-29T22:55:14Z"
+ },
+ {
+  "file": "components/subresource_filter/tools/rule_parser/BUILD.gn",
+  "line": 41,
+  "suite_name": "subresource_filter_rule_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "277009ed022f3df7487e69dca01da636dd91fc90",
+  "author": "emaxx@chromium.org",
+  "date": "2022-10-30T22:51:31Z"
+ },
+ {
+  "file": "components/update_client/BUILD.gn",
+  "line": 364,
+  "suite_name": "update_client_protocol_serializer_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "ebca575f997ea0651a91c0952208838da5a348c9",
+  "author": "dmcardle@chromium.org",
+  "date": "2019-10-14T22:29:44Z"
+ },
+ {
+  "file": "components/update_client/BUILD.gn",
+  "line": 373,
+  "suite_name": "update_client_protocol_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "ebca575f997ea0651a91c0952208838da5a348c9",
+  "author": "dmcardle@chromium.org",
+  "date": "2019-10-14T22:29:44Z"
+ },
+ {
+  "file": "components/url_formatter/BUILD.gn",
+  "line": 92,
+  "suite_name": "url_formatter_fixer_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "d69a05b26c996364aaa8306b5578b93fa9b843bb",
+  "author": "emaxx@chromium.org",
+  "date": "2022-11-02T23:56:04Z"
+ },
+ {
+  "file": "components/url_matcher/BUILD.gn",
+  "line": 51,
+  "suite_name": "url_matcher_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "3d7fb79e7d138a7982938f0c037e0b176e10a8bd",
+  "author": "uzochukwu.ochogu@gitstart.dev",
+  "date": "2023-11-23T11:25:27Z"
+ },
+ {
+  "file": "components/variations/BUILD.gn",
+  "line": 337,
+  "suite_name": "create_trial_from_study_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "54700fbc9da68b7b17c0ac7af5c8b88fd28ce6db",
+  "author": "jwd@chromium.org",
+  "date": "2021-08-12T17:44:50Z"
+ },
+ {
+  "file": "components/variations/BUILD.gn",
+  "line": 346,
+  "suite_name": "create_trials_from_seed_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "e37e31f8758cf56a9b22b55e6bcb2137d93b1097",
+  "author": "holte@chromium.org",
+  "date": "2022-08-30T04:36:53Z"
+ },
+ {
+  "file": "components/variations/BUILD.gn",
+  "line": 350,
+  "suite_name": "create_trials_from_seed_fuzzer_v2",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "0ae4c4c853d2bbb84384b38dcee5cdddf38cf915",
+  "author": "holte@chromium.org",
+  "date": "2022-12-20T21:22:50Z"
+ },
+ {
+  "file": "components/viz/common/BUILD.gn",
+  "line": 351,
+  "suite_name": "hit_test_query_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "67ad773ea4d6226c20c0e1b3afcb9dbf99751807",
+  "author": "amanvr@google.com",
+  "date": "2024-05-07T16:00:31Z"
+ },
+ {
+  "file": "components/viz/service/BUILD.gn",
+  "line": 790,
+  "suite_name": "hit_test_manager_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "337a57b9b3be8a2f7dab252c4d4d90ff44bbc2b3",
+  "author": "riajiang@chromium.org",
+  "date": "2018-03-27T20:24:19Z"
+ },
+ {
+  "file": "components/viz/service/compositor_frame_fuzzer/BUILD.gn",
+  "line": 12,
+  "suite_name": "compositor_frame_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "e077b507e9c5fcfcaab26caca5327c0ff6b7696b",
+  "author": "celineo@google.com",
+  "date": "2019-02-27T20:41:44Z"
+ },
+ {
+  "file": "components/web_package/BUILD.gn",
+  "line": 118,
+  "suite_name": "web_bundle_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "2495266706e55ee6e717cbae7741eabc99549b52",
+  "author": "ksakamoto@chromium.org",
+  "date": "2020-06-30T03:11:09Z"
+ },
+ {
+  "file": "components/webcrypto/BUILD.gn",
+  "line": 123,
+  "suite_name": "webcrypto_ec_import_key_pkcs8_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "2133803d94ed405fdbbe9e8cb5ca43f32953de09",
+  "author": "mmoroz@chromium.org",
+  "date": "2016-03-04T12:18:15Z"
+ },
+ {
+  "file": "components/webcrypto/BUILD.gn",
+  "line": 133,
+  "suite_name": "webcrypto_ec_import_key_spki_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "2133803d94ed405fdbbe9e8cb5ca43f32953de09",
+  "author": "mmoroz@chromium.org",
+  "date": "2016-03-04T12:18:15Z"
+ },
+ {
+  "file": "components/webcrypto/BUILD.gn",
+  "line": 143,
+  "suite_name": "webcrypto_ec_import_key_raw_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "cfcb6c9fda6465b5c12ca3d71f8e13b07e233abd",
+  "author": "eroman@chromium.org",
+  "date": "2016-08-12T00:35:11Z"
+ },
+ {
+  "file": "components/webcrypto/BUILD.gn",
+  "line": 153,
+  "suite_name": "webcrypto_rsa_import_key_pkcs8_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "2133803d94ed405fdbbe9e8cb5ca43f32953de09",
+  "author": "mmoroz@chromium.org",
+  "date": "2016-03-04T12:18:15Z"
+ },
+ {
+  "file": "components/webcrypto/BUILD.gn",
+  "line": 163,
+  "suite_name": "webcrypto_rsa_import_key_spki_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "2133803d94ed405fdbbe9e8cb5ca43f32953de09",
+  "author": "mmoroz@chromium.org",
+  "date": "2016-03-04T12:18:15Z"
+ },
+ {
+  "file": "components/zucchini/fuzzers/BUILD.gn",
+  "line": 21,
+  "suite_name": "zucchini_disassembler_dex_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "c2a778621cbcd812e2687269ba3f10132a31df12",
+  "author": "ckitagawa@chromium.org",
+  "date": "2018-07-03T14:30:05Z"
+ },
+ {
+  "file": "components/zucchini/fuzzers/BUILD.gn",
+  "line": 33,
+  "suite_name": "zucchini_disassembler_win32_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "4725b4fbb75b0f4b2dda8f56e644ca6ef546cd0e",
+  "author": "ckitagawa@google.com",
+  "date": "2018-04-24T20:35:27Z"
+ },
+ {
+  "file": "components/zucchini/fuzzers/BUILD.gn",
+  "line": 46,
+  "suite_name": "zucchini_disassembler_elf_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "b00aaabae0e86b84d0007f76f7736fe2db397aaf",
+  "author": "ckitagawa@chromium.org",
+  "date": "2019-10-11T20:17:14Z"
+ },
+ {
+  "file": "components/zucchini/fuzzers/BUILD.gn",
+  "line": 57,
+  "suite_name": "zucchini_patch_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "4725b4fbb75b0f4b2dda8f56e644ca6ef546cd0e",
+  "author": "ckitagawa@google.com",
+  "date": "2018-04-24T20:35:27Z"
+ },
+ {
+  "file": "components/zucchini/fuzzers/BUILD.gn",
+  "line": 145,
+  "suite_name": "zucchini_apply_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "7206487ebd05fd4f30226ec59b730bb41c5013f2",
+  "author": "ckitagawa@chromium.org",
+  "date": "2018-05-28T14:30:21Z"
+ },
+ {
+  "file": "components/zucchini/fuzzers/BUILD.gn",
+  "line": 168,
+  "suite_name": "zucchini_raw_gen_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "133fb1221e6c293dc43ff438567b2834b2e5c798",
+  "author": "ckitagawa@chromium.org",
+  "date": "2018-05-17T21:07:49Z"
+ },
+ {
+  "file": "components/zucchini/fuzzers/BUILD.gn",
+  "line": 183,
+  "suite_name": "zucchini_ztf_gen_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "8b5e3a4b59cfc86fc888726e29dea5d9cb1c1a09",
+  "author": "ckitagawa@chromium.org",
+  "date": "2018-05-25T19:49:43Z"
+ },
+ {
+  "file": "components/zucchini/fuzzers/BUILD.gn",
+  "line": 200,
+  "suite_name": "zucchini_imposed_ensemble_matcher_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "f7b526674131a74a43ba13394f1c4819cac9c2d2",
+  "author": "ckitagawa@chromium.org",
+  "date": "2018-07-03T14:25:19Z"
+ },
+ {
+  "file": "content/browser/BUILD.gn",
+  "line": 60,
+  "suite_name": "content_sms_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "0e2622756ac6d445fe3308eddcdf3f4e8a9d74f9",
+  "author": "emaxx@chromium.org",
+  "date": "2022-11-03T15:57:45Z"
+ },
+ {
+  "file": "content/browser/BUILD.gn",
+  "line": 3783,
+  "suite_name": "clear_site_data_handler_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "2ac27c2761cedb0c69ebc5ea6006145767fa407e",
+  "author": "etiennenoel@google.com",
+  "date": "2022-12-06T04:28:46Z"
+ },
+ {
+  "file": "content/browser/attribution_reporting/BUILD.gn",
+  "line": 98,
+  "suite_name": "attribution_interop_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "92bae71dba635fb556ebbdef8d5dc7c2a6b92ddf",
+  "author": "dmcardle@chromium.org",
+  "date": "2024-04-06T12:17:19Z"
+ },
+ {
+  "file": "content/common/BUILD.gn",
+  "line": 714,
+  "suite_name": "content_input_actions_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "b4b9ea5f2f77557e1144243581b0b330eb81344c",
+  "author": "anthie@google.com",
+  "date": "2024-06-19T16:45:42Z"
+ },
+ {
+  "file": "content/renderer/BUILD.gn",
+  "line": 434,
+  "suite_name": "audio_decoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "e84084b4cdaf92649e0799a681472f93a0a242a6",
+  "author": "grt@chromium.org",
+  "date": "2024-05-22T11:54:14Z"
+ },
+ {
+  "file": "content/renderer/BUILD.gn",
+  "line": 444,
+  "suite_name": "content_security_policy_util_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "e84084b4cdaf92649e0799a681472f93a0a242a6",
+  "author": "grt@chromium.org",
+  "date": "2024-05-22T11:54:14Z"
+ },
+ {
+  "file": "content/test/fuzzer/BUILD.gn",
+  "line": 36,
+  "suite_name": "ad_auction_headers_util_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "a0cc679d7aeb3ba1f8954fba041e276fdeee238d",
+  "author": "orrb@google.com",
+  "date": "2023-11-14T22:12:35Z"
+ },
+ {
+  "file": "content/test/fuzzer/BUILD.gn",
+  "line": 47,
+  "suite_name": "color_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "8873e0457b5f6f5c43dd3313f730e5935ef5741a",
+  "author": "pkotwicz@chromium.org",
+  "date": "2021-10-21T15:21:15Z"
+ },
+ {
+  "file": "content/test/fuzzer/BUILD.gn",
+  "line": 56,
+  "suite_name": "origin_trial_token_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "92b59414dbd3f9f7b96a04a89ec432a921517764",
+  "author": "mmoroz@chromium.org",
+  "date": "2017-09-28T04:39:00Z"
+ },
+ {
+  "file": "content/test/fuzzer/BUILD.gn",
+  "line": 64,
+  "suite_name": "renderer_tree_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "92b59414dbd3f9f7b96a04a89ec432a921517764",
+  "author": "mmoroz@chromium.org",
+  "date": "2017-09-28T04:39:00Z"
+ },
+ {
+  "file": "content/test/fuzzer/BUILD.gn",
+  "line": 69,
+  "suite_name": "renderer_proto_tree_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "92b59414dbd3f9f7b96a04a89ec432a921517764",
+  "author": "mmoroz@chromium.org",
+  "date": "2017-09-28T04:39:00Z"
+ },
+ {
+  "file": "content/test/fuzzer/BUILD.gn",
+  "line": 86,
+  "suite_name": "signed_exchange_envelope_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "f3419f0d3170b5df2dd656fd09aa39b42f8ed471",
+  "author": "kouhei@chromium.org",
+  "date": "2018-05-29T05:57:28Z"
+ },
+ {
+  "file": "content/test/fuzzer/BUILD.gn",
+  "line": 95,
+  "suite_name": "devtools_protocol_encoding_cbor_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "69645d7282d9873b9499a18eb1c3b1d1ac5f2f69",
+  "author": "johannes@chromium.org",
+  "date": "2019-04-29T21:58:21Z"
+ },
+ {
+  "file": "content/test/fuzzer/BUILD.gn",
+  "line": 103,
+  "suite_name": "devtools_protocol_encoding_json_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "69645d7282d9873b9499a18eb1c3b1d1ac5f2f69",
+  "author": "johannes@chromium.org",
+  "date": "2019-04-29T21:58:21Z"
+ },
+ {
+  "file": "content/test/fuzzer/BUILD.gn",
+  "line": 106,
+  "suite_name": "inspector_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "0a523b3f50f6c491779745706799213bd1f9f85a",
+  "author": "palmer@chromium.org",
+  "date": "2019-05-10T23:26:14Z"
+ },
+ {
+  "file": "content/test/fuzzer/BUILD.gn",
+  "line": 112,
+  "suite_name": "signed_exchange_certificate_chain_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "4c759a7fd5d97e906d672e813b754cb014aa5d0b",
+  "author": "ksakamoto@chromium.org",
+  "date": "2018-04-10T03:01:04Z"
+ },
+ {
+  "file": "content/test/fuzzer/BUILD.gn",
+  "line": 120,
+  "suite_name": "merkle_integrity_source_stream_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "98abd37767e4398aeb5ad199846fac075f757422",
+  "author": "davidben@chromium.org",
+  "date": "2018-04-03T23:56:07Z"
+ },
+ {
+  "file": "content/test/fuzzer/BUILD.gn",
+  "line": 194,
+  "suite_name": "code_cache_host_mojolpm_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "453081ca309a7d274f8c415919540a9130469b1e",
+  "author": "markbrand@google.com",
+  "date": "2020-06-08T08:46:06Z"
+ },
+ {
+  "file": "content/test/fuzzer/BUILD.gn",
+  "line": 260,
+  "suite_name": "file_system_manager_mojolpm_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "d0d7d0a0dd72ec4dd950b94c3c6c4743285f0e31",
+  "author": "markbrand@google.com",
+  "date": "2020-09-29T13:41:54Z"
+ },
+ {
+  "file": "content/test/fuzzer/BUILD.gn",
+  "line": 278,
+  "suite_name": "audio_context_manager_mojolpm_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "156962f6a9ec6cd1e3d169643a95770765836a8f",
+  "author": "bookholt@chromium.org",
+  "date": "2021-11-10T22:59:23Z"
+ },
+ {
+  "file": "content/test/fuzzer/BUILD.gn",
+  "line": 293,
+  "suite_name": "speech_audio_encoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "e9d404b732a2866976b75c4acdc51ee4a8f1dd0a",
+  "author": "metzman@chromium.org",
+  "date": "2019-05-09T16:45:43Z"
+ },
+ {
+  "file": "content/test/fuzzer/BUILD.gn",
+  "line": 309,
+  "suite_name": "browser_accessibility_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "248662b1b84a8235cf3c7682b69a1bcdb54dd7f6",
+  "author": "dmazzoni@chromium.org",
+  "date": "2019-09-04T03:59:42Z"
+ },
+ {
+  "file": "content/test/fuzzer/BUILD.gn",
+  "line": 335,
+  "suite_name": "indexed_db_leveldb_coding_encodeidbkey_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "7d0465beb3aea3d4a5be112bb4c6d05fd3c4d22a",
+  "author": "odejesush@chromium.org",
+  "date": "2019-10-18T02:57:11Z"
+ },
+ {
+  "file": "content/test/fuzzer/BUILD.gn",
+  "line": 343,
+  "suite_name": "indexed_db_leveldb_coding_encodeidbkeypath_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "7d0465beb3aea3d4a5be112bb4c6d05fd3c4d22a",
+  "author": "odejesush@chromium.org",
+  "date": "2019-10-18T02:57:11Z"
+ },
+ {
+  "file": "content/test/fuzzer/BUILD.gn",
+  "line": 349,
+  "suite_name": "indexed_db_leveldb_coding_decodeidbkey_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "7d0465beb3aea3d4a5be112bb4c6d05fd3c4d22a",
+  "author": "odejesush@chromium.org",
+  "date": "2019-10-18T02:57:11Z"
+ },
+ {
+  "file": "content/test/fuzzer/BUILD.gn",
+  "line": 357,
+  "suite_name": "indexed_db_leveldb_coding_decodeidbkeypath_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "7d0465beb3aea3d4a5be112bb4c6d05fd3c4d22a",
+  "author": "odejesush@chromium.org",
+  "date": "2019-10-18T02:57:11Z"
+ },
+ {
+  "file": "content/test/fuzzer/BUILD.gn",
+  "line": 322,
+  "suite_name": "first_party_set_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "999b7ca5c2f978d5250cd484c7da38f5350bfa83",
+  "author": "cfredric@chromium.org",
+  "date": "2022-03-29T18:26:32Z"
+ },
+ {
+  "file": "content/test/fuzzer/BUILD.gn",
+  "line": 379,
+  "suite_name": "first_party_set_parser_json_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "10398150430c8a02a624d540876a32976c7f32db",
+  "author": "shuuran@chromium.org",
+  "date": "2022-03-28T21:52:18Z"
+ },
+ {
+  "file": "content/test/fuzzer/BUILD.gn",
+  "line": 392,
+  "suite_name": "first_party_set_parser_value_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "1648697ba13602a2e8b12c2b14675996a22c2cd7",
+  "author": "cfredric@chromium.org",
+  "date": "2023-11-27T21:51:46Z"
+ },
+ {
+  "file": "content/test/fuzzer/BUILD.gn",
+  "line": 407,
+  "suite_name": "media_stream_dispatcher_host_mojolpm_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "50eab2e18bd377a6bd8f75ebdcba258a4dbc7f0c",
+  "author": "bookholt@chromium.org",
+  "date": "2021-12-16T17:44:40Z"
+ },
+ {
+  "file": "content/test/fuzzer/BUILD.gn",
+  "line": 426,
+  "suite_name": "video_capture_host_mojolpm_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "a59498222feb275c847739ad1793fdf3931f7350",
+  "author": "clovispj@google.com",
+  "date": "2020-09-14T16:59:23Z"
+ },
+ {
+  "file": "content/test/fuzzer/BUILD.gn",
+  "line": 447,
+  "suite_name": "image_capture_mojolpm_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "385c3e91cbc75636041c089415bbfbb099a36bfc",
+  "author": "moiseanurares@gmail.com",
+  "date": "2022-07-01T17:18:07Z"
+ },
+ {
+  "file": "content/test/fuzzer/BUILD.gn",
+  "line": 463,
+  "suite_name": "presentation_service_mojolpm_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "36a33a614bb4cfb28dc6f6b07c8503272604fd21",
+  "author": "clovispj@google.com",
+  "date": "2020-09-18T07:38:55Z"
+ },
+ {
+  "file": "content/test/fuzzer/BUILD.gn",
+  "line": 482,
+  "suite_name": "clipboard_host_mojolpm_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "0ca77f33b803f75b870c3ba0389248a720ef9e69",
+  "author": "moiseanurares@gmail.com",
+  "date": "2022-04-15T19:09:20Z"
+ },
+ {
+  "file": "content/test/fuzzer/BUILD.gn",
+  "line": 498,
+  "suite_name": "ad_auction_service_mojolpm_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "fc326be1f824cf5d3e20eb94b9e800457bf96d61",
+  "author": "caraitto@chromium.org",
+  "date": "2024-04-22T19:50:36Z"
+ },
+ {
+  "file": "device/fido/BUILD.gn",
+  "line": 392,
+  "suite_name": "fido_hid_message_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "740cc1943b361619d13435aef292ac1687b55eea",
+  "author": "sugoi@chromium.org",
+  "date": "2024-05-01T22:08:49Z"
+ },
+ {
+  "file": "device/fido/BUILD.gn",
+  "line": 401,
+  "suite_name": "fido_ble_frames_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "740cc1943b361619d13435aef292ac1687b55eea",
+  "author": "sugoi@chromium.org",
+  "date": "2024-05-01T22:08:49Z"
+ },
+ {
+  "file": "device/fido/BUILD.gn",
+  "line": 407,
+  "suite_name": "ctap_response_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "740cc1943b361619d13435aef292ac1687b55eea",
+  "author": "sugoi@chromium.org",
+  "date": "2024-05-01T22:08:49Z"
+ },
+ {
+  "file": "device/fido/BUILD.gn",
+  "line": 420,
+  "suite_name": "fido_cable_handshake_handler_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "740cc1943b361619d13435aef292ac1687b55eea",
+  "author": "sugoi@chromium.org",
+  "date": "2024-05-01T22:08:49Z"
+ },
+ {
+  "file": "device/fido/BUILD.gn",
+  "line": 434,
+  "suite_name": "v2_handshake_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "740cc1943b361619d13435aef292ac1687b55eea",
+  "author": "sugoi@chromium.org",
+  "date": "2024-05-01T22:08:49Z"
+ },
+ {
+  "file": "extensions/browser/BUILD.gn",
+  "line": 1283,
+  "suite_name": "extension_file_highlighter_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "71e4637275bc3740a09e104761bdf4742202fba2",
+  "author": "emaxx@chromium.org",
+  "date": "2022-10-24T20:12:25Z"
+ },
+ {
+  "file": "extensions/browser/BUILD.gn",
+  "line": 1291,
+  "suite_name": "extension_web_request_form_data_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "7bced20de693323907330abcd3b885540cba0658",
+  "author": "emaxx@chromium.org",
+  "date": "2022-11-01T23:53:48Z"
+ },
+ {
+  "file": "extensions/browser/BUILD.gn",
+  "line": 1300,
+  "suite_name": "extension_declarative_net_request_indexed_rule_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "e0802684d2a5d9683ea76b1d8607553f33daabb6",
+  "author": "emaxx@chromium.org",
+  "date": "2022-11-04T22:24:57Z"
+ },
+ {
+  "file": "extensions/common/BUILD.gn",
+  "line": 780,
+  "suite_name": "extension_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "c7d760ca2a93fdbd01a9652acfc2822f2d1f4754",
+  "author": "rdevlin.cronin@chromium.org",
+  "date": "2022-02-05T00:20:55Z"
+ },
+ {
+  "file": "extensions/common/BUILD.gn",
+  "line": 788,
+  "suite_name": "extension_manifest_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "c7d760ca2a93fdbd01a9652acfc2822f2d1f4754",
+  "author": "rdevlin.cronin@chromium.org",
+  "date": "2022-02-05T00:20:55Z"
+ },
+ {
+  "file": "extensions/common/BUILD.gn",
+  "line": 802,
+  "suite_name": "extension_url_pattern_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "c7d760ca2a93fdbd01a9652acfc2822f2d1f4754",
+  "author": "rdevlin.cronin@chromium.org",
+  "date": "2022-02-05T00:20:55Z"
+ },
+ {
+  "file": "extensions/common/BUILD.gn",
+  "line": 810,
+  "suite_name": "extension_csp_validator_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "c7d760ca2a93fdbd01a9652acfc2822f2d1f4754",
+  "author": "rdevlin.cronin@chromium.org",
+  "date": "2022-02-05T00:20:55Z"
+ },
+ {
+  "file": "extensions/common/BUILD.gn",
+  "line": 822,
+  "suite_name": "extension_api_scripts_internal_serialization_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "40267aa00baa4f028b033730120c6c218a3fec55",
+  "author": "emaxx@google.com",
+  "date": "2023-12-01T18:54:17Z"
+ },
+ {
+  "file": "gpu/BUILD.gn",
+  "line": 144,
+  "suite_name": "gl_lpm_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "cc43ccc3a27fe648237baf0e68c3776e80810a71",
+  "author": "nedwill@google.com",
+  "date": "2019-05-24T23:45:11Z"
+ },
+ {
+  "file": "gpu/BUILD.gn",
+  "line": 768,
+  "suite_name": "gpu_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "779df642146866df136b11cf2790c4bf491ed8fb",
+  "author": "vasilyt@chromium.org",
+  "date": "2023-04-28T16:19:32Z"
+ },
+ {
+  "file": "gpu/BUILD.gn",
+  "line": 789,
+  "suite_name": "gpu_angle_passthrough_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "779df642146866df136b11cf2790c4bf491ed8fb",
+  "author": "vasilyt@chromium.org",
+  "date": "2023-04-28T16:19:32Z"
+ },
+ {
+  "file": "gpu/BUILD.gn",
+  "line": 813,
+  "suite_name": "gpu_swangle_passthrough_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "779df642146866df136b11cf2790c4bf491ed8fb",
+  "author": "vasilyt@chromium.org",
+  "date": "2023-04-28T16:19:32Z"
+ },
+ {
+  "file": "gpu/BUILD.gn",
+  "line": 839,
+  "suite_name": "gpu_raster_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "a210e801d2389b72e762a446be8651700a71b330",
+  "author": "backer@chromium.org",
+  "date": "2018-05-16T13:30:27Z"
+ },
+ {
+  "file": "gpu/BUILD.gn",
+  "line": 860,
+  "suite_name": "gpu_raster_passthrough_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "92573b154cacfde79a2ce1f81999d91bb9e8a06e",
+  "author": "backer@chromium.org",
+  "date": "2019-03-04T15:33:09Z"
+ },
+ {
+  "file": "gpu/BUILD.gn",
+  "line": 885,
+  "suite_name": "gpu_raster_swangle_passthrough_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "e3a0646a1b24f2abfe2850ee3d9d980683f93df2",
+  "author": "geofflang@chromium.org",
+  "date": "2020-05-05T18:44:02Z"
+ },
+ {
+  "file": "ios/chrome/app/startup/BUILD.gn",
+  "line": 130,
+  "suite_name": "chrome_app_startup_parameters_external_actions_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "8830ca021d511ab46f75e29fdc41866e6987e2a2",
+  "author": "nicolasmacbeth@google.com",
+  "date": "2023-12-22T15:14:21Z"
+ },
+ {
+  "file": "ios/chrome/app/startup/BUILD.gn",
+  "line": 131,
+  "suite_name": "chrome_app_startup_parameters_googlechromes_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "8830ca021d511ab46f75e29fdc41866e6987e2a2",
+  "author": "nicolasmacbeth@google.com",
+  "date": "2023-12-22T15:14:21Z"
+ },
+ {
+  "file": "ios/chrome/app/startup/BUILD.gn",
+  "line": 132,
+  "suite_name": "chrome_app_startup_parameters_scheme_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "8830ca021d511ab46f75e29fdc41866e6987e2a2",
+  "author": "nicolasmacbeth@google.com",
+  "date": "2023-12-22T15:14:21Z"
+ },
+ {
+  "file": "ios/chrome/browser/crash_report/model/BUILD.gn",
+  "line": 100,
+  "suite_name": "crashpad_intermediate_dump_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "020800345afa3320d4cfa4c887d6d4ed3b2f9659",
+  "author": "justincohen@google.com",
+  "date": "2021-11-24T02:08:21Z"
+ },
+ {
+  "file": "ios/chrome/browser/crash_report/model/BUILD.gn",
+  "line": 101,
+  "suite_name": "crashpad_process_snapshot_intermediate_dump_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "020800345afa3320d4cfa4c887d6d4ed3b2f9659",
+  "author": "justincohen@google.com",
+  "date": "2021-11-24T02:08:21Z"
+ },
+ {
+  "file": "ios/chrome/browser/web/model/image_fetch/BUILD.gn",
+  "line": 62,
+  "suite_name": "image_fetch_java_script_feature_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "4ec23f11475c6855f1b82001cd224ab8b4e54bf5",
+  "author": "weizhong@google.com",
+  "date": "2023-12-19T02:01:25Z"
+ },
+ {
+  "file": "media/BUILD.gn",
+  "line": 328,
+  "suite_name": "media_cenc_utils_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "cee3045134ca2a60fc088bb9b5b65910346b3df1",
+  "author": "jrummell@chromium.org",
+  "date": "2016-02-17T19:58:36Z"
+ },
+ {
+  "file": "media/BUILD.gn",
+  "line": 334,
+  "suite_name": "media_vpx_video_decoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "3dd363c1560b4fb350bcb77bef6d19c43f437e1b",
+  "author": "aizatsky@chromium.org",
+  "date": "2016-05-12T21:45:39Z"
+ },
+ {
+  "file": "media/BUILD.gn",
+  "line": 345,
+  "suite_name": "media_webm_muxer_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "abeb217e9eeff4ad524ba0a02a91ba51f939b64f",
+  "author": "mcasas@chromium.org",
+  "date": "2016-09-02T01:39:35Z"
+ },
+ {
+  "file": "media/BUILD.gn",
+  "line": 354,
+  "suite_name": "cbcs_decryptor_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "fb38830cd51cc256f7819ad7fe3f419068361351",
+  "author": "jrummell@chromium.org",
+  "date": "2018-05-24T00:09:46Z"
+ },
+ {
+  "file": "media/BUILD.gn",
+  "line": 363,
+  "suite_name": "cenc_decryptor_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "fb38830cd51cc256f7819ad7fe3f419068361351",
+  "author": "jrummell@chromium.org",
+  "date": "2018-05-24T00:09:46Z"
+ },
+ {
+  "file": "media/BUILD.gn",
+  "line": 372,
+  "suite_name": "json_web_key_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "a8943921f43202f6e0bc66ed1af7f1080ae69632",
+  "author": "xhwang@chromium.org",
+  "date": "2019-10-10T19:34:17Z"
+ },
+ {
+  "file": "media/BUILD.gn",
+  "line": 381,
+  "suite_name": "media_mp4_avcc_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "44b5c4dd5ea3f4c91f24476696d3926c9a5c9094",
+  "author": "watk@chromium.org",
+  "date": "2016-10-17T21:18:57Z"
+ },
+ {
+  "file": "media/BUILD.gn",
+  "line": 389,
+  "suite_name": "media_mp4_box_reader_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "f1b815290d83b4fbe74c6b194d0c822efca7f361",
+  "author": "wolenetz@chromium.org",
+  "date": "2017-10-30T18:35:45Z"
+ },
+ {
+  "file": "media/BUILD.gn",
+  "line": 401,
+  "suite_name": "media_es_parser_adts_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "f1b815290d83b4fbe74c6b194d0c822efca7f361",
+  "author": "wolenetz@chromium.org",
+  "date": "2017-10-30T18:35:45Z"
+ },
+ {
+  "file": "media/BUILD.gn",
+  "line": 409,
+  "suite_name": "media_es_parser_h264_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "f1b815290d83b4fbe74c6b194d0c822efca7f361",
+  "author": "wolenetz@chromium.org",
+  "date": "2017-10-30T18:35:45Z"
+ },
+ {
+  "file": "media/BUILD.gn",
+  "line": 417,
+  "suite_name": "media_es_parser_mpeg1audio_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "f1b815290d83b4fbe74c6b194d0c822efca7f361",
+  "author": "wolenetz@chromium.org",
+  "date": "2017-10-30T18:35:45Z"
+ },
+ {
+  "file": "media/audio/BUILD.gn",
+  "line": 572,
+  "suite_name": "wav_audio_handler_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "eca3d7636b249de2e6ed0219c2330b5ca85f6547",
+  "author": "dmcardle@chromium.org",
+  "date": "2020-02-03T15:26:28Z"
+ },
+ {
+  "file": "media/audio/BUILD.gn",
+  "line": 580,
+  "suite_name": "flac_audio_handler_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "3074f59fd40b70581621b66fe651f6e3d721035b",
+  "author": "hongyulong@chromium.org",
+  "date": "2023-02-07T01:19:04Z"
+ },
+ {
+  "file": "media/base/BUILD.gn",
+  "line": 751,
+  "suite_name": "media_bit_reader_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "976753e8ed554d074083b3cd3c093ae1960776ab",
+  "author": "jrummell@chromium.org",
+  "date": "2016-03-09T20:38:39Z"
+ },
+ {
+  "file": "media/base/BUILD.gn",
+  "line": 759,
+  "suite_name": "media_container_names_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "753c4277bccedb06773fb4d873beb902e574f366",
+  "author": "jrummell@chromium.org",
+  "date": "2016-02-09T22:13:29Z"
+ },
+ {
+  "file": "media/cast/BUILD.gn",
+  "line": 262,
+  "suite_name": "media_vpx_quantizer_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "b0c9816b2077c1b731cbd102d8416a98e3f1261b",
+  "author": "emaxx@chromium.org",
+  "date": "2022-10-31T20:28:55Z"
+ },
+ {
+  "file": "media/formats/BUILD.gn",
+  "line": 405,
+  "suite_name": "hls_items_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "5294a04692f365141f210d59f757df58f139ff4b",
+  "author": "cassew@chromium.org",
+  "date": "2021-12-03T02:03:29Z"
+ },
+ {
+  "file": "media/formats/BUILD.gn",
+  "line": 414,
+  "suite_name": "hls_attribute_list_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "1d8d260da38899cf3eecb6fe5c4fdca7add48a54",
+  "author": "cassew@chromium.org",
+  "date": "2022-01-14T18:43:59Z"
+ },
+ {
+  "file": "media/formats/BUILD.gn",
+  "line": 423,
+  "suite_name": "hls_media_playlist_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "682c919f0d91236d97f5be3dfe320a97612edefa",
+  "author": "cassew@chromium.org",
+  "date": "2022-03-14T23:42:37Z"
+ },
+ {
+  "file": "media/formats/BUILD.gn",
+  "line": 433,
+  "suite_name": "hls_multivariant_playlist_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "68431dca4050bd6d4e7fda44fa13dbca82b9c9c1",
+  "author": "cassew@chromium.org",
+  "date": "2022-04-20T19:21:46Z"
+ },
+ {
+  "file": "media/formats/BUILD.gn",
+  "line": 443,
+  "suite_name": "h264_annex_b_converter_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "581a2e74f871822929cc5186b61f79ec19efaa54",
+  "author": "eugene@chromium.org",
+  "date": "2020-09-16T22:48:09Z"
+ },
+ {
+  "file": "media/formats/BUILD.gn",
+  "line": 455,
+  "suite_name": "dts_util_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "7a2b2f980973d50609f8e93f3d538e9effc57e49",
+  "author": "douglas.wong@xperi.com",
+  "date": "2022-10-12T00:12:40Z"
+ },
+ {
+  "file": "media/gpu/BUILD.gn",
+  "line": 728,
+  "suite_name": "media_h265_decoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "b5949715f14a8002766840eb6cddf6463280bb45",
+  "author": "jkardatzke@google.com",
+  "date": "2020-11-09T20:40:10Z"
+ },
+ {
+  "file": "media/gpu/BUILD.gn",
+  "line": 738,
+  "suite_name": "media_h264_decoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "72d903ba1a1ac82a86544ffde32363fa3ce0f22e",
+  "author": "tiszka@chromium.org",
+  "date": "2024-02-13T02:14:36Z"
+ },
+ {
+  "file": "media/gpu/BUILD.gn",
+  "line": 750,
+  "suite_name": "media_vp8_decoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "f8d0a5ab7dacc98ca109876bad5db90367c37d24",
+  "author": "tiszka@chromium.org",
+  "date": "2024-02-14T00:46:45Z"
+ },
+ {
+  "file": "media/gpu/BUILD.gn",
+  "line": 763,
+  "suite_name": "media_av1_decoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "60a57d5c7595e3eeb74bce2dc547001bc539012e",
+  "author": "andrescj@chromium.org",
+  "date": "2021-02-02T02:01:09Z"
+ },
+ {
+  "file": "media/gpu/BUILD.gn",
+  "line": 773,
+  "suite_name": "media_vp9_decoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "571a33bf4374718058873edec19d48307fc0f829",
+  "author": "tiszka@chromium.org",
+  "date": "2024-02-14T18:32:49Z"
+ },
+ {
+  "file": "media/gpu/vaapi/fuzzers/jpeg_decoder/BUILD.gn",
+  "line": 12,
+  "suite_name": "vaapi_jpeg_decoder_fuzzertest",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "087395509e0c63741a225e1be69bfb504a0ff73b",
+  "author": "andrescj@chromium.org",
+  "date": "2020-02-03T22:15:43Z"
+ },
+ {
+  "file": "media/learning/impl/BUILD.gn",
+  "line": 10,
+  "suite_name": "learning_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "7922737cc664f207b7766426f3e372c5cd7c6239",
+  "author": "liberato@chromium.org",
+  "date": "2019-04-08T21:51:38Z"
+ },
+ {
+  "file": "media/midi/BUILD.gn",
+  "line": 192,
+  "suite_name": "midi_webmidi_data_validator_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "45000d236fd3f38df311452d33f28f7ed4651d91",
+  "author": "pmalani@google.com",
+  "date": "2017-12-05T08:12:12Z"
+ },
+ {
+  "file": "media/midi/BUILD.gn",
+  "line": 198,
+  "suite_name": "midi_message_queue_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "45000d236fd3f38df311452d33f28f7ed4651d91",
+  "author": "pmalani@google.com",
+  "date": "2017-12-05T08:12:12Z"
+ },
+ {
+  "file": "media/midi/BUILD.gn",
+  "line": 238,
+  "suite_name": "usb_midi_descriptor_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "a2694daaa7597b34b36493af48a4ced63e6a0926",
+  "author": "ochang@google.com",
+  "date": "2019-10-11T10:26:04Z"
+ },
+ {
+  "file": "media/mojo/services/BUILD.gn",
+  "line": 345,
+  "suite_name": "webrtc_video_perf_mojolpm_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "6cffeb6b7ddd0772c96737cf68056d955fbebb77",
+  "author": "kron@chromium.org",
+  "date": "2022-05-14T10:50:21Z"
+ },
+ {
+  "file": "media/parsers/BUILD.gn",
+  "line": 108,
+  "suite_name": "media_h264_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "48647a800b872c01fd1b1834e6ee581d766396c8",
+  "author": "mcasas@chromium.org",
+  "date": "2024-06-20T19:51:57Z"
+ },
+ {
+  "file": "media/parsers/BUILD.gn",
+  "line": 118,
+  "suite_name": "media_h265_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "6650241adfbaa934bff0e51bd65046522882d6a9",
+  "author": "mcasas@chromium.org",
+  "date": "2024-06-20T20:46:23Z"
+ },
+ {
+  "file": "media/parsers/BUILD.gn",
+  "line": 146,
+  "suite_name": "media_h266_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "9e0df37b082a322d2bdaa41978db3b76bc8d517e",
+  "author": "mcasas@chromium.org",
+  "date": "2024-06-20T21:40:41Z"
+ },
+ {
+  "file": "media/parsers/BUILD.gn",
+  "line": 127,
+  "suite_name": "media_jpeg_parser_picture_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "04e20faa1bdba130e1d796ee9532b70d8a5bc3a9",
+  "author": "dalecurtis@chromium.org",
+  "date": "2019-05-20T18:02:47Z"
+ },
+ {
+  "file": "media/parsers/BUILD.gn",
+  "line": 138,
+  "suite_name": "media_vp8_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "bf3086375dce0a4c6dc26729a12108cf2e2e05fe",
+  "author": "gildekel@chromium.org",
+  "date": "2019-05-28T22:24:17Z"
+ },
+ {
+  "file": "media/parsers/BUILD.gn",
+  "line": 149,
+  "suite_name": "media_vp9_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "056a2211daf0ef66de8adb22cae80702c3c8f34f",
+  "author": "mcasas@chromium.org",
+  "date": "2024-06-20T19:28:07Z"
+ },
+ {
+  "file": "media/parsers/BUILD.gn",
+  "line": 159,
+  "suite_name": "media_vp9_parser_encrypted_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "056a2211daf0ef66de8adb22cae80702c3c8f34f",
+  "author": "mcasas@chromium.org",
+  "date": "2024-06-20T19:28:07Z"
+ },
+ {
+  "file": "media/parsers/BUILD.gn",
+  "line": 169,
+  "suite_name": "media_webp_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "6393b6227e191586b8292fcaea87458b2cc704f8",
+  "author": "gildekel@chromium.org",
+  "date": "2019-05-29T19:58:31Z"
+ },
+ {
+  "file": "mojo/core/BUILD.gn",
+  "line": 322,
+  "suite_name": "mojo_core_channel_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "24170150bbeeecdae6edc86ae98ad9c9fca77aa8",
+  "author": "rockot@chromium.org",
+  "date": "2018-11-28T07:27:33Z"
+ },
+ {
+  "file": "mojo/core/BUILD.gn",
+  "line": 289,
+  "suite_name": "mojo_core_channel_mac_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "40aea2f44da72163d6d19ef6c5527515083e39b0",
+  "author": "rsesek@chromium.org",
+  "date": "2019-03-27T19:47:21Z"
+ },
+ {
+  "file": "mojo/core/BUILD.gn",
+  "line": 331,
+  "suite_name": "mojo_core_node_channel_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "24170150bbeeecdae6edc86ae98ad9c9fca77aa8",
+  "author": "rockot@chromium.org",
+  "date": "2018-11-28T07:27:33Z"
+ },
+ {
+  "file": "mojo/core/BUILD.gn",
+  "line": 341,
+  "suite_name": "mojo_core_port_event_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "092d94af04477cfa9066fb3f0cd757e5bd13c3e6",
+  "author": "rockot@chromium.org",
+  "date": "2018-11-29T05:02:00Z"
+ },
+ {
+  "file": "mojo/core/BUILD.gn",
+  "line": 349,
+  "suite_name": "mojo_core_user_message_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "092d94af04477cfa9066fb3f0cd757e5bd13c3e6",
+  "author": "rockot@chromium.org",
+  "date": "2018-11-29T05:02:00Z"
+ },
+ {
+  "file": "mojo/public/tools/fuzzers/BUILD.gn",
+  "line": 28,
+  "suite_name": "mojo_parse_message_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "6573d89b9a10f0805f874ea38610887ddb9cf51e",
+  "author": "tjbecker@google.com",
+  "date": "2017-08-04T17:24:35Z"
+ },
+ {
+  "file": "mojo/public/tools/fuzzers/BUILD.gn",
+  "line": 56,
+  "suite_name": "mojo_parse_message_proto_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "27c6e434cef36ab378012756d372c8741cbd46ce",
+  "author": "metzman@chromium.org",
+  "date": "2018-03-23T17:11:52Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 3710,
+  "suite_name": "host_port_pair_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "c0f4a56baec4c70f8f80c0529bbf811757984fb7",
+  "author": "adetaylor@chromium.org",
+  "date": "2023-09-20T18:02:09Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 3715,
+  "suite_name": "disk_cache_lpm_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "29cbe0eec9f82a0c722245fc3c58116a4d715630",
+  "author": "mpdenton@chromium.org",
+  "date": "2019-03-27T00:10:41Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 3736,
+  "suite_name": "net_backoff_entry_serializer_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "72692a189e5eb536039708cfc1f9e8a3a96e99c9",
+  "author": "dmcardle@chromium.org",
+  "date": "2020-05-11T16:47:16Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 3750,
+  "suite_name": "net_data_url_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "fd637c4eca2abce77321722760f366cb340efc71",
+  "author": "mmenke@chromium.org",
+  "date": "2019-10-22T23:17:42Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 3764,
+  "suite_name": "net_mime_sniffer_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "5552a6a020ac21565f4a92a36d545e8115c56132",
+  "author": "mmenke@chromium.org",
+  "date": "2016-03-28T23:13:38Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 3784,
+  "suite_name": "net_parse_proxy_list_pac_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "565e8df2180de6afd3f0b121697623704697fbf0",
+  "author": "mmoroz@chromium.org",
+  "date": "2016-03-04T18:19:55Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 3750,
+  "suite_name": "net_parse_proxy_list_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "565e8df2180de6afd3f0b121697623704697fbf0",
+  "author": "mmoroz@chromium.org",
+  "date": "2016-03-04T18:19:55Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 3756,
+  "suite_name": "net_parse_proxy_bypass_rules_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "565e8df2180de6afd3f0b121697623704697fbf0",
+  "author": "mmoroz@chromium.org",
+  "date": "2016-03-04T18:19:55Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 3809,
+  "suite_name": "net_parse_proxy_rules_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "565e8df2180de6afd3f0b121697623704697fbf0",
+  "author": "mmoroz@chromium.org",
+  "date": "2016-03-04T18:19:55Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 3819,
+  "suite_name": "net_get_domain_and_registry_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "565e8df2180de6afd3f0b121697623704697fbf0",
+  "author": "mmoroz@chromium.org",
+  "date": "2016-03-04T18:19:55Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 3830,
+  "suite_name": "net_lookup_string_in_fixed_set_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "d4161ae32623d93ae5fb9773c98cca48be017b83",
+  "author": "ollel@opera.com",
+  "date": "2020-02-12T20:34:45Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 3841,
+  "suite_name": "net_base_schemeful_site_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "b5d706344dc5e948aafc827c6608e405cd42800c",
+  "author": "cfredric@chromium.org",
+  "date": "2021-02-01T21:05:06Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 3853,
+  "suite_name": "net_cert_ct_decode_signed_certificate_timestamp_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "02f33c8671fe99e1712a35904a05670a16e571b6",
+  "author": "mab@google.com",
+  "date": "2019-05-14T00:20:29Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 3882,
+  "suite_name": "net_canonical_cookie_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "5917890d8a7e0f2d4ae242772cb68d2a28b653f1",
+  "author": "dmcardle@chromium.org",
+  "date": "2019-07-02T13:19:01Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 3893,
+  "suite_name": "net_cookie_partition_key_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "c8ebb37e1ba52a7b203d3b90cc08fb3593b135c9",
+  "author": "dylancutler@google.com",
+  "date": "2021-08-03T18:09:26Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 3901,
+  "suite_name": "net_cookie_util_parsing_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "9801802501b5eabe49b343032e03a31ce9a9e3b0",
+  "author": "igorruvinov@chromium.org",
+  "date": "2022-12-01T14:04:26Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 3912,
+  "suite_name": "net_parse_cookie_line_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "565e8df2180de6afd3f0b121697623704697fbf0",
+  "author": "mmoroz@chromium.org",
+  "date": "2016-03-04T18:19:55Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 3922,
+  "suite_name": "net_http_stream_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "44e8e9c8b39cd6fb611da0f905846652b0752511",
+  "author": "mmenke@chromium.org",
+  "date": "2016-03-29T18:40:12Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 3933,
+  "suite_name": "canonicalize_host_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "43102855d4be658579cf6c6d596e94f9fbd5d758",
+  "author": "jkokatsu@google.com",
+  "date": "2024-03-28T18:57:17Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 3943,
+  "suite_name": "net_ntlm_ntlm_client_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "0e5e530fa15c79d6a8515e8b9fabf665d90e107f",
+  "author": "metzman@chromium.org",
+  "date": "2018-10-04T19:29:57Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 3960,
+  "suite_name": "net_brotli_source_stream_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "d5ffeaf01d9a1ca1710fb1677471709cbcebb8e9",
+  "author": "xunjieli@chromium.org",
+  "date": "2016-11-01T15:25:50Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 3972,
+  "suite_name": "net_zstd_source_stream_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "bafe20fdae189e50d59ae6a9628712644a92e66a",
+  "author": "nidhijaju@chromium.org",
+  "date": "2023-07-11T02:22:33Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 3983,
+  "suite_name": "net_gzip_source_stream_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "758373306f70943b63c8f276a2e3f6af28f0d9df",
+  "author": "xunjieli@chromium.org",
+  "date": "2016-10-31T16:53:40Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 3993,
+  "suite_name": "net_crl_set_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "9309426f77aa9fabdd30a0374cafa748e34b68bb",
+  "author": "dmcardle@chromium.org",
+  "date": "2019-06-04T22:44:23Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 4004,
+  "suite_name": "net_spdy_headers_to_http_response_headers_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "9b9e7c52dd14b15dba157f263006c14e9887ff1b",
+  "author": "ricea@chromium.org",
+  "date": "2023-09-28T06:27:43Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 4015,
+  "suite_name": "net_unescape_url_component_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "565e8df2180de6afd3f0b121697623704697fbf0",
+  "author": "mmoroz@chromium.org",
+  "date": "2016-03-04T18:19:55Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 4026,
+  "suite_name": "net_websocket_deflate_stream_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "7b870e72a79e574f8dcfbbd37858a081a9fdc2f8",
+  "author": "ricea@chromium.org",
+  "date": "2016-09-01T04:42:50Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 4036,
+  "suite_name": "net_websocket_extension_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "f9dcc095c7f5b31c0ffae9151d89a30906a707a5",
+  "author": "ricea@chromium.org",
+  "date": "2016-09-13T12:44:10Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 4032,
+  "suite_name": "net_websocket_frame_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "7b870e72a79e574f8dcfbbd37858a081a9fdc2f8",
+  "author": "ricea@chromium.org",
+  "date": "2016-09-01T04:42:50Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 4062,
+  "suite_name": "net_web_socket_encoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "ad83de436fc3957d1086e9e963f3036c64474af4",
+  "author": "zhaoyangli@chromium.org",
+  "date": "2021-11-01T20:54:40Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 4091,
+  "suite_name": "net_http_chunked_decoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "565e8df2180de6afd3f0b121697623704697fbf0",
+  "author": "mmoroz@chromium.org",
+  "date": "2016-03-04T18:19:55Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 4100,
+  "suite_name": "net_http_auth_handler_basic_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "e61626d13c1265b1eff040179d536fdb40be912c",
+  "author": "asanka@chromium.org",
+  "date": "2019-11-14T19:16:44Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 4110,
+  "suite_name": "net_http_auth_handler_digest_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "643b3b07b72b25547c5d7505c5a07331d91c61f0",
+  "author": "asanka@chromium.org",
+  "date": "2019-11-14T21:30:49Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 4120,
+  "suite_name": "net_http_auth_handler_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "cb5b74255130b442b889955634bed2f2b8264e91",
+  "author": "ericorth@chromium.org",
+  "date": "2020-08-13T20:22:41Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 4130,
+  "suite_name": "net_http_content_disposition_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "1b55e89cd00027cf6cc27508fb77b66284b40090",
+  "author": "asanka@chromium.org",
+  "date": "2019-10-14T19:27:39Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 4139,
+  "suite_name": "net_http_proxy_client_socket_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "8e9314bcf382b9df7caa3ab331e1b0090c27b62f",
+  "author": "mmenke@chromium.org",
+  "date": "2016-04-15T21:46:38Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 4150,
+  "suite_name": "net_structured_headers_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "7babd26e79a1e2da2ce99adc4821cacf93cf4055",
+  "author": "yhirano@chromium.org",
+  "date": "2020-02-12T16:03:21Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 4161,
+  "suite_name": "net_parse_url_hostname_to_address_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "9299ef9b548194db44baba9d70c05831de91edc6",
+  "author": "mmoroz@chromium.org",
+  "date": "2016-09-01T17:39:33Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 4172,
+  "suite_name": "net_quic_crypto_framer_parse_message_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "565e8df2180de6afd3f0b121697623704697fbf0",
+  "author": "mmoroz@chromium.org",
+  "date": "2016-03-04T18:19:55Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 4181,
+  "suite_name": "net_quic_transport_parameters_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "7ebfd23cef2bc090e37e7babb29db46417605d7e",
+  "author": "btolsch@chromium.org",
+  "date": "2018-11-16T00:05:10Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 4190,
+  "suite_name": "net_socks_client_socket_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "99b5717592526361111ebf4558d1a22327c3ccde",
+  "author": "mmenke@chromium.org",
+  "date": "2016-04-14T20:46:05Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 4200,
+  "suite_name": "net_socks5_client_socket_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "99b5717592526361111ebf4558d1a22327c3ccde",
+  "author": "mmenke@chromium.org",
+  "date": "2016-04-14T20:46:05Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 4210,
+  "suite_name": "net_url_request_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "c951d41c1a0df97a0b6a17379f8f7c11989aa80f",
+  "author": "mmenke@chromium.org",
+  "date": "2016-04-28T19:06:28Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 4221,
+  "suite_name": "net_auth_challenge_tokenizer_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "88d2a618f14c4f346bce5ea7c74b6c891a0807f7",
+  "author": "csharrison@chromium.org",
+  "date": "2016-09-09T17:02:16Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 4221,
+  "suite_name": "net_http_security_headers_hsts_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "db9ad4ff5423c8c8633cc71c1e6647af7bcf08c7",
+  "author": "martijn@martijnc.be",
+  "date": "2016-10-26T18:36:27Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 4231,
+  "suite_name": "net_http_transport_security_state_static_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "da9407983d1d996042e8f3303035f40f3ae2758b",
+  "author": "martijn@martijnc.be",
+  "date": "2016-12-29T01:38:52Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 4241,
+  "suite_name": "net_spdy_session_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "833190ec3fb8c4dd2d66e1b5b2ed3cf34a70f609",
+  "author": "morlovich@chromium.org",
+  "date": "2017-02-10T16:53:04Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 4254,
+  "suite_name": "net_http2_frame_decoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "6a97013728a3188ab0d31c777fecc709a9756dd4",
+  "author": "pmeenan@chromium.org",
+  "date": "2017-10-03T21:33:41Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 4264,
+  "suite_name": "net_hpack_decoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "73b497aba72d992fa8f98b60a1e2b9821db03c79",
+  "author": "pmeenan@chromium.org",
+  "date": "2017-10-05T22:40:44Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 4280,
+  "suite_name": "net_reporting_header_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "592f4c6d30f0d7a32c36b4f6da181a5e98be8b81",
+  "author": "mmoroz@chromium.org",
+  "date": "2017-11-01T01:10:32Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 4295,
+  "suite_name": "net_quic_session_pool_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "795c736ac003117af70b73f6df9653fd65e3e73b",
+  "author": "djmitche@chromium.org",
+  "date": "2024-01-18T16:50:52Z"
+ },
+ {
+  "file": "net/third_party/uri_template/BUILD.gn",
+  "line": 34,
+  "suite_name": "net_uri_template_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "6b82a0258a7ff1c478c346483674742382bd8757",
+  "author": "dalyk@google.com",
+  "date": "2018-08-22T15:22:38Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 4319,
+  "suite_name": "net_base_address_tracker_linux_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "9fb836928f7212b14e0fb65a275060e787b9c0a9",
+  "author": "dmcardle@chromium.org",
+  "date": "2019-10-16T13:04:48Z"
+ },
+ {
+  "file": "net/dns/BUILD.gn",
+  "line": 561,
+  "suite_name": "net_dns_host_cache_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "beba04c524f9837d1bd59593288ad82aacb6e753",
+  "author": "dmcardle@chromium.org",
+  "date": "2020-05-05T20:49:17Z"
+ },
+ {
+  "file": "net/dns/BUILD.gn",
+  "line": 575,
+  "suite_name": "net_dns_hosts_parse_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "24feb5bfd766a5067305ef30da9f23f8eca61e22",
+  "author": "ericorth@chromium.org",
+  "date": "2018-05-25T19:42:46Z"
+ },
+ {
+  "file": "net/dns/BUILD.gn",
+  "line": 585,
+  "suite_name": "net_dns_host_resolver_cache_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "6e90f821c2a6ef818e1cf0b40c550fa5263bd25a",
+  "author": "ericorth@chromium.org",
+  "date": "2023-09-15T15:26:38Z"
+ },
+ {
+  "file": "net/dns/BUILD.gn",
+  "line": 597,
+  "suite_name": "net_dns_https_record_rdata_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "59fa4b2ad7e5babf61852f8e3e8267ddb499a516",
+  "author": "ericorth@chromium.org",
+  "date": "2020-10-29T17:35:32Z"
+ },
+ {
+  "file": "net/dns/BUILD.gn",
+  "line": 607,
+  "suite_name": "net_dns_nsswitch_reader_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "dd746b7b23e1d2751a4d832c50796e81f8524b42",
+  "author": "ericorth@chromium.org",
+  "date": "2021-04-06T21:03:23Z"
+ },
+ {
+  "file": "net/dns/BUILD.gn",
+  "line": 604,
+  "suite_name": "net_dns_record_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "59fa4b2ad7e5babf61852f8e3e8267ddb499a516",
+  "author": "ericorth@chromium.org",
+  "date": "2020-10-29T17:35:32Z"
+ },
+ {
+  "file": "net/dns/BUILD.gn",
+  "line": 627,
+  "suite_name": "net_dns_query_parse_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "ecd69251f0ccbefee3d3f128054f8f817324383c",
+  "author": "qingsi@google.com",
+  "date": "2018-09-27T21:35:55Z"
+ },
+ {
+  "file": "net/dns/BUILD.gn",
+  "line": 637,
+  "suite_name": "net_dns_response_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "6584107a615820d444ea0c93ae197d55fd84f70b",
+  "author": "qingsi@google.com",
+  "date": "2018-10-09T01:14:45Z"
+ },
+ {
+  "file": "net/dns/BUILD.gn",
+  "line": 647,
+  "suite_name": "net_host_resolver_manager_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "960e70639c1a1a8a062e643058b7258faea3602a",
+  "author": "ericorth@chromium.org",
+  "date": "2019-03-08T18:43:54Z"
+ },
+ {
+  "file": "net/dns/BUILD.gn",
+  "line": 660,
+  "suite_name": "net_dns_parse_domain_ascii_win_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "f5eeca031f9b1f31ad5d6d2d45c739b92ba350e1",
+  "author": "mmoroz@chromium.org",
+  "date": "2018-12-01T18:43:30Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 3696,
+  "suite_name": "net_http_server_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "ad83de436fc3957d1086e9e963f3036c64474af4",
+  "author": "zhaoyangli@chromium.org",
+  "date": "2021-11-01T20:54:40Z"
+ },
+ {
+  "file": "net/third_party/quiche/BUILD.gn",
+  "line": 784,
+  "suite_name": "net_quic_framer_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "da165f31081b0b4b89519dbaa2dd27bbb61a4ea0",
+  "author": "vasilvv@chromium.org",
+  "date": "2020-01-25T22:49:55Z"
+ },
+ {
+  "file": "net/third_party/quiche/BUILD.gn",
+  "line": 796,
+  "suite_name": "net_quic_framer_process_data_packet_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "da165f31081b0b4b89519dbaa2dd27bbb61a4ea0",
+  "author": "vasilvv@chromium.org",
+  "date": "2020-01-25T22:49:55Z"
+ },
+ {
+  "file": "net/third_party/quiche/BUILD.gn",
+  "line": 808,
+  "suite_name": "net_qpack_decoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "da165f31081b0b4b89519dbaa2dd27bbb61a4ea0",
+  "author": "vasilvv@chromium.org",
+  "date": "2020-01-25T22:49:55Z"
+ },
+ {
+  "file": "net/third_party/quiche/BUILD.gn",
+  "line": 819,
+  "suite_name": "net_qpack_encoder_stream_receiver_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "da165f31081b0b4b89519dbaa2dd27bbb61a4ea0",
+  "author": "vasilvv@chromium.org",
+  "date": "2020-01-25T22:49:55Z"
+ },
+ {
+  "file": "net/third_party/quiche/BUILD.gn",
+  "line": 830,
+  "suite_name": "net_qpack_encoder_stream_sender_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "da165f31081b0b4b89519dbaa2dd27bbb61a4ea0",
+  "author": "vasilvv@chromium.org",
+  "date": "2020-01-25T22:49:55Z"
+ },
+ {
+  "file": "net/third_party/quiche/BUILD.gn",
+  "line": 843,
+  "suite_name": "net_qpack_round_trip_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "da165f31081b0b4b89519dbaa2dd27bbb61a4ea0",
+  "author": "vasilvv@chromium.org",
+  "date": "2020-01-25T22:49:55Z"
+ },
+ {
+  "file": "pdf/BUILD.gn",
+  "line": 632,
+  "suite_name": "pdf_dates_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "c2f05a08f270c9ca9c469b6d6f678851326aa15e",
+  "author": "dhoss@chromium.org",
+  "date": "2021-01-14T03:23:29Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 14,
+  "suite_name": "pdfium_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "f1656d75fa4a5bdc849c766bbd19203f0274f479",
+  "author": "thestig@chromium.org",
+  "date": "2021-06-08T20:32:16Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 40,
+  "suite_name": "pdf_cmap_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "5d9d06109e7853a10b8a4a3c05812638d97f2c5b",
+  "author": "rharrison@chromium.org",
+  "date": "2017-11-08T15:54:57Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 41,
+  "suite_name": "pdf_codec_a85_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "5d9d06109e7853a10b8a4a3c05812638d97f2c5b",
+  "author": "rharrison@chromium.org",
+  "date": "2017-11-08T15:54:57Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 42,
+  "suite_name": "pdf_codec_fax_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "5d9d06109e7853a10b8a4a3c05812638d97f2c5b",
+  "author": "rharrison@chromium.org",
+  "date": "2017-11-08T15:54:57Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 45,
+  "suite_name": "pdf_codec_rle_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "5d9d06109e7853a10b8a4a3c05812638d97f2c5b",
+  "author": "rharrison@chromium.org",
+  "date": "2017-11-08T15:54:57Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 43,
+  "suite_name": "pdf_codec_icc_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "5d9d06109e7853a10b8a4a3c05812638d97f2c5b",
+  "author": "rharrison@chromium.org",
+  "date": "2017-11-08T15:54:57Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 44,
+  "suite_name": "pdf_codec_jbig2_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "5d9d06109e7853a10b8a4a3c05812638d97f2c5b",
+  "author": "rharrison@chromium.org",
+  "date": "2017-11-08T15:54:57Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 46,
+  "suite_name": "pdf_font_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "5d9d06109e7853a10b8a4a3c05812638d97f2c5b",
+  "author": "rharrison@chromium.org",
+  "date": "2017-11-08T15:54:57Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 47,
+  "suite_name": "pdf_hint_table_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "5d9d06109e7853a10b8a4a3c05812638d97f2c5b",
+  "author": "rharrison@chromium.org",
+  "date": "2017-11-08T15:54:57Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 48,
+  "suite_name": "pdf_jpx_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "5d9d06109e7853a10b8a4a3c05812638d97f2c5b",
+  "author": "rharrison@chromium.org",
+  "date": "2017-11-08T15:54:57Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 49,
+  "suite_name": "pdf_psengine_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "5d9d06109e7853a10b8a4a3c05812638d97f2c5b",
+  "author": "rharrison@chromium.org",
+  "date": "2017-11-08T15:54:57Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 50,
+  "suite_name": "pdf_scanlinecompositor_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "be8eae35be1f945282a25ec47d24a09c85e3f871",
+  "author": "nigi@chromium.org",
+  "date": "2019-10-23T20:23:12Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 51,
+  "suite_name": "pdf_streamparser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "5d9d06109e7853a10b8a4a3c05812638d97f2c5b",
+  "author": "rharrison@chromium.org",
+  "date": "2017-11-08T15:54:57Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 52,
+  "suite_name": "pdf_xml_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "05cf880562b1ef04f42c1d33163c96d7ab306164",
+  "author": "thestig@chromium.org",
+  "date": "2018-10-17T17:49:47Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 57,
+  "suite_name": "pdf_cjs_util_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "bee9195433256d0529e9c3b7535400055c5ab54d",
+  "author": "tsepez@chromium.org",
+  "date": "2018-11-29T23:41:52Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 58,
+  "suite_name": "pdf_fx_date_helpers_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "bee9195433256d0529e9c3b7535400055c5ab54d",
+  "author": "tsepez@chromium.org",
+  "date": "2018-11-29T23:41:52Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 74,
+  "suite_name": "pdf_codec_bmp_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "bee9195433256d0529e9c3b7535400055c5ab54d",
+  "author": "tsepez@chromium.org",
+  "date": "2018-11-29T23:41:52Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 78,
+  "suite_name": "pdf_codec_gif_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "bee9195433256d0529e9c3b7535400055c5ab54d",
+  "author": "tsepez@chromium.org",
+  "date": "2018-11-29T23:41:52Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 65,
+  "suite_name": "pdf_codec_jpeg_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "bee9195433256d0529e9c3b7535400055c5ab54d",
+  "author": "tsepez@chromium.org",
+  "date": "2018-11-29T23:41:52Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 83,
+  "suite_name": "pdf_codec_png_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "bee9195433256d0529e9c3b7535400055c5ab54d",
+  "author": "tsepez@chromium.org",
+  "date": "2018-11-29T23:41:52Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 86,
+  "suite_name": "pdf_codec_tiff_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "bee9195433256d0529e9c3b7535400055c5ab54d",
+  "author": "tsepez@chromium.org",
+  "date": "2018-11-29T23:41:52Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 66,
+  "suite_name": "pdf_css_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "bee9195433256d0529e9c3b7535400055c5ab54d",
+  "author": "tsepez@chromium.org",
+  "date": "2018-11-29T23:41:52Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 67,
+  "suite_name": "pdf_formcalc_context_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "f41a5133c3a4f55b5cac6252b1bd48b21d09383f",
+  "author": "thestig@chromium.org",
+  "date": "2019-03-12T17:18:43Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 68,
+  "suite_name": "pdf_formcalc_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "bee9195433256d0529e9c3b7535400055c5ab54d",
+  "author": "tsepez@chromium.org",
+  "date": "2018-11-29T23:41:52Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 69,
+  "suite_name": "pdf_formcalc_translate_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "e8d3ae66c1f693094bccaea49e6eddb251e1e9ac",
+  "author": "thestig@chromium.org",
+  "date": "2022-02-25T00:48:02Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 79,
+  "suite_name": "pdf_lzw_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "bee9195433256d0529e9c3b7535400055c5ab54d",
+  "author": "tsepez@chromium.org",
+  "date": "2018-11-29T23:41:52Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 62,
+  "suite_name": "pdf_bidi_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "bee9195433256d0529e9c3b7535400055c5ab54d",
+  "author": "tsepez@chromium.org",
+  "date": "2018-11-29T23:41:52Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 64,
+  "suite_name": "pdf_cfx_barcode_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "bee9195433256d0529e9c3b7535400055c5ab54d",
+  "author": "tsepez@chromium.org",
+  "date": "2018-11-29T23:41:52Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 63,
+  "suite_name": "pdf_cfgas_stringformatter_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "1090cb10c0c307dbbbd68886ab3588044c2f7258",
+  "author": "tsepez@chromium.org",
+  "date": "2019-03-22T17:36:12Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 70,
+  "suite_name": "pdfium_xfa_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "bee9195433256d0529e9c3b7535400055c5ab54d",
+  "author": "tsepez@chromium.org",
+  "date": "2018-11-29T23:41:52Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 71,
+  "suite_name": "pdfium_xfa_lpm_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "8322a75ae1ef42b74a11d7987b9a3722992e8744",
+  "author": "metzman@chromium.org",
+  "date": "2019-07-12T17:49:32Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 92,
+  "suite_name": "pdf_cpdf_tounicodemap_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "a53e1939fb7e29e653620fdcac462c14be3cac0c",
+  "author": "nigi@chromium.org",
+  "date": "2021-07-27T16:43:13Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 93,
+  "suite_name": "pdf_nametree_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "a53e1939fb7e29e653620fdcac462c14be3cac0c",
+  "author": "nigi@chromium.org",
+  "date": "2021-07-27T16:43:13Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 97,
+  "suite_name": "pdf_xfa_fdp_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "5cbd88152cbf55d353d712894dd9ee48ecfedba5",
+  "author": "david@adalogics.com",
+  "date": "2021-12-09T17:21:30Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 98,
+  "suite_name": "pdf_xfa_raw_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "5cbd88152cbf55d353d712894dd9ee48ecfedba5",
+  "author": "david@adalogics.com",
+  "date": "2021-12-09T17:21:30Z"
+ },
+ {
+  "file": "pdf/pdfium/fuzzers/BUILD.gn",
+  "line": 99,
+  "suite_name": "pdf_xfa_xdp_fdp_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "994347cbcbd0a1c9f5fd23d07d09b362d8bcd350",
+  "author": "david@adalogics.com",
+  "date": "2021-12-14T17:39:33Z"
+ },
+ {
+  "file": "remoting/base/BUILD.gn",
+  "line": 456,
+  "suite_name": "remoting_protobuf_http_stream_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "b98bda806755b75b257c3ffffc799f7b586300eb",
+  "author": "emaxx@chromium.org",
+  "date": "2022-10-31T18:39:33Z"
+ },
+ {
+  "file": "sandbox/win/BUILD.gn",
+  "line": 310,
+  "suite_name": "sandbox_policy_rule_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "a5eec679323bb7445d9725384acfa6210e93f2a2",
+  "author": "ajgo@chromium.org",
+  "date": "2019-12-18T22:07:30Z"
+ },
+ {
+  "file": "sandbox/win/BUILD.gn",
+  "line": 319,
+  "suite_name": "sandbox_nt_utils_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "1f4ac8639f6fe3083004eafa6bbcdf8a33813bdf",
+  "author": "ajgo@chromium.org",
+  "date": "2022-11-20T07:09:11Z"
+ },
+ {
+  "file": "sandbox/win/BUILD.gn",
+  "line": 324,
+  "suite_name": "sandbox_ipc_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "7bfb3e3ce35e08dede88d9cb5111957ea7159f0a",
+  "author": "wfh@chromium.org",
+  "date": "2023-02-08T00:03:18Z"
+ },
+ {
+  "file": "services/data_decoder/BUILD.gn",
+  "line": 113,
+  "suite_name": "xml_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "ad83de436fc3957d1086e9e963f3036c64474af4",
+  "author": "zhaoyangli@chromium.org",
+  "date": "2021-11-01T20:54:40Z"
+ },
+ {
+  "file": "device/bluetooth/bluez/ble_scan_parser/BUILD.gn",
+  "line": 77,
+  "suite_name": "ble_scan_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "cb98d9d2cfebbbdb330b73bff7d62fd6b08a68ce",
+  "author": "jmajors@google.com",
+  "date": "2019-06-17T23:40:49Z"
+ },
+ {
+  "file": "services/device/hid/BUILD.gn",
+  "line": 85,
+  "suite_name": "hid_report_descriptor_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "51cb9c94579f2b063639a84cb4f547db01725378",
+  "author": "reillyg@chromium.org",
+  "date": "2016-05-20T19:38:56Z"
+ },
+ {
+  "file": "services/device/usb/BUILD.gn",
+  "line": 178,
+  "suite_name": "webusb_descriptors_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "9873ca99efe4eaee2146a3a43fab6aaf6a4215e1",
+  "author": "reillyg@chromium.org",
+  "date": "2016-05-18T20:06:50Z"
+ },
+ {
+  "file": "services/device/usb/BUILD.gn",
+  "line": 178,
+  "suite_name": "usb_descriptors_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "9873ca99efe4eaee2146a3a43fab6aaf6a4215e1",
+  "author": "reillyg@chromium.org",
+  "date": "2016-05-18T20:06:50Z"
+ },
+ {
+  "file": "services/device/usb/BUILD.gn",
+  "line": 202,
+  "suite_name": "usb_string_read_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "cff166d862a6ad1a280015df038b9fb30294957f",
+  "author": "reillyg@chromium.org",
+  "date": "2016-05-20T20:16:55Z"
+ },
+ {
+  "file": "services/network/BUILD.gn",
+  "line": 744,
+  "suite_name": "network_content_security_policy_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "b189b395182cef514a4984e2b5020efc9abf1da3",
+  "author": "lfg@chromium.org",
+  "date": "2019-08-23T17:21:26Z"
+ },
+ {
+  "file": "services/network/public/cpp/BUILD.gn",
+  "line": 916,
+  "suite_name": "coop_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "160dc47c36d4276e71cbf47e2607d17ee158641e",
+  "author": "mkwst@chromium.org",
+  "date": "2023-07-27T11:58:48Z"
+ },
+ {
+  "file": "services/network/public/cpp/BUILD.gn",
+  "line": 922,
+  "suite_name": "xfo_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "3e1656792f85810284134c959dabefa552a33a04",
+  "author": "mkwst@chromium.org",
+  "date": "2020-12-01T17:16:37Z"
+ },
+ {
+  "file": "services/network/public/cpp/BUILD.gn",
+  "line": 928,
+  "suite_name": "cors_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "ffddc273e1f1a3c70c8ea33b32ae9d8e0db70ec5",
+  "author": "toyoshim@chromium.org",
+  "date": "2019-10-16T04:59:06Z"
+ },
+ {
+  "file": "services/network/public/cpp/BUILD.gn",
+  "line": 934,
+  "suite_name": "client_hints_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "dd9c3e4d12dc9a34c66d76d1d55c34fee2a27d3a",
+  "author": "arichiv@chromium.org",
+  "date": "2022-07-19T15:20:54Z"
+ },
+ {
+  "file": "services/network/public/cpp/BUILD.gn",
+  "line": 943,
+  "suite_name": "avail_language_header_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "c4c2ae61d573796ee2c907054771904a49657357",
+  "author": "victortan@chromium.org",
+  "date": "2024-04-09T19:28:38Z"
+ },
+ {
+  "file": "services/network/trust_tokens/BUILD.gn",
+  "line": 183,
+  "suite_name": "trust_token_key_commitment_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "d43ac6449789fb3b69d124b81928a315654aa5e6",
+  "author": "davidvc@chromium.org",
+  "date": "2020-04-15T08:33:21Z"
+ },
+ {
+  "file": "services/webnn/BUILD.gn",
+  "line": 317,
+  "suite_name": "webnn_graph_mojolpm_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "092fa9bc379016ae8d543cfd42b0efb0998bb5a8",
+  "author": "lisha.guo@intel.com",
+  "date": "2023-06-13T12:14:11Z"
+ },
+ {
+  "file": "skia/tools/fuzzers/BUILD.gn",
+  "line": 49,
+  "suite_name": "skia_region_deserialize_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "8d0984eb5712e3c0e0eeba5d99d73b8414c02d4e",
+  "author": "metzman@chromium.org",
+  "date": "2018-11-19T17:15:06Z"
+ },
+ {
+  "file": "skia/tools/fuzzers/BUILD.gn",
+  "line": 55,
+  "suite_name": "skia_image_filter_deserialize_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "8d0984eb5712e3c0e0eeba5d99d73b8414c02d4e",
+  "author": "metzman@chromium.org",
+  "date": "2018-11-19T17:15:06Z"
+ },
+ {
+  "file": "skia/tools/fuzzers/BUILD.gn",
+  "line": 65,
+  "suite_name": "skia_region_set_path_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "8d0984eb5712e3c0e0eeba5d99d73b8414c02d4e",
+  "author": "metzman@chromium.org",
+  "date": "2018-11-19T17:15:06Z"
+ },
+ {
+  "file": "skia/tools/fuzzers/BUILD.gn",
+  "line": 71,
+  "suite_name": "skia_textblob_deserialize_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "8d0984eb5712e3c0e0eeba5d99d73b8414c02d4e",
+  "author": "metzman@chromium.org",
+  "date": "2018-11-19T17:15:06Z"
+ },
+ {
+  "file": "skia/tools/fuzzers/BUILD.gn",
+  "line": 80,
+  "suite_name": "skia_path_deserialize_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "8d0984eb5712e3c0e0eeba5d99d73b8414c02d4e",
+  "author": "metzman@chromium.org",
+  "date": "2018-11-19T17:15:06Z"
+ },
+ {
+  "file": "skia/tools/fuzzers/BUILD.gn",
+  "line": 86,
+  "suite_name": "skia_image_decode_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "8d0984eb5712e3c0e0eeba5d99d73b8414c02d4e",
+  "author": "metzman@chromium.org",
+  "date": "2018-11-19T17:15:06Z"
+ },
+ {
+  "file": "skia/tools/fuzzers/BUILD.gn",
+  "line": 92,
+  "suite_name": "skia_png_encoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "8d0984eb5712e3c0e0eeba5d99d73b8414c02d4e",
+  "author": "metzman@chromium.org",
+  "date": "2018-11-19T17:15:06Z"
+ },
+ {
+  "file": "skia/tools/fuzzers/BUILD.gn",
+  "line": 101,
+  "suite_name": "skia_jpeg_encoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "8d0984eb5712e3c0e0eeba5d99d73b8414c02d4e",
+  "author": "metzman@chromium.org",
+  "date": "2018-11-19T17:15:06Z"
+ },
+ {
+  "file": "skia/tools/fuzzers/BUILD.gn",
+  "line": 110,
+  "suite_name": "skia_webp_encoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "8d0984eb5712e3c0e0eeba5d99d73b8414c02d4e",
+  "author": "metzman@chromium.org",
+  "date": "2018-11-19T17:15:06Z"
+ },
+ {
+  "file": "skia/tools/fuzzers/BUILD.gn",
+  "line": 119,
+  "suite_name": "skia_skjson_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "8d0984eb5712e3c0e0eeba5d99d73b8414c02d4e",
+  "author": "metzman@chromium.org",
+  "date": "2018-11-19T17:15:06Z"
+ },
+ {
+  "file": "skia/tools/fuzzers/BUILD.gn",
+  "line": 126,
+  "suite_name": "skia_image_decode_incremental_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "8d0984eb5712e3c0e0eeba5d99d73b8414c02d4e",
+  "author": "metzman@chromium.org",
+  "date": "2018-11-19T17:15:06Z"
+ },
+ {
+  "file": "sql/fuzzers/BUILD.gn",
+  "line": 8,
+  "suite_name": "sql_recovery_lpm_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "b3be6371d9bde45b2e1d760836134a52ed05155a",
+  "author": "estade@chromium.org",
+  "date": "2024-02-27T21:11:09Z"
+ },
+ {
+  "file": "testing/libfuzzer/fuzzers/BUILD.gn",
+  "line": 15,
+  "suite_name": "empty_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "e9c1c0619d61375e451605614db68bf3d3a2cd7f",
+  "author": "aizatsky@chromium.org",
+  "date": "2015-12-15T05:08:58Z"
+ },
+ {
+  "file": "testing/libfuzzer/fuzzers/BUILD.gn",
+  "line": 20,
+  "suite_name": "string_compare_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "9a0e3bd2bc0e7ffeab9631b70d6e3b0ba9b6d208",
+  "author": "adetaylor@chromium.org",
+  "date": "2024-03-22T18:16:17Z"
+ },
+ {
+  "file": "testing/libfuzzer/fuzzers/BUILD.gn",
+  "line": 25,
+  "suite_name": "string_compare_proto_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "016eb2014b2ad32ebc9fe023dcbd558db259e84b",
+  "author": "paulsemel@chromium.org",
+  "date": "2024-05-31T11:42:18Z"
+ },
+ {
+  "file": "testing/libfuzzer/fuzzers/BUILD.gn",
+  "line": 36,
+  "suite_name": "courgette_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "cb1a439304d9465d67a4c232c5e3a17c6ab7fc0c",
+  "author": "aizatsky@chromium.org",
+  "date": "2015-12-14T21:00:54Z"
+ },
+ {
+  "file": "testing/libfuzzer/fuzzers/BUILD.gn",
+  "line": 44,
+  "suite_name": "language_detection_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "cb1a439304d9465d67a4c232c5e3a17c6ab7fc0c",
+  "author": "aizatsky@chromium.org",
+  "date": "2015-12-14T21:00:54Z"
+ },
+ {
+  "file": "testing/libfuzzer/fuzzers/BUILD.gn",
+  "line": 34,
+  "suite_name": "snappy_compress_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "4feb92de87a9024414b2bf23b83a3b2eef9662c6",
+  "author": "inferno@chromium.org",
+  "date": "2018-11-15T23:55:57Z"
+ },
+ {
+  "file": "testing/libfuzzer/fuzzers/BUILD.gn",
+  "line": 40,
+  "suite_name": "snappy_uncompress_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "4feb92de87a9024414b2bf23b83a3b2eef9662c6",
+  "author": "inferno@chromium.org",
+  "date": "2018-11-15T23:55:57Z"
+ },
+ {
+  "file": "testing/libfuzzer/fuzzers/BUILD.gn",
+  "line": 46,
+  "suite_name": "template_url_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "588a32ac7a5824a30aea437bf85a1f7615dfcbc3",
+  "author": "dominicc@chromium.org",
+  "date": "2017-03-27T09:06:28Z"
+ },
+ {
+  "file": "testing/libfuzzer/fuzzers/BUILD.gn",
+  "line": 61,
+  "suite_name": "url_parse_proto_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "b423745e74dbc212cd2eade952648c166a9b57b5",
+  "author": "metzman@chromium.org",
+  "date": "2017-09-13T23:56:41Z"
+ },
+ {
+  "file": "testing/libfuzzer/fuzzers/BUILD.gn",
+  "line": 72,
+  "suite_name": "libsrtp_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "346b92100d3ebfe43ec8c226d8bf0fa226c22527",
+  "author": "katrielc@chromium.org",
+  "date": "2016-07-06T13:25:21Z"
+ },
+ {
+  "file": "testing/libfuzzer/fuzzers/BUILD.gn",
+  "line": 84,
+  "suite_name": "gfx_png_image_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "cb1a439304d9465d67a4c232c5e3a17c6ab7fc0c",
+  "author": "aizatsky@chromium.org",
+  "date": "2015-12-14T21:00:54Z"
+ },
+ {
+  "file": "testing/libfuzzer/fuzzers/BUILD.gn",
+  "line": 95,
+  "suite_name": "libxml_xml_read_memory_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "58074fe91075fdbde6c2454d153af3dfa7248be7",
+  "author": "mmoroz@chromium.org",
+  "date": "2015-12-30T16:00:06Z"
+ },
+ {
+  "file": "testing/libfuzzer/fuzzers/BUILD.gn",
+  "line": 102,
+  "suite_name": "libpng_progressive_read_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "11a3425fff09d249101f8fb0dcd9c00ddb80283b",
+  "author": "scroggo@chromium.org",
+  "date": "2017-03-06T19:43:15Z"
+ },
+ {
+  "file": "testing/libfuzzer/fuzzers/BUILD.gn",
+  "line": 119,
+  "suite_name": "v8_${target_name}",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "13832272e95e8027020cdf97d893e04a75913a6e",
+  "author": "clemensb@chromium.org",
+  "date": "2024-02-29T14:28:38Z"
+ },
+ {
+  "file": "testing/libfuzzer/fuzzers/BUILD.gn",
+  "line": 294,
+  "suite_name": "convert_woff2ttf_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "e74d2b3200e9f3994bb8015cc021d9d693ab2399",
+  "author": "aizatsky@chromium.org",
+  "date": "2016-04-30T06:46:55Z"
+ },
+ {
+  "file": "testing/libfuzzer/fuzzers/BUILD.gn",
+  "line": 301,
+  "suite_name": "flatbuffers_verifier_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "6b48b42dadbe5dbe8e6de741c4b76863f0636d5d",
+  "author": "aizatsky@chromium.org",
+  "date": "2016-05-12T16:23:08Z"
+ },
+ {
+  "file": "testing/libfuzzer/fuzzers/BUILD.gn",
+  "line": 311,
+  "suite_name": "skia_path_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "cf781994211e4439ec06af08eacf01ffbfe9801f",
+  "author": "mbarbella@chromium.org",
+  "date": "2016-06-17T18:25:28Z"
+ },
+ {
+  "file": "testing/libfuzzer/fuzzers/BUILD.gn",
+  "line": 328,
+  "suite_name": "skia_pathop_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "d39a8d816bab5d9c7b572c1ef9e6a53224e0b0c9",
+  "author": "mbarbella@chromium.org",
+  "date": "2016-06-23T16:12:52Z"
+ },
+ {
+  "file": "testing/libfuzzer/fuzzers/BUILD.gn",
+  "line": 345,
+  "suite_name": "prtime_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "0531c60c1a299c98fe6685f613c6b213687d5fd9",
+  "author": "tnagel@chromium.org",
+  "date": "2016-09-16T19:49:00Z"
+ },
+ {
+  "file": "testing/libfuzzer/fuzzers/BUILD.gn",
+  "line": 352,
+  "suite_name": "angle_translator_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "98bea5472ae292ed699c3ecdb7512cee1de5904a",
+  "author": "cwallez@chromium.org",
+  "date": "2016-09-22T18:55:19Z"
+ },
+ {
+  "file": "testing/libfuzzer/fuzzers/BUILD.gn",
+  "line": 359,
+  "suite_name": "sha1_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "116c17c873a91c83a94454b7921d6c2bbc2c0550",
+  "author": "sebmarchand@chromium.org",
+  "date": "2016-10-26T17:25:58Z"
+ },
+ {
+  "file": "testing/libfuzzer/fuzzers/BUILD.gn",
+  "line": 364,
+  "suite_name": "hash_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "116c17c873a91c83a94454b7921d6c2bbc2c0550",
+  "author": "sebmarchand@chromium.org",
+  "date": "2016-10-26T17:25:58Z"
+ },
+ {
+  "file": "testing/libfuzzer/fuzzers/BUILD.gn",
+  "line": 393,
+  "suite_name": "javascript_parser_proto_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "d9292154db7937f523ddd6b8913164eaf785fe33",
+  "author": "marja@chromium.org",
+  "date": "2017-10-18T11:38:05Z"
+ },
+ {
+  "file": "testing/libfuzzer/fuzzers/BUILD.gn",
+  "line": 409,
+  "suite_name": "v8_fully_instrumented_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "a1787c6c9880af2e285ab5694f1ea042135669a1",
+  "author": "metzman@chromium.org",
+  "date": "2017-11-18T01:06:53Z"
+ },
+ {
+  "file": "testing/libfuzzer/fuzzers/BUILD.gn",
+  "line": 429,
+  "suite_name": "skia_image_filter_proto_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "59816a6e7bde955ee9c2bf4785e1c581df18823c",
+  "author": "metzman@chromium.org",
+  "date": "2018-10-29T19:19:28Z"
+ },
+ {
+  "file": "testing/libfuzzer/fuzzers/BUILD.gn",
+  "line": 442,
+  "suite_name": "libyuv_scale_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "ec394c127957147a0a15d901276517b27a1df8d1",
+  "author": "adetaylor@chromium.org",
+  "date": "2023-10-25T14:00:37Z"
+ },
+ {
+  "file": "testing/libfuzzer/fuzzers/BUILD.gn",
+  "line": 451,
+  "suite_name": "command_buffer_lpm_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "5b52f653c625f118cc6a68008f4edcca1bfcaa5d",
+  "author": "bookholt@chromium.org",
+  "date": "2023-04-21T01:24:44Z"
+ },
+ {
+  "file": "testing/libfuzzer/tests/BUILD.gn",
+  "line": 75,
+  "suite_name": "test_dict_only",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "2656ecd2302c696fffc71f5b7d2f3edffce0ea99",
+  "author": "metzman@chromium.org",
+  "date": "2018-11-21T08:22:41Z"
+ },
+ {
+  "file": "testing/libfuzzer/tests/BUILD.gn",
+  "line": 73,
+  "suite_name": "test_config_only",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "2656ecd2302c696fffc71f5b7d2f3edffce0ea99",
+  "author": "metzman@chromium.org",
+  "date": "2018-11-21T08:22:41Z"
+ },
+ {
+  "file": "testing/libfuzzer/tests/BUILD.gn",
+  "line": 70,
+  "suite_name": "test_config_and_dict",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "2656ecd2302c696fffc71f5b7d2f3edffce0ea99",
+  "author": "metzman@chromium.org",
+  "date": "2018-11-21T08:22:41Z"
+ },
+ {
+  "file": "testing/libfuzzer/tests/BUILD.gn",
+  "line": 71,
+  "suite_name": "test_config_and_seed_corpus",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "2656ecd2302c696fffc71f5b7d2f3edffce0ea99",
+  "author": "metzman@chromium.org",
+  "date": "2018-11-21T08:22:41Z"
+ },
+ {
+  "file": "testing/libfuzzer/tests/BUILD.gn",
+  "line": 72,
+  "suite_name": "test_config_and_seed_corpuses",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "2656ecd2302c696fffc71f5b7d2f3edffce0ea99",
+  "author": "metzman@chromium.org",
+  "date": "2018-11-21T08:22:41Z"
+ },
+ {
+  "file": "testing/libfuzzer/tests/BUILD.gn",
+  "line": 74,
+  "suite_name": "test_dict_from_subdir",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "2656ecd2302c696fffc71f5b7d2f3edffce0ea99",
+  "author": "metzman@chromium.org",
+  "date": "2018-11-21T08:22:41Z"
+ },
+ {
+  "file": "third_party/blink/common/BUILD.gn",
+  "line": 537,
+  "suite_name": "storage_key_proto_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "f29b8f317309374a9f5cc24b073ef5d9200b6c37",
+  "author": "arichiv@chromium.org",
+  "date": "2023-02-21T17:22:39Z"
+ },
+ {
+  "file": "third_party/blink/common/BUILD.gn",
+  "line": 548,
+  "suite_name": "storage_key_string_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "f29b8f317309374a9f5cc24b073ef5d9200b6c37",
+  "author": "arichiv@chromium.org",
+  "date": "2023-02-21T17:22:39Z"
+ },
+ {
+  "file": "third_party/blink/common/BUILD.gn",
+  "line": 558,
+  "suite_name": "ad_display_size_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "f19c97feb1f72f6c9d988cee854a396908d208b5",
+  "author": "xiaochenzh@chromium.org",
+  "date": "2023-04-28T13:04:32Z"
+ },
+ {
+  "file": "third_party/blink/common/privacy_budget/BUILD.gn",
+  "line": 81,
+  "suite_name": "identifiable_token_builder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "984b15e2432d11b39f8fc9580bc421abc6a2325c",
+  "author": "asanka@chromium.org",
+  "date": "2020-06-09T22:34:31Z"
+ },
+ {
+  "file": "third_party/blink/common/privacy_budget/BUILD.gn",
+  "line": 90,
+  "suite_name": "identifiable_token_builder_atomic_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "984b15e2432d11b39f8fc9580bc421abc6a2325c",
+  "author": "asanka@chromium.org",
+  "date": "2020-06-09T22:34:31Z"
+ },
+ {
+  "file": "third_party/blink/renderer/bindings/core/v8/BUILD.gn",
+  "line": 71,
+  "suite_name": "v8_serialized_script_value_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "c2b1c95b3688cd279bf99977d1323f07b80cce88",
+  "author": "jbroman@chromium.org",
+  "date": "2016-10-11T17:14:21Z"
+ },
+ {
+  "file": "third_party/blink/renderer/core/BUILD.gn",
+  "line": 1442,
+  "suite_name": "text_resource_decoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "f30fc95f50c3568509541ddb7b527fa5ea1fc201",
+  "author": "csharrison@chromium.org",
+  "date": "2016-08-19T21:46:34Z"
+ },
+ {
+  "file": "third_party/blink/renderer/core/BUILD.gn",
+  "line": 1784,
+  "suite_name": "stylesheet_contents_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "b85a5c4053a3d53331834b6f533196a6a11ee41c",
+  "author": "csharrison@chromium.org",
+  "date": "2016-08-31T15:12:40Z"
+ },
+ {
+  "file": "third_party/blink/renderer/core/BUILD.gn",
+  "line": 1796,
+  "suite_name": "css_parser_fast_paths_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "4491ba9d10af731964683f577822e7f29c339bf3",
+  "author": "shend@chromium.org",
+  "date": "2017-10-12T03:13:24Z"
+ },
+ {
+  "file": "third_party/blink/renderer/core/BUILD.gn",
+  "line": 1807,
+  "suite_name": "html_preload_scanner_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "8292c59774cac439c34c0692d22e321e2f6e8b18",
+  "author": "csharrison@chromium.org",
+  "date": "2016-09-02T19:15:47Z"
+ },
+ {
+  "file": "third_party/blink/renderer/core/BUILD.gn",
+  "line": 1820,
+  "suite_name": "content_security_policy_conversion_util_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "d506deac76f55441132ead48e268cd7d4d5f85d8",
+  "author": "antoniosartori@chromium.org",
+  "date": "2021-01-28T09:09:41Z"
+ },
+ {
+  "file": "third_party/blink/renderer/core/BUILD.gn",
+  "line": 1844,
+  "suite_name": "css_parser_proto_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "1baaf8795a6e5c746d16b40898f484156e8b3ada",
+  "author": "cnardi@chromium.org",
+  "date": "2019-08-20T16:30:07Z"
+ },
+ {
+  "file": "third_party/blink/renderer/core/BUILD.gn",
+  "line": 1954,
+  "suite_name": "blink_html_tokenizer_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "4a0a5d1d79b4c21d5701319f88825a3f5287b28f",
+  "author": "mstensho@chromium.org",
+  "date": "2020-10-13T17:11:29Z"
+ },
+ {
+  "file": "third_party/blink/renderer/core/BUILD.gn",
+  "line": 1963,
+  "suite_name": "svg_path_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "6e740932ff31fc7479ab0e25b6174222a0bd7258",
+  "author": "fs@opera.com",
+  "date": "2023-09-28T09:49:31Z"
+ },
+ {
+  "file": "third_party/blink/renderer/core/BUILD.gn",
+  "line": 1974,
+  "suite_name": "feature_policy_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "32487da8d09caf3eb72b9c70f60887e2237f4751",
+  "author": "iclelland@chromium.org",
+  "date": "2018-10-11T19:57:22Z"
+ },
+ {
+  "file": "third_party/blink/renderer/core/BUILD.gn",
+  "line": 1986,
+  "suite_name": "permissions_policy_attr_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "e010cf2a5517bf7ab4279d97894e7f5f0ba542c0",
+  "author": "chenleihu@google.com",
+  "date": "2021-03-03T23:09:51Z"
+ },
+ {
+  "file": "third_party/blink/renderer/core/BUILD.gn",
+  "line": 1998,
+  "suite_name": "document_policy_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "676edaa3ec56083694073eb4d3ba40bb5f53810a",
+  "author": "chenleihu@google.com",
+  "date": "2020-03-11T20:43:31Z"
+ },
+ {
+  "file": "third_party/blink/renderer/core/BUILD.gn",
+  "line": 2009,
+  "suite_name": "permissions_policy_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "10a116f252ef81f4fc439dd9850bf28d271722e6",
+  "author": "chenleihu@google.com",
+  "date": "2020-07-07T16:54:41Z"
+ },
+ {
+  "file": "third_party/blink/renderer/core/url_pattern/BUILD.gn",
+  "line": 32,
+  "suite_name": "url_pattern_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "f665d0c39319767ead2a1d675f98631af734c2d3",
+  "author": "adetaylor@chromium.org",
+  "date": "2023-03-08T18:45:43Z"
+ },
+ {
+  "file": "third_party/blink/renderer/modules/BUILD.gn",
+  "line": 781,
+  "suite_name": "web_app_manifest_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "9462ec2324a8ca9c5360e4ce5a10561059031b7f",
+  "author": "dominickn@chromium.org",
+  "date": "2019-10-15T01:34:08Z"
+ },
+ {
+  "file": "third_party/blink/renderer/modules/BUILD.gn",
+  "line": 793,
+  "suite_name": "media_capabilities_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "d41076f9ebc9c742bf68e32f512861aa3f9de65c",
+  "author": "adetaylor@chromium.org",
+  "date": "2023-03-09T11:18:12Z"
+ },
+ {
+  "file": "third_party/blink/renderer/modules/BUILD.gn",
+  "line": 808,
+  "suite_name": "webcodecs_video_frame_copy_to_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "d41076f9ebc9c742bf68e32f512861aa3f9de65c",
+  "author": "adetaylor@chromium.org",
+  "date": "2023-03-09T11:18:12Z"
+ },
+ {
+  "file": "third_party/blink/renderer/modules/BUILD.gn",
+  "line": 827,
+  "suite_name": "webcodecs_audio_data_copy_to_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "d41076f9ebc9c742bf68e32f512861aa3f9de65c",
+  "author": "adetaylor@chromium.org",
+  "date": "2023-03-09T11:18:12Z"
+ },
+ {
+  "file": "third_party/blink/renderer/modules/BUILD.gn",
+  "line": 846,
+  "suite_name": "webcodecs_video_decoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "d41076f9ebc9c742bf68e32f512861aa3f9de65c",
+  "author": "adetaylor@chromium.org",
+  "date": "2023-03-09T11:18:12Z"
+ },
+ {
+  "file": "third_party/blink/renderer/modules/BUILD.gn",
+  "line": 898,
+  "suite_name": "webcodecs_image_decoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "d41076f9ebc9c742bf68e32f512861aa3f9de65c",
+  "author": "adetaylor@chromium.org",
+  "date": "2023-03-09T11:18:12Z"
+ },
+ {
+  "file": "third_party/blink/renderer/modules/BUILD.gn",
+  "line": 918,
+  "suite_name": "webcodecs_audio_decoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "d41076f9ebc9c742bf68e32f512861aa3f9de65c",
+  "author": "adetaylor@chromium.org",
+  "date": "2023-03-09T11:18:12Z"
+ },
+ {
+  "file": "third_party/blink/renderer/modules/BUILD.gn",
+  "line": 937,
+  "suite_name": "webcodecs_video_encoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "d41076f9ebc9c742bf68e32f512861aa3f9de65c",
+  "author": "adetaylor@chromium.org",
+  "date": "2023-03-09T11:18:12Z"
+ },
+ {
+  "file": "third_party/blink/renderer/modules/BUILD.gn",
+  "line": 957,
+  "suite_name": "webcodecs_audio_encoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "d41076f9ebc9c742bf68e32f512861aa3f9de65c",
+  "author": "adetaylor@chromium.org",
+  "date": "2023-03-09T11:18:12Z"
+ },
+ {
+  "file": "third_party/blink/renderer/modules/canvas/BUILD.gn",
+  "line": 68,
+  "suite_name": "canvas_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "79827a23a556487fe6e55630bbddb8bcc88ca326",
+  "author": "juanmihd@chromium.org",
+  "date": "2019-10-23T16:58:59Z"
+ },
+ {
+  "file": "third_party/blink/renderer/modules/ml/BUILD.gn",
+  "line": 79,
+  "suite_name": "conv2d_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "00133e6030d615c0447e5a5ff7d802fe50ae1548",
+  "author": "ningxin.hu@intel.com",
+  "date": "2023-11-28T10:27:35Z"
+ },
+ {
+  "file": "third_party/blink/renderer/modules/ml/BUILD.gn",
+  "line": 97,
+  "suite_name": "pool2d_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "00133e6030d615c0447e5a5ff7d802fe50ae1548",
+  "author": "ningxin.hu@intel.com",
+  "date": "2023-11-28T10:27:35Z"
+ },
+ {
+  "file": "third_party/blink/renderer/modules/sanitizer_api/BUILD.gn",
+  "line": 126,
+  "suite_name": "sanitizer_api_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "d91961d3bb2d08360eb15cfbaf0d564f0d78b831",
+  "author": "vogelheim@chromium.org",
+  "date": "2021-02-23T16:39:35Z"
+ },
+ {
+  "file": "third_party/blink/renderer/platform/BUILD.gn",
+  "line": 2728,
+  "suite_name": "math_transform_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "db46173f447c158ae61d0c50372552b873d85eeb",
+  "author": "fwang@igalia.com",
+  "date": "2022-07-07T13:19:27Z"
+ },
+ {
+  "file": "third_party/blink/renderer/platform/BUILD.gn",
+  "line": 2739,
+  "suite_name": "layout_locale_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "b1d1f9de713fc514f00975799ebbec8c9218d990",
+  "author": "wfh@chromium.org",
+  "date": "2023-03-09T06:11:10Z"
+ },
+ {
+  "file": "third_party/blink/renderer/platform/BUILD.gn",
+  "line": 2748,
+  "suite_name": "segmented_string_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "7c232350d71f99408219bc9e7d7f57a1627f55ba",
+  "author": "wfh@chromium.org",
+  "date": "2023-11-16T23:40:54Z"
+ },
+ {
+  "file": "third_party/blink/renderer/platform/BUILD.gn",
+  "line": 2758,
+  "suite_name": "mathml_operator_dictionary_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "39ed190176b73e323541875370405c5f8d8382d2",
+  "author": "fwang@igalia.com",
+  "date": "2022-06-29T15:49:59Z"
+ },
+ {
+  "file": "third_party/blink/renderer/platform/BUILD.gn",
+  "line": 2771,
+  "suite_name": "h265_parameter_sets_tracker_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "c5a74b1cb1f0f3e2dedba62f500869a1686c3db2",
+  "author": "jianjun.zhu@intel.com",
+  "date": "2024-03-29T01:08:33Z"
+ },
+ {
+  "file": "third_party/blink/renderer/platform/BUILD.gn",
+  "line": 2783,
+  "suite_name": "open_type_math_support_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "9bd7de6bff91466b4a4cb06f73bac728ef61abb1",
+  "author": "fwang@igalia.com",
+  "date": "2022-07-01T18:22:51Z"
+ },
+ {
+  "file": "third_party/blink/renderer/platform/BUILD.gn",
+  "line": 2797,
+  "suite_name": "stretchy_operator_shaper_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "702b4fada4ed587d094d585b8bcdf01b9fa83f6f",
+  "author": "fwang@igalia.com",
+  "date": "2022-07-02T13:42:34Z"
+ },
+ {
+  "file": "third_party/blink/renderer/platform/BUILD.gn",
+  "line": 2811,
+  "suite_name": "mhtml_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "c32cfbb16c41dc98fbf72894fba83916076d70ee",
+  "author": "lukasza@chromium.org",
+  "date": "2016-08-16T21:11:35Z"
+ },
+ {
+  "file": "third_party/blink/renderer/platform/BUILD.gn",
+  "line": 2827,
+  "suite_name": "web_icon_sizes_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "ae2ce79531c733d76e122b95abfc79d9a913c485",
+  "author": "zqzhang@chromium.org",
+  "date": "2016-09-12T11:10:03Z"
+ },
+ {
+  "file": "third_party/blink/renderer/platform/BUILD.gn",
+  "line": 2838,
+  "suite_name": "blink_avif_decoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "49a4b4da9b816f457cc1d477f0908c01d7c56a41",
+  "author": "tiszka@chromium.org",
+  "date": "2024-02-05T23:34:08Z"
+ },
+ {
+  "file": "third_party/blink/renderer/platform/BUILD.gn",
+  "line": 2825,
+  "suite_name": "blink_crabbyavif_decoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "e2052f0ef2e4ac8b6ba00cc3e79f6421362b5bd0",
+  "author": "vigneshv@google.com",
+  "date": "2024-05-29T18:21:02Z"
+ },
+ {
+  "file": "third_party/blink/renderer/platform/BUILD.gn",
+  "line": 2869,
+  "suite_name": "blink_ico_decoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "834aa8a93c475c6f7acc1c4c5c2e6a7238641c6e",
+  "author": "tiszka@chromium.org",
+  "date": "2024-02-07T15:25:12Z"
+ },
+ {
+  "file": "third_party/blink/renderer/platform/BUILD.gn",
+  "line": 2881,
+  "suite_name": "blink_gif_decoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "0915e72c23596053ad25226ccd9f56964e71bcea",
+  "author": "tiszka@chromium.org",
+  "date": "2024-02-07T00:35:05Z"
+ },
+ {
+  "file": "third_party/blink/renderer/platform/BUILD.gn",
+  "line": 2892,
+  "suite_name": "blink_png_decoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "1cc893851ef9ad007f4fb1eaabf58870fc634e81",
+  "author": "scroggo@chromium.org",
+  "date": "2017-01-05T15:52:12Z"
+ },
+ {
+  "file": "third_party/blink/renderer/platform/BUILD.gn",
+  "line": 2909,
+  "suite_name": "blink_jpeg_decoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "30b8bef902e85be39d196bd3c30cf24e95c2c9b7",
+  "author": "tiszka@chromium.org",
+  "date": "2024-02-03T02:06:50Z"
+ },
+ {
+  "file": "third_party/blink/renderer/platform/BUILD.gn",
+  "line": 2937,
+  "suite_name": "blink_webp_decoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "314563d923bdb4ca8a9f89041565e7e8586ef248",
+  "author": "tiszka@chromium.org",
+  "date": "2024-02-06T21:35:07Z"
+ },
+ {
+  "file": "third_party/blink/renderer/platform/BUILD.gn",
+  "line": 2949,
+  "suite_name": "blink_date_time_format_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "1ec4f4817913203fb0ba39cd30e664ee0c3bea45",
+  "author": "npm@chromium.org",
+  "date": "2019-10-18T15:05:49Z"
+ },
+ {
+  "file": "third_party/blink/renderer/platform/BUILD.gn",
+  "line": 2961,
+  "suite_name": "blink_json_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "d6b7b063aaa06b780d5fb5b575531bd757f95c19",
+  "author": "iclelland@google.com",
+  "date": "2016-10-04T04:20:00Z"
+ },
+ {
+  "file": "third_party/blink/renderer/platform/BUILD.gn",
+  "line": 2972,
+  "suite_name": "blink_security_origin_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "f96e0fc9d737e39bd1586c3bbc8421837e2879d3",
+  "author": "arthursonzogni@chromium.org",
+  "date": "2020-10-27T11:44:00Z"
+ },
+ {
+  "file": "third_party/blink/renderer/platform/BUILD.gn",
+  "line": 2982,
+  "suite_name": "blink_harfbuzz_shaper_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "b8cc3ad7241229a774e5182c62c4b1f0fc19ac95",
+  "author": "drott@chromium.org",
+  "date": "2017-10-06T16:47:09Z"
+ },
+ {
+  "file": "third_party/blink/renderer/platform/BUILD.gn",
+  "line": 2993,
+  "suite_name": "blink_http_parsers_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "ccf522325512910bc5fa65e0701e30086a48effa",
+  "author": "tsepez@chromium.org",
+  "date": "2018-03-30T23:52:39Z"
+ },
+ {
+  "file": "third_party/blink/renderer/platform/BUILD.gn",
+  "line": 3003,
+  "suite_name": "blink_storage_key_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "eb6d78dc9d2af8025c602c3e8efcfd63a59658bd",
+  "author": "arichiv@chromium.org",
+  "date": "2023-02-21T23:33:59Z"
+ },
+ {
+  "file": "third_party/blink/renderer/platform/image-decoders/BUILD.gn",
+  "line": 131,
+  "suite_name": "blink_bmp_image_decoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "da7b181d6d21c8b063d729f95c4f17b220a05655",
+  "author": "johnstiles@google.com",
+  "date": "2024-02-05T19:53:32Z"
+ },
+ {
+  "file": "third_party/blink/renderer/platform/scheduler/BUILD.gn",
+  "line": 286,
+  "suite_name": "sequence_manager_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "b7aa302b437454670d9efc83212e83fb07fd7588",
+  "author": "farahcharab@google.com",
+  "date": "2018-08-20T17:39:37Z"
+ },
+ {
+  "file": "third_party/boringssl/BUILD.gn",
+  "line": 274,
+  "suite_name": "boringssl_${fuzzer}_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "773b7e1ef0194bf04fe673c39d8dadda0cedf76e",
+  "author": "bbe@google.com",
+  "date": "2023-09-08T18:43:05Z"
+ },
+ {
+  "file": "third_party/boringssl/BUILD.gn",
+  "line": 381,
+  "suite_name": "boringssl_client_no_fuzzer_mode_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "baf4f6424833fca09d846e7a89d989838a0a79a4",
+  "author": "davidben@chromium.org",
+  "date": "2016-11-15T08:31:45Z"
+ },
+ {
+  "file": "third_party/boringssl/BUILD.gn",
+  "line": 392,
+  "suite_name": "boringssl_server_no_fuzzer_mode_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "baf4f6424833fca09d846e7a89d989838a0a79a4",
+  "author": "davidben@chromium.org",
+  "date": "2016-11-15T08:31:45Z"
+ },
+ {
+  "file": "third_party/breakpad/BUILD.gn",
+  "line": 310,
+  "suite_name": "minidump_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "ebb9ddd665a0a163d9e8a31ff2bf8104c858d67f",
+  "author": "mark@chromium.org",
+  "date": "2017-09-25T17:24:41Z"
+ },
+ {
+  "file": "third_party/brotli/BUILD.gn",
+  "line": 214,
+  "suite_name": "brotli_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "5fd99fadaac4fa9d7b18593ef00d4ca20a3cdcf0",
+  "author": "eustas@chromium.org",
+  "date": "2017-03-16T09:07:12Z"
+ },
+ {
+  "file": "third_party/ced/BUILD.gn",
+  "line": 98,
+  "suite_name": "compact_enc_det_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "0a6007aa91830985c9200170ce9e66b36b72b82e",
+  "author": "amistry@chromium.org",
+  "date": "2018-11-20T15:13:19Z"
+ },
+ {
+  "file": "third_party/crashpad/crashpad/snapshot/BUILD.gn",
+  "line": 283,
+  "suite_name": "elf_image_reader_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "e4c2f9dcff5393c1f0f34c7255ffa49b09b6a320",
+  "author": "wez@chromium.org",
+  "date": "2019-05-22T19:01:24Z"
+ },
+ {
+  "file": "third_party/distributed_point_functions/BUILD.gn",
+  "line": 23,
+  "suite_name": "dpf_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "e02ede1a9d93ae21e083b206b51c60bd3fbfa359",
+  "author": "dmcardle@chromium.org",
+  "date": "2023-11-09T20:19:29Z"
+ },
+ {
+  "file": "third_party/expat/BUILD.gn",
+  "line": 64,
+  "suite_name": "expat_xml_parse_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "be140444afefbe856622297c14327aaf186af91f",
+  "author": "mmoroz@chromium.org",
+  "date": "2016-05-25T16:28:07Z"
+ },
+ {
+  "file": "third_party/freetype-testing/BUILD.gn",
+  "line": 157,
+  "suite_name": "freetype_${target_name}_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "0db553e0d30bd7c1dd681c1fe500015b921ac8ad",
+  "author": "drott@google.com",
+  "date": "2021-02-25T13:41:28Z"
+ },
+ {
+  "file": "third_party/freetype-testing/BUILD.gn",
+  "line": 176,
+  "suite_name": "cff_ftengine",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "0db553e0d30bd7c1dd681c1fe500015b921ac8ad",
+  "author": "drott@google.com",
+  "date": "2021-02-25T13:41:28Z"
+ },
+ {
+  "file": "third_party/freetype-testing/BUILD.gn",
+  "line": 182,
+  "suite_name": "cff_render_ftengine",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "0db553e0d30bd7c1dd681c1fe500015b921ac8ad",
+  "author": "drott@google.com",
+  "date": "2021-02-25T13:41:28Z"
+ },
+ {
+  "file": "third_party/freetype-testing/BUILD.gn",
+  "line": 182,
+  "suite_name": "cff_render",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "0db553e0d30bd7c1dd681c1fe500015b921ac8ad",
+  "author": "drott@google.com",
+  "date": "2021-02-25T13:41:28Z"
+ },
+ {
+  "file": "third_party/freetype-testing/BUILD.gn",
+  "line": 194,
+  "suite_name": "cidtype1_ftengine",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "0db553e0d30bd7c1dd681c1fe500015b921ac8ad",
+  "author": "drott@google.com",
+  "date": "2021-02-25T13:41:28Z"
+ },
+ {
+  "file": "third_party/freetype-testing/BUILD.gn",
+  "line": 51,
+  "suite_name": "cidtype1",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "0db553e0d30bd7c1dd681c1fe500015b921ac8ad",
+  "author": "drott@google.com",
+  "date": "2021-02-25T13:41:28Z"
+ },
+ {
+  "file": "third_party/freetype-testing/BUILD.gn",
+  "line": 208,
+  "suite_name": "cidtype1_render_ftengine",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "0db553e0d30bd7c1dd681c1fe500015b921ac8ad",
+  "author": "drott@google.com",
+  "date": "2021-02-25T13:41:28Z"
+ },
+ {
+  "file": "third_party/freetype-testing/BUILD.gn",
+  "line": 208,
+  "suite_name": "cidtype1_render",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "0db553e0d30bd7c1dd681c1fe500015b921ac8ad",
+  "author": "drott@google.com",
+  "date": "2021-02-25T13:41:28Z"
+ },
+ {
+  "file": "third_party/freetype-testing/BUILD.gn",
+  "line": 59,
+  "suite_name": "colrv1",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "bdf890aab9a7a6b586712ae0f797a382221dea44",
+  "author": "drott@chromium.org",
+  "date": "2021-03-23T16:22:16Z"
+ },
+ {
+  "file": "third_party/freetype-testing/BUILD.gn",
+  "line": 61,
+  "suite_name": "truetype",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "0db553e0d30bd7c1dd681c1fe500015b921ac8ad",
+  "author": "drott@google.com",
+  "date": "2021-02-25T13:41:28Z"
+ },
+ {
+  "file": "third_party/freetype-testing/BUILD.gn",
+  "line": 234,
+  "suite_name": "truetype_render",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "0db553e0d30bd7c1dd681c1fe500015b921ac8ad",
+  "author": "drott@google.com",
+  "date": "2021-02-25T13:41:28Z"
+ },
+ {
+  "file": "third_party/freetype-testing/BUILD.gn",
+  "line": 240,
+  "suite_name": "truetype_render_i35",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "0db553e0d30bd7c1dd681c1fe500015b921ac8ad",
+  "author": "drott@google.com",
+  "date": "2021-02-25T13:41:28Z"
+ },
+ {
+  "file": "third_party/freetype-testing/BUILD.gn",
+  "line": 246,
+  "suite_name": "truetype_render_i38",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "0db553e0d30bd7c1dd681c1fe500015b921ac8ad",
+  "author": "drott@google.com",
+  "date": "2021-02-25T13:41:28Z"
+ },
+ {
+  "file": "third_party/freetype-testing/BUILD.gn",
+  "line": 252,
+  "suite_name": "glyphs_outlines",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "0db553e0d30bd7c1dd681c1fe500015b921ac8ad",
+  "author": "drott@google.com",
+  "date": "2021-02-25T13:41:28Z"
+ },
+ {
+  "file": "third_party/freetype-testing/BUILD.gn",
+  "line": 194,
+  "suite_name": "type1_ftengine",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "0db553e0d30bd7c1dd681c1fe500015b921ac8ad",
+  "author": "drott@google.com",
+  "date": "2021-02-25T13:41:28Z"
+ },
+ {
+  "file": "third_party/freetype-testing/BUILD.gn",
+  "line": 51,
+  "suite_name": "type1",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "0db553e0d30bd7c1dd681c1fe500015b921ac8ad",
+  "author": "drott@google.com",
+  "date": "2021-02-25T13:41:28Z"
+ },
+ {
+  "file": "third_party/freetype-testing/BUILD.gn",
+  "line": 208,
+  "suite_name": "type1_render_ftengine",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "0db553e0d30bd7c1dd681c1fe500015b921ac8ad",
+  "author": "drott@google.com",
+  "date": "2021-02-25T13:41:28Z"
+ },
+ {
+  "file": "third_party/freetype-testing/BUILD.gn",
+  "line": 208,
+  "suite_name": "type1_render",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "0db553e0d30bd7c1dd681c1fe500015b921ac8ad",
+  "author": "drott@google.com",
+  "date": "2021-02-25T13:41:28Z"
+ },
+ {
+  "file": "third_party/freetype-testing/BUILD.gn",
+  "line": 135,
+  "suite_name": "bdf",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "0db553e0d30bd7c1dd681c1fe500015b921ac8ad",
+  "author": "drott@google.com",
+  "date": "2021-02-25T13:41:28Z"
+ },
+ {
+  "file": "third_party/freetype-testing/BUILD.gn",
+  "line": 296,
+  "suite_name": "bdf_render",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "0db553e0d30bd7c1dd681c1fe500015b921ac8ad",
+  "author": "drott@google.com",
+  "date": "2021-02-25T13:41:28Z"
+ },
+ {
+  "file": "third_party/harfbuzz-ng/BUILD.gn",
+  "line": 468,
+  "suite_name": "hb_shape_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "1c9ffd795c5ffe116ce16e3c8d73d1c0b618554f",
+  "author": "daniel.l@hpcnt.com",
+  "date": "2022-11-18T22:21:52Z"
+ },
+ {
+  "file": "third_party/harfbuzz-ng/BUILD.gn",
+  "line": 477,
+  "suite_name": "hb_subset_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "1c9ffd795c5ffe116ce16e3c8d73d1c0b618554f",
+  "author": "daniel.l@hpcnt.com",
+  "date": "2022-11-18T22:21:52Z"
+ },
+ {
+  "file": "third_party/hunspell/BUILD.gn",
+  "line": 116,
+  "suite_name": "hunspell_spell_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "9e3901bb11d458da31a0cf21fe4ff7bd2a4a166d",
+  "author": "amistry@chromium.org",
+  "date": "2019-10-14T02:03:57Z"
+ },
+ {
+  "file": "third_party/hunspell/BUILD.gn",
+  "line": 130,
+  "suite_name": "hunspell_suggest_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "9e3901bb11d458da31a0cf21fe4ff7bd2a4a166d",
+  "author": "amistry@chromium.org",
+  "date": "2019-10-14T02:03:57Z"
+ },
+ {
+  "file": "third_party/hunspell/BUILD.gn",
+  "line": 144,
+  "suite_name": "bdict_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "d1b39b94116b26159cab8dee7a302fbb822c918d",
+  "author": "groby@chromium.org",
+  "date": "2018-02-07T02:47:18Z"
+ },
+ {
+  "file": "third_party/jsoncpp/BUILD.gn",
+  "line": 51,
+  "suite_name": "jsoncpp_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "a32363664a729129364b057ab8377e047aaff093",
+  "author": "enga@chromium.org",
+  "date": "2019-10-17T15:39:45Z"
+ },
+ {
+  "file": "third_party/leveldatabase/BUILD.gn",
+  "line": 304,
+  "suite_name": "leveldb_put_get_delete_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "e953205dfafaa27838229c99bff45f53a0b29b9f",
+  "author": "mmoroz@chromium.org",
+  "date": "2018-12-01T18:42:25Z"
+ },
+ {
+  "file": "third_party/libaddressinput/BUILD.gn",
+  "line": 278,
+  "suite_name": "libaddressinput_parse_address_fields_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "72a0f3193e379995483047b00b00851f0504118b",
+  "author": "inferno@chromium.org",
+  "date": "2018-11-19T23:54:31Z"
+ },
+ {
+  "file": "third_party/libaddressinput/BUILD.gn",
+  "line": 287,
+  "suite_name": "libaddressinput_parse_format_rule_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "72a0f3193e379995483047b00b00851f0504118b",
+  "author": "inferno@chromium.org",
+  "date": "2018-11-19T23:54:31Z"
+ },
+ {
+  "file": "third_party/libaddressinput/BUILD.gn",
+  "line": 296,
+  "suite_name": "libaddressinput_address_formatter_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "6792b39a73bda75d4fac41e692da75ca6754999e",
+  "author": "austinct@chromium.org",
+  "date": "2019-10-20T01:54:32Z"
+ },
+ {
+  "file": "third_party/libgav1/BUILD.gn",
+  "line": 88,
+  "suite_name": "libgav1_obu_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "80fab93344867e26d1c52f0f35dcf61e94db8abf",
+  "author": "jzern@chromium.org",
+  "date": "2023-07-11T03:09:40Z"
+ },
+ {
+  "file": "third_party/libjingle_xmpp/BUILD.gn",
+  "line": 39,
+  "suite_name": "libjingle_xmpp_xmlparser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "85619e6fd09d26ba79bae2c46ce64ab45fa77176",
+  "author": "metzman@chromium.org",
+  "date": "2019-05-08T18:19:35Z"
+ },
+ {
+  "file": "third_party/libphonenumber/BUILD.gn",
+  "line": 124,
+  "suite_name": "libphonenumber_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "a59de929c5ff2885556a34ca2984a9bf625abb04",
+  "author": "robertogden@chromium.org",
+  "date": "2022-10-19T23:28:42Z"
+ },
+ {
+  "file": "third_party/libphonenumber/BUILD.gn",
+  "line": 132,
+  "suite_name": "charntorune_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "a59de929c5ff2885556a34ca2984a9bf625abb04",
+  "author": "robertogden@chromium.org",
+  "date": "2022-10-19T23:28:42Z"
+ },
+ {
+  "file": "third_party/libpng/BUILD.gn",
+  "line": 148,
+  "suite_name": "libpng_read_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "82ebc504d85dcfcdacfa828c4a2ef4ff650f6b1d",
+  "author": "kmoon@chromium.org",
+  "date": "2022-11-15T21:17:45Z"
+ },
+ {
+  "file": "third_party/libprotobuf-mutator/BUILD.gn",
+  "line": 56,
+  "suite_name": "lpm_test_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "563a7ad064aea7e7433eec4e0a464f28f96dfa8f",
+  "author": "davidben@chromium.org",
+  "date": "2021-04-15T17:14:39Z"
+ },
+ {
+  "file": "third_party/liburlpattern/BUILD.gn",
+  "line": 59,
+  "suite_name": "liburlpattern_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "f3f28fa666fa735b5eee62a070a372a14661d2cf",
+  "author": "dmcardle@chromium.org",
+  "date": "2021-10-27T19:48:22Z"
+ },
+ {
+  "file": "third_party/libwebp/BUILD.gn",
+  "line": 715,
+  "suite_name": "libwebp_simple_api_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "b1699763c1d7c7beccd38a6fc39bc71bab36c04f",
+  "author": "mbarowsky@chromium.org",
+  "date": "2018-12-06T01:11:44Z"
+ },
+ {
+  "file": "third_party/libwebp/BUILD.gn",
+  "line": 727,
+  "suite_name": "libwebp_advanced_api_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "b1699763c1d7c7beccd38a6fc39bc71bab36c04f",
+  "author": "mbarowsky@chromium.org",
+  "date": "2018-12-06T01:11:44Z"
+ },
+ {
+  "file": "third_party/libwebp/BUILD.gn",
+  "line": 740,
+  "suite_name": "libwebp_animation_api_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "b1699763c1d7c7beccd38a6fc39bc71bab36c04f",
+  "author": "mbarowsky@chromium.org",
+  "date": "2018-12-06T01:11:44Z"
+ },
+ {
+  "file": "third_party/libwebp/BUILD.gn",
+  "line": 756,
+  "suite_name": "libwebp_mux_demux_api_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "113176af1a20dafd16029c8695fe0ccc04112855",
+  "author": "jzern@chromium.org",
+  "date": "2020-10-20T01:26:09Z"
+ },
+ {
+  "file": "third_party/libwebp/BUILD.gn",
+  "line": 768,
+  "suite_name": "libwebp_animencoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "113176af1a20dafd16029c8695fe0ccc04112855",
+  "author": "jzern@chromium.org",
+  "date": "2020-10-20T01:26:09Z"
+ },
+ {
+  "file": "third_party/libwebp/BUILD.gn",
+  "line": 780,
+  "suite_name": "libwebp_enc_dec_api_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "b1699763c1d7c7beccd38a6fc39bc71bab36c04f",
+  "author": "mbarowsky@chromium.org",
+  "date": "2018-12-06T01:11:44Z"
+ },
+ {
+  "file": "third_party/libwebp/BUILD.gn",
+  "line": 792,
+  "suite_name": "libwebp_huffman_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "d442690c195325cdb7ede83345f14c3699d913e2",
+  "author": "jzern@chromium.org",
+  "date": "2024-04-17T17:25:12Z"
+ },
+ {
+  "file": "third_party/lzma_sdk/google/BUILD.gn",
+  "line": 40,
+  "suite_name": "seven_zip_reader_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "5a38277cf1ea71645ac9c00021cdbf1bbbc266ed",
+  "author": "drubery@chromium.org",
+  "date": "2022-09-20T17:18:33Z"
+ },
+ {
+  "file": "third_party/ots/BUILD.gn",
+  "line": 105,
+  "suite_name": "ots_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "bcd06ba900e67c54ffffb3f421c6b0d1bcd8ef31",
+  "author": "mmoroz@chromium.org",
+  "date": "2016-05-25T01:05:10Z"
+ },
+ {
+  "file": "third_party/pffft/BUILD.gn",
+  "line": 40,
+  "suite_name": "pffft_complex_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "383dcef90c53b5657286d7af9b583b4e6fd30b9d",
+  "author": "alessiob@chromium.org",
+  "date": "2019-02-08T14:14:42Z"
+ },
+ {
+  "file": "third_party/pffft/BUILD.gn",
+  "line": 41,
+  "suite_name": "pffft_real_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "383dcef90c53b5657286d7af9b583b4e6fd30b9d",
+  "author": "alessiob@chromium.org",
+  "date": "2019-02-08T14:14:42Z"
+ },
+ {
+  "file": "third_party/qcms/BUILD.gn",
+  "line": 61,
+  "suite_name": "qcms_color_space_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "6997c5c92f9e46e7834fa539b360991ac71e2e01",
+  "author": "noel@chromium.org",
+  "date": "2017-04-13T14:12:18Z"
+ },
+ {
+  "file": "third_party/re2/BUILD.gn",
+  "line": 59,
+  "suite_name": "third_party_re2_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "75acedad6fff0e2858ca3a7eb45e6d641b0de013",
+  "author": "mmoroz@chromium.org",
+  "date": "2017-02-15T15:11:19Z"
+ },
+ {
+  "file": "third_party/sqlite/BUILD.gn",
+  "line": 428,
+  "suite_name": "sqlite3_ossfuzz_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "656b55356751d12fd8c643f927691275ef10dded",
+  "author": "mmoroz@chromium.org",
+  "date": "2016-11-22T22:06:42Z"
+ },
+ {
+  "file": "third_party/sqlite/BUILD.gn",
+  "line": 435,
+  "suite_name": "sqlite3_lpm_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "7d3def8575ecd2e5e2e7ab7f585961206007bd25",
+  "author": "mpdenton@chromium.org",
+  "date": "2018-12-11T00:04:51Z"
+ },
+ {
+  "file": "third_party/sqlite/BUILD.gn",
+  "line": 490,
+  "suite_name": "sqlite3_fts3_lpm_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "7d3def8575ecd2e5e2e7ab7f585961206007bd25",
+  "author": "mpdenton@chromium.org",
+  "date": "2018-12-11T00:04:51Z"
+ },
+ {
+  "file": "third_party/sqlite/BUILD.gn",
+  "line": 511,
+  "suite_name": "sqlite3_shadow_table_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "a20c9812b37cd13b5d178befc86709cffbff2859",
+  "author": "leonwxqian@gmail.com",
+  "date": "2019-11-26T12:01:46Z"
+ },
+ {
+  "file": "third_party/sqlite/BUILD.gn",
+  "line": 517,
+  "suite_name": "sqlite3_select_printf_lpm_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "7d3def8575ecd2e5e2e7ab7f585961206007bd25",
+  "author": "mpdenton@chromium.org",
+  "date": "2018-12-11T00:04:51Z"
+ },
+ {
+  "file": "third_party/sqlite/BUILD.gn",
+  "line": 531,
+  "suite_name": "sqlite3_select_strftime_lpm_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "7d3def8575ecd2e5e2e7ab7f585961206007bd25",
+  "author": "mpdenton@chromium.org",
+  "date": "2018-12-11T00:04:51Z"
+ },
+ {
+  "file": "third_party/sqlite/BUILD.gn",
+  "line": 545,
+  "suite_name": "sqlite3_select_expr_lpm_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "7d3def8575ecd2e5e2e7ab7f585961206007bd25",
+  "author": "mpdenton@chromium.org",
+  "date": "2018-12-11T00:04:51Z"
+ },
+ {
+  "file": "third_party/sqlite/BUILD.gn",
+  "line": 606,
+  "suite_name": "sqlite3_dbfuzz2_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "e3140a8f27345d395ea75fe619d730951a438e89",
+  "author": "mpdenton@chromium.org",
+  "date": "2018-12-07T22:49:36Z"
+ },
+ {
+  "file": "third_party/ukey2/fuzzers/BUILD.gn",
+  "line": 11,
+  "suite_name": "d2d_connection_context_server_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "ab6407594b6c44ea730fbfb51a3d64d25a869d54",
+  "author": "alexchau@chromium.org",
+  "date": "2020-07-09T15:43:49Z"
+ },
+ {
+  "file": "third_party/ukey2/fuzzers/BUILD.gn",
+  "line": 24,
+  "suite_name": "d2d_connection_context_client_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "ab6407594b6c44ea730fbfb51a3d64d25a869d54",
+  "author": "alexchau@chromium.org",
+  "date": "2020-07-09T15:43:49Z"
+ },
+ {
+  "file": "third_party/ukey2/fuzzers/BUILD.gn",
+  "line": 37,
+  "suite_name": "ukey2_handshake_client_init_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "ab6407594b6c44ea730fbfb51a3d64d25a869d54",
+  "author": "alexchau@chromium.org",
+  "date": "2020-07-09T15:43:49Z"
+ },
+ {
+  "file": "third_party/ukey2/fuzzers/BUILD.gn",
+  "line": 45,
+  "suite_name": "ukey2_handshake_server_init_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "ab6407594b6c44ea730fbfb51a3d64d25a869d54",
+  "author": "alexchau@chromium.org",
+  "date": "2020-07-09T15:43:49Z"
+ },
+ {
+  "file": "third_party/ukey2/fuzzers/BUILD.gn",
+  "line": 53,
+  "suite_name": "ukey2_handshake_client_finish_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "ab6407594b6c44ea730fbfb51a3d64d25a869d54",
+  "author": "alexchau@chromium.org",
+  "date": "2020-07-09T15:43:49Z"
+ },
+ {
+  "file": "third_party/zlib/contrib/tests/fuzzers/BUILD.gn",
+  "line": 11,
+  "suite_name": "zlib_uncompress_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "1295fa76d2e7c8efc134219dde4a55fc0630f0cb",
+  "author": "thestig@chromium.org",
+  "date": "2017-12-12T00:49:16Z"
+ },
+ {
+  "file": "third_party/zlib/contrib/tests/fuzzers/BUILD.gn",
+  "line": 16,
+  "suite_name": "zlib_inflate_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "1295fa76d2e7c8efc134219dde4a55fc0630f0cb",
+  "author": "thestig@chromium.org",
+  "date": "2017-12-12T00:49:16Z"
+ },
+ {
+  "file": "third_party/zlib/contrib/tests/fuzzers/BUILD.gn",
+  "line": 21,
+  "suite_name": "zlib_inflate_with_header_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "6887ee5130d407126adbc374cdfa14391218341a",
+  "author": "hans@chromium.org",
+  "date": "2022-09-01T09:18:23Z"
+ },
+ {
+  "file": "third_party/zlib/contrib/tests/fuzzers/BUILD.gn",
+  "line": 26,
+  "suite_name": "zlib_streaming_inflate_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "3eda17e22e6a3c4e44fdfa778b7d55f0a7c82e75",
+  "author": "hans@chromium.org",
+  "date": "2020-08-04T11:38:55Z"
+ },
+ {
+  "file": "third_party/zlib/contrib/tests/fuzzers/BUILD.gn",
+  "line": 32,
+  "suite_name": "zlib_deflate_set_dictionary_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "1295fa76d2e7c8efc134219dde4a55fc0630f0cb",
+  "author": "thestig@chromium.org",
+  "date": "2017-12-12T00:49:16Z"
+ },
+ {
+  "file": "third_party/zlib/contrib/tests/fuzzers/BUILD.gn",
+  "line": 42,
+  "suite_name": "zlib_deflate_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "1295fa76d2e7c8efc134219dde4a55fc0630f0cb",
+  "author": "thestig@chromium.org",
+  "date": "2017-12-12T00:49:16Z"
+ },
+ {
+  "file": "third_party/zxcvbn-cpp/BUILD.gn",
+  "line": 57,
+  "suite_name": "zxcvbn_matching_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "bed5575b3b438a10678d4c659e1656eaf9e98111",
+  "author": "jdoerrie@chromium.org",
+  "date": "2020-07-14T20:07:51Z"
+ },
+ {
+  "file": "third_party/zxcvbn-cpp/BUILD.gn",
+  "line": 66,
+  "suite_name": "zxcvbn_scoring_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "bed5575b3b438a10678d4c659e1656eaf9e98111",
+  "author": "jdoerrie@chromium.org",
+  "date": "2020-07-14T20:07:51Z"
+ },
+ {
+  "file": "ui/accessibility/BUILD.gn",
+  "line": 474,
+  "suite_name": "ax_tree_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "5cc41399cda7791ea8edba552304f525b280cfb6",
+  "author": "dmazzoni@chromium.org",
+  "date": "2016-09-14T22:35:36Z"
+ },
+ {
+  "file": "ui/accessibility/BUILD.gn",
+  "line": 480,
+  "suite_name": "ax_table_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "fcb2a9f147a39c592bbaff04b5a8bc16d958ddb4",
+  "author": "dmazzoni@chromium.org",
+  "date": "2018-11-13T19:01:46Z"
+ },
+ {
+  "file": "ui/accessibility/BUILD.gn",
+  "line": 488,
+  "suite_name": "ax_node_position_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "1d2a5fb0153fbc2edab287a7e1cec89fbecb879f",
+  "author": "janewman@microsoft.com",
+  "date": "2022-06-16T23:17:26Z"
+ },
+ {
+  "file": "ui/accessibility/BUILD.gn",
+  "line": 503,
+  "suite_name": "ax_platform_node_textrangeprovider_win_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "7b65c80ed86d9242e50f92b228ee3f80a621f555",
+  "author": "janewman@microsoft.com",
+  "date": "2022-08-16T00:21:25Z"
+ },
+ {
+  "file": "ui/base/BUILD.gn",
+  "line": 1379,
+  "suite_name": "file_info_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "bf5d312120f7d0e3c804227e3186d3a47874b00b",
+  "author": "joelhockey@chromium.org",
+  "date": "2021-02-13T17:52:49Z"
+ },
+ {
+  "file": "ui/base/clipboard/BUILD.gn",
+  "line": 313,
+  "suite_name": "url_file_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "0555cb20745ae8a5d8784676c3a4bc289770a1da",
+  "author": "avi@chromium.org",
+  "date": "2022-12-12T17:45:00Z"
+ },
+ {
+  "file": "ui/base/x/BUILD.gn",
+  "line": 175,
+  "suite_name": "ui_x11_cursor_loader_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "0a1a26c037f1f4e6aad186615a7b81a5f3ee48e5",
+  "author": "emaxx@chromium.org",
+  "date": "2022-11-03T00:58:18Z"
+ },
+ {
+  "file": "ui/display/util/BUILD.gn",
+  "line": 51,
+  "suite_name": "edid_parser_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "386b95802b6b54a5b07a8fd6aed7348cf846edac",
+  "author": "robert.bradford@intel.com",
+  "date": "2016-08-18T23:54:42Z"
+ },
+ {
+  "file": "ui/gfx/BUILD.gn",
+  "line": 1004,
+  "suite_name": "color_analysis_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "1261a244a372e3ccb858101e62eab846fd45411f",
+  "author": "mbarbella@chromium.org",
+  "date": "2019-10-23T01:00:57Z"
+ },
+ {
+  "file": "ui/gfx/BUILD.gn",
+  "line": 1010,
+  "suite_name": "color_transform_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "379fca1ffe9bbce2514969ce44712424d4c952b2",
+  "author": "mmoroz@chromium.org",
+  "date": "2017-09-27T04:35:39Z"
+ },
+ {
+  "file": "ui/gfx/BUILD.gn",
+  "line": 1020,
+  "suite_name": "render_text_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "254db02aa45221aacdb07b86aafc24c588eedd26",
+  "author": "etienneb@chromium.org",
+  "date": "2019-09-26T18:22:41Z"
+ },
+ {
+  "file": "ui/gfx/BUILD.gn",
+  "line": 1032,
+  "suite_name": "render_text_api_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "3d5d711659c7ee23497529b3862338cbf5f40e4b",
+  "author": "etienneb@chromium.org",
+  "date": "2019-11-01T15:37:12Z"
+ },
+ {
+  "file": "ui/gfx/codec/BUILD.gn",
+  "line": 45,
+  "suite_name": "gfx_jpeg_decoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "fd1ffc58e8e74c9a314de10df72062767b611328",
+  "author": "dcheng@chromium.org",
+  "date": "2024-03-28T00:16:30Z"
+ },
+ {
+  "file": "ui/gfx/codec/BUILD.gn",
+  "line": 55,
+  "suite_name": "gfx_png_decoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "36d36f46cbce80d2c45d16b7fc69203a94b9616a",
+  "author": "dcheng@chromium.org",
+  "date": "2024-03-28T00:17:15Z"
+ },
+ {
+  "file": "ui/ozone/platform/wayland/BUILD.gn",
+  "line": 614,
+  "suite_name": "wayland_buffer_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "4ef26c53d578241e6f6ae9d2b1370f60ba9fb278",
+  "author": "adunaev@igalia.com",
+  "date": "2019-02-06T15:55:33Z"
+ },
+ {
+  "file": "url/BUILD.gn",
+  "line": 270,
+  "suite_name": "gurl_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "b63e570cee0bba585d853c15330e53c80cfee072",
+  "author": "inferno@chromium.org",
+  "date": "2018-03-23T14:02:50Z"
+ },
+ {
+  "file": "url/BUILD.gn",
+  "line": 268,
+  "suite_name": "url_idna_icu_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "b79421a655469f0d237a7a2bd1bf4ceab04b15bb",
+  "author": "jkokatsu@google.com",
+  "date": "2024-01-02T23:54:19Z"
+ },
+ {
+  "file": "url/BUILD.gn",
+  "line": 280,
+  "suite_name": "url_canon_icu_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "93c29018590676d561f71198adcced7dddd8dbc6",
+  "author": "jkokatsu@google.com",
+  "date": "2024-01-03T21:28:59Z"
+ },
+ {
+  "file": "components/webcrypto/webcrypto_fuzzer.cc",
+  "line": 305,
+  "suite_name": "WebCryptoFuzzer",
+  "function": "DeriveBitsFuzzer",
+  "type": "FUZZ_TEST",
+  "sha": "f50b88f1a71ab8b31a5ae548ed251883673441a5",
+  "author": "paulsemel@chromium.org",
+  "date": "2024-07-02T16:21:09Z"
+ },
+ {
+  "file": "third_party/zlib/contrib/tests/fuzzers/BUILD.gn",
+  "line": 37,
+  "suite_name": "zlib_compress_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "c82dce639aa498606d70cc1c7122ce7c61a8db75",
+  "author": "hans@chromium.org",
+  "date": "2024-07-01T18:57:30Z"
+ },
+ {
+  "file": "third_party/rapidhash/rapidhash_fuzztests.cc",
+  "line": 20,
+  "suite_name": "rapidhash",
+  "function": "HashesDataWithoutCrashing",
+  "type": "FUZZ_TEST",
+  "sha": "ba476bb0db6d96c5c6cbcec57a0fa02413eaa21b",
+  "author": "sesse@chromium.org",
+  "date": "2024-07-12T18:25:14Z"
+ },
+ {
+  "file": "testing/libfuzzer/tests/BUILD.gn",
+  "line": 44,
+  "suite_name": "stacktrace_test_uaf_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "76e6072e37b7375730fcbe544a31b97ef3d20c10",
+  "author": "titouan@chromium.org",
+  "date": "2024-07-16T16:16:48Z"
+ },
+ {
+  "file": "components/translate/core/language_detection/language_detection_util_fuzztest.cc",
+  "line": 28,
+  "suite_name": "LanguageDetectionUtilFuzzTest",
+  "function": "DeterminePageLanguageDoesNotCrash",
+  "type": "FUZZ_TEST",
+  "sha": "48115107fb548a93d035af453ac5ef4276f29632",
+  "author": "arthursonzogni@chromium.org",
+  "date": "2024-07-25T20:40:35Z"
+ },
+ {
+  "file": "third_party/blink/renderer/platform/BUILD.gn",
+  "line": 2921,
+  "suite_name": "blink_bmp_decoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "aaa40d89212990d7c3172bc51fb90796a9feedc3",
+  "author": "liza@chromium.org",
+  "date": "2024-09-09T17:00:50Z"
+ },
+ {
+  "file": "components/attribution_reporting/privacy_math_fuzztest.cc",
+  "line": 51,
+  "suite_name": "PrivacyMathTest",
+  "function": "GetKCombinationAtIndex",
+  "type": "FUZZ_TEST",
+  "sha": "795defe6aa5879f55eda977ff72de5fa4f00c5c5",
+  "author": "apaseltiner@chromium.org",
+  "date": "2024-09-13T15:13:36Z"
+ },
+ {
+  "file": "content/browser/BUILD.gn",
+  "line": 62,
+  "suite_name": "partitioned_popins_policy_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "89522733ee980d8183b0eb3694f11afc0ac870b5",
+  "author": "arichiv@chromium.org",
+  "date": "2024-09-13T10:51:36Z"
+ },
+ {
+  "file": "media/cdm/aes_decryptor_fuzztests.cc",
+  "line": 297,
+  "suite_name": "AesDecryptorFuzzTests",
+  "function": "DecryptDoesNotCrash",
+  "type": "FUZZ_TEST",
+  "sha": "2be9a3c277aa86f6e322c991f029e616e559a0df",
+  "author": "jrummell@chromium.org",
+  "date": "2024-10-11T20:02:37Z"
+ },
+ {
+  "file": "testing/libfuzzer/tests/BUILD.gn",
+  "line": 52,
+  "suite_name": "stacktrace_test_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "73b294e15b84ba63df421e97d57feb521a163459",
+  "author": "titouan@chromium.org",
+  "date": "2024-10-07T13:46:25Z"
+ },
+ {
+  "file": "pdf/pdfium/pdfium_ink_reader_fuzzer.cc",
+  "line": 26,
+  "suite_name": "PdfInkReaderFuzzer",
+  "function": "CreateMeshFromPolylineDoesntCrash",
+  "type": "FUZZ_TEST",
+  "sha": "b8162a9b38c1a5fc1a9622cf9d145e753c14dae2",
+  "author": "thestig@chromium.org",
+  "date": "2024-11-07T18:26:07Z"
+ },
+ {
+  "file": "third_party/blink/renderer/core/css/parser/css_parser_fuzzer.cc",
+  "line": 76,
+  "suite_name": "CssParser",
+  "function": "ParseSheetFuzzer",
+  "type": "FUZZ_TEST",
+  "sha": "592b0172dd10b4ac8f1e2c21fc755713492360a7",
+  "author": "paulsemel@chromium.org",
+  "date": "2024-11-12T13:27:16Z"
+ },
+ {
+  "file": "third_party/ipcz/src/BUILD.gn",
+  "line": 452,
+  "suite_name": "ipcz_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "69cf7eefc9685cc200fe704273ed1148522e3640",
+  "author": "rockot@google.com",
+  "date": "2024-11-16T01:48:10Z"
+ },
+ {
+  "file": "content/browser/cookie_insight_list/cookie_readiness_list/cookie_readiness_list_parser_fuzztest.cc",
+  "line": 36,
+  "suite_name": "CookieReadinessListParserFuzzTest",
+  "function": "ParseReadinessListSuccessfullyParsesAnyString",
+  "type": "FUZZ_TEST",
+  "sha": "74c97612681896ea411a6aa156d7ebcdbd8f14dc",
+  "author": "jalonthomas@google.com",
+  "date": "2024-11-20T12:40:56Z"
+ },
+ {
+  "file": "base/json/json_reader_unittest.cc",
+  "line": 1336,
+  "suite_name": "JSONReaderTest",
+  "function": "CanParseAnythingWithoutCrashing",
+  "type": "FUZZ_TEST",
+  "sha": "e1c6cee5d38b505fea283fc76176ac8474a4290f",
+  "author": "adetaylor@chromium.org",
+  "date": "2024-12-02T15:30:22Z"
+ },
+ {
+  "file": "third_party/blink/renderer/platform/loader/identity_digest_fuzzer.cc",
+  "line": 42,
+  "suite_name": "IdentityDigest",
+  "function": "MatchFuzzer).WithDomains(fuzztest::String()",
+  "type": "FUZZ_TEST",
+  "sha": "ad077a4ec0d6e2d179bfea597409ee8ce0306a56",
+  "author": "mkwst@chromium.org",
+  "date": "2024-11-27T11:40:27Z"
+ },
+ {
+  "file": "components/ip_protection/common/ip_protection_crypter_fuzztests.cc",
+  "line": 48,
+  "suite_name": "IpProtectionCrypterFuzzTests",
+  "function": "RandomizeDoesNotCrash",
+  "type": "FUZZ_TEST",
+  "sha": "969a33ce6838dafcba7546c0611c3148d90e7a34",
+  "author": "aykutb@google.com",
+  "date": "2025-01-02T16:34:16Z"
+ },
+ {
+  "file": "third_party/blink/renderer/core/inspector/inspector_ghost_rules_fuzzer.cc",
+  "line": 32,
+  "suite_name": "InspectorGhostRules",
+  "function": "PopulateFuzzer",
+  "type": "FUZZ_TEST",
+  "sha": "bad6b2dcf3c7f1048704484b4000302438be69c0",
+  "author": "andruud@chromium.org",
+  "date": "2025-01-03T15:39:22Z"
+ },
+ {
+  "file": "skia/BUILD.gn",
+  "line": 1226,
+  "suite_name": "image_operations_resize_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "39a7af151cd7697bbf3ffed50811f0096830465b",
+  "author": "kjlubick@google.com",
+  "date": "2025-01-09T18:49:37Z"
+ },
+ {
+  "file": "components/ip_protection/common/ip_protection_issuer_token_crypter_fuzztests.cc",
+  "line": 102,
+  "suite_name": "IpProtectionIssuerTokenCrypterFuzzTests",
+  "function": "RandomizeDoesNotCrash",
+  "type": "FUZZ_TEST",
+  "sha": "28172434c3bb6688840b709e6af72164fbbd71ec",
+  "author": "aykutb@google.com",
+  "date": "2025-02-04T22:08:50Z"
+ },
+ {
+  "file": "third_party/blink/renderer/platform/loader/unencoded_digest_fuzzer.cc",
+  "line": 43,
+  "suite_name": "UnencodedDigest",
+  "function": "MatchFuzzer).WithDomains(fuzztest::String()",
+  "type": "FUZZ_TEST",
+  "sha": "3139bd7239994bd5c2235f263e454f6f45eaf9ba",
+  "author": "mkwst@chromium.org",
+  "date": "2025-02-03T20:53:14Z"
+ },
+ {
+  "file": "content/browser/interest_group/bidding_and_auction_serializer_fuzztest.cc",
+  "line": 73,
+  "suite_name": "BiddingAndAuctionSerializerTargetSizeEstimator",
+  "function": "DoesNotCrashForAnyInput",
+  "type": "FUZZ_TEST",
+  "sha": "e3b46ea698bdf5ef34aef3e3a11a9aafc90cd499",
+  "author": "behamilton@google.com",
+  "date": "2025-02-05T21:08:59Z"
+ },
+ {
+  "file": "third_party/protobuf/upb/json/fuzz_test.cc",
+  "line": 54,
+  "suite_name": "FuzzTest",
+  "function": "DecodeEncodeArbitraryJson",
+  "type": "FUZZ_TEST",
+  "sha": "9e2b15057cab7fd0dc6ce951dc532e0af8cd3914",
+  "author": "estade@google.com",
+  "date": "2025-02-07T08:30:11Z"
+ },
+ {
+  "file": "third_party/protobuf/upb/util/def_to_proto_fuzz_test.cc",
+  "line": 17,
+  "suite_name": "FuzzTest",
+  "function": "RoundTripDescriptor",
+  "type": "FUZZ_TEST",
+  "sha": "9e2b15057cab7fd0dc6ce951dc532e0af8cd3914",
+  "author": "estade@google.com",
+  "date": "2025-02-07T08:30:11Z"
+ },
+ {
+  "file": "components/ip_protection/common/ip_protection_probabilistic_reveal_token_crypter_fuzztests.cc",
+  "line": 81,
+  "suite_name": "IpProtectionProbabilisticRevealTokenCrypterFuzzTests",
+  "function": "RandomizeDoesNotCrash",
+  "type": "FUZZ_TEST",
+  "sha": "c607a97ef0c9356c77f7758da20bf8a232a022f1",
+  "author": "ryankalla@google.com",
+  "date": "2025-02-18T18:54:48Z"
+ },
+ {
+  "file": "content/common/input/actions_parser_unittest.cc",
+  "line": 224,
+  "suite_name": "ActionsParserFuzzTest",
+  "function": "ParsesJSONCorrectly",
+  "type": "FUZZ_TEST",
+  "sha": "32a4005d2615de8818cf48310db0b0df9efdb510",
+  "author": "paulsemel@chromium.org",
+  "date": "2025-02-14T09:59:37Z"
+ },
+ {
+  "file": "services/network/attribution/request_headers_internal_unittest.cc",
+  "line": 626,
+  "suite_name": "SerializeAttributionReportingEligibleHeader",
+  "function": "IsEligibleValid",
+  "type": "FUZZ_TEST",
+  "sha": "54c6fc84ce0d7c230e0bf6282fdcfd27d95ab7c6",
+  "author": "apaseltiner@chromium.org",
+  "date": "2025-02-18T16:12:17Z"
+ },
+ {
+  "file": "testing/libfuzzer/fuzzers/tint_wgsl_fuzzer.cc",
+  "line": 15,
+  "suite_name": "ChromiumTintWgslTest",
+  "function": "CanParseWithoutCrashing",
+  "type": "FUZZ_TEST",
+  "author": "paulsemel@chromium.org",
+  "sha": "bcbb506b54553f11279f021646e26b560b66fe0f",
+  "date": "2025-02-21T16:42:00Z"
+ },
+ {
+  "file": "components/sync/base/BUILD.gn",
+  "line": 91,
+  "suite_name": "unique_position_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "b638675e0d67b7bb41dba1df2c1ce00e5dbc8a47",
+  "author": "rushans@google.com",
+  "date": "2025-02-20T11:04:49Z"
+ },
+ {
+  "file": "chrome/browser/privacy_sandbox/notice/notice_storage_fuzztest.cc",
+  "line": 51,
+  "suite_name": "PrivacySandboxNoticeStorageFuzzTest",
+  "function": "CheckConvertsV1SchemaSuccessfully",
+  "type": "FUZZ_TEST",
+  "sha": "8788ab1942e8a58fa1083df1d3d017dd17765eec",
+  "author": "chrstne@google.com",
+  "date": "2025-02-27T15:03:04Z"
+ },
+ {
+  "file": "services/network/trust_tokens/trust_token_key_commitment_parser_unittest.cc",
+  "line": 882,
+  "suite_name": "TrustTokenKeyCommitmentFuzzer",
+  "function": "ParsesMultipleIssuersCorrectly",
+  "type": "FUZZ_TEST",
+  "sha": "921c4a5f5373d8b37b4a1a39a033d26b6e6846c1",
+  "author": "paulsemel@chromium.org",
+  "date": "2025-02-27T12:52:08Z"
+ },
+ {
+  "file": "testing/libfuzzer/fuzzers/tint_wgsl_fuzzer.cc",
+  "line": 40,
+  "suite_name": "ChromiumTintWgslTest",
+  "function": "CanConvertWgslToIRWithoutCrashing",
+  "type": "FUZZ_TEST",
+  "sha": "5e135b9e26f73b5ce89fbe2314dfb615abad370f",
+  "author": "ahijazi@chromium.org",
+  "date": "2025-03-03T10:10:42Z"
+ },
+ {
+  "file": "content/browser/devtools/devtools_protocol_encoding_json_fuzzer.cc",
+  "line": 42,
+  "suite_name": "DevToolsProtocolFuzzer",
+  "function": "ConvertsJSONToCBORCorrectly",
+  "type": "FUZZ_TEST",
+  "sha": "2cfb48e606e47e2198227cab0c7aa423fa47594d",
+  "author": "paulsemel@chromium.org",
+  "date": "2025-03-06T10:07:24Z"
+ },
+ {
+  "file": "content/browser/first_party_sets/first_party_set_parser_unittest.cc",
+  "line": 1803,
+  "suite_name": "FirstPartySetFuzzer",
+  "function": "ParsesSetsCorrectly",
+  "type": "FUZZ_TEST",
+  "sha": "f0ffa8f6c4d2497d6c0866929b51a6b5daecbdf7",
+  "author": "paulsemel@chromium.org",
+  "date": "2025-03-05T17:50:32Z"
+ },
+ {
+  "file": "net/base/pickle_unittest.cc",
+  "line": 205,
+  "suite_name": "PickleTest",
+  "function": "FuzzRoundTrip",
+  "type": "FUZZ_TEST",
+  "sha": "a2776b50ca658f5b261ee33cee5ca54c0ec48b65",
+  "author": "ricea@chromium.org",
+  "date": "2025-03-05T05:21:56Z"
+ },
+ {
+  "file": "net/cert/qwac_fuzztest.cc",
+  "line": 98,
+  "suite_name": "QwacFuzzTest",
+  "function": "FuzzHasQwacQcStatements",
+  "type": "FUZZ_TEST",
+  "author": "mattm@chromium.org",
+  "sha": "6ab89ac2b4e1a343a2ff7cfb568cdc1bb1fb2283",
+  "date": "2025-03-10T22:14:10Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 3774,
+  "suite_name": "net_pickle_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "a2776b50ca658f5b261ee33cee5ca54c0ec48b65",
+  "author": "ricea@chromium.org",
+  "date": "2025-03-05T05:21:56Z"
+ },
+ {
+  "file": "net/cert/qwac_fuzztest.cc",
+  "line": 102,
+  "suite_name": "QwacFuzzTest",
+  "function": "FuzzParseQcTypeInfo",
+  "type": "FUZZ_TEST",
+  "sha": "986b636ef1434ad6431410bc2057aeed719499f7",
+  "author": "mattm@chromium.org",
+  "date": "2025-03-14T19:45:10Z"
+ },
+ {
+  "file": "components/attribution_reporting/os_registration_unittest.cc",
+  "line": 124,
+  "suite_name": "OsRegistrationTest",
+  "function": "Parses",
+  "type": "FUZZ_TEST",
+  "sha": "9e61582fd5dbd26954e77e8957feaad0ec0bd29b",
+  "author": "apaseltiner@chromium.org",
+  "date": "2025-03-24T14:52:37Z"
+ },
+ {
+  "file": "components/attribution_reporting/registration_info_unittest.cc",
+  "line": 141,
+  "suite_name": "RegistrationInfoTest",
+  "function": "Parses",
+  "type": "FUZZ_TEST",
+  "sha": "9e61582fd5dbd26954e77e8957feaad0ec0bd29b",
+  "author": "apaseltiner@chromium.org",
+  "date": "2025-03-24T14:52:37Z"
+ },
+ {
+  "file": "components/attribution_reporting/source_registration_unittest.cc",
+  "line": 912,
+  "suite_name": "SourceRegistrationTest",
+  "function": "Parses",
+  "type": "FUZZ_TEST",
+  "sha": "9e61582fd5dbd26954e77e8957feaad0ec0bd29b",
+  "author": "apaseltiner@chromium.org",
+  "date": "2025-03-24T14:52:37Z"
+ },
+ {
+  "file": "components/attribution_reporting/trigger_registration_unittest.cc",
+  "line": 707,
+  "suite_name": "TriggerRegistrationTest",
+  "function": "Parses",
+  "type": "FUZZ_TEST",
+  "sha": "9e61582fd5dbd26954e77e8957feaad0ec0bd29b",
+  "author": "apaseltiner@chromium.org",
+  "date": "2025-03-24T14:52:37Z"
+ },
+ {
+  "file": "net/cert/qwac_fuzztest.cc",
+  "line": 119,
+  "suite_name": "QwacFuzzTest",
+  "function": "FuzzParseTwoQwacCertBinding",
+  "type": "FUZZ_TEST",
+  "sha": "767bac90801f02795676e8d5a2a4d08806b32cdd",
+  "author": "nharper@chromium.org",
+  "date": "2025-05-02T17:58:02Z"
+ },
+ {
+  "file": "services/data_decoder/public/cpp/json_sanitizer_fuzztests.cc",
+  "line": 59,
+  "suite_name": "JsonSanitizerFuzzTest",
+  "function": "SanitizerAndBaseJsonReaderDecoderMatch",
+  "type": "FUZZ_TEST",
+  "sha": "b4b4719186c9a8b69b0a41d53735ee6903029f33",
+  "author": "dcheng@chromium.org",
+  "date": "2025-05-01T01:38:52Z"
+ },
+ {
+  "file": "components/attribution_reporting/privacy_math_unittest.cc",
+  "line": 887,
+  "suite_name": "PrivacyMathTest",
+  "function": "GetKCombinationAtIndexDoesNotCrash",
+  "type": "FUZZ_TEST",
+  "author": "apaseltiner@chromium.org",
+  "sha": "54b6f6ed9c84739d20eb25f617120a381683b509",
+  "date": "2025-05-14T15:36:19Z"
+ },
+ {
+  "file": "sandbox/mac/sandbox_serializer_fuzztest.cc",
+  "line": 48,
+  "suite_name": "SandboxSerializerFuzzTest",
+  "function": "CanDeserializeWithoutCrashing",
+  "type": "FUZZ_TEST",
+  "sha": "a409dde65aea10da26915582eb68dc00973d3c39",
+  "author": "lgrey@chromium.org",
+  "date": "2025-05-20T20:20:13Z"
+ },
+ {
+  "file": "components/attribution_reporting/privacy_math_unittest.cc",
+  "line": 903,
+  "suite_name": "PrivacyMathTest",
+  "function": "GetNumStatesDoesNotCrash",
+  "type": "FUZZ_TEST",
+  "sha": "bc18eadf6f43e97e3884dd34c07101bedebfc07d",
+  "author": "apaseltiner@chromium.org",
+  "date": "2025-05-27T17:28:41Z"
+ },
+ {
+  "file": "third_party/zlib/contrib/tests/fuzzers/BUILD.gn",
+  "line": 47,
+  "suite_name": "minizip_unzip_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "b6c81fcbe58cef80444ef43d78e5d7f9b1a9d8ba",
+  "author": "hans@chromium.org",
+  "date": "2025-05-22T05:55:07Z"
+ },
+ {
+  "file": "media/gpu/fuzzers/av1_builder/BUILD.gn",
+  "line": 10,
+  "suite_name": "av1_builder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "31ba4100b02f802790574b3d1e8d3940ec7ab87b",
+  "author": "jianlin.qiu@intel.com",
+  "date": "2025-06-24T00:28:45Z"
+ },
+ {
+  "file": "services/network/public/cpp/cross_origin_embedder_policy_parser_fuzztest.cc",
+  "line": 31,
+  "suite_name": "CrossOriginEmbedderPolicyParserTest",
+  "function": "CrossOriginEmbedderPolicyParserFuzzerTest",
+  "type": "FUZZ_TEST",
+  "sha": "d788daae03f3bf764defc75b32f032874bfd41dd",
+  "author": "hocheung@chromium.org",
+  "date": "2025-06-26T06:36:08Z"
+ },
+ {
+  "file": "third_party/unrar/BUILD.gn",
+  "line": 118,
+  "suite_name": "unrar_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "d6b685934dd0b0001d02650e0fe3e9bc88624029",
+  "author": "chlily@chromium.org",
+  "date": "2025-07-02T23:02:42Z"
+ },
+ {
+  "file": "components/variations/BUILD.gn",
+  "line": 356,
+  "suite_name": "create_trials_from_seed_v2_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "dd94f7c9bdb98164f1cfcd915276827ab6e239ed",
+  "author": "paulsemel@chromium.org",
+  "date": "2025-08-04T12:15:45Z"
+ },
+ {
+  "file": "net/base/url_unescape_iterator_unittest.cc",
+  "line": 314,
+  "suite_name": "UrlUnescapeIteratorTest",
+  "function": "SameOutputAsUnescapePercentEncodedUrl",
+  "type": "FUZZ_TEST",
+  "sha": "d8f5074fbae29bd64900a83ec3fda5ed24127522",
+  "author": "ricea@chromium.org",
+  "date": "2025-09-29T05:30:06Z"
+ },
+ {
+  "file": "net/http/http_no_vary_search_data_unittest.cc",
+  "line": 1209,
+  "suite_name": "HttpNoVarySearchTest",
+  "function": "AreEquivalentImplementationsMatch",
+  "type": "FUZZ_TEST",
+  "sha": "a9b9b9b01f57d89f59714746dd4018726672542e",
+  "author": "ricea@chromium.org",
+  "date": "2025-10-03T04:02:16Z"
+ },
+ {
+  "file": "content/test/fuzzer/BUILD.gn",
+  "line": 215,
+  "suite_name": "idb_factory_mojolpm_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "c34c0a29d1a5624956eef378dba4979a90bc14e8",
+  "author": "abhishek.shanthkumar@microsoft.com",
+  "date": "2025-10-09T19:29:36Z"
+ },
+ {
+  "file": "components/facilitated_payments/core/validation/pix_code_validator_fuzzer.cc",
+  "line": 18,
+  "suite_name": "GetPixQrCodeTypeTest",
+  "function": "GetPixQrCodeTypeCanParseAnyString",
+  "type": "FUZZ_TEST",
+  "sha": "0d5ed4e69604b29405f73c305a56c67f526e441e",
+  "author": "longsheng@google.com",
+  "date": "2025-10-23T01:10:28Z"
+ },
+ {
+  "file": "net/socket/socket_pool_additional_capacity_unittest.cc",
+  "line": 322,
+  "suite_name": "SocketPoolAdditionalCapacityTest",
+  "function": "ValidateRandomizedInputs",
+  "type": "FUZZ_TEST",
+  "sha": "00ed072c4c70d1377551a3ef2241bea4046e568e",
+  "author": "arichiv@chromium.org",
+  "date": "2025-10-30T10:03:52Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 3793,
+  "suite_name": "net_parse_proxy_host_matching_rules_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "",
+  "author": "",
+  "date": "2025-11-05T00:32:51.618Z"
+ },
+ {
+  "file": "skia/tools/fuzzers/BUILD.gn",
+  "line": 92,
+  "suite_name": "skia_rust_png_encoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "6e0d868df01928097aad52f8ab79282b104389f1",
+  "author": "lukasza@chromium.org",
+  "date": "2025-11-12T17:26:27Z"
+ },
+ {
+  "file": "mojo/core/BUILD.gn",
+  "line": 357,
+  "suite_name": "mojo_core_ipcz_channel_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "6d96f0120e67e03cc1b5a0dd8df8165cdd9a285a",
+  "author": "pasko@chromium.org",
+  "date": "2025-11-13T20:26:02Z"
+ },
+ {
+  "file": "net/proxy_resolution/parse_proxy_list_fuzzer.cc",
+  "line": 17,
+  "suite_name": "ParseProxyListFuzzer",
+  "function": "TestOneInput",
+  "type": "FUZZ_TEST",
+  "sha": "6e76fce80975a9effea52cd239e6043b186c1ce2",
+  "author": "mmoskvitin@google.com",
+  "date": "2025-11-25T15:14:45Z"
+ },
+ {
+  "file": "net/BUILD.gn",
+  "line": 4308,
+  "suite_name": "net_url_conversions_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "7346d5fe53b8a7aa372627224fc57553191bdf95",
+  "author": "justincohen@google.com",
+  "date": "2026-01-12T23:15:32Z"
+ },
+ {
+  "file": "third_party/blink/renderer/platform/BUILD.gn",
+  "line": 2853,
+  "suite_name": "blink_jxl_decoder_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "f9f72128e5a07f5198a7b9eecc5858a6c8952e05",
+  "author": "helmut@januschka.com",
+  "date": "2026-01-09T21:54:58Z"
+ },
+ {
+  "file": "chrome/browser/page_load_metrics/observers/captcha_provider_manager_fuzztest.cc",
+  "line": 38,
+  "suite_name": "CaptchaProviderManagerFuzzTests",
+  "function": "IsCaptchaUrlDoesNotCrash",
+  "type": "FUZZ_TEST",
+  "sha": "8cd9c51cde3520cc70c09553bb5fb72c75e04a37",
+  "author": "ryankalla@google.com",
+  "date": "2026-01-20T22:59:58Z"
+ },
+ {
+  "file": "net/http/http_security_headers_hsts_fuzzer.cc",
+  "line": 22,
+  "suite_name": "HttpSecurityHeadersHstsFuzzer",
+  "function": "TestParseHSTSHeader",
+  "type": "FUZZ_TEST",
+  "sha": "2c6a3d88a2401e0af4ee0c68430d5ed5bc8c863d",
+  "author": "mmoskvitin@google.com",
+  "date": "2026-01-21T12:42:40Z"
+ },
+ {
+  "file": "content/test/fuzzer/BUILD.gn",
+  "line": 242,
+  "suite_name": "dom_storage_mojolpm_fuzzer",
+  "function": "main",
+  "type": "fuzzer_test",
+  "sha": "904b1dab77a9bac3e051891f632de58c2dddb386",
+  "author": "evanstade@microsoft.com",
+  "date": "2026-01-26T16:57:39Z"
+ }
+]

@@ -1,0 +1,409 @@
+[
+  {
+    "category": "polyglot",
+    "name": "Polyglot n°1",
+    "description": "I contributed to more than 2+ repositories!",
+    "details": "I did $0.",
+    "image": "/img/badges/polyglot_l1.jpeg",
+    "recipients": 1845
+  },
+  {
+    "category": "polyglot",
+    "name": "Polyglot n°2",
+    "description": "I contributed to more than 4+ repositories!",
+    "details": "I did $0.",
+    "image": "/img/badges/polyglot_l2.jpeg",
+    "recipients": 243
+  },
+  {
+    "category": "polyglot",
+    "name": "Polyglot n°3",
+    "description": "I contributed to more than 6+ repositories!",
+    "details": "I did $0.",
+    "image": "/img/badges/polyglot_l3.jpeg",
+    "recipients": 70
+  },
+  {
+    "category": "misc",
+    "name": "Empty Commit",
+    "description": "I submitted an empty commit! Why?",
+    "image": "/img/badges/empty_commit.jpeg",
+    "recipients": 440
+  },
+  {
+    "category": "misc",
+    "name": "Old Commit",
+    "description": "I submitted a commit more than 10 years ago!",
+    "details": "It was in $0.",
+    "image": "/img/badges/ancient.png",
+    "recipients": 1220
+  },
+  {
+    "category": "misc",
+    "name": "New User",
+    "description": "I made my very first commit less than a year ago!",
+    "details": "It was in $0 days ago.",
+    "image": "/img/badges/young.png",
+    "recipients": 13737
+  },
+  {
+    "category": "misc",
+    "name": "Code Slayer",
+    "description": "I deleted more than 100k lines of code at once!",
+    "details": "I removed $0 lines of code.",
+    "image": "/img/badges/code_slayer.jpeg",
+    "recipients": 157
+  },
+  {
+    "category": "misc",
+    "name": "Code Cleaner",
+    "description": "Cleanup time! I modified more than 1k files at once!",
+    "details": "I modified $0 files.",
+    "image": "/img/badges/cleanup.jpeg",
+    "recipients": 267
+  },
+  {
+    "category": "timezone",
+    "name": "AMER timezone",
+    "description": "I'm submitting commits from the AMER timezone!",
+    "details": "",
+    "image": "/img/badges/timezone_3.jpeg",
+    "recipients": 6688
+  },
+  {
+    "category": "timezone",
+    "name": "EMEA timezone",
+    "description": "I'm submitting commits from the EMEA timezone!",
+    "details": "",
+    "image": "/img/badges/timezone_1.jpeg",
+    "recipients": 16155
+  },
+  {
+    "category": "timezone",
+    "name": "APAC timezone",
+    "image": "/img/badges/timezone_2.jpeg",
+    "description": "I'm submitting commits in from APAC timezone!",
+    "details": "",
+    "recipients": 5758
+  },
+  {
+    "category": "weekday",
+    "name": "Most Productive Monday",
+    "description": "I'm most productive on Monday!",
+    "details": "\n      <ul>\n        <li>Monday: $0</li>\n        <li>Tuesday: $1</li>\n        <li>Wednesday: $2</li>\n        <li>Thursday: $3</li>\n        <li>Friday: $4</li>\n        <li>Saturday: $5</li>\n        <li>Sunday: $6</li>\n      </ul>",
+    "image": "/img/badges/day_0.jpeg",
+    "recipients": 14921
+  },
+  {
+    "category": "weekday",
+    "name": "Most Productive Tuesday",
+    "description": "I'm most productive on Tuesday!",
+    "details": "\n      <ul>\n        <li>Monday: $0</li>\n        <li>Tuesday: $1</li>\n        <li>Wednesday: $2</li>\n        <li>Thursday: $3</li>\n        <li>Friday: $4</li>\n        <li>Saturday: $5</li>\n        <li>Sunday: $6</li>\n      </ul>",
+    "image": "/img/badges/day_1.jpeg",
+    "recipients": 16518
+  },
+  {
+    "category": "weekday",
+    "name": "Most Productive Wednesday",
+    "description": "I'm most productive on Wednesday!",
+    "details": "\n      <ul>\n        <li>Monday: $0</li>\n        <li>Tuesday: $1</li>\n        <li>Wednesday: $2</li>\n        <li>Thursday: $3</li>\n        <li>Friday: $4</li>\n        <li>Saturday: $5</li>\n        <li>Sunday: $6</li>\n      </ul>",
+    "image": "/img/badges/day_2.jpeg",
+    "recipients": 16601
+  },
+  {
+    "category": "weekday",
+    "name": "Most Productive Thursday",
+    "description": "I'm most productive on Thursday!",
+    "details": "\n      <ul>\n        <li>Monday: $0</li>\n        <li>Tuesday: $1</li>\n        <li>Wednesday: $2</li>\n        <li>Thursday: $3</li>\n        <li>Friday: $4</li>\n        <li>Saturday: $5</li>\n        <li>Sunday: $6</li>\n      </ul>",
+    "image": "/img/badges/day_3.jpeg",
+    "recipients": 16265
+  },
+  {
+    "category": "weekday",
+    "name": "Most Productive Friday",
+    "description": "I'm most productive on Friday!",
+    "details": "\n      <ul>\n        <li>Monday: $0</li>\n        <li>Tuesday: $1</li>\n        <li>Wednesday: $2</li>\n        <li>Thursday: $3</li>\n        <li>Friday: $4</li>\n        <li>Saturday: $5</li>\n        <li>Sunday: $6</li>\n      </ul>",
+    "image": "/img/badges/day_4.jpeg",
+    "recipients": 15201
+  },
+  {
+    "category": "weekday",
+    "name": "Most Productive Saturday",
+    "description": "I'm most productive on Saturday!",
+    "details": "\n      <ul>\n        <li>Monday: $0</li>\n        <li>Tuesday: $1</li>\n        <li>Wednesday: $2</li>\n        <li>Thursday: $3</li>\n        <li>Friday: $4</li>\n        <li>Saturday: $5</li>\n        <li>Sunday: $6</li>\n      </ul>",
+    "image": "/img/badges/day_5.jpeg",
+    "recipients": 12694
+  },
+  {
+    "category": "weekday",
+    "name": "Most Productive Sunday",
+    "description": "I'm most productive on Sunday!",
+    "details": "\n      <ul>\n        <li>Monday: $0</li>\n        <li>Tuesday: $1</li>\n        <li>Wednesday: $2</li>\n        <li>Thursday: $3</li>\n        <li>Friday: $4</li>\n        <li>Saturday: $5</li>\n        <li>Sunday: $6</li>\n      </ul>",
+    "image": "/img/badges/day_6.jpeg",
+    "recipients": 12451
+  },
+  {
+    "category": "chromium",
+    "name": "chromium commit n°1",
+    "description": "I have made 1 commits to chromium.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/chromium_l1.jpeg",
+    "recipients": 8729
+  },
+  {
+    "category": "chromium",
+    "name": "chromium commit n°2",
+    "description": "I have made 25 commits to chromium.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/chromium_l2.jpeg",
+    "recipients": 3634
+  },
+  {
+    "category": "chromium",
+    "name": "chromium commit n°3",
+    "description": "I have made 100 commits to chromium.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/chromium_l3.jpeg",
+    "recipients": 2193
+  },
+  {
+    "category": "chromium",
+    "name": "chromium commit n°4",
+    "description": "I have made 500 commits to chromium.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/chromium_l4.jpeg",
+    "recipients": 778
+  },
+  {
+    "category": "chromium",
+    "name": "chromium commit n°5",
+    "description": "I have made 1000 commits to chromium.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/chromium_l5.jpeg",
+    "recipients": 330
+  },
+  {
+    "category": "chromium",
+    "name": "chromium commit n°6",
+    "description": "I have made 2000 commits to chromium.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/chromium_l6.jpeg",
+    "recipients": 98
+  },
+  {
+    "category": "v8",
+    "name": "v8 commit n°1",
+    "description": "I have made 1 commits to v8.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/v8_l1.jpeg",
+    "recipients": 982
+  },
+  {
+    "category": "v8",
+    "name": "v8 commit n°2",
+    "description": "I have made 25 commits to v8.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/v8_l2.jpeg",
+    "recipients": 248
+  },
+  {
+    "category": "v8",
+    "name": "v8 commit n°3",
+    "description": "I have made 100 commits to v8.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/v8_l3.jpeg",
+    "recipients": 127
+  },
+  {
+    "category": "clusterfuzz",
+    "name": "clusterfuzz commit n°1",
+    "description": "I have made 1 commits to clusterfuzz.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/clusterfuzz_l1.jpeg",
+    "recipients": 120
+  },
+  {
+    "category": "clusterfuzz",
+    "name": "clusterfuzz commit n°2",
+    "description": "I have made 25 commits to clusterfuzz.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/clusterfuzz_l2.jpeg",
+    "recipients": 21
+  },
+  {
+    "category": "clusterfuzz",
+    "name": "clusterfuzz commit n°3",
+    "description": "I have made 100 commits to clusterfuzz.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/clusterfuzz_l3.jpeg",
+    "recipients": 5
+  },
+  {
+    "category": "dawn",
+    "name": "dawn commit n°1",
+    "description": "I have made 1 commits to dawn.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/dawn_l1.jpeg",
+    "recipients": 269
+  },
+  {
+    "category": "dawn",
+    "name": "dawn commit n°2",
+    "description": "I have made 25 commits to dawn.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/dawn_l2.jpeg",
+    "recipients": 49
+  },
+  {
+    "category": "dawn",
+    "name": "dawn commit n°3",
+    "description": "I have made 100 commits to dawn.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/dawn_l3.jpeg",
+    "recipients": 28
+  },
+  {
+    "category": "skia",
+    "name": "skia commit n°1",
+    "description": "I have made 1 commits to skia.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/skia_l1.jpeg",
+    "recipients": 564
+  },
+  {
+    "category": "skia",
+    "name": "skia commit n°2",
+    "description": "I have made 25 commits to skia.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/skia_l2.jpeg",
+    "recipients": 97
+  },
+  {
+    "category": "skia",
+    "name": "skia commit n°3",
+    "description": "I have made 100 commits to skia.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/skia_l3.jpeg",
+    "recipients": 53
+  },
+  {
+    "category": "partition_alloc",
+    "name": "partition_alloc commit n°1",
+    "description": "I have made 1 commits to partition_alloc.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/partition_alloc_l1.jpeg",
+    "recipients": 269
+  },
+  {
+    "category": "partition_alloc",
+    "name": "partition_alloc commit n°2",
+    "description": "I have made 25 commits to partition_alloc.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/partition_alloc_l2.jpeg",
+    "recipients": 17
+  },
+  {
+    "category": "partition_alloc",
+    "name": "partition_alloc commit n°3",
+    "description": "I have made 100 commits to partition_alloc.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/partition_alloc_l3.jpeg",
+    "recipients": 8
+  },
+  {
+    "category": "webrtc",
+    "name": "webrtc commit n°1",
+    "description": "I have made 1 commits to webrtc.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/webrtc_l1.jpeg",
+    "recipients": 702
+  },
+  {
+    "category": "webrtc",
+    "name": "webrtc commit n°2",
+    "description": "I have made 25 commits to webrtc.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/webrtc_l2.jpeg",
+    "recipients": 148
+  },
+  {
+    "category": "webrtc",
+    "name": "webrtc commit n°3",
+    "description": "I have made 100 commits to webrtc.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/webrtc_l3.jpeg",
+    "recipients": 81
+  },
+  {
+    "category": "swiftshader",
+    "name": "swiftshader commit n°1",
+    "description": "I have made 1 commits to swiftshader.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/swiftshader_l1.jpeg",
+    "recipients": 199
+  },
+  {
+    "category": "swiftshader",
+    "name": "swiftshader commit n°2",
+    "description": "I have made 25 commits to swiftshader.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/swiftshader_l2.jpeg",
+    "recipients": 26
+  },
+  {
+    "category": "swiftshader",
+    "name": "swiftshader commit n°3",
+    "description": "I have made 100 commits to swiftshader.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/swiftshader_l3.jpeg",
+    "recipients": 11
+  },
+  {
+    "category": "gn",
+    "name": "gn commit n°1",
+    "description": "I have made 1 commits to gn.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/gn_l1.jpeg",
+    "recipients": 321
+  },
+  {
+    "category": "gn",
+    "name": "gn commit n°2",
+    "description": "I have made 25 commits to gn.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/gn_l2.jpeg",
+    "recipients": 15
+  },
+  {
+    "category": "gn",
+    "name": "gn commit n°3",
+    "description": "I have made 100 commits to gn.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/gn_l3.jpeg",
+    "recipients": 3
+  },
+  {
+    "category": "llvm",
+    "name": "llvm commit n°1",
+    "description": "I have made 1 commits to llvm.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/llvm_l1.jpeg",
+    "recipients": 7182
+  },
+  {
+    "category": "llvm",
+    "name": "llvm commit n°2",
+    "description": "I have made 25 commits to llvm.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/llvm_l2.jpeg",
+    "recipients": 1595
+  },
+  {
+    "category": "llvm",
+    "name": "llvm commit n°3",
+    "description": "I have made 100 commits to llvm.",
+    "details": "I did $0 commits.",
+    "image": "/img/badges/llvm_l3.jpeg",
+    "recipients": 694
+  }
+]

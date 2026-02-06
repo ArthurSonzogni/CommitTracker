@@ -1,0 +1,4972 @@
+[
+ {
+  "date": "2024-02-08T23:22:18Z",
+  "kind": "author",
+  "peers": [
+   "kbr@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2024-02-04T03:28:43Z",
+  "kind": "review",
+  "peers": [
+   "shaobo.yan@intel.com"
+  ],
+  "additions": 9,
+  "deletions": 11,
+  "files": 1
+ },
+ {
+  "date": "2023-11-29T05:35:21Z",
+  "kind": "review",
+  "peers": [
+   "kainino@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 4,
+  "files": 2
+ },
+ {
+  "date": "2023-11-08T03:50:17Z",
+  "kind": "author",
+  "peers": [
+   "enga@chromium.org"
+  ],
+  "additions": 23,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2023-10-19T02:07:20Z",
+  "kind": "author",
+  "peers": [
+   "bsheedy@chromium.org"
+  ],
+  "additions": 243,
+  "deletions": 4,
+  "files": 6
+ },
+ {
+  "date": "2023-10-10T18:37:59Z",
+  "kind": "author",
+  "peers": [
+   "bsheedy@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2023-09-28T02:08:20Z",
+  "kind": "review",
+  "peers": [
+   "kbr@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2023-09-12T16:50:14Z",
+  "kind": "review",
+  "peers": [
+   "kbr@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 27,
+  "files": 4
+ },
+ {
+  "date": "2023-08-24T18:56:41Z",
+  "kind": "author",
+  "peers": [
+   "kbr@chromium.org",
+   "jam@chromium.org"
+  ],
+  "additions": 139,
+  "deletions": 248,
+  "files": 3
+ },
+ {
+  "date": "2023-08-22T22:35:16Z",
+  "kind": "author",
+  "peers": [
+   "jam@chromium.org",
+   "kainino@chromium.org"
+  ],
+  "additions": 650,
+  "deletions": 530,
+  "files": 12
+ },
+ {
+  "date": "2023-08-11T00:32:19Z",
+  "kind": "author",
+  "peers": [
+   "kbr@chromium.org",
+   "kainino@chromium.org"
+  ],
+  "additions": 59,
+  "deletions": 42,
+  "files": 3
+ },
+ {
+  "date": "2023-06-28T23:15:01Z",
+  "kind": "review",
+  "peers": [
+   "bsheedy@chromium.org"
+  ],
+  "additions": 18,
+  "deletions": 3,
+  "files": 1
+ },
+ {
+  "date": "2023-06-09T21:41:28Z",
+  "kind": "author",
+  "peers": [
+   "bsheedy@chromium.org"
+  ],
+  "additions": 44,
+  "deletions": 0,
+  "files": 16
+ },
+ {
+  "date": "2023-06-07T19:09:37Z",
+  "kind": "review",
+  "peers": [
+   "lokokung@google.com"
+  ],
+  "additions": 13,
+  "deletions": 8,
+  "files": 4
+ },
+ {
+  "date": "2023-05-30T22:44:36Z",
+  "kind": "review",
+  "peers": [
+   "kainino@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 3,
+  "files": 1
+ },
+ {
+  "date": "2023-05-04T09:15:27Z",
+  "kind": "author",
+  "peers": [
+   "cmfcmf@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2023-03-29T20:09:07Z",
+  "kind": "review",
+  "peers": [
+   "enga@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2023-03-16T05:35:25Z",
+  "kind": "review",
+  "peers": [
+   "zoeyli@google.com"
+  ],
+  "additions": 180,
+  "deletions": 199,
+  "files": 2
+ },
+ {
+  "date": "2023-02-07T17:41:59Z",
+  "kind": "author",
+  "peers": [
+   "enga@chromium.org",
+   "cwallez@chromium.org"
+  ],
+  "additions": 28,
+  "deletions": 3,
+  "files": 4
+ },
+ {
+  "date": "2023-01-31T00:41:12Z",
+  "kind": "review",
+  "peers": [
+   "kbr@chromium.org"
+  ],
+  "additions": 185,
+  "deletions": 1,
+  "files": 15
+ },
+ {
+  "date": "2023-01-27T01:32:59Z",
+  "kind": "review",
+  "peers": [
+   "kbr@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2023-01-23T19:48:03Z",
+  "kind": "review",
+  "peers": [
+   "lokokung@google.com"
+  ],
+  "additions": 97,
+  "deletions": 1,
+  "files": 7
+ },
+ {
+  "date": "2022-12-21T23:39:44Z",
+  "kind": "author",
+  "peers": [
+   "kbr@chromium.org",
+   "ccameron@chromium.org"
+  ],
+  "additions": 50,
+  "deletions": 0,
+  "files": 8
+ },
+ {
+  "date": "2022-09-19T21:55:26Z",
+  "kind": "author",
+  "peers": [
+   "kbr@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2022-07-13T00:28:48Z",
+  "kind": "review",
+  "peers": [
+   "kbr@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2022-07-13T00:11:32Z",
+  "kind": "review",
+  "peers": [
+   "kbr@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2022-07-12T02:02:32Z",
+  "kind": "review",
+  "peers": [
+   "kbr@chromium.org"
+  ],
+  "additions": 17,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2022-06-15T02:45:05Z",
+  "kind": "review",
+  "peers": [
+   "kbr@chromium.org"
+  ],
+  "additions": 329,
+  "deletions": 29,
+  "files": 19
+ },
+ {
+  "date": "2022-06-13T17:41:49Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2022-06-11T00:59:57Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2022-06-10T21:49:36Z",
+  "kind": "author",
+  "peers": [
+   "kbr@chromium.org"
+  ],
+  "additions": 146,
+  "deletions": 157,
+  "files": 6
+ },
+ {
+  "date": "2022-06-09T22:35:57Z",
+  "kind": "author",
+  "peers": [
+   "kbr@chromium.org"
+  ],
+  "additions": 5,
+  "deletions": 3,
+  "files": 3
+ },
+ {
+  "date": "2022-06-02T00:56:55Z",
+  "kind": "review",
+  "peers": [
+   "kbr@chromium.org"
+  ],
+  "additions": 18,
+  "deletions": 53,
+  "files": 4
+ },
+ {
+  "date": "2022-06-01T01:44:11Z",
+  "kind": "review",
+  "peers": [
+   "kbr@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 19,
+  "files": 3
+ },
+ {
+  "date": "2022-05-21T02:54:23Z",
+  "kind": "review",
+  "peers": [
+   "kbr@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2022-05-17T19:10:40Z",
+  "kind": "review",
+  "peers": [
+   "kbr@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2022-05-17T03:23:24Z",
+  "kind": "review",
+  "peers": [
+   "kbr@chromium.org"
+  ],
+  "additions": 13,
+  "deletions": 9,
+  "files": 5
+ },
+ {
+  "date": "2022-04-26T23:14:35Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 5,
+  "deletions": 5,
+  "files": 1
+ },
+ {
+  "date": "2022-04-26T06:22:47Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2022-04-22T21:30:27Z",
+  "kind": "author",
+  "peers": [
+   "kbr@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2022-04-06T19:03:29Z",
+  "kind": "author",
+  "peers": [
+   "zmo@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 13,
+  "files": 1
+ },
+ {
+  "date": "2022-03-29T03:11:52Z",
+  "kind": "author",
+  "peers": [
+   "kbr@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2022-03-09T03:25:47Z",
+  "kind": "author",
+  "peers": [
+   "kbr@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 5,
+  "files": 2
+ },
+ {
+  "date": "2022-02-16T20:08:54Z",
+  "kind": "author",
+  "peers": [
+   "kbr@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2022-01-20T00:58:18Z",
+  "kind": "author",
+  "peers": [
+   "kbr@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 6,
+  "files": 1
+ },
+ {
+  "date": "2022-01-11T21:17:11Z",
+  "kind": "author",
+  "peers": [
+   "kbr@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 19,
+  "files": 1
+ },
+ {
+  "date": "2014-01-14T10:48:29Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 10,
+  "deletions": 8,
+  "files": 2
+ },
+ {
+  "date": "2013-06-20T03:09:53Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 10,
+  "files": 10
+ },
+ {
+  "date": "2013-06-12T06:37:58Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 169,
+  "deletions": 106,
+  "files": 38
+ },
+ {
+  "date": "2013-05-31T03:37:21Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2013-05-29T22:23:00Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 110,
+  "deletions": 82,
+  "files": 2
+ },
+ {
+  "date": "2013-05-28T20:15:00Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 7,
+  "deletions": 5,
+  "files": 2
+ },
+ {
+  "date": "2013-05-23T04:55:18Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 14,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2013-05-23T02:17:41Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 34,
+  "deletions": 34,
+  "files": 3
+ },
+ {
+  "date": "2013-05-23T00:47:24Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 14,
+  "deletions": 9,
+  "files": 3
+ },
+ {
+  "date": "2013-05-21T11:35:44Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 7,
+  "deletions": 3,
+  "files": 2
+ },
+ {
+  "date": "2013-05-21T08:57:16Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 13,
+  "deletions": 6,
+  "files": 2
+ },
+ {
+  "date": "2013-05-20T21:21:37Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2013-05-17T19:51:09Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 349,
+  "deletions": 103,
+  "files": 12
+ },
+ {
+  "date": "2013-05-17T03:53:42Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 75,
+  "deletions": 24,
+  "files": 5
+ },
+ {
+  "date": "2013-05-10T12:45:36Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 211,
+  "deletions": 117,
+  "files": 4
+ },
+ {
+  "date": "2013-05-10T08:04:00Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 5,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2013-05-07T02:23:26Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 128,
+  "deletions": 97,
+  "files": 3
+ },
+ {
+  "date": "2013-05-06T07:48:26Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 126,
+  "deletions": 96,
+  "files": 3
+ },
+ {
+  "date": "2013-05-03T06:01:52Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 244,
+  "deletions": 152,
+  "files": 30
+ },
+ {
+  "date": "2013-05-01T18:17:53Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 331,
+  "deletions": 362,
+  "files": 61
+ },
+ {
+  "date": "2013-04-03T07:15:53Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 119,
+  "deletions": 80,
+  "files": 3
+ },
+ {
+  "date": "2013-04-02T18:28:02Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 101,
+  "deletions": 26,
+  "files": 5
+ },
+ {
+  "date": "2013-03-20T15:47:00Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 128,
+  "deletions": 21,
+  "files": 6
+ },
+ {
+  "date": "2013-03-19T21:26:50Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 30,
+  "deletions": 1,
+  "files": 3
+ },
+ {
+  "date": "2013-03-15T23:55:33Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 27,
+  "deletions": 7,
+  "files": 5
+ },
+ {
+  "date": "2013-03-11T22:11:51Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 933,
+  "deletions": 660,
+  "files": 10
+ },
+ {
+  "date": "2013-03-10T03:50:27Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 131,
+  "deletions": 135,
+  "files": 5
+ },
+ {
+  "date": "2013-03-09T14:37:06Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 261,
+  "deletions": 252,
+  "files": 4
+ },
+ {
+  "date": "2013-03-09T02:40:07Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1209,
+  "deletions": 1106,
+  "files": 10
+ },
+ {
+  "date": "2013-03-08T13:52:06Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 171,
+  "deletions": 191,
+  "files": 5
+ },
+ {
+  "date": "2013-03-08T05:24:07Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 58,
+  "deletions": 59,
+  "files": 5
+ },
+ {
+  "date": "2013-03-08T05:21:42Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 626,
+  "deletions": 646,
+  "files": 8
+ },
+ {
+  "date": "2013-03-07T01:26:08Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 844,
+  "deletions": 248,
+  "files": 23
+ },
+ {
+  "date": "2013-03-06T13:06:50Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 835,
+  "deletions": 248,
+  "files": 22
+ },
+ {
+  "date": "2013-03-05T09:27:42Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 63,
+  "deletions": 31,
+  "files": 3
+ },
+ {
+  "date": "2013-03-02T00:46:53Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 189,
+  "deletions": 212,
+  "files": 2
+ },
+ {
+  "date": "2013-02-28T10:10:26Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 61,
+  "deletions": 27,
+  "files": 16
+ },
+ {
+  "date": "2013-02-28T03:40:21Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 173,
+  "deletions": 170,
+  "files": 12
+ },
+ {
+  "date": "2013-02-28T00:36:27Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 82,
+  "deletions": 57,
+  "files": 3
+ },
+ {
+  "date": "2013-02-27T21:12:35Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 4862,
+  "deletions": 4619,
+  "files": 61
+ },
+ {
+  "date": "2013-02-26T21:56:25Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2013-02-26T20:18:06Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 180,
+  "deletions": 68,
+  "files": 7
+ },
+ {
+  "date": "2013-02-26T04:42:18Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2013-02-16T21:30:09Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 203,
+  "deletions": 201,
+  "files": 3
+ },
+ {
+  "date": "2013-02-16T18:36:17Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 74,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2013-02-15T07:38:38Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 135,
+  "deletions": 133,
+  "files": 2
+ },
+ {
+  "date": "2013-02-14T08:01:16Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 570,
+  "deletions": 0,
+  "files": 15
+ },
+ {
+  "date": "2013-02-14T07:41:10Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 13147,
+  "deletions": 0,
+  "files": 123
+ },
+ {
+  "date": "2013-02-14T07:36:05Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 3874,
+  "deletions": 0,
+  "files": 44
+ },
+ {
+  "date": "2013-02-14T07:10:59Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 23132,
+  "deletions": 0,
+  "files": 400
+ },
+ {
+  "date": "2013-02-14T06:56:20Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 19974,
+  "deletions": 0,
+  "files": 585
+ },
+ {
+  "date": "2013-02-14T05:49:25Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 15059,
+  "deletions": 0,
+  "files": 252
+ },
+ {
+  "date": "2013-02-09T03:08:36Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 10,
+  "deletions": 24,
+  "files": 2
+ },
+ {
+  "date": "2013-02-07T13:47:21Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1627,
+  "deletions": 0,
+  "files": 31
+ },
+ {
+  "date": "2013-02-07T13:36:25Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1644,
+  "deletions": 0,
+  "files": 30
+ },
+ {
+  "date": "2013-02-07T13:05:32Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1240,
+  "deletions": 0,
+  "files": 26
+ },
+ {
+  "date": "2013-02-07T12:57:12Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2771,
+  "deletions": 0,
+  "files": 38
+ },
+ {
+  "date": "2013-02-07T12:43:21Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1016,
+  "deletions": 0,
+  "files": 18
+ },
+ {
+  "date": "2013-02-07T12:39:03Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1189,
+  "deletions": 0,
+  "files": 23
+ },
+ {
+  "date": "2013-02-07T11:57:41Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 5892,
+  "deletions": 0,
+  "files": 86
+ },
+ {
+  "date": "2013-02-07T10:24:56Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1671,
+  "deletions": 25,
+  "files": 15
+ },
+ {
+  "date": "2013-02-07T05:21:12Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 162,
+  "deletions": 8,
+  "files": 15
+ },
+ {
+  "date": "2013-02-07T01:35:18Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 15050,
+  "deletions": 24,
+  "files": 253
+ },
+ {
+  "date": "2013-02-06T18:35:00Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 74081,
+  "deletions": 0,
+  "files": 1463
+ },
+ {
+  "date": "2013-02-06T07:41:12Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1110,
+  "deletions": 0,
+  "files": 24
+ },
+ {
+  "date": "2013-02-05T20:32:49Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1855,
+  "deletions": 0,
+  "files": 17
+ },
+ {
+  "date": "2013-02-05T20:20:28Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2555,
+  "deletions": 0,
+  "files": 44
+ },
+ {
+  "date": "2013-02-05T20:09:36Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1079,
+  "deletions": 0,
+  "files": 29
+ },
+ {
+  "date": "2013-02-05T05:22:22Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 8936,
+  "deletions": 0,
+  "files": 59
+ },
+ {
+  "date": "2013-01-26T00:52:36Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2013-01-25T21:30:08Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 8,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2013-01-25T10:39:42Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2013-01-25T09:35:24Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2013-01-25T05:08:38Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 35,
+  "deletions": 1,
+  "files": 12
+ },
+ {
+  "date": "2013-01-25T02:02:55Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 15,
+  "deletions": 28,
+  "files": 10
+ },
+ {
+  "date": "2013-01-23T06:39:26Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 484,
+  "deletions": 63,
+  "files": 16
+ },
+ {
+  "date": "2013-01-18T12:25:01Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 211,
+  "deletions": 104,
+  "files": 3
+ },
+ {
+  "date": "2013-01-18T01:07:23Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 26,
+  "deletions": 35,
+  "files": 6
+ },
+ {
+  "date": "2013-01-15T23:25:11Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 413,
+  "deletions": 321,
+  "files": 4
+ },
+ {
+  "date": "2013-01-09T23:13:05Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 10,
+  "deletions": 1,
+  "files": 2
+ },
+ {
+  "date": "2013-01-09T19:56:40Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 28,
+  "deletions": 5,
+  "files": 28
+ },
+ {
+  "date": "2013-01-08T02:23:56Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 94,
+  "deletions": 196,
+  "files": 4
+ },
+ {
+  "date": "2013-01-03T00:27:37Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 280,
+  "deletions": 557,
+  "files": 4
+ },
+ {
+  "date": "2012-12-22T07:18:21Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 17,
+  "deletions": 8,
+  "files": 1
+ },
+ {
+  "date": "2012-12-17T10:19:09Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 411,
+  "deletions": 40,
+  "files": 37
+ },
+ {
+  "date": "2012-12-16T20:13:32Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 155,
+  "deletions": 24,
+  "files": 6
+ },
+ {
+  "date": "2012-12-16T04:52:36Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 133,
+  "deletions": 987,
+  "files": 11
+ },
+ {
+  "date": "2012-12-11T09:34:26Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 14,
+  "deletions": 1,
+  "files": 2
+ },
+ {
+  "date": "2012-12-07T09:17:13Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 16,
+  "deletions": 4,
+  "files": 2
+ },
+ {
+  "date": "2012-12-07T09:07:49Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 158,
+  "deletions": 1194,
+  "files": 29
+ },
+ {
+  "date": "2012-12-07T04:21:26Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 6,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2012-12-07T00:06:19Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 324,
+  "deletions": 21,
+  "files": 8
+ },
+ {
+  "date": "2012-12-06T15:52:52Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 194,
+  "deletions": 46,
+  "files": 4
+ },
+ {
+  "date": "2012-12-06T15:43:36Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 63,
+  "deletions": 1,
+  "files": 3
+ },
+ {
+  "date": "2012-12-06T15:43:21Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 84,
+  "deletions": 35,
+  "files": 4
+ },
+ {
+  "date": "2012-12-05T16:12:39Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 22,
+  "deletions": 3,
+  "files": 2
+ },
+ {
+  "date": "2012-11-30T07:28:27Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 22,
+  "deletions": 17,
+  "files": 1
+ },
+ {
+  "date": "2012-11-29T23:24:13Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1246,
+  "deletions": 763,
+  "files": 18
+ },
+ {
+  "date": "2012-11-27T19:09:32Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 149,
+  "deletions": 61,
+  "files": 5
+ },
+ {
+  "date": "2012-11-27T11:52:50Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 147,
+  "deletions": 50,
+  "files": 5
+ },
+ {
+  "date": "2012-11-26T10:27:26Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1370,
+  "deletions": 971,
+  "files": 18
+ },
+ {
+  "date": "2012-11-21T04:51:06Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1009,
+  "deletions": 1507,
+  "files": 19
+ },
+ {
+  "date": "2012-11-20T09:31:22Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1141,
+  "deletions": 743,
+  "files": 9
+ },
+ {
+  "date": "2012-11-20T02:20:49Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 379,
+  "deletions": 2,
+  "files": 5
+ },
+ {
+  "date": "2012-11-19T15:21:51Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 20,
+  "deletions": 0,
+  "files": 5
+ },
+ {
+  "date": "2012-11-16T07:56:19Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1507,
+  "deletions": 1009,
+  "files": 19
+ },
+ {
+  "date": "2012-11-15T05:13:18Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 6,
+  "files": 1
+ },
+ {
+  "date": "2012-11-14T07:03:47Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 146,
+  "deletions": 78,
+  "files": 14
+ },
+ {
+  "date": "2012-11-14T06:39:50Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1505,
+  "deletions": 1009,
+  "files": 19
+ },
+ {
+  "date": "2012-11-09T10:48:44Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 197,
+  "deletions": 140,
+  "files": 2
+ },
+ {
+  "date": "2012-11-09T05:50:20Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 386,
+  "deletions": 3,
+  "files": 11
+ },
+ {
+  "date": "2012-11-07T15:56:02Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1669,
+  "deletions": 58,
+  "files": 40
+ },
+ {
+  "date": "2012-10-31T07:03:53Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 462,
+  "deletions": 138,
+  "files": 5
+ },
+ {
+  "date": "2012-10-30T22:31:28Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 7,
+  "deletions": 5,
+  "files": 4
+ },
+ {
+  "date": "2012-10-30T00:35:22Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1638,
+  "deletions": 807,
+  "files": 17
+ },
+ {
+  "date": "2012-10-27T13:00:42Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 459,
+  "deletions": 148,
+  "files": 7
+ },
+ {
+  "date": "2012-10-25T17:21:38Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 705,
+  "deletions": 91,
+  "files": 27
+ },
+ {
+  "date": "2012-10-25T15:39:41Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2012-10-25T11:21:15Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 665,
+  "deletions": 91,
+  "files": 27
+ },
+ {
+  "date": "2012-10-23T22:43:15Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 155,
+  "deletions": 217,
+  "files": 6
+ },
+ {
+  "date": "2012-10-23T19:32:00Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 173,
+  "deletions": 1,
+  "files": 3
+ },
+ {
+  "date": "2012-10-18T22:39:01Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 7,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2012-10-16T19:46:06Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 3412,
+  "deletions": 1623,
+  "files": 16
+ },
+ {
+  "date": "2012-10-15T18:02:32Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2012-10-13T05:47:24Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 532,
+  "deletions": 378,
+  "files": 5
+ },
+ {
+  "date": "2012-10-08T19:22:53Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 33,
+  "deletions": 8,
+  "files": 2
+ },
+ {
+  "date": "2012-10-03T17:42:10Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 24,
+  "deletions": 2,
+  "files": 3
+ },
+ {
+  "date": "2012-09-07T20:54:47Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 83,
+  "deletions": 31,
+  "files": 4
+ },
+ {
+  "date": "2012-09-06T00:10:47Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 66,
+  "deletions": 8,
+  "files": 3
+ },
+ {
+  "date": "2012-08-31T00:43:53Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 178,
+  "deletions": 199,
+  "files": 5
+ },
+ {
+  "date": "2012-08-27T18:23:16Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 0,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2012-08-25T01:51:13Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 29,
+  "deletions": 17,
+  "files": 6
+ },
+ {
+  "date": "2012-08-23T01:08:42Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 20,
+  "deletions": 2,
+  "files": 4
+ },
+ {
+  "date": "2012-08-23T01:05:16Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 32,
+  "deletions": 0,
+  "files": 4
+ },
+ {
+  "date": "2012-08-23T01:00:50Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 199,
+  "deletions": 135,
+  "files": 5
+ },
+ {
+  "date": "2012-08-22T01:04:52Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 174,
+  "deletions": 37,
+  "files": 6
+ },
+ {
+  "date": "2012-08-15T23:37:50Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2012-08-12T02:25:01Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 690,
+  "deletions": 108,
+  "files": 23
+ },
+ {
+  "date": "2012-08-05T00:29:52Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2012-08-04T09:15:22Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2012-08-03T23:54:12Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 6,
+  "deletions": 5,
+  "files": 4
+ },
+ {
+  "date": "2012-08-03T00:57:44Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 35,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2012-08-01T02:22:20Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 6,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2012-07-31T00:30:41Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 17,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2012-07-24T01:27:17Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 17,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2012-07-20T01:52:30Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 112,
+  "deletions": 10,
+  "files": 5
+ },
+ {
+  "date": "2012-07-19T18:52:02Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 107,
+  "deletions": 2220,
+  "files": 42
+ },
+ {
+  "date": "2012-07-19T18:47:25Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 8,
+  "deletions": 10,
+  "files": 2
+ },
+ {
+  "date": "2012-07-11T00:53:51Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 3,
+  "deletions": 18,
+  "files": 3
+ },
+ {
+  "date": "2012-07-10T18:09:25Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 3,
+  "deletions": 3,
+  "files": 1
+ },
+ {
+  "date": "2012-07-09T21:07:00Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 324,
+  "deletions": 60,
+  "files": 20
+ },
+ {
+  "date": "2012-06-30T22:05:46Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 209,
+  "deletions": 46,
+  "files": 6
+ },
+ {
+  "date": "2012-06-29T22:56:44Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 30,
+  "deletions": 22,
+  "files": 4
+ },
+ {
+  "date": "2012-06-26T00:28:33Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1045,
+  "deletions": 796,
+  "files": 33
+ },
+ {
+  "date": "2012-06-20T02:28:37Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 132,
+  "deletions": 25,
+  "files": 13
+ },
+ {
+  "date": "2012-06-19T19:00:01Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 150,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2012-06-19T09:50:45Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 150,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2012-06-19T00:44:58Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 719,
+  "deletions": 252,
+  "files": 23
+ },
+ {
+  "date": "2012-06-13T00:52:33Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 70,
+  "deletions": 17,
+  "files": 4
+ },
+ {
+  "date": "2012-06-12T23:06:54Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 14,
+  "deletions": 5,
+  "files": 3
+ },
+ {
+  "date": "2012-06-08T21:42:43Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1010,
+  "deletions": 638,
+  "files": 11
+ },
+ {
+  "date": "2012-06-08T00:04:00Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 951,
+  "deletions": 27,
+  "files": 21
+ },
+ {
+  "date": "2012-06-01T06:13:40Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 122,
+  "deletions": 33,
+  "files": 16
+ },
+ {
+  "date": "2012-05-26T08:05:03Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 378,
+  "deletions": 231,
+  "files": 8
+ },
+ {
+  "date": "2012-05-20T02:33:31Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 4,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2012-05-17T21:50:02Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 69,
+  "deletions": 19,
+  "files": 4
+ },
+ {
+  "date": "2012-05-17T21:45:18Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 6,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2012-05-15T18:21:22Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 84,
+  "deletions": 29,
+  "files": 8
+ },
+ {
+  "date": "2012-05-14T23:54:04Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 35,
+  "deletions": 2,
+  "files": 3
+ },
+ {
+  "date": "2012-05-14T23:43:01Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 64,
+  "deletions": 27,
+  "files": 1
+ },
+ {
+  "date": "2012-05-14T19:24:13Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 158,
+  "deletions": 27,
+  "files": 8
+ },
+ {
+  "date": "2012-05-12T22:54:53Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 254,
+  "deletions": 98,
+  "files": 5
+ },
+ {
+  "date": "2012-05-12T02:29:24Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 66,
+  "deletions": 18,
+  "files": 10
+ },
+ {
+  "date": "2012-05-12T00:48:02Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 44,
+  "deletions": 1,
+  "files": 3
+ },
+ {
+  "date": "2012-05-10T23:36:23Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 235,
+  "deletions": 377,
+  "files": 5
+ },
+ {
+  "date": "2012-05-10T23:35:36Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 6,
+  "deletions": 1,
+  "files": 2
+ },
+ {
+  "date": "2012-05-10T23:16:35Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 153,
+  "deletions": 0,
+  "files": 4
+ },
+ {
+  "date": "2012-05-09T23:50:56Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 24,
+  "deletions": 0,
+  "files": 4
+ },
+ {
+  "date": "2012-05-09T06:25:16Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 21,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2012-05-09T05:34:43Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 16,
+  "deletions": 2,
+  "files": 3
+ },
+ {
+  "date": "2012-05-08T18:20:19Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 30,
+  "deletions": 17,
+  "files": 11
+ },
+ {
+  "date": "2012-05-08T18:10:22Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 285,
+  "deletions": 109,
+  "files": 13
+ },
+ {
+  "date": "2012-05-07T20:39:22Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1,
+  "deletions": 13,
+  "files": 4
+ },
+ {
+  "date": "2012-05-04T04:02:48Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 29,
+  "deletions": 7,
+  "files": 3
+ },
+ {
+  "date": "2012-05-02T20:17:46Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 44,
+  "deletions": 6,
+  "files": 4
+ },
+ {
+  "date": "2012-05-02T06:04:28Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 393,
+  "deletions": 8,
+  "files": 6
+ },
+ {
+  "date": "2012-04-28T01:09:54Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 186,
+  "deletions": 8,
+  "files": 5
+ },
+ {
+  "date": "2012-04-24T22:11:06Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 33,
+  "deletions": 3,
+  "files": 3
+ },
+ {
+  "date": "2012-04-23T23:58:04Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2012-04-22T02:05:08Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 1,
+  "files": 2
+ },
+ {
+  "date": "2012-04-20T00:15:02Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2012-04-19T21:03:20Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 101,
+  "deletions": 12,
+  "files": 4
+ },
+ {
+  "date": "2012-04-18T02:40:03Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 6,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2012-04-13T05:50:30Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 15,
+  "deletions": 5,
+  "files": 3
+ },
+ {
+  "date": "2012-04-12T23:17:34Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 304,
+  "deletions": 0,
+  "files": 5
+ },
+ {
+  "date": "2012-04-10T05:48:28Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 10,
+  "deletions": 9,
+  "files": 1
+ },
+ {
+  "date": "2012-04-09T23:10:12Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 285,
+  "deletions": 109,
+  "files": 6
+ },
+ {
+  "date": "2012-04-06T22:08:45Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 43,
+  "deletions": 16,
+  "files": 4
+ },
+ {
+  "date": "2012-04-06T00:35:24Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 56,
+  "deletions": 21,
+  "files": 4
+ },
+ {
+  "date": "2012-04-05T21:47:13Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 82,
+  "deletions": 32,
+  "files": 9
+ },
+ {
+  "date": "2012-04-05T20:17:41Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 46,
+  "deletions": 18,
+  "files": 4
+ },
+ {
+  "date": "2012-04-05T20:04:02Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 5,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2012-04-05T08:15:20Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 40,
+  "deletions": 19,
+  "files": 4
+ },
+ {
+  "date": "2012-04-04T22:44:26Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 159,
+  "deletions": 235,
+  "files": 9
+ },
+ {
+  "date": "2012-04-04T21:33:49Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 156,
+  "deletions": 150,
+  "files": 8
+ },
+ {
+  "date": "2012-04-04T18:11:18Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 564,
+  "deletions": 310,
+  "files": 11
+ },
+ {
+  "date": "2012-04-03T16:04:22Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 565,
+  "deletions": 310,
+  "files": 11
+ },
+ {
+  "date": "2012-04-03T01:33:01Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2012-03-31T03:19:02Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 564,
+  "deletions": 309,
+  "files": 10
+ },
+ {
+  "date": "2012-03-30T10:38:21Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 125,
+  "deletions": 101,
+  "files": 5
+ },
+ {
+  "date": "2012-03-30T10:30:59Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 16,
+  "deletions": 19,
+  "files": 2
+ },
+ {
+  "date": "2012-03-29T01:51:40Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 24,
+  "deletions": 0,
+  "files": 9
+ },
+ {
+  "date": "2012-03-28T19:04:57Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 116,
+  "deletions": 0,
+  "files": 8
+ },
+ {
+  "date": "2012-03-28T02:08:28Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 69,
+  "deletions": 18,
+  "files": 8
+ },
+ {
+  "date": "2012-03-26T01:16:00Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 33,
+  "deletions": 7,
+  "files": 5
+ },
+ {
+  "date": "2012-03-24T21:54:50Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 0,
+  "deletions": 17,
+  "files": 6
+ },
+ {
+  "date": "2012-03-24T07:07:30Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 10,
+  "deletions": 8,
+  "files": 1
+ },
+ {
+  "date": "2012-03-23T02:33:40Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 25,
+  "deletions": 419,
+  "files": 26
+ },
+ {
+  "date": "2012-03-23T01:33:26Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 28,
+  "deletions": 126,
+  "files": 11
+ },
+ {
+  "date": "2012-03-22T19:37:33Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 50,
+  "deletions": 150,
+  "files": 7
+ },
+ {
+  "date": "2012-03-22T02:41:39Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2012-03-22T01:42:31Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1,
+  "deletions": 371,
+  "files": 19
+ },
+ {
+  "date": "2012-03-19T22:48:37Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 87,
+  "deletions": 19,
+  "files": 4
+ },
+ {
+  "date": "2012-03-19T21:24:22Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 0,
+  "deletions": 10,
+  "files": 1
+ },
+ {
+  "date": "2012-03-15T22:15:44Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 342,
+  "deletions": 7,
+  "files": 5
+ },
+ {
+  "date": "2012-03-15T09:10:57Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 52,
+  "deletions": 1,
+  "files": 4
+ },
+ {
+  "date": "2012-03-14T07:27:36Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 659,
+  "deletions": 442,
+  "files": 17
+ },
+ {
+  "date": "2012-03-14T03:40:31Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 3,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2012-03-14T03:22:53Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2012-03-13T01:54:19Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 38,
+  "deletions": 13,
+  "files": 7
+ },
+ {
+  "date": "2012-03-08T19:02:53Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2569,
+  "deletions": 418,
+  "files": 41
+ },
+ {
+  "date": "2012-02-27T18:45:34Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 753,
+  "deletions": 34,
+  "files": 17
+ },
+ {
+  "date": "2012-02-23T08:59:00Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 37,
+  "deletions": 14,
+  "files": 4
+ },
+ {
+  "date": "2012-02-22T03:44:12Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 368,
+  "deletions": 274,
+  "files": 9
+ },
+ {
+  "date": "2012-02-22T01:27:50Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 3,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2012-02-15T23:21:32Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 4,
+  "deletions": 36,
+  "files": 2
+ },
+ {
+  "date": "2012-02-14T05:08:14Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 114,
+  "deletions": 23,
+  "files": 8
+ },
+ {
+  "date": "2012-02-10T01:50:52Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 6,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2012-02-10T01:41:32Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 21,
+  "deletions": 2,
+  "files": 3
+ },
+ {
+  "date": "2012-02-09T03:47:51Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 5,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2012-02-09T02:39:41Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 0,
+  "deletions": 7,
+  "files": 1
+ },
+ {
+  "date": "2012-02-08T18:49:34Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 43,
+  "deletions": 3,
+  "files": 4
+ },
+ {
+  "date": "2012-02-08T01:47:07Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 3,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2012-02-07T09:22:24Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 499,
+  "deletions": 65,
+  "files": 3
+ },
+ {
+  "date": "2012-02-07T08:22:28Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 377,
+  "deletions": 165,
+  "files": 10
+ },
+ {
+  "date": "2012-02-07T04:57:15Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 125,
+  "deletions": 12,
+  "files": 5
+ },
+ {
+  "date": "2012-01-27T23:06:19Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2233,
+  "deletions": 1396,
+  "files": 26
+ },
+ {
+  "date": "2012-01-27T20:07:50Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 6,
+  "deletions": 153,
+  "files": 6
+ },
+ {
+  "date": "2012-01-27T10:14:46Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2232,
+  "deletions": 1396,
+  "files": 25
+ },
+ {
+  "date": "2012-01-27T08:59:01Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 181,
+  "deletions": 173,
+  "files": 2
+ },
+ {
+  "date": "2012-01-27T03:52:46Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 209,
+  "deletions": 926,
+  "files": 12
+ },
+ {
+  "date": "2012-01-25T23:31:41Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 9,
+  "deletions": 1,
+  "files": 2
+ },
+ {
+  "date": "2012-01-19T05:20:56Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 48,
+  "deletions": 13,
+  "files": 3
+ },
+ {
+  "date": "2012-01-19T05:20:44Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 112,
+  "deletions": 71,
+  "files": 5
+ },
+ {
+  "date": "2012-01-19T00:14:41Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 604,
+  "deletions": 577,
+  "files": 9
+ },
+ {
+  "date": "2012-01-18T20:47:15Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2012-01-18T03:25:10Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 12,
+  "deletions": 2,
+  "files": 3
+ },
+ {
+  "date": "2012-01-14T03:36:26Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 60,
+  "deletions": 10,
+  "files": 6
+ },
+ {
+  "date": "2012-01-12T00:26:04Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 26,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2012-01-11T21:36:24Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 24,
+  "deletions": 25,
+  "files": 1
+ },
+ {
+  "date": "2012-01-11T11:49:25Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 211,
+  "deletions": 11,
+  "files": 4
+ },
+ {
+  "date": "2012-01-11T01:05:49Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1092,
+  "deletions": 584,
+  "files": 6
+ },
+ {
+  "date": "2012-01-07T08:25:57Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 27,
+  "deletions": 3,
+  "files": 2
+ },
+ {
+  "date": "2012-01-06T01:07:13Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 59,
+  "deletions": 30,
+  "files": 1
+ },
+ {
+  "date": "2012-01-04T20:06:47Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 25,
+  "deletions": 29,
+  "files": 4
+ },
+ {
+  "date": "2011-12-23T13:12:14Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 116,
+  "deletions": 6,
+  "files": 4
+ },
+ {
+  "date": "2011-12-23T12:26:49Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 28,
+  "deletions": 3,
+  "files": 2
+ },
+ {
+  "date": "2011-12-23T03:31:08Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 85,
+  "deletions": 59,
+  "files": 3
+ },
+ {
+  "date": "2011-12-23T01:06:45Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 50,
+  "deletions": 3,
+  "files": 3
+ },
+ {
+  "date": "2011-12-22T14:18:55Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 50,
+  "deletions": 7,
+  "files": 2
+ },
+ {
+  "date": "2011-12-22T14:18:44Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 27,
+  "deletions": 1,
+  "files": 2
+ },
+ {
+  "date": "2011-12-21T11:21:39Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 15,
+  "deletions": 4,
+  "files": 2
+ },
+ {
+  "date": "2011-12-21T02:59:47Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 93,
+  "deletions": 42,
+  "files": 6
+ },
+ {
+  "date": "2011-12-20T08:26:51Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 395,
+  "deletions": 12,
+  "files": 7
+ },
+ {
+  "date": "2011-12-18T16:28:14Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2052,
+  "deletions": 33,
+  "files": 6
+ },
+ {
+  "date": "2011-12-15T21:10:07Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 12,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2011-12-15T05:37:57Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 111,
+  "deletions": 66,
+  "files": 11
+ },
+ {
+  "date": "2011-12-14T23:03:32Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 62,
+  "deletions": 10,
+  "files": 4
+ },
+ {
+  "date": "2011-12-14T21:03:15Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 207,
+  "deletions": 3,
+  "files": 4
+ },
+ {
+  "date": "2011-12-14T06:03:03Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 207,
+  "deletions": 3,
+  "files": 4
+ },
+ {
+  "date": "2011-12-13T08:04:52Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 59,
+  "deletions": 0,
+  "files": 9
+ },
+ {
+  "date": "2011-12-12T23:29:40Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 511,
+  "deletions": 541,
+  "files": 47
+ },
+ {
+  "date": "2011-12-09T01:49:56Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1037,
+  "deletions": 488,
+  "files": 2
+ },
+ {
+  "date": "2011-12-07T22:06:18Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 504,
+  "deletions": 541,
+  "files": 47
+ },
+ {
+  "date": "2011-12-06T19:31:09Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 485,
+  "deletions": 541,
+  "files": 47
+ },
+ {
+  "date": "2011-12-02T21:17:54Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 6,
+  "deletions": 6,
+  "files": 1
+ },
+ {
+  "date": "2011-12-02T03:53:26Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 444,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2011-12-01T04:25:48Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 141,
+  "deletions": 22,
+  "files": 4
+ },
+ {
+  "date": "2011-12-01T04:25:35Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 512,
+  "deletions": 242,
+  "files": 6
+ },
+ {
+  "date": "2011-11-30T04:39:26Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 3,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2011-11-11T10:43:10Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 327,
+  "deletions": 66,
+  "files": 12
+ },
+ {
+  "date": "2011-11-11T02:47:48Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 77,
+  "deletions": 0,
+  "files": 6
+ },
+ {
+  "date": "2011-11-05T03:35:19Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 0,
+  "deletions": 222,
+  "files": 5
+ },
+ {
+  "date": "2011-11-02T01:32:20Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2066,
+  "deletions": 575,
+  "files": 16
+ },
+ {
+  "date": "2011-11-01T03:29:11Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 50,
+  "deletions": 10,
+  "files": 4
+ },
+ {
+  "date": "2011-10-27T21:42:42Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 223,
+  "deletions": 1,
+  "files": 5
+ },
+ {
+  "date": "2011-10-27T08:48:55Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 49,
+  "deletions": 2,
+  "files": 5
+ },
+ {
+  "date": "2011-10-24T22:13:02Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 102,
+  "deletions": 5,
+  "files": 9
+ },
+ {
+  "date": "2011-10-19T21:45:53Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 127,
+  "deletions": 26,
+  "files": 9
+ },
+ {
+  "date": "2011-10-18T20:13:57Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 96,
+  "deletions": 18,
+  "files": 2
+ },
+ {
+  "date": "2011-10-17T21:16:28Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 61,
+  "deletions": 1,
+  "files": 2
+ },
+ {
+  "date": "2011-10-13T01:37:23Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 74,
+  "deletions": 3,
+  "files": 4
+ },
+ {
+  "date": "2011-09-27T21:40:57Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 0,
+  "deletions": 0,
+  "files": 3
+ },
+ {
+  "date": "2011-09-27T17:42:50Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 36,
+  "deletions": 9,
+  "files": 2
+ },
+ {
+  "date": "2011-09-09T21:48:30Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 137,
+  "deletions": 42,
+  "files": 2
+ },
+ {
+  "date": "2011-09-09T21:08:34Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 137,
+  "deletions": 42,
+  "files": 2
+ },
+ {
+  "date": "2011-09-09T18:56:02Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 125,
+  "deletions": 32,
+  "files": 2
+ },
+ {
+  "date": "2011-09-09T10:28:08Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 121,
+  "deletions": 32,
+  "files": 2
+ },
+ {
+  "date": "2011-09-08T07:34:43Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 925,
+  "deletions": 976,
+  "files": 4
+ },
+ {
+  "date": "2011-08-16T08:39:35Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 554,
+  "deletions": 150,
+  "files": 23
+ },
+ {
+  "date": "2011-08-12T05:06:06Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 0,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2011-08-12T04:51:22Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 155,
+  "deletions": 112,
+  "files": 32
+ },
+ {
+  "date": "2011-08-11T03:50:06Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 199,
+  "deletions": 8,
+  "files": 5
+ },
+ {
+  "date": "2011-08-08T23:25:39Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 7,
+  "deletions": 5,
+  "files": 2
+ },
+ {
+  "date": "2011-08-08T17:51:46Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 753,
+  "deletions": 96,
+  "files": 11
+ },
+ {
+  "date": "2011-08-08T16:47:05Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2011-08-04T20:04:04Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 3,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2011-08-01T08:20:12Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 462,
+  "deletions": 0,
+  "files": 6
+ },
+ {
+  "date": "2011-07-22T09:32:00Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2011-07-22T03:40:58Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2011-07-22T03:25:07Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 504,
+  "deletions": 40,
+  "files": 8
+ },
+ {
+  "date": "2011-07-13T23:16:14Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 301,
+  "deletions": 63,
+  "files": 6
+ },
+ {
+  "date": "2011-07-11T22:27:42Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 516,
+  "deletions": 11,
+  "files": 18
+ },
+ {
+  "date": "2011-07-11T18:50:00Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 31,
+  "deletions": 19,
+  "files": 2
+ },
+ {
+  "date": "2011-07-11T18:11:43Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 481,
+  "deletions": 258,
+  "files": 5
+ },
+ {
+  "date": "2011-07-07T23:28:11Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 201,
+  "deletions": 19,
+  "files": 12
+ },
+ {
+  "date": "2011-07-06T22:50:45Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 358,
+  "deletions": 95,
+  "files": 7
+ },
+ {
+  "date": "2011-06-29T23:11:58Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 11,
+  "deletions": 12,
+  "files": 1
+ },
+ {
+  "date": "2011-06-28T22:56:18Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 5,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2011-06-28T22:39:04Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 237,
+  "deletions": 27,
+  "files": 5
+ },
+ {
+  "date": "2011-06-28T16:08:56Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 553,
+  "deletions": 14,
+  "files": 20
+ },
+ {
+  "date": "2011-06-27T23:01:49Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 14,
+  "deletions": 553,
+  "files": 20
+ },
+ {
+  "date": "2011-06-27T22:34:47Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 553,
+  "deletions": 14,
+  "files": 20
+ },
+ {
+  "date": "2011-06-27T18:16:12Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 103,
+  "deletions": 70,
+  "files": 6
+ },
+ {
+  "date": "2011-06-20T23:46:25Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 0,
+  "deletions": 16,
+  "files": 1
+ },
+ {
+  "date": "2011-06-20T23:08:46Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1482,
+  "deletions": 162,
+  "files": 14
+ },
+ {
+  "date": "2011-06-14T23:39:53Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1969,
+  "deletions": 352,
+  "files": 21
+ },
+ {
+  "date": "2011-06-14T20:06:57Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1968,
+  "deletions": 352,
+  "files": 20
+ },
+ {
+  "date": "2011-06-14T16:01:52Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 839,
+  "deletions": 125,
+  "files": 12
+ },
+ {
+  "date": "2011-06-09T20:55:41Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 101,
+  "deletions": 1,
+  "files": 3
+ },
+ {
+  "date": "2011-06-09T00:58:30Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 101,
+  "deletions": 1,
+  "files": 3
+ },
+ {
+  "date": "2011-06-07T01:33:30Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 123,
+  "deletions": 39,
+  "files": 6
+ },
+ {
+  "date": "2011-06-07T01:31:04Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 20,
+  "deletions": 5,
+  "files": 1
+ },
+ {
+  "date": "2011-06-07T01:29:21Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 17,
+  "deletions": 6,
+  "files": 1
+ },
+ {
+  "date": "2011-06-04T02:51:37Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 33,
+  "deletions": 5,
+  "files": 1
+ },
+ {
+  "date": "2011-06-03T21:55:23Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1543,
+  "deletions": 1407,
+  "files": 7
+ },
+ {
+  "date": "2011-05-28T02:45:58Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 31,
+  "deletions": 10,
+  "files": 5
+ },
+ {
+  "date": "2011-05-26T23:50:53Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 15,
+  "deletions": 3,
+  "files": 2
+ },
+ {
+  "date": "2011-05-26T20:19:47Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 5,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2011-05-25T19:14:34Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 6,
+  "deletions": 3,
+  "files": 1
+ },
+ {
+  "date": "2011-05-25T06:54:54Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 0,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2011-05-24T19:37:35Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2036,
+  "deletions": 0,
+  "files": 19
+ },
+ {
+  "date": "2011-05-23T19:45:27Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 84,
+  "deletions": 123,
+  "files": 2
+ },
+ {
+  "date": "2011-05-23T18:26:31Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2032,
+  "deletions": 0,
+  "files": 18
+ },
+ {
+  "date": "2011-05-20T00:33:17Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 8,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2011-05-13T20:48:37Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 18,
+  "deletions": 22,
+  "files": 8
+ },
+ {
+  "date": "2011-05-12T23:36:24Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 273,
+  "deletions": 79,
+  "files": 8
+ },
+ {
+  "date": "2011-05-06T00:22:33Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2148,
+  "deletions": 2,
+  "files": 6
+ },
+ {
+  "date": "2011-04-29T16:19:57Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 337,
+  "deletions": 155,
+  "files": 11
+ },
+ {
+  "date": "2011-04-20T17:24:07Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 6,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2011-03-26T22:24:19Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 67,
+  "deletions": 2,
+  "files": 5
+ },
+ {
+  "date": "2011-03-25T18:35:36Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 474,
+  "deletions": 83,
+  "files": 10
+ },
+ {
+  "date": "2011-03-24T00:00:40Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 311,
+  "deletions": 9,
+  "files": 18
+ },
+ {
+  "date": "2011-03-23T16:07:46Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 112,
+  "deletions": 29,
+  "files": 6
+ },
+ {
+  "date": "2011-03-21T21:48:59Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 32,
+  "deletions": 11,
+  "files": 3
+ },
+ {
+  "date": "2011-03-19T00:51:27Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 85,
+  "deletions": 20,
+  "files": 8
+ },
+ {
+  "date": "2011-03-16T23:58:22Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 22,
+  "deletions": 11,
+  "files": 6
+ },
+ {
+  "date": "2011-03-15T00:27:57Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2011-03-10T18:37:56Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 123,
+  "deletions": 14,
+  "files": 4
+ },
+ {
+  "date": "2011-02-10T00:49:11Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2011-02-09T20:00:12Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 7,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2011-02-05T00:24:58Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 81,
+  "deletions": 111,
+  "files": 5
+ },
+ {
+  "date": "2011-02-04T19:49:49Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 24,
+  "deletions": 15,
+  "files": 2
+ },
+ {
+  "date": "2011-01-29T01:20:52Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 80,
+  "deletions": 57,
+  "files": 10
+ },
+ {
+  "date": "2011-01-21T23:47:13Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 12,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2011-01-20T00:17:34Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 19,
+  "deletions": 8,
+  "files": 3
+ },
+ {
+  "date": "2011-01-19T22:01:54Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 25,
+  "deletions": 4,
+  "files": 2
+ },
+ {
+  "date": "2011-01-07T23:04:31Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 147,
+  "deletions": 6,
+  "files": 2
+ },
+ {
+  "date": "2010-12-23T02:00:26Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 611,
+  "deletions": 172,
+  "files": 16
+ },
+ {
+  "date": "2010-12-21T20:45:03Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 97,
+  "deletions": 3,
+  "files": 3
+ },
+ {
+  "date": "2010-12-13T20:06:14Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 429,
+  "deletions": 97,
+  "files": 10
+ },
+ {
+  "date": "2010-12-13T18:46:45Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 50,
+  "deletions": 1,
+  "files": 2
+ },
+ {
+  "date": "2010-12-10T22:37:54Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 3,
+  "deletions": 3,
+  "files": 1
+ },
+ {
+  "date": "2010-12-10T20:50:13Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2010-12-07T16:41:28Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 108,
+  "deletions": 14,
+  "files": 9
+ },
+ {
+  "date": "2010-12-07T16:38:35Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 12,
+  "deletions": 22,
+  "files": 3
+ },
+ {
+  "date": "2010-12-03T22:28:52Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 31,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2010-12-03T22:07:29Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 24,
+  "deletions": 15,
+  "files": 4
+ },
+ {
+  "date": "2010-11-24T19:32:50Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 118,
+  "deletions": 23,
+  "files": 12
+ },
+ {
+  "date": "2010-11-18T22:53:06Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 414,
+  "deletions": 420,
+  "files": 22
+ },
+ {
+  "date": "2010-11-18T18:43:40Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 249,
+  "deletions": 44,
+  "files": 8
+ },
+ {
+  "date": "2010-11-16T19:19:39Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 115,
+  "deletions": 3,
+  "files": 16
+ },
+ {
+  "date": "2010-11-13T01:07:06Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 11,
+  "deletions": 0,
+  "files": 4
+ },
+ {
+  "date": "2010-11-12T22:01:53Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 4,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2010-11-12T00:51:48Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 12,
+  "deletions": 27,
+  "files": 4
+ },
+ {
+  "date": "2010-11-12T00:51:34Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 339,
+  "deletions": 50,
+  "files": 12
+ },
+ {
+  "date": "2010-11-11T20:33:21Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 6,
+  "deletions": 3,
+  "files": 1
+ },
+ {
+  "date": "2010-11-09T19:45:24Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 53,
+  "deletions": 12,
+  "files": 9
+ },
+ {
+  "date": "2010-11-04T20:32:06Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1,
+  "deletions": 3,
+  "files": 2
+ },
+ {
+  "date": "2010-11-04T19:27:49Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 122,
+  "deletions": 35,
+  "files": 6
+ },
+ {
+  "date": "2010-11-04T16:06:33Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 199,
+  "deletions": 266,
+  "files": 7
+ },
+ {
+  "date": "2010-10-27T19:39:39Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 11,
+  "deletions": 7,
+  "files": 4
+ },
+ {
+  "date": "2010-10-20T21:38:27Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 57,
+  "deletions": 16,
+  "files": 10
+ },
+ {
+  "date": "2010-10-19T06:44:39Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 384,
+  "deletions": 231,
+  "files": 34
+ },
+ {
+  "date": "2010-09-30T21:29:11Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1081,
+  "deletions": 786,
+  "files": 20
+ },
+ {
+  "date": "2010-09-23T20:56:10Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 335,
+  "deletions": 37,
+  "files": 13
+ },
+ {
+  "date": "2010-09-17T22:00:46Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 23,
+  "deletions": 4,
+  "files": 4
+ },
+ {
+  "date": "2010-08-31T21:39:18Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 3,
+  "deletions": 2,
+  "files": 3
+ },
+ {
+  "date": "2010-08-27T00:16:16Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 10,
+  "deletions": 5,
+  "files": 1
+ },
+ {
+  "date": "2010-08-26T23:12:35Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 44,
+  "deletions": 31,
+  "files": 3
+ },
+ {
+  "date": "2010-08-26T20:24:29Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 15,
+  "deletions": 1,
+  "files": 2
+ },
+ {
+  "date": "2010-08-26T02:16:31Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 35,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2010-08-26T00:08:47Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 189,
+  "deletions": 9,
+  "files": 6
+ },
+ {
+  "date": "2010-08-24T18:55:49Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 288,
+  "deletions": 173,
+  "files": 12
+ },
+ {
+  "date": "2010-08-23T18:46:30Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 665,
+  "deletions": 62,
+  "files": 18
+ },
+ {
+  "date": "2010-08-20T18:03:24Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 24,
+  "deletions": 135,
+  "files": 1
+ },
+ {
+  "date": "2010-08-12T09:22:09Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 40,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2010-08-12T04:10:31Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 20,
+  "deletions": 11,
+  "files": 4
+ },
+ {
+  "date": "2010-08-12T01:55:57Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 261,
+  "deletions": 153,
+  "files": 4
+ },
+ {
+  "date": "2010-08-06T01:12:28Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 629,
+  "deletions": 17,
+  "files": 10
+ },
+ {
+  "date": "2010-08-04T18:27:18Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 39,
+  "deletions": 44,
+  "files": 5
+ },
+ {
+  "date": "2010-07-31T17:10:43Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 473,
+  "deletions": 21,
+  "files": 9
+ },
+ {
+  "date": "2010-07-28T02:35:20Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 12,
+  "deletions": 6,
+  "files": 2
+ },
+ {
+  "date": "2010-07-20T17:48:25Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 242,
+  "deletions": 15,
+  "files": 8
+ },
+ {
+  "date": "2010-07-19T08:29:16Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 13,
+  "deletions": 0,
+  "files": 3
+ },
+ {
+  "date": "2010-07-16T02:41:58Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 455,
+  "deletions": 133,
+  "files": 14
+ },
+ {
+  "date": "2010-07-16T00:16:21Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 16,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2010-07-15T21:52:33Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 29,
+  "deletions": 10,
+  "files": 3
+ },
+ {
+  "date": "2010-07-15T21:35:27Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 474,
+  "deletions": 467,
+  "files": 3
+ },
+ {
+  "date": "2010-07-14T01:43:00Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1059,
+  "deletions": 37,
+  "files": 16
+ },
+ {
+  "date": "2010-07-02T00:23:37Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 9,
+  "deletions": 1,
+  "files": 4
+ },
+ {
+  "date": "2010-07-01T22:41:16Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 371,
+  "deletions": 2,
+  "files": 24
+ },
+ {
+  "date": "2010-06-15T22:55:05Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 785,
+  "deletions": 803,
+  "files": 9
+ },
+ {
+  "date": "2010-06-14T18:54:41Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 161,
+  "deletions": 56,
+  "files": 12
+ },
+ {
+  "date": "2010-06-09T18:35:03Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 5,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2010-06-07T17:58:32Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 197,
+  "deletions": 31,
+  "files": 7
+ },
+ {
+  "date": "2010-06-03T16:15:47Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 75,
+  "deletions": 40,
+  "files": 4
+ },
+ {
+  "date": "2010-06-02T23:12:25Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 183,
+  "deletions": 75,
+  "files": 4
+ },
+ {
+  "date": "2010-06-01T23:07:21Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2010-05-19T21:01:48Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 224,
+  "deletions": 85,
+  "files": 13
+ },
+ {
+  "date": "2010-05-18T23:25:17Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 85,
+  "deletions": 224,
+  "files": 13
+ },
+ {
+  "date": "2010-05-18T23:12:20Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 224,
+  "deletions": 85,
+  "files": 13
+ },
+ {
+  "date": "2010-05-18T22:49:47Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 84,
+  "deletions": 223,
+  "files": 13
+ },
+ {
+  "date": "2010-05-18T22:34:22Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 223,
+  "deletions": 84,
+  "files": 13
+ },
+ {
+  "date": "2010-05-17T23:04:24Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 992,
+  "deletions": 475,
+  "files": 11
+ },
+ {
+  "date": "2010-05-17T19:24:18Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 169,
+  "deletions": 113,
+  "files": 17
+ },
+ {
+  "date": "2010-05-17T14:47:16Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 443,
+  "deletions": 36,
+  "files": 16
+ },
+ {
+  "date": "2010-05-13T20:49:10Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 391,
+  "deletions": 67,
+  "files": 8
+ },
+ {
+  "date": "2010-05-12T17:05:13Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 61,
+  "deletions": 56,
+  "files": 19
+ },
+ {
+  "date": "2010-05-12T17:04:08Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 228,
+  "deletions": 78,
+  "files": 5
+ },
+ {
+  "date": "2010-05-11T15:28:34Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 12,
+  "deletions": 8,
+  "files": 1
+ },
+ {
+  "date": "2010-05-10T16:21:28Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2010-05-07T23:35:31Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 403,
+  "deletions": 176,
+  "files": 22
+ },
+ {
+  "date": "2010-05-07T17:18:37Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 104,
+  "deletions": 23,
+  "files": 12
+ },
+ {
+  "date": "2010-05-06T16:13:58Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 318,
+  "deletions": 95,
+  "files": 19
+ },
+ {
+  "date": "2010-05-03T23:40:19Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2010-05-03T19:14:10Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 900,
+  "deletions": 99,
+  "files": 29
+ },
+ {
+  "date": "2010-04-30T00:18:23Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 0,
+  "deletions": 6,
+  "files": 1
+ },
+ {
+  "date": "2010-04-30T00:17:36Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 39,
+  "deletions": 16,
+  "files": 3
+ },
+ {
+  "date": "2010-04-29T03:38:29Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 583,
+  "deletions": 428,
+  "files": 7
+ },
+ {
+  "date": "2010-04-28T19:44:59Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 576,
+  "deletions": 18,
+  "files": 6
+ },
+ {
+  "date": "2010-04-27T19:19:36Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 319,
+  "deletions": 312,
+  "files": 4
+ },
+ {
+  "date": "2010-04-27T00:48:03Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 905,
+  "deletions": 1015,
+  "files": 34
+ },
+ {
+  "date": "2010-04-26T20:41:34Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 312,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2010-04-22T05:17:15Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 256,
+  "deletions": 114,
+  "files": 11
+ },
+ {
+  "date": "2010-04-21T19:07:28Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 20,
+  "deletions": 5,
+  "files": 2
+ },
+ {
+  "date": "2010-04-21T00:49:13Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 143,
+  "deletions": 50,
+  "files": 6
+ },
+ {
+  "date": "2010-04-14T01:26:04Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 20,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2010-04-13T09:04:23Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2178,
+  "deletions": 170,
+  "files": 24
+ },
+ {
+  "date": "2010-04-13T08:26:55Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 170,
+  "deletions": 2178,
+  "files": 24
+ },
+ {
+  "date": "2010-04-13T08:12:28Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2178,
+  "deletions": 170,
+  "files": 24
+ },
+ {
+  "date": "2010-04-12T17:23:58Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 414,
+  "deletions": 14,
+  "files": 17
+ },
+ {
+  "date": "2010-04-12T02:42:08Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 278,
+  "deletions": 57,
+  "files": 5
+ },
+ {
+  "date": "2010-04-07T02:54:54Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 89,
+  "deletions": 24,
+  "files": 5
+ },
+ {
+  "date": "2010-04-01T04:39:23Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 21,
+  "deletions": 5,
+  "files": 1
+ },
+ {
+  "date": "2010-03-31T02:56:21Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2207,
+  "deletions": 1,
+  "files": 2
+ },
+ {
+  "date": "2010-03-25T02:57:58Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 475,
+  "deletions": 103,
+  "files": 12
+ },
+ {
+  "date": "2010-03-24T07:02:54Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1212,
+  "deletions": 426,
+  "files": 25
+ },
+ {
+  "date": "2010-03-19T01:57:56Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 486,
+  "deletions": 8,
+  "files": 6
+ },
+ {
+  "date": "2010-03-17T21:16:55Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1099,
+  "deletions": 226,
+  "files": 13
+ },
+ {
+  "date": "2010-03-16T07:34:45Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 556,
+  "deletions": 41,
+  "files": 16
+ },
+ {
+  "date": "2010-03-11T00:13:56Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 90,
+  "deletions": 19,
+  "files": 3
+ },
+ {
+  "date": "2010-03-11T00:07:59Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 81,
+  "deletions": 25,
+  "files": 3
+ },
+ {
+  "date": "2010-03-09T19:36:32Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 25,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2010-03-08T22:58:58Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 226,
+  "deletions": 676,
+  "files": 35
+ },
+ {
+  "date": "2010-03-08T18:21:00Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 5,
+  "deletions": 1,
+  "files": 2
+ },
+ {
+  "date": "2010-03-08T18:20:10Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 26,
+  "deletions": 4,
+  "files": 3
+ },
+ {
+  "date": "2010-03-05T08:14:11Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 407,
+  "deletions": 117,
+  "files": 8
+ },
+ {
+  "date": "2010-03-05T05:16:23Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 117,
+  "deletions": 407,
+  "files": 8
+ },
+ {
+  "date": "2010-03-05T05:04:28Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 407,
+  "deletions": 117,
+  "files": 8
+ },
+ {
+  "date": "2010-03-05T00:33:18Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 497,
+  "deletions": 164,
+  "files": 7
+ },
+ {
+  "date": "2010-03-02T00:44:29Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 747,
+  "deletions": 559,
+  "files": 18
+ },
+ {
+  "date": "2010-02-27T11:01:53Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2010-02-27T07:43:43Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 559,
+  "deletions": 747,
+  "files": 18
+ },
+ {
+  "date": "2010-02-27T07:21:31Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2010-02-27T06:20:40Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 747,
+  "deletions": 559,
+  "files": 18
+ },
+ {
+  "date": "2010-02-27T03:02:07Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2010-02-27T01:33:44Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 747,
+  "deletions": 559,
+  "files": 18
+ },
+ {
+  "date": "2010-02-25T21:36:12Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 671,
+  "deletions": 24,
+  "files": 5
+ },
+ {
+  "date": "2010-02-25T03:20:50Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 4664,
+  "deletions": 3692,
+  "files": 33
+ },
+ {
+  "date": "2010-02-24T21:54:25Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 86,
+  "deletions": 20,
+  "files": 6
+ },
+ {
+  "date": "2010-02-24T01:26:57Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 58,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2010-02-18T18:12:41Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 3,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2010-02-17T04:51:40Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 383,
+  "deletions": 23,
+  "files": 7
+ },
+ {
+  "date": "2010-02-17T04:51:05Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 6,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2010-02-16T23:33:28Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 7,
+  "deletions": 7,
+  "files": 1
+ },
+ {
+  "date": "2010-02-16T23:03:47Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1955,
+  "deletions": 538,
+  "files": 21
+ },
+ {
+  "date": "2010-02-12T00:11:31Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 284,
+  "deletions": 97,
+  "files": 9
+ },
+ {
+  "date": "2010-02-05T23:02:25Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1359,
+  "deletions": 507,
+  "files": 16
+ },
+ {
+  "date": "2010-02-03T01:11:37Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 413,
+  "deletions": 28,
+  "files": 6
+ },
+ {
+  "date": "2010-02-02T22:12:03Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 3,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2010-02-02T19:39:27Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 17,
+  "deletions": 8,
+  "files": 2
+ },
+ {
+  "date": "2010-01-29T04:21:36Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 185,
+  "deletions": 164,
+  "files": 8
+ },
+ {
+  "date": "2010-01-28T21:50:24Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 265,
+  "deletions": 112,
+  "files": 13
+ },
+ {
+  "date": "2010-01-13T22:06:46Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 778,
+  "deletions": 194,
+  "files": 6
+ },
+ {
+  "date": "2010-01-13T20:06:09Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 20,
+  "deletions": 8,
+  "files": 3
+ },
+ {
+  "date": "2010-01-13T00:30:04Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2010-01-08T23:41:22Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2010-01-08T23:41:11Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1938,
+  "deletions": 1172,
+  "files": 28
+ },
+ {
+  "date": "2010-01-06T03:22:00Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2010-01-05T00:21:24Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 4527,
+  "deletions": 889,
+  "files": 18
+ },
+ {
+  "date": "2009-12-23T08:57:42Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1174,
+  "deletions": 119,
+  "files": 12
+ },
+ {
+  "date": "2009-12-22T02:46:30Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 895,
+  "deletions": 542,
+  "files": 3
+ },
+ {
+  "date": "2009-12-17T03:04:38Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 8,
+  "deletions": 9,
+  "files": 1
+ },
+ {
+  "date": "2009-12-17T03:04:33Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 761,
+  "deletions": 724,
+  "files": 23
+ },
+ {
+  "date": "2009-12-16T23:35:21Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 5,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2009-12-16T21:00:38Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 3,
+  "deletions": 8,
+  "files": 1
+ },
+ {
+  "date": "2009-12-16T18:19:46Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2397,
+  "deletions": 2632,
+  "files": 10
+ },
+ {
+  "date": "2009-12-10T09:30:28Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 674,
+  "deletions": 76,
+  "files": 6
+ },
+ {
+  "date": "2009-12-08T23:28:25Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 10,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2009-12-08T22:35:43Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 70,
+  "deletions": 5,
+  "files": 3
+ },
+ {
+  "date": "2009-12-08T21:49:17Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2009-12-08T20:49:31Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 22,
+  "deletions": 1,
+  "files": 2
+ },
+ {
+  "date": "2009-12-08T02:59:25Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 15,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2009-12-05T01:25:21Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 215,
+  "deletions": 169,
+  "files": 4
+ },
+ {
+  "date": "2009-12-04T21:17:40Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 34,
+  "deletions": 11,
+  "files": 6
+ },
+ {
+  "date": "2009-12-04T04:15:21Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 57,
+  "deletions": 56,
+  "files": 1
+ },
+ {
+  "date": "2009-12-04T02:03:59Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2009-12-03T00:37:50Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 5,
+  "deletions": 5,
+  "files": 1
+ },
+ {
+  "date": "2009-12-03T00:35:52Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 848,
+  "deletions": 374,
+  "files": 6
+ },
+ {
+  "date": "2009-12-03T00:30:36Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 307,
+  "deletions": 128,
+  "files": 8
+ },
+ {
+  "date": "2009-12-01T00:35:14Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2009-11-30T23:02:18Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 111,
+  "deletions": 131,
+  "files": 2
+ },
+ {
+  "date": "2009-11-30T23:02:03Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 33,
+  "deletions": 28,
+  "files": 2
+ },
+ {
+  "date": "2009-11-25T03:01:40Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 491,
+  "deletions": 426,
+  "files": 4
+ },
+ {
+  "date": "2009-11-25T02:42:56Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 151,
+  "deletions": 76,
+  "files": 4
+ },
+ {
+  "date": "2009-11-24T19:10:31Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 244,
+  "deletions": 204,
+  "files": 5
+ },
+ {
+  "date": "2009-11-24T00:53:52Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1728,
+  "deletions": 1289,
+  "files": 18
+ },
+ {
+  "date": "2009-11-19T21:24:02Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2005,
+  "deletions": 1350,
+  "files": 28
+ },
+ {
+  "date": "2009-11-18T23:34:21Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2024-06-12T21:46:04Z",
+  "kind": "author",
+  "peers": [
+   "enga@chromium.org"
+  ],
+  "additions": 7,
+  "deletions": 3,
+  "files": 1
+ },
+ {
+  "date": "2024-11-08T19:35:21Z",
+  "kind": "author",
+  "peers": [
+   "bajones@chromium.org"
+  ],
+  "additions": 11,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2024-12-20T15:22:32Z",
+  "kind": "review",
+  "peers": [
+   "aaronhk@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 115,
+  "files": 5
+ },
+ {
+  "date": "2024-12-18T17:46:56Z",
+  "kind": "review",
+  "peers": [
+   "neis@chromium.org"
+  ],
+  "additions": 6,
+  "deletions": 141,
+  "files": 14
+ },
+ {
+  "date": "2025-01-03T17:51:44Z",
+  "kind": "author",
+  "peers": [
+   "bajones@chromium.org"
+  ],
+  "additions": 29,
+  "deletions": 1,
+  "files": 7
+ },
+ {
+  "date": "2025-01-15T08:46:16Z",
+  "kind": "review",
+  "peers": [
+   "shaoboyan@microsoft.com"
+  ],
+  "additions": 20,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2025-02-11T23:33:15Z",
+  "kind": "review",
+  "peers": [
+   "kbr@chromium.org"
+  ],
+  "additions": 152,
+  "deletions": 1245,
+  "files": 28
+ },
+ {
+  "date": "2025-06-11T19:49:09Z",
+  "kind": "author",
+  "peers": [
+   "cwallez@chromium.org",
+   "kainino@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2025-08-04T17:16:53Z",
+  "kind": "review",
+  "peers": [
+   "kbr@chromium.org"
+  ],
+  "additions": 305,
+  "deletions": 130,
+  "files": 114
+ },
+ {
+  "date": "2025-10-13T09:35:43Z",
+  "kind": "author",
+  "peers": [
+   "cwallez@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2026-01-09T00:03:32Z",
+  "kind": "author",
+  "peers": [
+   "cwallez@chromium.org",
+   "senorblanco@chromium.org",
+   "kainino@chromium.org"
+  ],
+  "additions": 60,
+  "deletions": 0,
+  "files": 11
+ }
+]

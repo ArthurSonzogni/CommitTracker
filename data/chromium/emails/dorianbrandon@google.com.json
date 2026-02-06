@@ -1,0 +1,938 @@
+[
+ {
+  "date": "2024-01-22T19:00:24Z",
+  "kind": "author",
+  "peers": [
+   "bzielinski@google.com",
+   "anasr@google.com",
+   "llin@chromium.org"
+  ],
+  "additions": 52,
+  "deletions": 23,
+  "files": 3
+ },
+ {
+  "date": "2023-11-29T22:43:52Z",
+  "kind": "author",
+  "peers": [
+   "bzielinski@google.com",
+   "anasr@google.com"
+  ],
+  "additions": 16,
+  "deletions": 0,
+  "files": 5
+ },
+ {
+  "date": "2023-08-26T04:30:50Z",
+  "kind": "author",
+  "peers": [
+   "gavinwill@chromium.org"
+  ],
+  "additions": 13,
+  "deletions": 13,
+  "files": 1
+ },
+ {
+  "date": "2023-04-21T18:03:47Z",
+  "kind": "author",
+  "peers": [
+   "dcheng@chromium.org",
+   "takumif@chromium.org",
+   "jophba@chromium.org",
+   "sergeyu@chromium.org"
+  ],
+  "additions": 200,
+  "deletions": 32,
+  "files": 17
+ },
+ {
+  "date": "2023-04-13T20:26:08Z",
+  "kind": "author",
+  "peers": [
+   "jophba@chromium.org"
+  ],
+  "additions": 13,
+  "deletions": 52,
+  "files": 3
+ },
+ {
+  "date": "2023-04-13T16:34:59Z",
+  "kind": "author",
+  "peers": [
+   "takumif@chromium.org",
+   "bzielinski@google.com"
+  ],
+  "additions": 122,
+  "deletions": 7,
+  "files": 6
+ },
+ {
+  "date": "2023-04-01T00:33:39Z",
+  "kind": "author",
+  "peers": [
+   "mfoltz@chromium.org",
+   "tmathmeyer@chromium.org"
+  ],
+  "additions": 155,
+  "deletions": 10,
+  "files": 5
+ },
+ {
+  "date": "2023-03-02T00:35:00Z",
+  "kind": "author",
+  "peers": [
+   "bzielinski@google.com"
+  ],
+  "additions": 6,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2023-02-24T18:03:52Z",
+  "kind": "author",
+  "peers": [
+   "takumif@chromium.org",
+   "bzielinski@google.com"
+  ],
+  "additions": 12,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2023-02-03T23:06:34Z",
+  "kind": "author",
+  "peers": [
+   "gbj@google.com",
+   "bzielinski@google.com"
+  ],
+  "additions": 0,
+  "deletions": 28,
+  "files": 4
+ },
+ {
+  "date": "2024-07-03T23:29:58Z",
+  "kind": "author",
+  "peers": [
+   "bzielinski@google.com",
+   "anasr@google.com"
+  ],
+  "additions": 13,
+  "deletions": 1,
+  "files": 2
+ },
+ {
+  "date": "2024-07-18T22:42:40Z",
+  "kind": "author",
+  "peers": [
+   "bzielinski@google.com",
+   "anasr@google.com"
+  ],
+  "additions": 15,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2024-08-22T01:48:36Z",
+  "kind": "author",
+  "peers": [
+   "avynn@google.com",
+   "anasr@google.com",
+   "aprilzhou@google.com"
+  ],
+  "additions": 68,
+  "deletions": 0,
+  "files": 3
+ },
+ {
+  "date": "2024-09-20T19:21:33Z",
+  "kind": "author",
+  "peers": [
+   "bzielinski@google.com",
+   "anasr@google.com"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2024-10-08T18:18:27Z",
+  "kind": "author",
+  "peers": [
+   "aprilzhou@google.com",
+   "avynn@google.com"
+  ],
+  "additions": 37,
+  "deletions": 8,
+  "files": 4
+ },
+ {
+  "date": "2024-10-07T19:20:34Z",
+  "kind": "author",
+  "peers": [
+   "vshenvi@google.com",
+   "aprilzhou@google.com"
+  ],
+  "additions": 22,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2024-10-07T10:24:54Z",
+  "kind": "author",
+  "peers": [
+   "avynn@google.com",
+   "bsazonov@chromium.org"
+  ],
+  "additions": 22,
+  "deletions": 0,
+  "files": 6
+ },
+ {
+  "date": "2024-10-14T18:21:36Z",
+  "kind": "author",
+  "peers": [
+   "aprilzhou@google.com",
+   "avynn@google.com",
+   "evliu@google.com",
+   "anasr@google.com"
+  ],
+  "additions": 26,
+  "deletions": 13,
+  "files": 7
+ },
+ {
+  "date": "2024-10-11T19:18:46Z",
+  "kind": "author",
+  "peers": [
+   "evliu@google.com",
+   "chiav@chromium.org"
+  ],
+  "additions": 282,
+  "deletions": 185,
+  "files": 6
+ },
+ {
+  "date": "2024-10-09T20:39:54Z",
+  "kind": "author",
+  "peers": [
+   "bsazonov@chromium.org"
+  ],
+  "additions": 22,
+  "deletions": 0,
+  "files": 6
+ },
+ {
+  "date": "2024-10-09T18:19:48Z",
+  "kind": "author",
+  "peers": [
+   "avynn@google.com",
+   "bsazonov@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2024-10-18T14:17:30Z",
+  "kind": "author",
+  "peers": [
+   "estade@chromium.org",
+   "evliu@google.com"
+  ],
+  "additions": 19,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2024-11-08T01:37:10Z",
+  "kind": "author",
+  "peers": [
+   "anasr@google.com",
+   "aprilzhou@google.com"
+  ],
+  "additions": 60,
+  "deletions": 3,
+  "files": 5
+ },
+ {
+  "date": "2024-11-07T02:01:28Z",
+  "kind": "author",
+  "peers": [
+   "vshenvi@google.com",
+   "aprilzhou@google.com"
+  ],
+  "additions": 428,
+  "deletions": 96,
+  "files": 21
+ },
+ {
+  "date": "2024-11-06T22:03:37Z",
+  "kind": "author",
+  "peers": [
+   "evliu@google.com",
+   "perrier@chromium.org",
+   "dfried@chromium.org",
+   "tluk@chromium.org"
+  ],
+  "additions": 601,
+  "deletions": 185,
+  "files": 17
+ },
+ {
+  "date": "2024-12-17T19:00:46Z",
+  "kind": "author",
+  "peers": [
+   "anasr@google.com",
+   "aprilzhou@google.com",
+   "bzielinski@google.com"
+  ],
+  "additions": 1,
+  "deletions": 15,
+  "files": 1
+ },
+ {
+  "date": "2024-12-13T08:01:46Z",
+  "kind": "author",
+  "peers": [
+   "aprilzhou@google.com",
+   "bzielinski@google.com"
+  ],
+  "additions": 15,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2024-12-19T00:07:01Z",
+  "kind": "author",
+  "peers": [
+   "aprilzhou@google.com",
+   "bzielinski@google.com"
+  ],
+  "additions": 16,
+  "deletions": 16,
+  "files": 6
+ },
+ {
+  "date": "2025-01-04T00:40:52Z",
+  "kind": "author",
+  "peers": [
+   "aprilzhou@google.com",
+   "bzielinski@google.com"
+  ],
+  "additions": 190,
+  "deletions": 44,
+  "files": 9
+ },
+ {
+  "date": "2025-01-21T19:21:44Z",
+  "kind": "author",
+  "peers": [
+   "aprilzhou@google.com",
+   "anqing@chromium.org"
+  ],
+  "additions": 984,
+  "deletions": 24,
+  "files": 27
+ },
+ {
+  "date": "2025-01-23T18:38:35Z",
+  "kind": "author",
+  "peers": [
+   "aprilzhou@google.com",
+   "bzielinski@google.com"
+  ],
+  "additions": 586,
+  "deletions": 15,
+  "files": 8
+ },
+ {
+  "date": "2025-01-22T04:49:17Z",
+  "kind": "author",
+  "peers": [
+   "bzielinski@google.com",
+   "aprilzhou@google.com",
+   "chadduffin@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-01-28T22:36:36Z",
+  "kind": "author",
+  "peers": [
+   "bzielinski@google.com",
+   "michelefan@chromium.org"
+  ],
+  "additions": 13,
+  "deletions": 13,
+  "files": 1
+ },
+ {
+  "date": "2025-01-29T18:38:26Z",
+  "kind": "author",
+  "peers": [
+   "wfh@chromium.org",
+   "bzielinski@google.com"
+  ],
+  "additions": 94,
+  "deletions": 3,
+  "files": 7
+ },
+ {
+  "date": "2025-02-21T05:13:12Z",
+  "kind": "author",
+  "peers": [
+   "vshenvi@google.com",
+   "amehfooz@chromium.org"
+  ],
+  "additions": 416,
+  "deletions": 14,
+  "files": 15
+ },
+ {
+  "date": "2025-02-28T22:55:37Z",
+  "kind": "author",
+  "peers": [
+   "aprilzhou@google.com",
+   "wfh@chromium.org"
+  ],
+  "additions": 102,
+  "deletions": 1,
+  "files": 7
+ },
+ {
+  "date": "2025-03-18T18:36:00Z",
+  "kind": "author",
+  "peers": [
+   "joedow@chromium.org"
+  ],
+  "additions": 145,
+  "deletions": 120,
+  "files": 11
+ },
+ {
+  "date": "2025-03-25T19:06:24Z",
+  "kind": "review",
+  "peers": [
+   "bzielinski@google.com"
+  ],
+  "additions": 1,
+  "deletions": 16,
+  "files": 2
+ },
+ {
+  "date": "2025-03-21T22:19:22Z",
+  "kind": "author",
+  "peers": [
+   "bzielinski@google.com"
+  ],
+  "additions": 2,
+  "deletions": 18,
+  "files": 2
+ },
+ {
+  "date": "2025-03-20T02:45:41Z",
+  "kind": "author",
+  "peers": [
+   "aprilzhou@google.com",
+   "macinashutosh@google.com",
+   "thakis@chromium.org"
+  ],
+  "additions": 863,
+  "deletions": 425,
+  "files": 31
+ },
+ {
+  "date": "2025-04-01T18:07:41Z",
+  "kind": "author",
+  "peers": [
+   "jeroendh@google.com"
+  ],
+  "additions": 225,
+  "deletions": 4,
+  "files": 22
+ },
+ {
+  "date": "2025-03-31T19:16:55Z",
+  "kind": "author",
+  "peers": [
+   "jeroendh@google.com",
+   "macinashutosh@google.com",
+   "aprilzhou@google.com",
+   "joedow@chromium.org"
+  ],
+  "additions": 287,
+  "deletions": 24,
+  "files": 17
+ },
+ {
+  "date": "2025-03-27T16:53:35Z",
+  "kind": "author",
+  "peers": [
+   "bzielinski@google.com"
+  ],
+  "additions": 15,
+  "deletions": 22,
+  "files": 4
+ },
+ {
+  "date": "2025-03-26T18:55:20Z",
+  "kind": "author",
+  "peers": [
+   "aprilzhou@google.com"
+  ],
+  "additions": 14,
+  "deletions": 64,
+  "files": 5
+ },
+ {
+  "date": "2025-04-08T18:09:28Z",
+  "kind": "author",
+  "peers": [
+   "joedow@chromium.org"
+  ],
+  "additions": 9,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2025-04-05T22:46:21Z",
+  "kind": "author",
+  "peers": [
+   "joedow@chromium.org",
+   "aprilzhou@google.com",
+   "jeroendh@google.com"
+  ],
+  "additions": 373,
+  "deletions": 54,
+  "files": 19
+ },
+ {
+  "date": "2025-04-15T18:48:10Z",
+  "kind": "author",
+  "peers": [
+   "bzielinski@google.com",
+   "aprilzhou@google.com"
+  ],
+  "additions": 651,
+  "deletions": 58,
+  "files": 18
+ },
+ {
+  "date": "2025-04-14T18:01:26Z",
+  "kind": "author",
+  "peers": [
+   "xdai@chromium.org",
+   "bzielinski@google.com",
+   "aprilzhou@google.com"
+  ],
+  "additions": 0,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-04-22T19:06:03Z",
+  "kind": "author",
+  "peers": [
+   "macinashutosh@google.com",
+   "aprilzhou@google.com"
+  ],
+  "additions": 71,
+  "deletions": 17,
+  "files": 6
+ },
+ {
+  "date": "2025-04-17T00:29:11Z",
+  "kind": "review",
+  "peers": [
+   "msalomao@google.com"
+  ],
+  "additions": 0,
+  "deletions": 4,
+  "files": 2
+ },
+ {
+  "date": "2025-04-29T23:26:05Z",
+  "kind": "author",
+  "peers": [
+   "aprilzhou@google.com"
+  ],
+  "additions": 40,
+  "deletions": 15,
+  "files": 5
+ },
+ {
+  "date": "2025-04-25T20:47:37Z",
+  "kind": "review",
+  "peers": [
+   "caott@google.com"
+  ],
+  "additions": 87,
+  "deletions": 5,
+  "files": 8
+ },
+ {
+  "date": "2025-04-24T17:44:54Z",
+  "kind": "review",
+  "peers": [
+   "aprilzhou@google.com"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2025-04-23T21:07:02Z",
+  "kind": "review",
+  "peers": [
+   "bzielinski@google.com"
+  ],
+  "additions": 11,
+  "deletions": 0,
+  "files": 3
+ },
+ {
+  "date": "2025-04-23T18:34:36Z",
+  "kind": "author",
+  "peers": [
+   "aprilzhou@google.com"
+  ],
+  "additions": 48,
+  "deletions": 53,
+  "files": 6
+ },
+ {
+  "date": "2025-05-02T22:11:02Z",
+  "kind": "review",
+  "peers": [
+   "steimel@chromium.org"
+  ],
+  "additions": 547,
+  "deletions": 136,
+  "files": 25
+ },
+ {
+  "date": "2025-05-20T17:44:40Z",
+  "kind": "author",
+  "peers": [
+   "aprilzhou@google.com"
+  ],
+  "additions": 40,
+  "deletions": 1,
+  "files": 3
+ },
+ {
+  "date": "2025-05-20T07:14:52Z",
+  "kind": "author",
+  "peers": [
+   "aprilzhou@google.com"
+  ],
+  "additions": 131,
+  "deletions": 66,
+  "files": 7
+ },
+ {
+  "date": "2025-05-19T21:09:47Z",
+  "kind": "author",
+  "peers": [
+   "aprilzhou@google.com"
+  ],
+  "additions": 10,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-05-19T20:25:20Z",
+  "kind": "author",
+  "peers": [
+   "bzielinski@google.com"
+  ],
+  "additions": 17,
+  "deletions": 0,
+  "files": 3
+ },
+ {
+  "date": "2025-05-24T00:32:52Z",
+  "kind": "review",
+  "peers": [
+   "aprilzhou@google.com"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2025-05-23T23:05:58Z",
+  "kind": "author",
+  "peers": [
+   "aprilzhou@google.com"
+  ],
+  "additions": 129,
+  "deletions": 13,
+  "files": 7
+ },
+ {
+  "date": "2025-06-12T22:56:31Z",
+  "kind": "author",
+  "peers": [
+   "joedow@chromium.org",
+   "nasko@chromium.org",
+   "aprilzhou@google.com"
+  ],
+  "additions": 871,
+  "deletions": 180,
+  "files": 32
+ },
+ {
+  "date": "2025-07-01T17:59:10Z",
+  "kind": "review",
+  "peers": [
+   "bzielinski@google.com"
+  ],
+  "additions": 18,
+  "deletions": 18,
+  "files": 1
+ },
+ {
+  "date": "2025-07-01T16:52:12Z",
+  "kind": "review",
+  "peers": [
+   "bzielinski@google.com"
+  ],
+  "additions": 0,
+  "deletions": 24,
+  "files": 4
+ },
+ {
+  "date": "2025-07-15T19:00:54Z",
+  "kind": "review",
+  "peers": [
+   "bzielinski@google.com"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2025-07-14T18:05:58Z",
+  "kind": "review",
+  "peers": [
+   "aprilzhou@google.com"
+  ],
+  "additions": 17,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2025-08-08T21:21:55Z",
+  "kind": "author",
+  "peers": [
+   "aprilzhou@google.com"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2025-08-07T21:57:37Z",
+  "kind": "author",
+  "peers": [
+   "aprilzhou@google.com"
+  ],
+  "additions": 9,
+  "deletions": 15,
+  "files": 1
+ },
+ {
+  "date": "2025-08-07T20:13:41Z",
+  "kind": "author",
+  "peers": [
+   "bzielinski@google.com"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2025-08-07T10:32:51Z",
+  "kind": "review",
+  "peers": [
+   "triploblastic@google.com"
+  ],
+  "additions": 50,
+  "deletions": 34,
+  "files": 8
+ },
+ {
+  "date": "2025-08-06T21:05:00Z",
+  "kind": "author",
+  "peers": [
+   "aprilzhou@google.com"
+  ],
+  "additions": 5,
+  "deletions": 23,
+  "files": 1
+ },
+ {
+  "date": "2025-08-06T14:45:45Z",
+  "kind": "author",
+  "peers": [
+   "aprilzhou@google.com"
+  ],
+  "additions": 68,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-08-06T14:43:19Z",
+  "kind": "author",
+  "peers": [
+   "bzielinski@google.com",
+   "llin@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2025-08-13T17:32:08Z",
+  "kind": "review",
+  "peers": [
+   "aprilzhou@google.com"
+  ],
+  "additions": 5,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2025-09-08T19:31:45Z",
+  "kind": "review",
+  "peers": [
+   "aprilzhou@google.com"
+  ],
+  "additions": 11,
+  "deletions": 5,
+  "files": 1
+ },
+ {
+  "date": "2025-09-04T22:24:17Z",
+  "kind": "review",
+  "peers": [
+   "aprilzhou@google.com"
+  ],
+  "additions": 6,
+  "deletions": 8,
+  "files": 1
+ },
+ {
+  "date": "2025-09-23T19:24:26Z",
+  "kind": "author",
+  "peers": [
+   "aprilzhou@google.com"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2025-09-22T20:58:06Z",
+  "kind": "review",
+  "peers": [
+   "anasr@google.com"
+  ],
+  "additions": 156,
+  "deletions": 96,
+  "files": 8
+ },
+ {
+  "date": "2025-09-22T20:01:24Z",
+  "kind": "review",
+  "peers": [
+   "anasr@google.com"
+  ],
+  "additions": 321,
+  "deletions": 49,
+  "files": 6
+ },
+ {
+  "date": "2025-09-27T21:59:43Z",
+  "kind": "author",
+  "peers": [
+   "joedow@chromium.org"
+  ],
+  "additions": 88,
+  "deletions": 28,
+  "files": 3
+ },
+ {
+  "date": "2025-11-05T16:30:34Z",
+  "kind": "review",
+  "peers": [
+   "anasr@google.com"
+  ],
+  "additions": 318,
+  "deletions": 17,
+  "files": 5
+ },
+ {
+  "date": "2025-11-12T08:55:55Z",
+  "kind": "review",
+  "peers": [
+   "lichon@google.com"
+  ],
+  "additions": 0,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2025-11-14T22:45:42Z",
+  "kind": "review",
+  "peers": [
+   "anasr@google.com"
+  ],
+  "additions": 67,
+  "deletions": 3,
+  "files": 2
+ },
+ {
+  "date": "2025-11-17T09:22:09Z",
+  "kind": "review",
+  "peers": [
+   "kmikulski@google.com"
+  ],
+  "additions": 0,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2025-11-19T22:10:39Z",
+  "kind": "review",
+  "peers": [
+   "ezraeinhorn@google.com"
+  ],
+  "additions": 229,
+  "deletions": 13,
+  "files": 11
+ },
+ {
+  "date": "2025-11-26T08:13:04Z",
+  "kind": "review",
+  "peers": [
+   "kmikulski@google.com"
+  ],
+  "additions": 0,
+  "deletions": 3,
+  "files": 1
+ },
+ {
+  "date": "2025-12-10T02:01:03Z",
+  "kind": "author",
+  "peers": [
+   "gavinwill@chromium.org"
+  ],
+  "additions": 9,
+  "deletions": 9,
+  "files": 1
+ }
+]
