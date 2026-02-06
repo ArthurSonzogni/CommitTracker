@@ -1,0 +1,54 @@
+<svg width="4000" height="2000" viewBox="-0.025 -0.025 2.05 1.05" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    path {
+      fill: none;
+      stroke-linecap: round;
+      stroke-opacity: 0.4;
+    }
+
+    text {
+      text-anchor: middle;
+      alignment-baseline: hanging;
+    }
+  </style>
+  <g opacity="0.4">
+<path d="M0.823 0.671 Q0.773 0.568 0.560 0.569" stroke="hsl(0.0,100%,35%)" stroke-width="0.02412"></path>
+<path d="M0.823 0.671 Q0.969 0.680 1.017 0.610" stroke="hsl(0.0,100%,35%)" stroke-width="0.02412"></path>
+<path d="M0.823 0.671 Q0.724 0.706 0.770 0.762" stroke="hsl(0.0,100%,35%)" stroke-width="0.04824"></path>
+<path d="M0.823 0.671 Q0.604 0.788 0.783 0.920" stroke="hsl(0.0,100%,35%)" stroke-width="0.02412"></path>
+<path d="M0.195 0.553 Q0.388 0.541 0.409 0.445" stroke="hsl(72.0,100%,35%)" stroke-width="0.02412"></path>
+<path d="M0.195 0.553 Q0.217 0.494 0.107 0.471" stroke="hsl(72.0,100%,35%)" stroke-width="0.02412"></path>
+<path d="M0.195 0.553 Q0.120 0.641 0.276 0.698" stroke="hsl(72.0,100%,35%)" stroke-width="0.02412"></path>
+<path d="M1.057 0.986 Q1.370 0.880 1.231 0.704" stroke="hsl(144.0,100%,35%)" stroke-width="0.02412"></path>
+<path d="M1.057 0.986 Q0.973 0.898 0.783 0.920" stroke="hsl(144.0,100%,35%)" stroke-width="0.02412"></path>
+<path d="M1.057 0.986 Q1.132 0.864 0.910 0.801" stroke="hsl(144.0,100%,35%)" stroke-width="0.02412"></path>
+<path d="M1.057 0.986 Q1.297 0.982 1.343 0.864" stroke="hsl(144.0,100%,35%)" stroke-width="0.02412"></path>
+<path d="M1.139 0.497 Q1.064 0.395 0.849 0.409" stroke="hsl(216.0,100%,35%)" stroke-width="0.04824"></path>
+<path d="M1.139 0.497 Q1.222 0.545 1.333 0.514" stroke="hsl(216.0,100%,35%)" stroke-width="0.02412"></path>
+<path d="M1.139 0.497 Q1.359 0.438 1.290 0.317" stroke="hsl(216.0,100%,35%)" stroke-width="0.02412"></path>
+<path d="M1.674 0.433 Q1.865 0.472 1.983 0.387" stroke="hsl(288.0,100%,35%)" stroke-width="0.02412"></path>
+<path d="M1.674 0.433 Q1.446 0.497 1.520 0.622" stroke="hsl(288.0,100%,35%)" stroke-width="0.02412"></path>
+<path d="M1.674 0.433 Q1.705 0.549 1.938 0.559" stroke="hsl(288.0,100%,35%)" stroke-width="0.02412"></path>
+</g>
+<text x="0.823" y="0.635" font-size="0.072548" fill="hsl(0.0,100%,20%)">futhark</text>
+<text x="0.560" y="0.553" font-size="0.032444" fill="hsl(0.0,100%,20%)">fs</text>
+<text x="1.017" y="0.594" font-size="0.032444" fill="hsl(0.0,100%,20%)">andruud</text>
+<text x="0.770" y="0.739" font-size="0.045883" fill="hsl(0.0,100%,20%)">sakhapov</text>
+<text x="0.783" y="0.897" font-size="0.045883" fill="hsl(0.0,100%,20%)">ikilpatrick</text>
+<text x="0.195" y="0.524" font-size="0.056195" fill="hsl(72.0,100%,20%)">hchao</text>
+<text x="0.409" y="0.428" font-size="0.032444" fill="hsl(72.0,100%,20%)">jonathanjlee</text>
+<text x="0.107" y="0.455" font-size="0.032444" fill="hsl(72.0,100%,20%)">cthomp</text>
+<text x="0.276" y="0.682" font-size="0.032444" fill="hsl(72.0,100%,20%)">ricea</text>
+<text x="1.057" y="0.954" font-size="0.064889" fill="hsl(144.0,100%,20%)">javiercon</text>
+<text x="1.231" y="0.687" font-size="0.032444" fill="hsl(144.0,100%,20%)">almaher</text>
+<text x="0.910" y="0.785" font-size="0.032444" fill="hsl(144.0,100%,20%)">kbabbitt</text>
+<text x="1.343" y="0.848" font-size="0.032444" fill="hsl(144.0,100%,20%)">samomekarajr</text>
+<text x="1.139" y="0.465" font-size="0.064889" fill="hsl(216.0,100%,20%)">johannes</text>
+<text x="0.849" y="0.386" font-size="0.045883" fill="hsl(216.0,100%,20%)">mmocny</text>
+<text x="1.333" y="0.498" font-size="0.032444" fill="hsl(216.0,100%,20%)">shaseley</text>
+<text x="1.290" y="0.301" font-size="0.032444" fill="hsl(216.0,100%,20%)">nrosenthal</text>
+<text x="1.674" y="0.405" font-size="0.056195" fill="hsl(288.0,100%,20%)">masonf</text>
+<text x="1.983" y="0.371" font-size="0.032444" fill="hsl(288.0,100%,20%)">mustaq</text>
+<text x="1.520" y="0.606" font-size="0.032444" fill="hsl(288.0,100%,20%)">dizhangg</text>
+<text x="1.938" y="0.543" font-size="0.032444" fill="hsl(288.0,100%,20%)">nyquist</text>
+</svg>
