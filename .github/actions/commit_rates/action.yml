@@ -1,0 +1,24 @@
+name: 'Generate Commit Rates'
+description: 'Generates and pushes commit rates data'
+inputs:
+  github_token:
+    description: 'GitHub Token'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Generate commit rates data
+      shell: bash
+      run: |
+        cd importer
+        yarn run commit_rates
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+
+    - name: Push commit rates data
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ inputs.github_token }}
+        publish_dir: ./public/commit_rates/
+        publish_branch: commit_rates
+        force_orphan: true
