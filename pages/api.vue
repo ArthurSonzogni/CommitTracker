@@ -22,7 +22,12 @@
         <ul>
           <li> <a href="/data/repositories.json">
               <code>/data/repositories.json</code>
-            </a>
+            </a>: The list of repositories that we want to track.
+          </li>
+
+          <li> <a href="/data/repositories_stats.json">
+              <code>/data/repositories_stats.json</code>
+            </a>: Global statistics for each repository (commits, contributors, top organizations).
           </li>
 
           <li>
@@ -96,11 +101,9 @@
         <ul>
           <li>
             <code>repo</code> is one of:
-            <b-tag>angle</b-tag> <b-tag>chromeos</b-tag> <b-tag>chromium</b-tag>
-            <b-tag>dawn</b-tag> <b-tag>devtool-frontend</b-tag>
-            <b-tag>gn</b-tag> <b-tag>pdfium</b-tag> <b-tag>perfetto</b-tag>
-            <b-tag>swiftshader</b-tag> <b-tag>v8</b-tag> <b-tag>webrtc</b-tag>
-            ...
+            <span class="tags" style="display: inline-flex; flex-wrap: wrap; gap: 0.5rem; vertical-align: middle; margin-left: 0.5rem;">
+              <b-tag v-for="repo in sortedRepos" :key="repo">{{ repo }}</b-tag>
+            </span>
           </li>
           <li>
             <code>email</code> is an email address.
@@ -126,3 +129,12 @@
     </section>
   </div>
 </template>
+
+<script setup lang="ts">
+import { computed } from 'vue';
+import repositories_raw from 'public/data/repositories.json'
+
+const sortedRepos = computed(() => {
+  return repositories_raw.map(r => r.dirname).sort((a, b) => a.localeCompare(b));
+});
+</script>
