@@ -11,6 +11,7 @@
     "graph": "node graph.mjs",
     "fixmailmap": "node fixmailmap.mjs",
     "commit_per_hour": "node commit_per_hour.mjs",
+    "commit_rates": "node commit_rates.mjs",
     "cleanup_organizations": "node cleanup_organizations.mjs",
     "fuzztest": "node fuzz-test.mjs",
     "cve": "node cve.mjs"
