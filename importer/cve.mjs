@@ -596,7 +596,7 @@ const augmentFromGit = async (database) => {
     }
 
     for(const sha in cve.commits) {
-      if (cve.commits[sha].type != undefined) {
+      if (cve.commits[sha].type != undefined && cve.commits[sha].files != undefined) {
         continue;
       }
 
@@ -650,6 +650,7 @@ const augmentFromGit = async (database) => {
             title,
             date,
             repo,
+            files: data.files.map(f => f.filename),
           }
 
           //saveDatabase(database);
