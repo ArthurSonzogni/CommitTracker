@@ -88,6 +88,12 @@
             Reward per component
           </b-navbar-item>
 
+          <b-navbar-item tag="router-link" :to="{ path:
+          '/cve/money-tree' }">
+            <b-icon icon="currency-usd" class="mr-2"></b-icon>
+            Money tree
+          </b-navbar-item>
+
         </b-navbar-dropdown>
 
         <b-navbar-dropdown>

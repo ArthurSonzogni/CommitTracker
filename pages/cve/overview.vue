@@ -124,7 +124,7 @@
                             {{ cve.id }}
                           </strong>
                           -
-                          {{ cve.description }}
+                          {{ cve.title || cve.description }}
                         </p>
                         <p v-if="cve.vrp_reward">
                           <strong> Reward </strong>

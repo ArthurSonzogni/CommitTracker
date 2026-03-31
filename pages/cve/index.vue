@@ -16,6 +16,11 @@
           </b-tag>
         </h2>
         <div class="grid" v-if="cve.bug">
+          <template v-if="cve.title">
+            <strong>Title</strong>
+            <p> {{ cve.title }} </p>
+          </template>
+
           <strong>Description</strong>
           <p> {{ cve.description }} </p>
 

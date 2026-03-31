@@ -105,7 +105,7 @@ const more = ref<boolean>(false);
 const minDate = ref<Date>(props.minDate);
 const maxDate = ref<Date>(props.maxDate);
 const today = new Date();
-const year = ref<number>(new Date(today.getFullYear(), today.getMonth()-4).getFullYear());
+const year = ref<number>(today.getFullYear());
 
 let updating_range = false;
 let updating_value = false;

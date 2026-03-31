@@ -166,7 +166,7 @@
               </div>
               <br>
               <span class="cve-description-text" v-if="show_description">
-                {{ cve.description }}
+                {{ cve.title || cve.description }}
               </span>
             </div>
           </template>
