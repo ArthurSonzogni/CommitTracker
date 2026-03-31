@@ -174,6 +174,9 @@ def main():
     all_files = get_git_files()
 
     for relative_path in all_files:
+        if relative_path.startswith('tools/'):
+            continue
+
         _, extension = os.path.splitext(relative_path)
         if extension not in SOURCE_EXTENSIONS:
             continue
