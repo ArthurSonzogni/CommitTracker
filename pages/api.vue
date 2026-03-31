@@ -97,6 +97,22 @@
           </li>
         </ul>
 
+        <h2>Other Data Files</h2>
+        <ul>
+          <li>
+            <a href="/cve/data.json"><code>/cve/data.json</code></a>:
+            Aggregated CVE data for all tracked repositories.
+          </li>
+          <li>
+            <a href="/fuzz-test/data.json"><code>/fuzz-test/data.json</code></a>:
+            Fuzzing data for the tracked repositories.
+          </li>
+          <li>
+            <a href="/community-map/chromium_forever.svg"><code>/community-map/${repo}_${time_range}.svg</code></a>:
+            SVG visualizations of the developer community structure.
+          </li>
+        </ul>
+
         <h2>Params</h2>
         <ul>
           <li>
@@ -109,12 +125,19 @@
             <code>email</code> is an email address.
           </li>
           <li>
+            <code>username</code> is a contributor username.
+          </li>
+          <li>
             <code>group_by</code> is one of:
             <b-tag>forever</b-tag> <b-tag>decennial</b-tag> <b-tag>yearly</b-tag> <b-tag>quarterly</b-tag> <b-tag>monthly</b-tag>
           </li>
           <li>
             <code>side</code> is one of:
             <b-tag>author</b-tag> <b-tag>review</b-tag> <b-tag>both</b-tag>
+          </li>
+          <li>
+            <code>time_range</code> is one of:
+            <b-tag>1w</b-tag> <b-tag>1m</b-tag> <b-tag>3m</b-tag> <b-tag>6m</b-tag> <b-tag>1y</b-tag> <b-tag>forever</b-tag> ...
           </li>
         </ul>
 
