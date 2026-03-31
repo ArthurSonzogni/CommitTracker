@@ -38,6 +38,7 @@
           <b-radio-button v-model="groupBy" native-value="cwe">CWE</b-radio-button>
           <b-radio-button v-model="groupBy" native-value="component">Component</b-radio-button>
           <b-radio-button v-model="groupBy" native-value="fixed-by">Fixed By</b-radio-button>
+          <b-radio-button v-model="groupBy" native-value="reviewer">Reviewer</b-radio-button>
         </b-field>
 
         <b-loading v-model="loading" :is-full-page="false"></b-loading>
@@ -111,31 +112,54 @@ onMounted(() => {
 });
 
 const groupBy = ref("none");
-if (route.query.group_by) {
-  groupBy.value = route.query.group_by as string;
-}
 
 const dates = ref([
   new Date(new Date().setDate(new Date().getDate() - 365)),
   new Date(),
 ]);
 
-if (route.query.start) {
-  dates.value[0] = new Date(route.query.start as string);
-}
-if (route.query.end) {
-  dates.value[1] = new Date(route.query.end as string);
-}
+// Initialize from URL
+const initFromUrl = () => {
+  const qGroupBy = route.query.group_by as string;
+  if (qGroupBy && qGroupBy !== groupBy.value) {
+    groupBy.value = qGroupBy;
+  }
+  const qStart = route.query.start as string;
+  if (qStart) {
+    const d = new Date(qStart);
+    if (!isNaN(d.getTime()) && d.getTime() !== dates.value[0].getTime()) {
+      dates.value[0] = d;
+    }
+  }
+  const qEnd = route.query.end as string;
+  if (qEnd) {
+    const d = new Date(qEnd);
+    if (!isNaN(d.getTime()) && d.getTime() !== dates.value[1].getTime()) {
+      dates.value[1] = d;
+    }
+  }
+};
+initFromUrl();
 
 const updateUrl = () => {
-  router.push({
-    query: {
-      group_by: groupBy.value,
-      start: dates.value[0].toISOString().split("T")[0],
-      end: dates.value[1].toISOString().split("T")[0],
-    }
-  });
+  const query = {
+    ...route.query,
+    group_by: groupBy.value,
+    start: dates.value[0].toISOString().split("T")[0],
+    end: dates.value[1].toISOString().split("T")[0],
+  };
+  // Only push if different from current query
+  if (query.group_by !== route.query.group_by ||
+      query.start !== route.query.start ||
+      query.end !== route.query.end) {
+    router.replace({ query });
+  }
 };
+
+// Watch for URL changes (e.g. back button)
+watch(() => route.query, () => {
+  initFromUrl();
+}, { deep: true });
 
 const cweTitle = new Map([
   [119, "Improper Restriction of Operations within the Bounds of a Memory Buffer"],
@@ -317,7 +341,7 @@ const buildTree = (cves: any[]) => {
     const reward = parseInt(cve.vrp_reward) || 0;
     if (reward <= 0) continue;
 
-    const files = new Map<string, {repo: string, authors: Set<string>}>(); // path -> {repo, authors}
+    const files = new Map<string, {repo: string, authors: Set<string>, reviewers: Set<string>}>(); // path -> {repo, authors, reviewers}
 
     // Prioritize commits in 'fixed_by'. Fallback to all 'commits' if empty.
     const fixedBy = Array.isArray(cve.fixed_by) ? cve.fixed_by : [];
@@ -333,10 +357,15 @@ const buildTree = (cves: any[]) => {
           const repo = identifyRepo(file, commit.repo, cve);
           const normalizedPath = normalizePath(file, repo);
           if (!files.has(normalizedPath)) {
-            files.set(normalizedPath, { repo, authors: new Set<string>() });
+            files.set(normalizedPath, { repo, authors: new Set<string>(), reviewers: new Set<string>() });
           }
           if (commit.author) {
             files.get(normalizedPath)!.authors.add(commit.author);
+          }
+          if (commit.reviewers && Array.isArray(commit.reviewers)) {
+            for (const reviewer of commit.reviewers) {
+              files.get(normalizedPath)!.reviewers.add(reviewer);
+            }
           }
         }
       }
@@ -350,6 +379,7 @@ const buildTree = (cves: any[]) => {
     for (const [filePath, fileData] of files.entries()) {
       const repoName = fileData.repo;
       const authors = fileData.authors;
+      const reviewers = fileData.reviewers;
 
       if (repoName === 'unknown' || isIgnoredRepo(repoName)) continue;
 
@@ -366,6 +396,12 @@ const buildTree = (cves: any[]) => {
           partsList = Array.from(authors).map(author => [author, repoName, ...filePath.split('/')]);
         } else {
           partsList = [["Unknown Author", repoName, ...filePath.split('/')]];
+        }
+      } else if (groupBy.value === 'reviewer') {
+        if (reviewers.size > 0) {
+          partsList = Array.from(reviewers).map(reviewer => [reviewer, repoName, ...filePath.split('/')]);
+        } else {
+          partsList = [["Unknown Reviewer", repoName, ...filePath.split('/')]];
         }
       } else {
         partsList = [[repoName, ...filePath.split('/')]];
@@ -417,7 +453,7 @@ const buildTree = (cves: any[]) => {
 
 watch(dates, () => {
   updateUrl();
-});
+}, { deep: true });
 
 watch(groupBy, () => {
   updateUrl();
@@ -442,6 +478,8 @@ onMounted(async () => {
         }
       }
       dates.value[0] = minDate;
+      dates.value[1] = new Date();
+      updateUrl(); // Update URL since we changed dates
     }
 
     treeData.value = buildTree(filteredData.value);
