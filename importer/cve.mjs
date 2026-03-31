@@ -251,6 +251,7 @@ const transformCve = (cve) => {
     problem: cve.containers.cna.problemTypes[0].descriptions[0].description,
     bug,
     description,
+    title: "n/a",
     published: cve.cveMetadata.datePublished,
     version_fixed,
     version_dates,
@@ -431,6 +432,13 @@ const fetchBugganizer = async (cve, page) => {
       }
     }
 
+    // Extract the bug title.
+    const issueTitle = document.querySelector('issue-title');
+    if (issueTitle) {
+      const h3 = issueTitle.querySelector('h3');
+      out.title = h3 ? h3.innerText.trim() : issueTitle.innerText.trim();
+    }
+
     // Extract the bug open date.
     const bug_date = document.querySelector('time').getAttribute('datetime');
     out.bug_date = bug_date;
@@ -446,6 +454,7 @@ const fetchBugganizer = async (cve, page) => {
   }
 
   cve.id = extracted.cve;
+  cve.title = extracted.title;
   if (parseInt(extracted.vrp_reward) > 0) {
     cve.vrp_reward = extracted.vrp_reward;
   }
@@ -456,6 +465,12 @@ const fetchBugganizer = async (cve, page) => {
   cve.chromium_labels = extracted.chromium_labels;
   cve.bug_date = extracted.bug_date;
   cve.severity = extracted.severity;
+
+  const hasCommits = cve.commits && Object.keys(cve.commits).length > 0;
+  if (hasCommits) {
+    console.log("Commits already known, skipping Gerrit resolution.");
+    return;
+  }
 
   const fixed_by = new Set();
   for(const change of extracted.fixed_by) {
@@ -535,6 +550,7 @@ const augmentFromBugganizer = async (database) => {
 
     //console.log("reward", cve.vrp_reward, "commits", cve.commits?.length);
     if (cve.vrp_reward != undefined &&
+        cve.title != undefined && cve.title != "n/a" &&
         cve.commits &&
         (cve.commits.length > 0 || Object.keys(cve.commits).length > 0)) {
       console.log("Skipping", cve.bug, " vrp reward", cve.vrp_reward);
@@ -558,7 +574,8 @@ const augmentFromBugganizer = async (database) => {
     else { probability = 0.1; }
     console.log("Weeks", weeks, "Probability", probability);
 
-    if (Math.random() > probability) {
+    const needsTitle = cve.title === undefined || cve.title === "n/a";
+    if (!needsTitle && Math.random() > probability) {
       console.log("Skipping", cve.id, "probability", probability);
       continue;
     }
