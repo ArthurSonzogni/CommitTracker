@@ -171,12 +171,12 @@ const render = () => {
               .attr("text-anchor", "end")
               .attr("alignment-baseline", "bottom")
               .attr("filter", "url(#highlightText)")
-              .attr("fill", d => $color(d.label))
+              .attr("fill", d => d.color || $color(d.label))
               .text(d =>  d.label + ":  " + props.formatter(d.y))
 
             group.append("circle")
               .attr("r", 3)
-              .attr("fill", d => $color(d.label))
+              .attr("fill", d => d.color || $color(d.label))
             return group;
           },
 
@@ -214,7 +214,7 @@ const render = () => {
       .insert("path", ":first-child")
       .attr("class", "line")
       .attr("fill", "none")
-      .attr("stroke", d => $color(d.label))
+      .attr("stroke", d => d.color || $color(d.label))
       .attr("stroke-width", 0)
       .attr("d", d => valueZero(d.values))
       .transition()
@@ -223,8 +223,10 @@ const render = () => {
       .attr("stroke-width", 1.5),
 
       update => update
+      .attr("stroke", d => d.color || $color(d.label))
       .transition()
       .duration(500)
+      .attr("stroke-width", 1.5)
       .attrTween('d', function (d) {
         var previous = select(this).attr('d');
         var current = valueLines(d.values);
@@ -260,7 +262,7 @@ const render = () => {
           .append("text")
           .attr("font-size", "12px")
           .attr("font-weight", "bold")
-          .attr("fill", d => $color(d.label))
+          .attr("fill", d => d.color || $color(d.label))
           .text(d => d.label + (d.extra_label || ""))
         return group;
       },

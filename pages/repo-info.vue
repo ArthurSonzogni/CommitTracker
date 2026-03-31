@@ -6,8 +6,8 @@
       <div class="container is-fluid">
         <h1 class="title">Repositories info</h1>
 
-        <div class="table-container" style="display: flex; justify-content: center;">
-          <table class="table is-striped is-hoverable">
+        <div class="table-container is-hidden-touch">
+          <table class="table is-striped is-hoverable is-fullwidth">
             <thead>
               <tr>
                 <th @click="sortBy('name')" class="is-clickable">
@@ -139,6 +139,57 @@
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <div class="is-hidden-desktop">
+          <div class="box mb-4 p-4" v-for="repo in sortedRepositories" :key="repo.name + '-mobile'">
+            <div class="is-flex" style="justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <span class="tag is-medium" :style="{ backgroundColor: repo.color, color: getContrastColor(repo.color) }">
+                {{ repo.name }}
+              </span>
+              <span v-if="formatMetadata(repo.dirname)" :class="['tag', getStateClass(repo.dirname)]">
+                {{ formatMetadata(repo.dirname).days }}d ago
+              </span>
+              <span v-else class="tag is-light">Unknown</span>
+            </div>
+            
+            <div class="content is-small">
+              <p style="margin-bottom: 0.5rem;">
+                <strong>Repo:</strong> 
+                <a :href="`https://github.com/${repo.owner}/${repo.repository}`" target="_blank" class="is-family-monospace">
+                  {{ repo.owner }}/{{ repo.repository }}
+                </a>
+              </p>
+              <p style="margin-bottom: 0.5rem;" v-if="repo.cone">
+                <strong>Path:</strong> 
+                <a :href="`https://github.com/${repo.owner}/${repo.repository}/tree/HEAD/${repo.cone}`" target="_blank">
+                  <code>{{ repo.cone }}</code>
+                </a>
+              </p>
+              <p style="margin-bottom: 0.5rem;">
+                <strong>Commits:</strong> {{ formatNumber(stats[repo.dirname]?.total_commits) }}
+              </p>
+              <p style="margin-bottom: 0.5rem;">
+                <strong>Contributors:</strong> {{ formatNumber(stats[repo.dirname]?.total_contributors) }}
+              </p>
+              <p style="margin-bottom: 0.5rem;">
+                <strong>Top Driver:</strong> {{ stats[repo.dirname]?.top_organizations?.[0] || '-' }}
+              </p>
+              <div class="is-flex mt-2" style="gap: 0.5rem; align-items: center;">
+                <span class="has-text-grey">Features:</span>
+                <span class="tag is-light">
+                  <b-icon v-if="repo.reviewers" icon="check" type="is-success" size="is-small"></b-icon>
+                  <b-icon v-else icon="close" type="is-danger" size="is-small"></b-icon>
+                  <span class="ml-1">Reviewers</span>
+                </span>
+                <span class="tag is-light">
+                  <b-icon v-if="repo.treemap" icon="check" type="is-success" size="is-small"></b-icon>
+                  <b-icon v-else icon="close" type="is-danger" size="is-small"></b-icon>
+                  <span class="ml-1">Treemap</span>
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>

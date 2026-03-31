@@ -43,6 +43,7 @@ const json = await fetchData();
 
 const data = ref([{
   label: 'Page view',
+  color: 'black',
   values: json.history.map(item => ({
     x: new Date(item.hit_date),
     y: item.hit_count,
