@@ -77,89 +77,7 @@ import { interpolate } from 'd3-interpolate';
 import MoneyTreeNode from '~/components/MoneyTreeNode.vue';
 import Timeline from '~/components/Timeline.vue';
 
-const route = useRoute();
-const router = useRouter();
-
-const formatter = format("$,.0f");
-
-const loading = ref(true);
-const showReadme = ref(false);
-const rawData = shallowRef<any[]>([]);
-const treeData = shallowRef<any>(null);
-const cvesCount = ref(0);
-
-const displayCvesCount = ref(0);
-const displayTotalReward = ref(0);
-
-const animateValue = (refVar: any, targetValue: number) => {
-  const i = interpolate(refVar.value, targetValue);
-  const duration = 500;
-  const start = performance.now();
-  const step = (now: number) => {
-    const t = Math.min(1, (now - start) / duration);
-    refVar.value = i(t);
-    if (t < 1) requestAnimationFrame(step);
-  };
-  requestAnimationFrame(step);
-};
-
-watch(cvesCount, (val) => animateValue(displayCvesCount, val));
-watch(() => treeData.value?.value, (val) => animateValue(displayTotalReward, val || 0));
-
-onMounted(() => {
-  if (cvesCount.value) animateValue(displayCvesCount, cvesCount.value);
-  if (treeData.value?.value) animateValue(displayTotalReward, treeData.value.value);
-});
-
-const groupBy = ref("none");
-
-const dates = ref([
-  new Date(new Date().setDate(new Date().getDate() - 365)),
-  new Date(),
-]);
-
-// Initialize from URL
-const initFromUrl = () => {
-  const qGroupBy = route.query.group_by as string;
-  if (qGroupBy && qGroupBy !== groupBy.value) {
-    groupBy.value = qGroupBy;
-  }
-  const qStart = route.query.start as string;
-  if (qStart) {
-    const d = new Date(qStart);
-    if (!isNaN(d.getTime()) && d.getTime() !== dates.value[0].getTime()) {
-      dates.value[0] = d;
-    }
-  }
-  const qEnd = route.query.end as string;
-  if (qEnd) {
-    const d = new Date(qEnd);
-    if (!isNaN(d.getTime()) && d.getTime() !== dates.value[1].getTime()) {
-      dates.value[1] = d;
-    }
-  }
-};
-initFromUrl();
-
-const updateUrl = () => {
-  const query = {
-    ...route.query,
-    group_by: groupBy.value,
-    start: dates.value[0].toISOString().split("T")[0],
-    end: dates.value[1].toISOString().split("T")[0],
-  };
-  // Only push if different from current query
-  if (query.group_by !== route.query.group_by ||
-      query.start !== route.query.start ||
-      query.end !== route.query.end) {
-    router.replace({ query });
-  }
-};
-
-// Watch for URL changes (e.g. back button)
-watch(() => route.query, () => {
-  initFromUrl();
-}, { deep: true });
+// --- Static Helpers & Constants (Module Scope) ---
 
 const cweTitle = new Map([
   [119, "Improper Restriction of Operations within the Bounds of a Memory Buffer"],
@@ -206,144 +124,223 @@ const cweTitle = new Map([
   [1007, "Insufficient Visual Distinction of Homoglyphs Presented to User"],
   [1021, "Improper Restriction of Rendered UI Layers or Frames"],
   [1230, "Exposure of Sensitive Information Through Metadata"],
-])
+]);
 
-const filteredData = computed(() => {
-  return rawData.value.filter(cve => {
-    const dateStr = cve.bug_date || cve.published;
-    if (!dateStr) return false;
-    const date = new Date(dateStr);
-    return date >= dates.value[0] && date <= dates.value[1];
-  });
+const identifyRepo = (path: string, currentRepo: string, cve: any) => {
+  if (currentRepo && currentRepo !== 'unknown') return currentRepo;
+
+  const p = path.toLowerCase();
+  if (p.startsWith('v8/') || p.includes('/v8/')) return 'v8';
+  if (p.startsWith('skia/')) return 'skia';
+  if (p.startsWith('third_party/blink/') ||
+      p.startsWith('third_party/webkit/source/') ||
+      p.startsWith('core/') ||
+      p.startsWith('modules/') ||
+      p.startsWith('bindings/') ||
+      p.startsWith('platform/') ||
+      p.startsWith('content/') ||
+      p.startsWith('chrome/') ||
+      p.startsWith('ios/') ||
+      p.startsWith('net/') ||
+      p.startsWith('base/') ||
+      p.startsWith('components/') ||
+      p.startsWith('gpu/') ||
+      p.startsWith('media/') ||
+      p.startsWith('browser/') ||
+      p.startsWith('extensions/')
+  ) return 'chromium';
+  if (p.startsWith('third_party/dawn/') || p.startsWith('dawn/')) return 'dawn';
+  if (p.startsWith('third_party/angle/') || p.startsWith('angle/')) return 'angle';
+  if (p.startsWith('third_party/pdfium/') || p.startsWith('pdfium/')) return 'pdfium';
+  if (p.startsWith('third_party/swiftshader/') || p.startsWith('swiftshader/')) return 'swiftshader';
+  if (p.startsWith('third_party/webrtc/') || p.startsWith('webrtc/')) return 'webrtc';
+
+  if (p.startsWith('compiler/') ||
+      p.startsWith('wasm/') ||
+      p.startsWith('heap/') ||
+      p.startsWith('ic/') ||
+      p.startsWith('builtins/') ||
+      p.startsWith('parsing/') ||
+      p.startsWith('objects/')
+  ) return 'v8';
+
+  if (cve.components) {
+    for (const c of cve.components) {
+      const cl = c.toLowerCase();
+      if (cl.includes('blink')) return 'chromium';
+      if (cl.includes('v8')) return 'v8';
+      if (cl.includes('skia')) return 'skia';
+      if (cl.includes('dawn')) return 'dawn';
+      if (cl.includes('pdfium')) return 'pdfium';
+      if (cl.includes('angle')) return 'angle';
+    }
+  }
+
+  if (cve.oses && cve.oses.some(o => o.toLowerCase().includes('chromeos'))) return 'chromeos';
+
+  return 'unknown';
+};
+
+const normalizePath = (path: string, repo: string) => {
+  let p = path;
+  const lower = p.toLowerCase();
+
+  if (repo === 'chromium') {
+    if (lower.startsWith('core/') ||
+        lower.startsWith('modules/') ||
+        lower.startsWith('bindings/') ||
+        lower.startsWith('platform/')) {
+      return 'third_party/blink/renderer/' + p;
+    }
+    if (lower.startsWith('webkit/')) {
+      return 'third_party/blink/renderer/' + p.substring(7);
+    }
+    if (lower.startsWith('third_party/webkit/source/')) {
+      return 'third_party/blink/renderer/' + p.substring(25);
+    }
+    if (lower.startsWith('wpt/')) {
+      return 'third_party/blink/web_tests/external/wpt/' + p.substring(4);
+    }
+  }
+
+  if (repo === 'v8') {
+    if (lower.startsWith('compiler/') ||
+        lower.startsWith('wasm/') ||
+        lower.startsWith('heap/') ||
+        lower.startsWith('ic/') ||
+        lower.startsWith('builtins/') ||
+        lower.startsWith('parsing/') ||
+        lower.startsWith('objects/')) {
+      return 'src/' + p;
+    }
+    if (lower.startsWith('v8/')) {
+      return p.substring(3);
+    }
+  }
+
+  return p;
+};
+
+const isIgnoredFile = (file: string) => {
+  const lower = file.toLowerCase();
+  return lower.includes('test') ||
+         lower.includes('.gn') ||
+         lower.includes('.gni') ||
+         lower.includes('author') ||
+         lower.includes('.html') ||
+         lower.includes('.css') ||
+         lower.includes('.md') ||
+         lower.includes('.xml') ||
+         lower.includes('deps') ||
+         lower.includes('expectation');
+};
+
+const isIgnoredRepo = (repo: string) => {
+  const lower = repo.toLowerCase();
+  return lower === 'chromeos' || lower === 'chromiumos-platform2';
+};
+
+// --- Setup ---
+
+const route = useRoute();
+const router = useRouter();
+
+const formatter = format("$,.0f");
+
+const loading = ref(true);
+const showReadme = ref(false);
+const rawData = shallowRef<any[]>([]);
+const treeData = shallowRef<any>(null);
+const cvesCount = ref(0);
+
+const displayCvesCount = ref(0);
+const displayTotalReward = ref(0);
+
+const animateValue = (refVar: any, targetValue: number) => {
+  const i = interpolate(refVar.value, targetValue);
+  const duration = 500;
+  const start = performance.now();
+  const step = (now: number) => {
+    const t = Math.min(1, (now - start) / duration);
+    refVar.value = i(t);
+    if (t < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+};
+
+watch(cvesCount, (val) => animateValue(displayCvesCount, val));
+watch(() => treeData.value?.value, (val) => animateValue(displayTotalReward, val || 0));
+
+onMounted(() => {
+  if (cvesCount.value) animateValue(displayCvesCount, cvesCount.value);
+  if (treeData.value?.value) animateValue(displayTotalReward, treeData.value.value);
 });
 
-const buildTree = (cves: any[]) => {
-  console.log("Building tree with", cves.length, "CVEs");
-  const root = { name: 'root', children: new Map(), value: 0, cveIds: new Set() };
+const groupBy = ref("none");
 
-  let cvesWithReward = 0;
+const dates = ref([
+  new Date('2008-01-01'),
+  new Date(),
+]);
 
-  const identifyRepo = (path: string, currentRepo: string, cve: any) => {
-    if (currentRepo && currentRepo !== 'unknown') return currentRepo;
-
-    const p = path.toLowerCase();
-    if (p.startsWith('v8/') || p.includes('/v8/')) return 'v8';
-    if (p.startsWith('skia/')) return 'skia';
-    if (p.startsWith('third_party/blink/') ||
-        p.startsWith('third_party/webkit/source/') ||
-        p.startsWith('core/') ||
-        p.startsWith('modules/') ||
-        p.startsWith('bindings/') ||
-        p.startsWith('platform/') ||
-        p.startsWith('content/') ||
-        p.startsWith('chrome/') ||
-        p.startsWith('ios/') ||
-        p.startsWith('net/') ||
-        p.startsWith('base/') ||
-        p.startsWith('components/') ||
-        p.startsWith('gpu/') ||
-        p.startsWith('media/') ||
-        p.startsWith('browser/') ||
-        p.startsWith('extensions/')
-    ) return 'chromium';
-    if (p.startsWith('third_party/dawn/') || p.startsWith('dawn/')) return 'dawn';
-    if (p.startsWith('third_party/angle/') || p.startsWith('angle/')) return 'angle';
-    if (p.startsWith('third_party/pdfium/') || p.startsWith('pdfium/')) return 'pdfium';
-    if (p.startsWith('third_party/swiftshader/') || p.startsWith('swiftshader/')) return 'swiftshader';
-    if (p.startsWith('third_party/webrtc/') || p.startsWith('webrtc/')) return 'webrtc';
-
-    if (p.startsWith('compiler/') ||
-        p.startsWith('wasm/') ||
-        p.startsWith('heap/') ||
-        p.startsWith('ic/') ||
-        p.startsWith('builtins/') ||
-        p.startsWith('parsing/') ||
-        p.startsWith('objects/')
-    ) return 'v8';
-
-    if (cve.components) {
-      for (const c of cve.components) {
-        const cl = c.toLowerCase();
-        if (cl.includes('blink')) return 'chromium';
-        if (cl.includes('v8')) return 'v8';
-        if (cl.includes('skia')) return 'skia';
-        if (cl.includes('dawn')) return 'dawn';
-        if (cl.includes('pdfium')) return 'pdfium';
-        if (cl.includes('angle')) return 'angle';
-      }
+// Initialize from URL
+const initFromUrl = () => {
+  const qGroupBy = route.query.group_by as string;
+  if (qGroupBy && qGroupBy !== groupBy.value) {
+    groupBy.value = qGroupBy;
+  }
+  const qStart = route.query.start as string;
+  if (qStart) {
+    const d = new Date(qStart);
+    if (!isNaN(d.getTime()) && d.getTime() !== dates.value[0].getTime()) {
+      dates.value[0] = d;
     }
-
-    if (cve.oses && cve.oses.some(o => o.toLowerCase().includes('chromeos'))) return 'chromeos';
-
-    return 'unknown';
-  };
-
-  const normalizePath = (path: string, repo: string) => {
-    let p = path;
-    const lower = p.toLowerCase();
-
-    if (repo === 'chromium') {
-      if (lower.startsWith('core/') ||
-          lower.startsWith('modules/') ||
-          lower.startsWith('bindings/') ||
-          lower.startsWith('platform/')) {
-        return 'third_party/blink/renderer/' + p;
-      }
-      if (lower.startsWith('webkit/')) {
-        return 'third_party/blink/renderer/' + p.substring(7);
-      }
-      if (lower.startsWith('third_party/webkit/source/')) {
-        return 'third_party/blink/renderer/' + p.substring(25);
-      }
-      if (lower.startsWith('wpt/')) {
-        return 'third_party/blink/web_tests/external/wpt/' + p.substring(4);
-      }
+  }
+  const qEnd = route.query.end as string;
+  if (qEnd) {
+    const d = new Date(qEnd);
+    if (!isNaN(d.getTime()) && d.getTime() !== dates.value[1].getTime()) {
+      dates.value[1] = d;
     }
+  }
+};
+initFromUrl();
 
-    if (repo === 'v8') {
-      if (lower.startsWith('compiler/') ||
-          lower.startsWith('wasm/') ||
-          lower.startsWith('heap/') ||
-          lower.startsWith('ic/') ||
-          lower.startsWith('builtins/') ||
-          lower.startsWith('parsing/') ||
-          lower.startsWith('objects/')) {
-        return 'src/' + p;
-      }
-      if (lower.startsWith('v8/')) {
-        return p.substring(3);
-      }
-    }
-
-    return p;
+const updateUrl = () => {
+  const query = {
+    ...route.query,
+    group_by: groupBy.value,
+    start: dates.value[0].toISOString().split("T")[0],
+    end: dates.value[1].toISOString().split("T")[0],
   };
+  // Only push if different from current query
+  if (query.group_by !== route.query.group_by ||
+      query.start !== route.query.start ||
+      query.end !== route.query.end) {
+    router.replace({ query });
+  }
+};
 
-  const isIgnoredFile = (file: string) => {
-    const lower = file.toLowerCase();
-    return lower.includes('test') ||
-           lower.includes('.gn') ||
-           lower.includes('.gni') ||
-           lower.includes('author') ||
-           lower.includes('.html') ||
-           lower.includes('.css') ||
-           lower.includes('.md') ||
-           lower.includes('.xml') ||
-           lower.includes('deps') ||
-           lower.includes('expectation');
-  };
+// Watch for URL changes (e.g. back button)
+watch(() => route.query, () => {
+  initFromUrl();
+}, { deep: true });
 
-  const isIgnoredRepo = (repo: string) => {
-    const lower = repo.toLowerCase();
-    return lower === 'chromeos' || lower === 'chromiumos-platform2';
-  };
+// --- Pre-processing & Reactive Optimization ---
 
-  for (const cve of cves) {
+const processedData = shallowRef<any[]>([]);
+
+const processRawData = (data: any[]) => {
+  const repoCache = new Map<string, string>();
+  const pathCache = new Map<string, string>();
+
+  return data.map(cve => {
+    const dateStr = cve.bug_date || cve.published;
+    const date = dateStr ? new Date(dateStr) : null;
     const reward = parseInt(cve.vrp_reward) || 0;
-    if (reward <= 0) continue;
 
-    const files = new Map<string, {repo: string, authors: Set<string>, reviewers: Set<string>}>(); // path -> {repo, authors, reviewers}
+    const files = new Map<string, {repo: string, authors: Set<string>, reviewers: Set<string>}>();
 
-    // Prioritize commits in 'fixed_by'. Fallback to all 'commits' if empty.
     const fixedBy = Array.isArray(cve.fixed_by) ? cve.fixed_by : [];
     const shas = (fixedBy.length > 0)
       ? fixedBy
@@ -354,71 +351,123 @@ const buildTree = (cves: any[]) => {
       if (commit && commit.files && Array.isArray(commit.files)) {
         for (const file of commit.files) {
           if (isIgnoredFile(file)) continue;
-          const repo = identifyRepo(file, commit.repo, cve);
-          const normalizedPath = normalizePath(file, repo);
+
+          const repoCacheKey = `${file}|${commit.repo}|${cve.id}`;
+          let repo = repoCache.get(repoCacheKey);
+          if (!repo) {
+            repo = identifyRepo(file, commit.repo, cve);
+            repoCache.set(repoCacheKey, repo);
+          }
+
+          const pathCacheKey = `${file}|${repo}`;
+          let normalizedPath = pathCache.get(pathCacheKey);
+          if (!normalizedPath) {
+            normalizedPath = normalizePath(file, repo);
+            pathCache.set(pathCacheKey, normalizedPath);
+          }
+
           if (!files.has(normalizedPath)) {
             files.set(normalizedPath, { repo, authors: new Set<string>(), reviewers: new Set<string>() });
           }
+          const fData = files.get(normalizedPath)!;
           if (commit.author) {
-            files.get(normalizedPath)!.authors.add(commit.author);
+            fData.authors.add(commit.author.split('@')[0]);
           }
           if (commit.reviewers && Array.isArray(commit.reviewers)) {
             for (const reviewer of commit.reviewers) {
-              files.get(normalizedPath)!.reviewers.add(reviewer);
+              fData.reviewers.add(reviewer.split('@')[0]);
             }
           }
         }
       }
     }
 
-    if (files.size === 0) continue;
+    const leafNodes = Array.from(files.entries())
+      .filter(([_, data]) => data.repo !== 'unknown' && !isIgnoredRepo(data.repo))
+      .map(([path, data]) => ({
+        path,
+        parts: path.split('/'),
+        repo: data.repo,
+        authors: Array.from(data.authors),
+        reviewers: Array.from(data.reviewers)
+      }));
 
+    return {
+      id: cve.id,
+      reward,
+      date,
+      cweId: cve.cweId,
+      components: cve.components,
+      leafNodes
+    };
+  });
+};
+
+const filteredData = computed(() => {
+  const [start, end] = dates.value;
+  return processedData.value.filter(cve => {
+    return cve.date && cve.date >= start && cve.date <= end && cve.reward > 0 && cve.leafNodes.length > 0;
+  });
+});
+
+const cveMap = computed(() => {
+  const map = new Map();
+  for (const cve of rawData.value) {
+    map.set(cve.id, cve);
+  }
+  return map;
+});
+
+const buildTree = (cves: any[]) => {
+  console.log("Building tree with", cves.length, "CVEs");
+  const root = { name: 'root', children: new Map(), value: 0, cveIds: new Set() };
+  let cvesWithReward = 0;
+
+  for (const cve of cves) {
+    if (cve.leafNodes.length === 0) continue;
     cvesWithReward++;
-    const rewardPerFile = reward / files.size;
 
-    for (const [filePath, fileData] of files.entries()) {
-      const repoName = fileData.repo;
-      const authors = fileData.authors;
-      const reviewers = fileData.reviewers;
+    const rewardPerFile = cve.reward / cve.leafNodes.length;
 
-      if (repoName === 'unknown' || isIgnoredRepo(repoName)) continue;
-
-      let partsList: string[][] = [];
+    for (const leaf of cve.leafNodes) {
+      let branches: string[][] = [];
 
       if (groupBy.value === 'component') {
         const component = (cve.components && cve.components.length > 0) ? cve.components[0] : "Unknown Component";
-        partsList = [[...component.split('>'), repoName, ...filePath.split('/')]];
+        branches = [[...component.split('>'), leaf.repo, ...leaf.parts]];
       } else if (groupBy.value === 'cwe') {
         const cwe = cve.cweId ? `CWE-${cve.cweId} ${cweTitle.get(parseInt(cve.cweId)) || ''}`.trim() : "Unknown CWE";
-        partsList = [[cwe, repoName, ...filePath.split('/')]];
+        branches = [[cwe, leaf.repo, ...leaf.parts]];
       } else if (groupBy.value === 'fixed-by') {
-        if (authors.size > 0) {
-          partsList = Array.from(authors).map(author => [author, repoName, ...filePath.split('/')]);
+        if (leaf.authors.length > 0) {
+          branches = leaf.authors.map(author => [author, leaf.repo, ...leaf.parts]);
         } else {
-          partsList = [["Unknown Author", repoName, ...filePath.split('/')]];
+          branches = [["Unknown Author", leaf.repo, ...leaf.parts]];
         }
       } else if (groupBy.value === 'reviewer') {
-        if (reviewers.size > 0) {
-          partsList = Array.from(reviewers).map(reviewer => [reviewer, repoName, ...filePath.split('/')]);
+        if (leaf.reviewers.length > 0) {
+          branches = leaf.reviewers.map(reviewer => [reviewer, leaf.repo, ...leaf.parts]);
         } else {
-          partsList = [["Unknown Reviewer", repoName, ...filePath.split('/')]];
+          branches = [["Unknown Reviewer", leaf.repo, ...leaf.parts]];
         }
       } else {
-        partsList = [[repoName, ...filePath.split('/')]];
+        branches = [[leaf.repo, ...leaf.parts]];
       }
 
-      const rewardPerBranch = rewardPerFile / partsList.length;
+      const rewardPerBranch = rewardPerFile / branches.length;
 
-      for (const parts of partsList) {
+      for (const parts of branches) {
         let current = root;
         current.value += rewardPerBranch;
         current.cveIds.add(cve.id);
 
         for (const part of parts) {
-          if (!current.children.has(part)) {
-            current.children.set(part, { name: part, children: new Map(), value: 0, cveIds: new Set() });
+          let next = current.children.get(part);
+          if (!next) {
+            next = { name: part, children: new Map(), value: 0, cveIds: new Set() };
+            current.children.set(part, next);
           }
-          current = current.children.get(part);
+          current = next;
           current.value += rewardPerBranch;
           current.cveIds.add(cve.id);
         }
@@ -429,27 +478,36 @@ const buildTree = (cves: any[]) => {
   cvesCount.value = cvesWithReward;
 
   const convertToHierarchy = (node: any) => {
+    const nodeCveIds = Array.from(node.cveIds);
+    const nodeCves = nodeCveIds
+      .map(id => cveMap.value.get(id))
+      .filter(Boolean)
+      .sort((a: any, b: any) => {
+        const dateA = new Date(a.bug_date || a.published || 0).getTime();
+        const dateB = new Date(b.bug_date || b.published || 0).getTime();
+        return dateB - dateA;
+      });
+
     const obj: any = {
       name: node.name,
       value: node.value,
-      count: node.cveIds ? node.cveIds.size : 0,
-      cveIds: node.cveIds ? Array.from(node.cveIds) : [],
-      cves: node.cveIds ? Array.from(node.cveIds).map(id => rawData.value.find(c => c.id === id)).filter(Boolean).sort((a: any, b: any) => {
-        const dateA = new Date(a.bug_date || a.published || 0);
-        const dateB = new Date(b.bug_date || b.published || 0);
-        return dateB.getTime() - dateA.getTime();
-      }) : []
+      count: nodeCveIds.length,
+      cveIds: nodeCveIds,
+      cves: nodeCves
     };
+
     if (node.children && node.children.size > 0) {
       obj.children = Array.from(node.children.values())
         .map(convertToHierarchy)
-        .sort((a: any, b: any) => b.value - a.value); // Sort highest reward first
+        .sort((a: any, b: any) => b.value - a.value);
     }
     return obj;
   };
 
   return convertToHierarchy(root);
 };
+
+// --- Watchers ---
 
 watch(dates, () => {
   updateUrl();
@@ -460,15 +518,17 @@ watch(groupBy, () => {
   treeData.value = buildTree(filteredData.value);
 });
 
-watch(filteredData, () => {
-  treeData.value = buildTree(filteredData.value);
+watch(filteredData, (newData) => {
+  treeData.value = buildTree(newData);
 });
 
 onMounted(async () => {
   try {
     const response = await fetch('/cve/data.json');
     rawData.value = await response.json();
+    processedData.value = processRawData(rawData.value);
 
+    // If no start date in URL, ensure we span everything
     if (!route.query.start && rawData.value.length > 0) {
       let minDate = new Date();
       for (const cve of rawData.value) {
@@ -479,7 +539,6 @@ onMounted(async () => {
       }
       dates.value[0] = minDate;
       dates.value[1] = new Date();
-      updateUrl(); // Update URL since we changed dates
     }
 
     treeData.value = buildTree(filteredData.value);
