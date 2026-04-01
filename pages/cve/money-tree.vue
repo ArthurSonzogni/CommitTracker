@@ -76,55 +76,9 @@ import { format } from 'd3-format';
 import { interpolate } from 'd3-interpolate';
 import MoneyTreeNode from '~/components/MoneyTreeNode.vue';
 import Timeline from '~/components/Timeline.vue';
+import cweTitle from '~/utils/cwe.json';
 
 // --- Static Helpers & Constants (Module Scope) ---
-
-const cweTitle = new Map([
-  [119, "Improper Restriction of Operations within the Bounds of a Memory Buffer"],
-  [120, "Buffer overflow"],
-  [122, "Heap-based Buffer Overflow"],
-  [125, "Out-of-bounds Read"],
-  [1284, "Improper Validation of Specified Quantity in Input"],
-  [1287, "Improper Validation of Specified Type of Input"],
-  [1300, "Improper Protection of Physical Side Channels"],
-  [190, "Integer Overflow or Wraparound"],
-  [194, "Unexpected Sign Extension"],
-  [20, "Improper Input Validation"],
-  [203, "Observable Discrepancy"],
-  [22, "Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal')"],
-  [269, "Improper Privilege Management"],
-  [284, "Improper Access Control"],
-  [285, "Improper Authorization"],
-  [288, "Authentication Bypass Using an Alternate Path or Channel"],
-  [290, "Authentication Bypass by Spoofing"],
-  [303, "Incorrect Implementation of Authentication Algorithm"],
-  [306, "Missing Authentication for Critical Function"],
-  [345, "Insufficient Verification of Data Authenticity"],
-  [346, "Origin Validation Error"],
-  [358, "Improperly Implemented Security Check for Standard"],
-  [362, "Race condition"],
-  [366, "Race Condition within a Thread"],
-  [374, "Passing Mutable Objects to an Untrusted Method"],
-  [416, "Use After Free"],
-  [449, "The UI Performs the Wrong Action"],
-  [451, "User Interface (UI) Misrepresentation of Critical Information"],
-  [457, "Use of Uninitialized Variable"],
-  [472, "External Control of Assumed-Immutable Web Parameter"],
-  [474, "Use of Function with Inconsistent Implementations"],
-  [601, "URL Redirection to Untrusted Site ('Open Redirect')"],
-  [691, "Insufficient Control Flow Management"],
-  [693, "Protection Mechanism Failure"],
-  [732, "Incorrect Permission Assignment for Critical Resource"],
-  [787, "Out-of-bounds Write"],
-  [79, "Cross-site scripting"],
-  [807, "Reliance on Untrusted Inputs in a Security Decision"],
-  [843, "Type confusion"],
-  [863, "Incorrect Authorization"],
-  [94, "Improper Control of Generation of Code (‘Code Injection’)"],
-  [1007, "Insufficient Visual Distinction of Homoglyphs Presented to User"],
-  [1021, "Improper Restriction of Rendered UI Layers or Frames"],
-  [1230, "Exposure of Sensitive Information Through Metadata"],
-]);
 
 const identifyRepo = (path: string, currentRepo: string, cve: any) => {
   if (currentRepo && currentRepo !== 'unknown') return currentRepo;
@@ -436,7 +390,7 @@ const buildTree = (cves: any[]) => {
         const component = (cve.components && cve.components.length > 0) ? cve.components[0] : "Unknown Component";
         branches = [[...component.split('>'), leaf.repo, ...leaf.parts]];
       } else if (groupBy.value === 'cwe') {
-        const cwe = cve.cweId ? `CWE-${cve.cweId} ${cweTitle.get(parseInt(cve.cweId)) || ''}`.trim() : "Unknown CWE";
+        const cwe = cve.cweId ? `CWE-${cve.cweId} ${(cweTitle as Record<string, string>)[cve.cweId] || ''}`.trim() : "Unknown CWE";
         branches = [[cwe, leaf.repo, ...leaf.parts]];
       } else if (groupBy.value === 'fixed-by') {
         if (leaf.authors.length > 0) {
