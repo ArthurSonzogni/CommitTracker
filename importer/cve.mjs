@@ -125,8 +125,10 @@ const urlIsChromiumBugTracker = (url) => {
 
 const urlIsChromiumCodeReview = (url) => {
   return url.includes("chromium.googlesource.com") ||
+    url.includes("review.googlesource.com") ||
     url.includes("codereview.chromium.org") ||
-    url.includes("src.chromium.org");
+    url.includes("src.chromium.org") ||
+    url.includes("crrev.com");
 }
 
 const normalizeCve = (cve) => {
@@ -274,8 +276,15 @@ const retrieveCveList = async (database) => {
 
     const transformed = transformCve(cve)
 
-    // Skip entries that have already been processed.
-    if (database.find(entry => entry.id == transformed.id)) {
+    const existing = database.find(entry => entry.id == transformed.id);
+    if (existing) {
+      // Update metadata fields from the CVE repository.
+      existing.cweId = transformed.cweId;
+      existing.problem = transformed.problem;
+      existing.description = transformed.description;
+      existing.version_fixed = transformed.version_fixed;
+      existing.version_dates = transformed.version_dates;
+      existing.severity = transformed.severity || existing.severity;
       continue;
     }
 
@@ -295,9 +304,15 @@ const retrieveCveList = async (database) => {
 const gerritUrlToCommitHash = async (url) => {
   try {
     const parts = url.split('/');
-    const origin = parts[2];
-    const project = parts[4];
-    const id = parts[parts.length - 1];
+    let origin = parts[2];
+    let id = parts[parts.length - 1];
+    
+    if (origin == "crrev.com") {
+      origin = "chromium-review.googlesource.com";
+    }
+
+    // For https://chromium-review.googlesource.com/c/chromium/src/+/5973403
+    // For https://crrev.com/c/5378419
     const gerrit_url = `https://${origin}/changes/${id}?O=200`;
     console.log("Fetching", gerrit_url);
     const response = await fetch(gerrit_url);
@@ -348,6 +363,7 @@ const fetchBugganizer = async (cve, page) => {
       chromium_labels: [],
       bug_date: null,
       severity: null,
+      comment_links: [],
     }
 
     for(const el of document.querySelectorAll('label')) {
@@ -440,8 +456,11 @@ const fetchBugganizer = async (cve, page) => {
     }
 
     // Extract the bug open date.
-    const bug_date = document.querySelector('time').getAttribute('datetime');
+    const bug_date = document.querySelector('time')?.getAttribute('datetime');
     out.bug_date = bug_date;
+
+    // Extract all links from comments.
+    out.comment_links = Array.from(document.querySelectorAll('.child a')).map(el => el.href.trim());
 
     return out;
   })
@@ -465,42 +484,61 @@ const fetchBugganizer = async (cve, page) => {
   cve.chromium_labels = extracted.chromium_labels;
   cve.bug_date = extracted.bug_date;
   cve.severity = extracted.severity;
+  cve.last_bug_fetch = new Date().toISOString().split('T')[0];
 
   const hasCommits = cve.commits && Object.keys(cve.commits).length > 0;
   if (hasCommits) {
-    console.log("Commits already known, skipping Gerrit resolution.");
-    return;
+    // If we have commits, we only skip if the title is already set.
+    // This allows us to re-fetch to get the title if it was missing.
+    if (cve.title && cve.title != "n/a") {
+      console.log("Commits already known, skipping Gerrit resolution.");
+      return;
+    }
   }
 
   const fixed_by = new Set();
   for(const change of extracted.fixed_by) {
-    fixed_by.add(await gerritUrlToCommitHash(change));
+    const sha = await gerritUrlToCommitHash(change);
+    if (sha) fixed_by.add(sha);
   }
   cve.fixed_by = Array.from(fixed_by).sort();
 
   // Read the issues descriptions.
   const commits = new Set(fixed_by);
   for (const change of extracted.code_changes) {
-    commits.add(await gerritUrlToCommitHash(change));
+    const sha = await gerritUrlToCommitHash(change);
+    if (sha) commits.add(sha);
   }
-  const issues_commits = await page.evaluate(() => {
-    const hashes = new Set();
-    for(const el of document.querySelectorAll('.child')) {
-      // Match "commit e598fc599bd920392256d05c61826466c73c8e89"
-      // Match "Hash: 0df9105b154dc5627d81595b9aa379208d119fc2"
-      // The first is used in chromium, the other in v8/skia.
-      const text = el.textContent;
-      const matches = text.match(/commit ([0-9a-f]{40})/g) ||
-        text.match(/Hash: ([0-9a-f]{40})/g);
-      if (matches) {
-        hashes.add(matches[0].split(' ')[1]);
+
+  // Fallback to comments if no commits were found in the structured fields.
+  if (commits.size === 0) {
+    for (const link of extracted.comment_links) {
+      if (urlIsChromiumCodeReview(link)) {
+        const sha = await gerritUrlToCommitHash(link);
+        if (sha) commits.add(sha);
       }
     }
-    return Array.from(hashes);
-  })
+    const issues_commits = await page.evaluate(() => {
+      const hashes = new Set();
+      for(const el of document.querySelectorAll('.child')) {
+        // Match "commit e598fc599bd920392256d05c61826466c73c8e89"
+        // Match "Hash: 0df9105b154dc5627d81595b9aa379208d119fc2"
+        // The first is used in chromium, the other in v8/skia.
+        const text = el.textContent;
+        const matches = [
+          ...(text.match(/commit ([0-9a-f]{40})/g) || []),
+          ...(text.match(/Hash: ([0-9a-f]{40})/g) || [])
+        ];
+        for (const match of matches) {
+          hashes.add(match.split(' ')[1]);
+        }
+      }
+      return Array.from(hashes);
+    })
 
-  for(const commit of issues_commits) {
-    commits.add(commit);
+    for(const commit of issues_commits) {
+      commits.add(commit);
+    }
   }
 
   cve.commits ||= {}
@@ -548,35 +586,23 @@ const augmentFromBugganizer = async (database) => {
       delete cve.import_stage;
     }
 
-    //console.log("reward", cve.vrp_reward, "commits", cve.commits?.length);
-    if (cve.vrp_reward != undefined &&
-        cve.title != undefined && cve.title != "n/a" &&
-        cve.commits &&
-        (cve.commits.length > 0 || Object.keys(cve.commits).length > 0)) {
-      console.log("Skipping", cve.bug, " vrp reward", cve.vrp_reward);
-      continue;
-    }
+    const needsTitle = cve.title === undefined || cve.title === "n/a";
+    const needsCommits = !cve.commits || Object.keys(cve.commits).length === 0;
 
-    // The bug has not been fetched yet, but it might still be private. Load
-    // them randomly based on the number number of weeks since the CVE was
-    // published. This is to avoid hitting the same bugs over and over again.
+    // Graduated backoff based on the age of the CVE.
     const published = new Date(cve.published);
     const today = new Date();
-    const weeks = (today - published) / (1000 * 60 * 60 * 24 * 7);
-    let probability = 0.1;
+    const ageInWeeks = (today - published) / (1000 * 60 * 60 * 24 * 7);
 
-    // Bugs are usually public after 12 weeks, so we can fetch them at that time
-    // with a higher probability.
-    if (weeks <= 12) { probability = 0.1; }
-    else if (weeks <= 18) { probability = 1.0; }
-    else if (weeks <= 22) { probability = 0.5; }
-    else if (weeks <= 26) { probability = 0.2; }
-    else { probability = 0.1; }
-    console.log("Weeks", weeks, "Probability", probability);
+    let refreshThresholdDays = 60; // Default for old bugs.
+    if (ageInWeeks < 14) { refreshThresholdDays = 3; }
+    else if (ageInWeeks < 26) { refreshThresholdDays = 14; }
 
-    const needsTitle = cve.title === undefined || cve.title === "n/a";
-    if (!needsTitle && Math.random() > probability) {
-      console.log("Skipping", cve.id, "probability", probability);
+    const lastFetch = cve.last_bug_fetch ? new Date(cve.last_bug_fetch) : new Date(0);
+    const daysSinceLastFetch = (today - lastFetch) / (1000 * 60 * 60 * 24);
+
+    if (!needsTitle && !needsCommits && daysSinceLastFetch < refreshThresholdDays) {
+      console.log("Skipping", cve.id, "last fetch was", daysSinceLastFetch.toFixed(1), "days ago. Threshold:", refreshThresholdDays, "days.");
       continue;
     }
 

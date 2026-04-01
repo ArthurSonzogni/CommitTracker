@@ -150,7 +150,7 @@ const normalizePath = (path: string, repo: string) => {
       return 'third_party/blink/renderer/' + p.substring(7);
     }
     if (lower.startsWith('third_party/webkit/source/')) {
-      return 'third_party/blink/renderer/' + p.substring(25);
+      return 'third_party/blink/renderer/' + p.substring(26);
     }
     if (lower.startsWith('wpt/')) {
       return 'third_party/blink/web_tests/external/wpt/' + p.substring(4);
