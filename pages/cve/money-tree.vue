@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="page-container">
     <Navbar/>
 
     <section class="section pb-2">
@@ -15,10 +15,6 @@
               This site maps Chromium VRP (bug bounty) rewards to changes (fixes) in specific files.
               <br>
               The bug bounty reward gets divided between files, eg if a fix to a $1000 bug changed 5 files, each file gets $200
-              <br>
-              <template v-if="treeData">
-                Currently displaying <strong>{{ displayCvesCount.toFixed(0) }} CVEs</strong> in range (<strong>{{ dates[0].toLocaleDateString() }}</strong> to <strong>{{ dates[1].toLocaleDateString() }}</strong>) for a total reward of <strong>{{ formatter(displayTotalReward) }}</strong>.
-              </template>
             </p>
             <p>
               This is inspired by the famous
@@ -34,10 +30,17 @@
         </div>
 
         <div class="mb-4">
-          <p class="is-size-6">
-            There are still <strong>{{ undisclosedCvesCount }} CVEs undisclosed</strong> (restricted),
-            <strong>{{ recentCvesCount }} are recent</strong> (last 90 days), and
-            <strong>{{ neverOpenedCvesCount }} were never opened</strong> (missing bug tracker link).
+          <p class="is-size-6" v-if="treeData">
+            Currently displaying <strong>{{ displayCvesCount.toFixed(0) }} CVEs</strong>
+            over a period of <strong>{{ displayDuration }}</strong>,
+            for a total reward of <strong>{{ formatter(displayTotalReward) }}</strong>.
+          </p>
+          <p class="is-size-7 mt-1 has-text-grey">
+            Global dataset excludes:
+            <strong>{{ missingBugLinkCount }}</strong> missing bug links,
+            <strong>{{ legacyIgnoredCount }}</strong> legacy pre-2021 bugs, and
+            <strong>{{ restrictedCvesCount.length }}</strong> unparsable/restricted CVEs
+            (<strong>{{ restrictedRecentCount }}</strong> recent / <strong>{{ restrictedOldCount }}</strong> permanent).
           </p>
         </div>
 
@@ -82,6 +85,7 @@ import { ref, onMounted, computed, watch, shallowRef } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { format } from 'd3-format';
 import { interpolate } from 'd3-interpolate';
+import humanizeDuration from 'humanize-duration';
 import MoneyTreeNode from '~/components/MoneyTreeNode.vue';
 import Timeline from '~/components/Timeline.vue';
 import cweTitle from '~/utils/cwe.json';
@@ -215,26 +219,47 @@ const rawData = shallowRef<any[]>([]);
 const treeData = shallowRef<any>(null);
 const cvesCount = ref(0);
 
-const undisclosedCvesCount = computed(() => {
+const missingBugLinkCount = computed(() => {
+  return rawData.value.filter(cve => !cve.bug || cve.bug === 'n/a').length;
+});
+
+const displayDuration = computed(() => {
+  const ms = dates.value[1].getTime() - dates.value[0].getTime();
+  return humanizeDuration(ms, {
+    largest: 2,
+    units: ["y", "mo", "w", "d"],
+    round: true,
+  });
+});
+
+const legacyIgnoredCount = computed(() => {
   return rawData.value.filter(cve => {
     const hasBug = cve.bug && cve.bug !== 'n/a';
     const hasReward = parseInt(cve.vrp_reward) > 0;
     const hasCommits = cve.commits && Object.keys(cve.commits).length > 0;
-    return hasBug && !hasReward && !hasCommits;
+    const isLegacy = cve.id.startsWith('201') || cve.id.startsWith('2020');
+    return hasBug && !hasReward && !hasCommits && isLegacy;
   }).length;
 });
 
-const recentCvesCount = computed(() => {
-  const ninetyDaysAgo = new Date();
-  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+const restrictedCvesCount = computed(() => {
   return rawData.value.filter(cve => {
-    const published = new Date(cve.published);
-    return published >= ninetyDaysAgo;
-  }).length;
+    const hasBug = cve.bug && cve.bug !== 'n/a';
+    const hasReward = parseInt(cve.vrp_reward) > 0;
+    const hasCommits = cve.commits && Object.keys(cve.commits).length > 0;
+    const isLegacy = cve.id.startsWith('201') || cve.id.startsWith('2020');
+    return hasBug && !hasReward && !hasCommits && !isLegacy;
+  });
 });
 
-const neverOpenedCvesCount = computed(() => {
-  return rawData.value.filter(cve => !cve.bug || cve.bug === 'n/a').length;
+const restrictedRecentCount = computed(() => {
+  const fourteenWeeksAgo = new Date();
+  fourteenWeeksAgo.setDate(fourteenWeeksAgo.getDate() - 98);
+  return restrictedCvesCount.value.filter(cve => new Date(cve.published) >= fourteenWeeksAgo).length;
+});
+
+const restrictedOldCount = computed(() => {
+  return restrictedCvesCount.value.length - restrictedRecentCount.value;
 });
 
 const displayCvesCount = ref(0);
@@ -567,13 +592,20 @@ onMounted(async () => {
   text-align: right;
 }
 
+.page-container {
+  padding-bottom: 80px; /* Make room for the fixed timeline */
+}
+
 .timeline {
   z-index: 10;
-  background-color: white;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(5px);
   width: 100%;
-  padding: 1rem 0;
+  padding-top: 0.75rem;
+  padding-bottom: 0.25rem;
   border-top: 1px solid #eaeaea;
-  position: sticky;
+  position: fixed;
+  left: 0;
   bottom: 0;
 }
 </style>

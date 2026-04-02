@@ -66,7 +66,6 @@
         <b-slider-tick :value="1">today</b-slider-tick>
       </b-slider>
     </b-field>
-
   </div>
 </template>
 
@@ -202,5 +201,10 @@ const onQuarterClick = (year: number, quarter: number) => {
 <style scoped>
 .timeline {
    user-select: none;
+   padding-left: 20px;
+   padding-right: 20px;
+}
+.timeline :deep(.field) {
+  margin-bottom: 0 !important;
 }
 </style>
