@@ -33,6 +33,14 @@
           </div>
         </div>
 
+        <div class="mb-4">
+          <p class="is-size-6">
+            There are still <strong>{{ undisclosedCvesCount }} CVEs undisclosed</strong> (restricted),
+            <strong>{{ recentCvesCount }} are recent</strong> (last 90 days), and
+            <strong>{{ neverOpenedCvesCount }} were never opened</strong> (missing bug tracker link).
+          </p>
+        </div>
+
         <b-field label="Group by">
           <b-radio-button v-model="groupBy" native-value="none">None</b-radio-button>
           <b-radio-button v-model="groupBy" native-value="cwe">CWE</b-radio-button>
@@ -206,6 +214,28 @@ const showReadme = ref(false);
 const rawData = shallowRef<any[]>([]);
 const treeData = shallowRef<any>(null);
 const cvesCount = ref(0);
+
+const undisclosedCvesCount = computed(() => {
+  return rawData.value.filter(cve => {
+    const hasBug = cve.bug && cve.bug !== 'n/a';
+    const hasReward = parseInt(cve.vrp_reward) > 0;
+    const hasCommits = cve.commits && Object.keys(cve.commits).length > 0;
+    return hasBug && !hasReward && !hasCommits;
+  }).length;
+});
+
+const recentCvesCount = computed(() => {
+  const ninetyDaysAgo = new Date();
+  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+  return rawData.value.filter(cve => {
+    const published = new Date(cve.published);
+    return published >= ninetyDaysAgo;
+  }).length;
+});
+
+const neverOpenedCvesCount = computed(() => {
+  return rawData.value.filter(cve => !cve.bug || cve.bug === 'n/a').length;
+});
 
 const displayCvesCount = ref(0);
 const displayTotalReward = ref(0);
