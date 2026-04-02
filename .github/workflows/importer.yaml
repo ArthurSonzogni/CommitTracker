@@ -87,9 +87,9 @@ jobs:
 
       - name: Pull dependencies
         run: |
-          yarn && yarn install
-          yarn pull-data
-          cd importer && yarn && yarn install
+          npm install
+          npm run pull-data
+          cd importer && npm install
 
       # --- MODULES (Composite Actions) ---
 

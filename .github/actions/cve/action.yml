@@ -11,7 +11,7 @@ runs:
       shell: bash
       run: |
         cd importer
-        yarn run cve
+        npm run cve
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
 

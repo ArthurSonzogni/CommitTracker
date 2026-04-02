@@ -11,14 +11,14 @@ runs:
       shell: bash
       run: |
         cd importer
-        yarn run fetch_data
+        npm run fetch_data
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
 
     - name: Cleanup derived data
       shell: bash
       run: |
-        yarn run clean-derived-data
+        npm run clean-derived-data
 
     - name: Push data
       uses: peaceiris/actions-gh-pages@v3
@@ -31,6 +31,6 @@ runs:
     - name: Generate derived data
       shell: bash
       run: |
-        yarn run generate-derived-data
+        npm run generate-derived-data
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}

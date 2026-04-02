@@ -23,7 +23,7 @@ runs:
       shell: bash
       run: |
         cd importer
-        yarn run graph
+        npm run graph
 
     - name: Deploy community map
       uses: peaceiris/actions-gh-pages@v3

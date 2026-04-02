@@ -11,7 +11,7 @@ runs:
       shell: bash
       run: |
         cd importer
-        yarn run treemap
+        npm run treemap
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
 

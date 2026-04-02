@@ -11,7 +11,7 @@ runs:
       shell: bash
       run: |
         cd importer
-        yarn run fuzztest
+        npm run fuzztest
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
 

@@ -23,7 +23,6 @@ These instructions will get you a copy of the project up and running on your loc
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/)
-- [Yarn](https://yarnpkg.com/)
 
 ### Installation
 
@@ -33,7 +32,7 @@ These instructions will get you a copy of the project up and running on your loc
    ```
 2. Install NPM packages
    ```sh
-   yarn
+   npm install
    ```
 
 ## Usage
@@ -43,9 +42,9 @@ These instructions will get you a copy of the project up and running on your loc
 To run the development server, execute the following commands:
 
 ```bash
-yarn pull-data
-yarn generate-derived-data
-yarn dev
+npm run pull-data
+npm run generate-derived-data
+npm run dev
 ```
 
 ### Pull new data
@@ -55,8 +54,8 @@ The data is refreshed automatically every day. You can pull it using:
 **Pull updated data:**
 
 ```bash
-yarn pull-data
-yarn generate-derived-data
+npm run pull-data
+npm run generate-derived-data
 ```
 
 **Fetch new data:**
