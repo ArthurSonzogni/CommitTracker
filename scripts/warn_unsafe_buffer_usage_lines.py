@@ -28,9 +28,7 @@ import os
 import sys
 import subprocess
 import re
-
-# The location of the configuration file, relative to the script's execution path.
-CONFIG_FILE_PATH = "build/config/unsafe_buffers_paths.txt"
+import argparse
 
 # File extensions to consider for scanning.
 SOURCE_EXTENSIONS = {'.c', '.cc', '.cpp', '.h', '.hh', '.hpp'}
@@ -155,23 +153,41 @@ def main():
     """
     Main function to orchestrate the scanning and counting process.
     """
-    if not os.path.isdir('build'):
-        print(
-            "Error: This script must be run from the root of a Chromium checkout (e.g., 'src/').",
-            file=sys.stderr)
-        sys.exit(1)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--repo", default="chromium", help="The name or directory of the repository")
+    args = parser.parse_args()
 
-    config_exists = os.path.exists(CONFIG_FILE_PATH)
+    active_config_path = None
+    if args.repo == "chromium":
+        # Chromium structure
+        if os.path.exists("build/config/unsafe_buffers_paths.txt"):
+            active_config_path = "build/config/unsafe_buffers_paths.txt"
+    else:
+        # Dawn, Skia, Angle, WebRTC, etc.
+        if os.path.exists("unsafe_buffers_paths.txt"):
+            active_config_path = "unsafe_buffers_paths.txt"
+
+    config_exists = active_config_path is not None
     included_prefixes, excluded_prefixes = [], []
 
     if config_exists:
-        included_prefixes, excluded_prefixes = parse_config(CONFIG_FILE_PATH)
+        included_prefixes, excluded_prefixes = parse_config(active_config_path)
         if not excluded_prefixes:
             excluded_prefixes = []
             included_prefixes = []
             config_exists = False
 
     all_files = get_git_files()
+
+    if args.repo == "dawn":
+        macros_to_check = [
+            "TINT_DISABLE_WARNING_UNSAFE_BUFFER_USAGE",
+            "TINT_DISABLE_WARNING_UNSAFE_BUFFER_USAGE_IN_CONTAINER",
+            "DAWN_UNSAFE_TODO",
+            "DAWN_UNSAFE_BUFFERS"
+        ]
+    else:
+        macros_to_check = ["UNSAFE_TODO"]
 
     for relative_path in all_files:
         if relative_path.startswith('tools/'):
@@ -207,7 +223,7 @@ def main():
                         # Rule 3b: Count only specific lines.
                         lines = content.splitlines()
                         for line in lines:
-                            if "UNSAFE_TODO" in line:
+                            if any(macro in line for macro in macros_to_check):
                                 uncovered_lines += 1
                 except IOError as e:
                     print(f"Warning: Could not read file {full_path}: {e}", file=sys.stderr)

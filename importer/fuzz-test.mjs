@@ -1,6 +1,5 @@
 import * as filesystem from 'fs';
 import JSON5 from 'json5';
-import core from '@actions/core';
 import statusLine from '@alt-jero/status-line';
 import { spawn } from "child_process"
 import {Octokit} from 'octokit';

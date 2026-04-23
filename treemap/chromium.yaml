@@ -59,6 +59,13 @@ metrics:
   file: allow_ptr_arithmetic
   tags: ["MiraclePtr"]
 
+- name: DisableDanglingPtrDetection
+  description: The number of DisableDanglingPtrDetection
+  script: >-
+    git grep -c 'DisableDanglingPtrDetection' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c' ':!tools/*'
+  file: disable_dangling_ptr_detection
+  tags: ["MiraclePtr"]
+
 - name: ContainerExperimental
   description: The number of VectorExperimental, SetExperimental, CtnExperimental
   script: >-
@@ -71,7 +78,7 @@ metrics:
 - name: "Unsafe Buffer Usage Lines"
   description: The number of lines with UNSAFE_BUFFER_USAGE, calculated by a script.
   script: >-
-    python3 ../../scripts/warn_unsafe_buffer_usage_lines.py
+    python3 ../../scripts/warn_unsafe_buffer_usage_lines.py --repo "$REPO_DIRNAME"
   file: lines_unsafe_buffer_usage
   tags: ["Spanification"]
 

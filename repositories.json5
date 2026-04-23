@@ -76,7 +76,7 @@
     owner: "google",
     repository: "skia",
     reviewers: true,
-    treemap: false,
+    treemap: true,
   },
 
   {
@@ -86,7 +86,7 @@
     owner: "google",
     repository: "dawn",
     reviewers: true,
-    treemap: false,
+    treemap: true,
   },
 
   {
@@ -106,7 +106,7 @@
     owner: "google",
     repository: "angle",
     reviewers: true,
-    treemap: false,
+    treemap: true,
   },
 
   {
@@ -126,7 +126,7 @@
     owner: "maitrungduc1410",
     repository: "webrtc",
     reviewers: true,
-    treemap: false,
+    treemap: true,
   },
 
   {

@@ -15,7 +15,7 @@
       </div>
       <div>
         <Treemap
-          :repositories="['chromium']"
+          :repositories="[default_repo]"
           :path="path"
           :field_color="['allow_unsafe_buffers']"
           :field_size="['raw_ptr']"
@@ -32,6 +32,8 @@
 </template>
 
 <script setup lang="ts">
+import repositories_json from '../public/data/repositories.json'
+const default_repo = repositories_json[0]?.dirname || "chromium";
 
 const path = ref([]);
 

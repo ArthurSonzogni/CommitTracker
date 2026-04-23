@@ -74,13 +74,20 @@ const props = defineProps({
 });
 
 const dateExtent = computed(() => {
-  return extent(props.data.map(e => e.values).flat().map(d => d.x))
+  if (!props.data || props.data.length === 0) return [new Date(), new Date()];
+  const allValues = props.data.map(e => e.values).flat();
+  if (allValues.length === 0) return [new Date(), new Date()];
+  return extent(allValues.map(d => d.x))
 });
 const patchExtent = computed(() => {
-  return [0, max(props.data.map(e => e.values).flat().map(d => d.y))]
+  if (!props.data || props.data.length === 0) return [0, 0];
+  const allValues = props.data.map(e => e.values).flat();
+  if (allValues.length === 0) return [0, 0];
+  return [0, max(allValues.map(d => d.y))]
 });
 
 const render = () => {
+  if (!props.data || props.data.length === 0) return;
   const margin = {
     top: 10,
     right: 30,

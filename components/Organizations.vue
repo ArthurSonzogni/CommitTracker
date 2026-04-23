@@ -54,8 +54,8 @@
 
 <script setup lang="ts">
 
-import repositories from 'public/data/repositories.json'
-import organizations from 'public/data/organizations.json'
+import repositories from '~/public/data/repositories.json'
+import organizations from '~/public/data/organizations.json'
 import { format } from 'd3-format'
 
 const props = defineProps({

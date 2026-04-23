@@ -7,7 +7,7 @@ const CONFIG = {
   full: {
     begin: new Date("2008-01-01"),
     end: new Date(),
-    iterations: 200,
+    iterations: 5,
     power: 0.3, // More iterations near the end.
   }
 }
@@ -96,12 +96,13 @@ const clone = async (repo, incremental) => {
 // }
 async function ProcessEntry(repo, date_id, root, entry, metrics_data, id_counter) {
   await fs.writeFile("script.sh", `
+    export REPO_DIRNAME="${repo.dirname}"
+    export REPO_NAME="${repo.name}"
     cd ./${repo.dirname}
     cd ${repo.cone ? repo.cone : "."}
     ${entry.script}
     cd ..;
   `)
-
   let output = "";
   const shell = spawn("sh", ["./script.sh"]);
   shell.stdout.on("data", chunk => {
@@ -288,26 +289,59 @@ async function processRepository(repo, entries) {
     await fs.writeFile(dates_filename, JSON.stringify(processed_dates, null, 2));
     await fs.writeFile(file_index_filename, JSON.stringify(root, null, 2));
     await fs.mkdir(metrics_dir, { recursive: true });
+    const available_metrics = [];
     for (const [metric_name, data] of Object.entries(metrics_data)) {
+      available_metrics.push(metric_name);
       const filename = `${metrics_dir}${metric_name}.json`;
       await fs.writeFile(filename, JSON.stringify(data));
     }
+    await fs.writeFile(`${output_dir}available_metrics.json`, JSON.stringify(available_metrics, null, 2));
   })
 }
-
-// Load the entries. This is a list of metrics to be collected.
-const entries_filename = `../treemap.yaml`;
-const entries = YAML.parse(await fs.readFile(entries_filename, "utf8"));
-
-// Create the output directory if it does not exist.
-await fs.mkdir("../public/treemap/", { recursive: true });
-await fs.writeFile("../public/treemap/entries.json", JSON.stringify(entries, null, 1));
 
 // Load the list or repositories to process.
 const repositories_file = "../repositories.json5";
 const repositories = await parseFile(JSON5, repositories_file);
 
+// Gather all metrics to build a global entries.json for the frontend
+const all_metrics_map = new Map();
+
 for (const repository of repositories) {
+  if (repository.treemap === false) continue;
+  
+  const entries_filename = `../treemap/${repository.dirname}.yaml`;
+  if (!(await pathExists(entries_filename))) {
+    console.log(`Skipping ${repository.dirname} - no treemap config`);
+    continue;
+  }
+  
+  const entries = YAML.parse(await fs.readFile(entries_filename, "utf8"));
+  for (const metric of entries.metrics || []) {
+    if (!all_metrics_map.has(metric.name)) {
+      all_metrics_map.set(metric.name, metric);
+    }
+  }
+}
+
+const global_entries = { metrics: Array.from(all_metrics_map.values()) };
+
+// Create the output directory if it does not exist.
+await fs.mkdir("../public/treemap/", { recursive: true });
+await fs.writeFile("../public/treemap/entries.json", JSON.stringify(global_entries, null, 1));
+
+const target_repo = process.argv[2];
+
+for (const repository of repositories) {
+  if (repository.treemap === false) continue;
+  if (target_repo && repository.dirname !== target_repo) continue;
+
+  const entries_filename = `../treemap/${repository.dirname}.yaml`;
+  if (!(await pathExists(entries_filename))) {
+    continue;
+  }
+  
+  const entries = YAML.parse(await fs.readFile(entries_filename, "utf8"));
+
   await timed(`Processing ${repository.owner}/${repository.repository}`, async () => {
     await processRepository(repository, entries);
   })

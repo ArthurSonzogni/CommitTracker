@@ -2,25 +2,25 @@
 export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
   devtools: { enabled: true },
-  target: 'static',
   ssr: false,
 
   site: {
     url: 'https://chrome-commit-tracker.arthursonzogni.com',
   },
 
-  // Global page headers: https://go.nuxtjs.dev/config-head
-  head: {
-    title: 'chrome-commit-tracker',
-    htmlAttrs: {
-      lang: 'en'
+  app: {
+    head: {
+      title: 'chrome-commit-tracker',
+      htmlAttrs: {
+        lang: 'en'
+      },
+      meta: [
+        { charset: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { hid: 'description', name: 'description', content: '' },
+        { name: 'format-detection', content: 'telephone=no' }
+      ],
     },
-    meta: [
-      { charset: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { hid: 'description', name: 'description', content: '' },
-      { name: 'format-detection', content: 'telephone=no' }
-    ],
   },
 
   css: [
@@ -29,14 +29,26 @@ export default defineNuxtConfig({
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
-    extend(config, { isClient }) {
-      if (isClient) {
-        config.externals = ['d3-transition']; // Exclude d3-transition from tree-shaking
-      }
-    }
+    transpile: [
+      'd3-transition',
+    ],
   },
 
   modules: [
     "@nuxtjs/sitemap",
   ],
+
+  nitro: {
+    serverAssets: [
+      {
+        baseName: 'public',
+        dir: './public',
+        ignore: [
+          'data/**',
+          'commit_rates/**',
+          'treemap/**'
+        ]
+      }
+    ]
+  }
 })

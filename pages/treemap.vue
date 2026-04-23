@@ -3,12 +3,24 @@
     <Navbar/>
     <div class="m-5">
       <b-field group group-multiline>
-      <TreemapInput v-model:value="field_color"
-                    placeholder="color/numerator"/>
-      <b-checkbox v-model="history_color" class="ml-4"/>
-      <TreemapInput v-model:value="field_size"
-                    placeholder="size/denominator"/>
-      <b-checkbox v-model="history_size" class="ml-4"/>
+        <b-field>
+          <RepositorySelector
+            v-model="repositories"
+            size="is-small"
+            :allowMultiple="false"
+            :allowAll="false"
+            :filter="repo => repo.treemap"
+          />
+        </b-field>
+
+        <TreemapInput v-model:value="field_color"
+                      :repositories="repositories"
+                      placeholder="color/numerator"/>
+        <b-checkbox v-model="history_color" class="ml-4"/>
+        <TreemapInput v-model:value="field_size"
+                      :repositories="repositories"
+                      placeholder="size/denominator"/>
+        <b-checkbox v-model="history_size" class="ml-4"/>
 
         <b-field expanded class="mr-2" label="Colormap"
                                        label-position="on-border">
@@ -43,7 +55,7 @@
           </b-dropdown>
         </b-field>
 
-        <b-field class="mr-2" label="Min" label-position="on-border">
+        <b-field class="mr-2" label="Min" label-position="on-border" style="width: 80px;">
           <b-input
             v-model="colormapMin"
             placeholder="Min"
@@ -51,7 +63,7 @@
           </b-input>
         </b-field>
 
-        <b-field class="mr-2" label="Max" label-position="on-border">
+        <b-field class="mr-2" label="Max" label-position="on-border" style="width: 80px;">
           <b-input
             v-model="colormapMax"
             placeholder="Max"
@@ -185,6 +197,7 @@
 
 <script setup lang="ts">
 
+import repositories_json from '../public/data/repositories.json'
 import entries from '../public/treemap/entries.json'
 
 const treemap = ref(null);
@@ -192,24 +205,24 @@ const treemap = ref(null);
 const route = useRoute()
 const router = useRouter()
 
-const field_color = ref([entries.metrics[7]]);
+const field_color = ref([entries.metrics?.find(e => e.file === 'todo') || entries.metrics?.[0]]);
 if (route.query.field_color) {
   field_color.value = route.query.field_color.split(",").map(file => {
-    return entries.metrics.find(e => e.file === file)
+    return entries.metrics?.find(e => e.file === file)
   })
 }
 const field_color_value = computed(() => {
-  return field_color.value.map(f => f.file);
+  return field_color.value?.filter(f => f).map(f => f.file) || [];
 })
 
-const field_size = ref([entries.metrics[0]])
+const field_size = ref([entries.metrics?.find(e => e.file === 'line') || entries.metrics?.[0]])
 if (route.query.field_size) {
   field_size.value = route.query.field_size.split(",").map(file => {
-    return entries.metrics.find(e => e.file === file)
+    return entries.metrics?.find(e => e.file === file)
   })
 }
 const field_size_value = computed(() => {
-  return field_size.value.map(f => f.file);
+  return field_size.value?.filter(f => f).map(f => f.file) || [];
 })
 
 const dates = ref([
@@ -242,7 +255,9 @@ if (route.query.colormapMax) {
   colormapMax.value = parseFloat(route.query.colormapMax);
 }
 
-const repositories = ref(["chromium"]);
+const default_repo = repositories_json?.find?.(repo => repo.treemap)?.dirname || repositories_json?.[0]?.dirname || "chromium";
+
+const repositories = ref([default_repo]);
 if (route.query.repositories) {
   repositories.value = route.query.repositories.split(",");
 }

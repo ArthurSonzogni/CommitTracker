@@ -46,6 +46,7 @@ import {hsl} from "d3-color";
 import "d3-transition";
 import {transition} from "d3-transition";
 import {format} from "d3-format";
+import repositories_json from '../public/data/repositories.json'
 
 const { $color_map } = useNuxtApp();
 
@@ -77,7 +78,7 @@ const number_format = format(",d");
 const percent_format = format(".1%");
 
 const props = defineProps({
-  repositories: { type:Array[String], default: () => ["chromium"],},
+  repositories: { type:Array[String], default: () => [repositories_json[0]?.dirname || "chromium"],},
   path: {},
   field_color: {},
   field_size: {},
@@ -423,7 +424,8 @@ const render = function(group, data, x, y, is_zoom = false, transition) {
       tooltip_dir_dotdot.value = data.data.name;
       select(tooltip.value).style("opacity", 1.0)
 
-      const container_bounds = container.value.getBoundingClientRect();
+      const container_bounds = container.value?.getBoundingClientRect();
+      if (!container_bounds) return;
       const bounds = content.value.getBoundingClientRect();
       const tooltip_bounds = tooltip.value.getBoundingClientRect();
 
@@ -564,9 +566,10 @@ const zoom = async function(data_old, data_new) {
 
   // Delay the historical data computation to avoid blocking the rendering.
   computeHistory();
-  await transition_end;
-};
-
+  try {
+    await transition_end;
+  } catch (e) {}
+  };
 const mytreemap = function(data) {
   // Sort children by area.
   const data_with_layout =
@@ -618,7 +621,7 @@ const computeHistoryForField = (field) => {
       accumulate(child)
     }
 
-    const history = metrics[field][entry.id];
+    const history = metrics[field] ? metrics[field][entry.id] : null;
     if (!history) {
       return;
     }
@@ -689,16 +692,18 @@ const computeHistory = () => {
 //   ...
 // ]
 async function FetchDates() {
-  if (dates.length) {
-    return;
+  dates = [];
+  const repo = props.repositories[0] || repositories_json[0]?.dirname || "chromium";
+  try {
+    const response = await fetch(`/treemap/${repo}/dates.json`);
+    if (response.ok) {
+      const json = await response.json();
+      dates = json.map(d => new Date(d));
+    }
+  } catch (e) {
+    console.error(`Error fetching dates for ${repo}`, e);
   }
-
-  const response = await
-    fetch(`/treemap/${props.repositories[0]}/dates.json`);
-  const json = await response.json();
-  dates = json.map(d => new Date(d));
 };
-
 // Fetch file_index.json
 //
 // Format:
@@ -708,13 +713,15 @@ async function FetchDates() {
 //   "children": [...]
 // }
 async function FetchFileIndex() {
-  if (file_index.name) {
-    return;
+  const repo = props.repositories[0] || repositories_json[0]?.dirname || "chromium";
+  try {
+    const response = await fetch(`/treemap/${repo}/file_index.json`);
+    if (response.ok) {
+      file_index = await response.json();
+    }
+  } catch (e) {
+    console.error(`Error fetching file index for ${repo}`, e);
   }
-
-  const response = await
-    fetch(`/treemap/${props.repositories[0]}/file_index.json`);
-  file_index = await response.json();
 
   const exclude_test = (parent_name, child_name) => {
     const name = child_name.toLowerCase();
@@ -797,19 +804,23 @@ async function FetchFileIndex() {
 //  ...
 // }
 async function FetchMetrics()  {
+  metrics = {}; // Reset metrics
+
   // Metrics to fetch:
   const fields = []
     .concat(props.field_size)
     .concat(props.field_color)
 
+  const repo = props.repositories[0] || repositories_json[0]?.dirname || "chromium";
   for(const field of fields) {
-    if (metrics[field]) {
-      continue;
+    try {
+      const response = await fetch(`/treemap/${repo}/metrics/${field}.json`);
+      if (response.ok) {
+        metrics[field] = await response.json();
+      }
+    } catch(e) {
+      console.error(`Error fetching metrics ${field} for ${repo}`, e);
     }
-
-    const response = await
-      fetch(`/treemap/${props.repositories[0]}/metrics/${field}.json`);
-    metrics[field] = await response.json();
   }
 }
 
@@ -819,6 +830,7 @@ function computeMetricsAccumulation() {
     metrics_accumulation[field] = {};
 
     // Initialize the metrics_accumulation with the current values.
+    // Ensure all nodes in metrics get initialized.
     for(const file_id in metrics[field]) {
       metrics_accumulation[field][file_id] = metric_current_value(field, file_id);
     }
@@ -834,7 +846,7 @@ function computeMetricsAccumulation() {
         accumulate(child);
 
         metrics_accumulation[field][entry.id] +=
-          metrics_accumulation[field][child.id];
+          metrics_accumulation[field][child.id] || 0; // Added || 0 to be safe
       }
     }
     accumulate(get_file_index());
@@ -865,10 +877,14 @@ function computeFetchedData() {
     entry.area = 0;
     entry.color = 0;
     for(const field of props_field_size) {
-      entry.area += metrics_accumulation[field][entry.id]
+      if (metrics_accumulation[field]) {
+        entry.area += metrics_accumulation[field][entry.id] || 0;
+      }
     }
     for(const field of props_field_color) {
-      entry.color += metrics_accumulation[field][entry.id]
+      if (metrics_accumulation[field]) {
+        entry.color += metrics_accumulation[field][entry.id] || 0;
+      }
     }
   }
   compute(out);
@@ -907,6 +923,15 @@ const getCurrentDataFromPath = function(path) {
 async function refresh() {
   colormapFunc = $color_map[props.colormap];
 
+  // Interrupt any ongoing transitions
+  select(content.value).selectAll("*").interrupt();
+
+  // If there are multiple 'g' elements (e.g., from an interrupted zoom), keep only the last one
+  const gs = select(content.value).selectAll("g");
+  if (gs.size() > 1) {
+    gs.filter((d, i) => i < gs.size() - 1).remove();
+  }
+
   if (!select(content.value).select("g").node()) {
     select(content.value).append("g")
   }
@@ -934,12 +959,13 @@ async function refresh() {
   render(group, data, x, y, false, transition_refresh)
 
   // Delay the historical data computation to avoid blocking the rendering.
-  await transition_refresh.end();
+  try {
+    await transition_refresh.end();
+  } catch (e) {}
   computeHistory();
 
   emits("animationend");
 };
-
 async function render_refresh() {
   data.value = mytreemap(fetchedData);
   await refresh();
@@ -978,7 +1004,9 @@ watch(path_wrapped, pathChanged);
 onMounted(async () => {
   await fetchEntries();
   await render_refresh();
-  (new ResizeObserver(render_refresh)).observe(container.value);
+  if (container.value) {
+    (new ResizeObserver(render_refresh)).observe(container.value);
+  }
 });
 
 </script>

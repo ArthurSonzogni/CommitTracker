@@ -10,7 +10,7 @@
 <script setup lang="ts">
 
 import {format} from "d3-format";
-import repositories from 'public/data/repositories.json'
+import repositories from '~/public/data/repositories.json'
 
 const props = defineProps({
   repositories: { type:Array[String], default: () => ["chromium"],},

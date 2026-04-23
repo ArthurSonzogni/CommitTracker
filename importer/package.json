@@ -34,14 +34,12 @@
   },
   "homepage": "https://github.com/ArthurSonzogni/ChromeCommitTracker#readme",
   "dependencies": {
-    "@actions/core": "^1.10.1",
-    "@actions/github": "^6.0.0",
     "@alt-jero/status-line": "^1.0.0",
-    "@octokit/plugin-throttling": "^9.0.3",
+    "@octokit/plugin-throttling": "^11.0.3",
     "cli-progress": "^3.12.0",
     "json5": "^2.2.3",
-    "octokit": "^3.1.2",
-    "puppeteer": "^23.5.0",
-    "yaml": "^2.4.5"
+    "octokit": "^5.0.5",
+    "puppeteer": "^24.42.0",
+    "yaml": "^2.8.3"
   }
 }

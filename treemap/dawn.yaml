@@ -1,0 +1,70 @@
+metrics:
+
+# General ----------------------------------------------------------------------
+
+- name: C++ file
+  description: The number of C++ files.
+  script: >-
+    git ls-files -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
+  file: file
+
+- name: C++ line
+  description: The number of lines in C++ lines, omitting blank/comment/macro.
+  script: >-
+    python3 ../../scripts/cpp_lines.py
+  file: line
+
+# Spanification ----------------------------------------------------------------
+#
+- name: "Unsafe Buffer Usage Lines"
+  description: The number of lines with UNSAFE_BUFFER_USAGE, calculated by a script.
+  script: >-
+    python3 ../../scripts/warn_unsafe_buffer_usage_lines.py --repo "$REPO_DIRNAME"
+  file: lines_unsafe_buffer_usage
+  tags: ["Spanification"]
+
+- name: allow_unsafe_buffers
+  description: The number of files with allow_unsafe_buffers
+  script: >-
+    git grep -c 'allow_unsafe_buffers' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c' ':!tools/*'
+  file: allow_unsafe_buffers
+  tags: ["Spanification"]
+
+- name: DAWN_UNSAFE_BUFFERS
+  description: The occurrences of DAWN_UNSAFE_BUFFERS(...)
+  script: >-
+    git grep -c 'DAWN_UNSAFE_BUFFERS(' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c' ':!tools/*'
+  file: dawn_unsafe_buffers
+  tags: ["Spanification"]
+
+- name: DAWN_UNSAFE_TODO
+  description: The occurrences of DAWN_UNSAFE_TODO(...)
+  script: >-
+    git grep -c 'DAWN_UNSAFE_TODO(' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c' ':!tools/*'
+  file: dawn_unsafe_todo
+  tags: ["Spanification"]
+
+# MiraclePtr -------------------------------------------------------------------
+
+- name: raw_ptr
+  description: The number of raw_ptr<T>
+  script: >-
+    git grep -c 'raw_ptr<' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c' ':!tools/*'
+  file: raw_ptr
+  tags: ["MiraclePtr"]
+
+- name: raw_ref
+  description: The number of raw_ref<T>
+  script: >-
+    git grep -c 'raw_ref<' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c' ':!tools/*'
+  file: raw_ref
+  tags: ["MiraclePtr"]
+
+# Misc -------------------------------------------------------------------------
+
+- name: TODO
+  description: The number of TODO
+  script: >-
+    git grep -c 'TODO' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
+  file: todo
+  tags: ["Misc"]

@@ -1,0 +1,24 @@
+metrics:
+
+# General ----------------------------------------------------------------------
+
+- name: C++ file
+  description: The number of C++ files.
+  script: >-
+    git ls-files -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
+  file: file
+
+- name: C++ line
+  description: The number of lines in C++ lines, omitting blank/comment/macro.
+  script: >-
+    python3 ../../scripts/cpp_lines.py
+  file: line
+
+# Misc -------------------------------------------------------------------------
+
+- name: TODO
+  description: The number of TODO
+  script: >-
+    git grep -c 'TODO' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
+  file: todo
+  tags: ["Misc"]
