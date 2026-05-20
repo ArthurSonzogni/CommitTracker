@@ -39,16 +39,17 @@ export default defineNuxtConfig({
   ],
 
   nitro: {
-    serverAssets: [
-      {
-        baseName: 'public',
-        dir: './public',
-        ignore: [
-          'data/**',
-          'commit_rates/**',
-          'treemap/**'
-        ]
-      }
-    ]
+    // We ignore the large data directories to avoid "Maximum call stack size exceeded"
+    // during Nitro's recursive asset scanning.
+    // These files should be copied manually or served via a different mechanism
+    // if they are needed in the final build.
+    ignore: [
+      '**/data/**',
+      '**/commit_rates/**',
+      '**/treemap/**',
+      '**/community-map/**',
+      '**/fuzz-test/**',
+      '**/cve/**'
+    ],
   }
 })
