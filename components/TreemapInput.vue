@@ -89,20 +89,25 @@ const fetchAvailableMetrics = async () => {
         try {
             const response = await fetch(`/treemap/${repo}/available_metrics.json`);
             if (response.ok) {
-                const metrics = await response.json();
-                const metricsSet = new Set(metrics);
-                
-                if (intersection === null) {
-                    intersection = metricsSet;
-                } else {
-                    // Intersect
-                    const newIntersection = new Set<string>();
-                    for (const elem of intersection) {
-                        if (metricsSet.has(elem)) {
-                            newIntersection.add(elem);
+                const contentType = response.headers.get("content-type");
+                if (contentType && contentType.includes("application/json")) {
+                    const metrics = await response.json();
+                    const metricsSet = new Set(metrics);
+                    
+                    if (intersection === null) {
+                        intersection = metricsSet;
+                    } else {
+                        // Intersect
+                        const newIntersection = new Set<string>();
+                        for (const elem of intersection) {
+                            if (metricsSet.has(elem)) {
+                                newIntersection.add(elem);
+                            }
                         }
+                        intersection = newIntersection;
                     }
-                    intersection = newIntersection;
+                } else {
+                    intersection = new Set<string>();
                 }
             } else {
                 // If a repo is missing its JSON, we can assume it has 0 common metrics, or we ignore it.
@@ -134,7 +139,7 @@ const entryListFiltered = ref([]);
 const computeFilteredList = (name:string) => {
     entryListFiltered.value = entries.metrics.filter((option:any) => {
         // Must be in the available set
-        if (availableMetrics.value.size > 0 && !availableMetrics.value.has(option.file)) {
+        if (!availableMetrics.value.has(option.file)) {
             return false;
         }
 

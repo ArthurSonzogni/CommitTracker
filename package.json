@@ -6,21 +6,21 @@
     "pull-data": "sh ./pull-data.sh",
     "generate-derived-data": "sh ./generate-derived-data.sh",
     "clean-derived-data": "sh ./clean-derived-data.sh",
-    "build": "nuxt build",
-    "dev": "nuxt dev",
-    "generate": "nuxt generate",
+    "build": "NODE_OPTIONS='--max-old-space-size=8192' nuxt build",
+    "dev": "NODE_OPTIONS='--max-old-space-size=8192' nuxt dev",
+    "generate": "NODE_OPTIONS='--max-old-space-size=8192' nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
     "@mdi/font": "^7.4.47",
-    "@ntohq/buefy-next": "^0.2.0",
-    "@nuxtjs/sitemap": "^8.0.13",
-    "@panzoom/panzoom": "^4.6.2",
+    "@ntohq/buefy-next": "^0.1.4",
+    "@nuxtjs/sitemap": "^6.1.1",
+    "@panzoom/panzoom": "^4.5.1",
     "d3-array": "^3.2.4",
     "d3-axis": "^3.0.0",
     "d3-ease": "^3.0.1",
-    "d3-format": "^3.1.2",
+    "d3-format": "^3.1.0",
     "d3-hierarchy": "^3.1.2",
     "d3-hsv": "^0.1.0",
     "d3-interpolate": "^3.0.1",
@@ -34,13 +34,13 @@
     "d3-transition": "^3.0.1",
     "human-date": "^1.4.0",
     "humanize": "^0.0.9",
-    "humanize-duration": "^3.33.2",
+    "humanize-duration": "^3.32.1",
     "jstat": "^1.9.6",
-    "nuxt": "^4.4.2",
-    "vue": "^3.5.33",
-    "vue-router": "^5.0.6"
+    "nuxt": "^3.13.2",
+    "vue": "^3.5.12",
+    "vue-router": "^4.4.5"
   },
   "devDependencies": {
-    "sass": "^1.99.0"
+    "sass": "^1.79.5"
   }
 }

@@ -697,13 +697,17 @@ async function FetchDates() {
   try {
     const response = await fetch(`/treemap/${repo}/dates.json`);
     if (response.ok) {
-      const json = await response.json();
-      dates = json.map(d => new Date(d));
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        const json = await response.json();
+        dates = json.map(d => new Date(d));
+      }
     }
   } catch (e) {
     console.error(`Error fetching dates for ${repo}`, e);
   }
 };
+
 // Fetch file_index.json
 //
 // Format:
@@ -717,13 +721,17 @@ async function FetchFileIndex() {
   try {
     const response = await fetch(`/treemap/${repo}/file_index.json`);
     if (response.ok) {
-      file_index = await response.json();
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        file_index = await response.json();
+      }
     }
   } catch (e) {
     console.error(`Error fetching file index for ${repo}`, e);
   }
 
   const exclude_test = (parent_name, child_name) => {
+    if (!child_name) return false;
     const name = child_name.toLowerCase();
     const is_test =
       name.includes("test") ||
@@ -734,6 +742,7 @@ async function FetchFileIndex() {
 
   // Exclude third_party, exclude third_party/blink
   const exclude_third_party = (parent_name, child_name) => {
+    if (!parent_name || !child_name) return false;
     const parent = parent_name.toLowerCase();
     const name = child_name.toLowerCase();
     if (parent == "root" && name == "third_party") {
@@ -813,10 +822,16 @@ async function FetchMetrics()  {
 
   const repo = props.repositories[0] || repositories_json[0]?.dirname || "chromium";
   for(const field of fields) {
+    if (!field) continue;
     try {
       const response = await fetch(`/treemap/${repo}/metrics/${field}.json`);
       if (response.ok) {
-        metrics[field] = await response.json();
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          metrics[field] = await response.json();
+        } else {
+          console.warn(`Expected JSON for ${field}, but got ${contentType}`);
+        }
       }
     } catch(e) {
       console.error(`Error fetching metrics ${field} for ${repo}`, e);

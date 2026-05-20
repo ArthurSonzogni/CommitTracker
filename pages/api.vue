@@ -155,7 +155,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import repositories_raw from '~/public/data/repositories.json'
+import repositories_raw from 'public/data/repositories.json'
 
 const sortedRepos = computed(() => {
   return repositories_raw.map(r => r.dirname).sort((a, b) => a.localeCompare(b));

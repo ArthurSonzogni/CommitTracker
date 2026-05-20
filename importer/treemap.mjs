@@ -7,7 +7,7 @@ const CONFIG = {
   full: {
     begin: new Date("2008-01-01"),
     end: new Date(),
-    iterations: 5,
+    iterations: 200,
     power: 0.3, // More iterations near the end.
   }
 }
@@ -308,13 +308,13 @@ const all_metrics_map = new Map();
 
 for (const repository of repositories) {
   if (repository.treemap === false) continue;
-  
+
   const entries_filename = `../treemap/${repository.dirname}.yaml`;
   if (!(await pathExists(entries_filename))) {
     console.log(`Skipping ${repository.dirname} - no treemap config`);
     continue;
   }
-  
+
   const entries = YAML.parse(await fs.readFile(entries_filename, "utf8"));
   for (const metric of entries.metrics || []) {
     if (!all_metrics_map.has(metric.name)) {
@@ -339,7 +339,7 @@ for (const repository of repositories) {
   if (!(await pathExists(entries_filename))) {
     continue;
   }
-  
+
   const entries = YAML.parse(await fs.readFile(entries_filename, "utf8"));
 
   await timed(`Processing ${repository.owner}/${repository.repository}`, async () => {

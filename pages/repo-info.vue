@@ -212,7 +212,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import repositories_raw from '~/public/data/repositories.json'
+import repositories_raw from 'public/data/repositories.json'
 
 const repositories = ref(structuredClone(repositories_raw));
 const stats = ref<Record<string, any>>({});

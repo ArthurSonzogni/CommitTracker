@@ -37,7 +37,6 @@
                 type="is-ghost"
                 :icon-right="active ? 'menu-up' : 'menu-down'"
                 >
-              {{ option }}
                 <span class="color-swatch"
                       :style="{ background: $GetColormapGradient(colormap) }"/>
                 {{ colormap }}
@@ -209,7 +208,7 @@ const field_color = ref([entries.metrics?.find(e => e.file === 'todo') || entrie
 if (route.query.field_color) {
   field_color.value = route.query.field_color.split(",").map(file => {
     return entries.metrics?.find(e => e.file === file)
-  })
+  }).filter(f => f)
 }
 const field_color_value = computed(() => {
   return field_color.value?.filter(f => f).map(f => f.file) || [];
@@ -219,7 +218,7 @@ const field_size = ref([entries.metrics?.find(e => e.file === 'line') || entries
 if (route.query.field_size) {
   field_size.value = route.query.field_size.split(",").map(file => {
     return entries.metrics?.find(e => e.file === file)
-  })
+  }).filter(f => f)
 }
 const field_size_value = computed(() => {
   return field_size.value?.filter(f => f).map(f => f.file) || [];

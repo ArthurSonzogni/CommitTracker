@@ -64,7 +64,7 @@
 
 <script setup lang="ts">
 
-import organizations_data from '~/public/data/organizations.json'
+import organizations_data from 'public/data/organizations.json'
 
 const props = defineProps({
   allowMultiple: {

@@ -191,7 +191,7 @@
 
 <script setup lang="ts">
 
-import all_organizations from '~/public/data/organizations.json'
+import all_organizations from 'public/data/organizations.json'
 
 const route = useRoute();
 const router = useRouter();
