@@ -142,7 +142,7 @@
       <template #end>
         <b-navbar-item
           class="is-dark"
-          href="https://github.com/ArthurSonzogni/ChromeCommitTracker">
+          href="https://github.com/ArthurSonzogni/CommitTracker">
           <b-icon icon="github" class="mr-2"></b-icon>
           Sources
         </b-navbar-item>

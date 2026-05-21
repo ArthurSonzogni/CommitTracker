@@ -1,5 +1,5 @@
 #!/bin/bash
-repo=https://github.com/ArthurSonzogni/ChromeCommitTracker.git
+repo=https://github.com/ArthurSonzogni/CommitTracker.git
 for branch in "data" "community-map" "fuzz-test" "treemap" "cve" "commit_rates"
 do
   rm -rf public/$branch

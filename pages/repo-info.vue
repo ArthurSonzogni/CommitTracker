@@ -201,7 +201,7 @@
           <a class="button is-small is-primary" href="/data/repositories.json">
             Download JSON
           </a>
-          <a class="button is-small is-primary" href="https://github.com/ArthurSonzogni/ChromeCommitTracker/tree/main/repositories.json5" target="_blank">
+          <a class="button is-small is-primary" href="https://github.com/ArthurSonzogni/CommitTracker/tree/main/repositories.json5" target="_blank">
             Source (repositories.json5)
           </a>
         </div>

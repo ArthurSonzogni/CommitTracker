@@ -18,7 +18,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ArthurSonzogni/ChromeCommitTracker.git"
+    "url": "git+https://github.com/ArthurSonzogni/CommitTracker.git"
   },
   "keywords": [
     "chrome",
@@ -30,9 +30,9 @@
   "author": "Arthur Sonzogni",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/ArthurSonzogni/ChromeCommitTracker/issues"
+    "url": "https://github.com/ArthurSonzogni/CommitTracker/issues"
   },
-  "homepage": "https://github.com/ArthurSonzogni/ChromeCommitTracker#readme",
+  "homepage": "https://github.com/ArthurSonzogni/CommitTracker#readme",
   "dependencies": {
     "@alt-jero/status-line": "^1.0.0",
     "@octokit/plugin-throttling": "^11.0.3",

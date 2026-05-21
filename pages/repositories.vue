@@ -199,7 +199,7 @@
             <li>
               Data are refreshed <strong>weekly</strong>, and
               <strong>automatically</strong>. See <a
-                href="https://github.com/ArthurSonzogni/ChromeCommitTracker/actions/workflows/importer-commit-timeline.yaml">Jobs</a>
+                href="https://github.com/ArthurSonzogni/CommitTracker/actions/workflows/importer-commit-timeline.yaml">Jobs</a>
             </li>
             <li>
               Chromium's <strong>reviewers data before 2017 are missing</strong>.

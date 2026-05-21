@@ -183,10 +183,9 @@
       <p class="mt-2">
         Content is updated <strong>weekly</strong>.
         <br/>
-        To add a new dataset, please edit the
-        <a href="https://github.com/ArthurSonzogni/ChromeCommitTracker/blob/main/treemap.yaml">
-          <code>treemap.yaml</code>
-        file.
+        To add a new dataset, please edit the yaml files in the
+        <a href="https://github.com/ArthurSonzogni/CommitTracker/tree/main/treemap">
+          <code>treemap/</code> directory.
         </a>
       </p>
     </section>

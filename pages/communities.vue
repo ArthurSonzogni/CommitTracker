@@ -44,7 +44,7 @@
               <li>
                 Data is refreshed <strong>weekly</strong>, and
                 <strong>automatically</strong>. See <a
-                  href="https://github.com/ArthurSonzogni/ChromeCommitTracker/actions/workflows/importer-graph.yaml">
+                  href="https://github.com/ArthurSonzogni/CommitTracker/actions/workflows/importer-graph.yaml">
                   Job
                 </a>
               </li>

@@ -39,7 +39,7 @@ const ProcessCommit = (data, commit) => {
   // heuristic, because it provides the following invariant:
   // The sum of everyone's "authored" commits is equal to the sum of commit.
   //
-  // https://github.com/ArthurSonzogni/ChromeCommitTracker/issues/7
+  // https://github.com/ArthurSonzogni/CommitTracker/issues/7
   const reviewers = ParseReviewers(commit.messageBody)
     .filter(reviewer => reviewer != author);
 
@@ -141,7 +141,7 @@ const ProcessRepository = async (repository) => {
       // Remove duplicated commits.
       const map = new Map();
       for(const commit of data[email]) {
-        // See https://github.com/ArthurSonzogni/ChromeCommitTracker/issues/7
+        // See https://github.com/ArthurSonzogni/CommitTracker/issues/7
         // The database is currently polluted with duplicate commits where
         // "reviewed" commits were preferred over "authored" commits. This
         // allows the next full import to fix the database.
