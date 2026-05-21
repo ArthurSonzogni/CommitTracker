@@ -98,6 +98,26 @@ const emits = defineEmits([
   "animationend",
 ]);
 
+let is_rendering = false;
+let next_render_task: (() => Promise<void>) | null = null;
+const lock = (f: () => Promise<void>) => {
+  next_render_task = f;
+  if (is_rendering) return;
+  is_rendering = true;
+  (async () => {
+    while (next_render_task) {
+      const task = next_render_task;
+      next_render_task = null;
+      try {
+        await task();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    is_rendering = false;
+  })();
+};
+
 function browserDownload(content, filename, contentType) {
   const a = document.createElement('a');
   const file = new Blob([content], {type: contentType});
@@ -1003,26 +1023,26 @@ watch(() => [
   props.exclude_test,
   props.exclude_third_party,
   props.history_size,
-], async () => {
+], () => lock(async () => {
   await fetchEntries();
   await render_refresh();
-});
+}));
 
 watch(() => [
   props.colormap,
   props.colormapMin,
   props.colormapMax,
-], refresh);
+], () => lock(refresh));
 
-watch(path_wrapped, pathChanged);
+watch(path_wrapped, (new_path, old_path) => lock(() => pathChanged(new_path, old_path)));
 
-onMounted(async () => {
+onMounted(() => lock(async () => {
   await fetchEntries();
   await render_refresh();
   if (container.value) {
-    (new ResizeObserver(render_refresh)).observe(container.value);
+    (new ResizeObserver(() => lock(render_refresh))).observe(container.value);
   }
-});
+}));
 
 </script>
 
