@@ -19,7 +19,7 @@ metrics:
 - name: "Unsafe Buffer Usage Lines"
   description: The number of lines with UNSAFE_BUFFER_USAGE, calculated by a script.
   script: >-
-    python3 ../../scripts/warn_unsafe_buffer_usage_lines.py --repo "$REPO_DIRNAME"
+    python3 ../../scripts/warn_unsafe_buffer_usage_lines_dawn.py --repo "$REPO_DIRNAME"
   file: lines_unsafe_buffer_usage
   tags: ["Spanification"]
 
