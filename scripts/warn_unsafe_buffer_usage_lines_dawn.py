@@ -7,6 +7,7 @@ warning in the Dawn & Tint codebases, accounting for both GN and CMake builds.
 
 import os
 import sys
+import re
 import argparse
 import unsafe_buffers_common as common
 
@@ -93,16 +94,35 @@ def main():
                 with open(full_path, 'r', encoding='utf-8', errors='ignore') as f:
                     content = f.read()
 
-                has_gn_pragma = common.has_allow_unsafe_buffers_pragma(content)
-                has_tint_macro = "TINT_BEGIN_DISABLE_WARNING(UNSAFE_BUFFER_USAGE)" in content
-
-                if has_gn_pragma or has_tint_macro:
+                if common.has_allow_unsafe_buffers_pragma(content):
+                    # Rule 3a: Pragma makes all code lines uncovered.
                     uncovered_lines = file_code_lines
                 else:
-                    lines = content.splitlines()
+                    # Rule 3b: Count targeted inline safety macros and Tint blocks.
+                    # Remove multi-line comments first to avoid false matches.
+                    content_clean = re.sub(r'/\*.*?\*/', '', content, flags=re.DOTALL)
+                    lines = content_clean.splitlines()
+                    
+                    in_disabled_block = False
                     for line in lines:
-                        if any(macro in line for macro in macros_to_check):
-                            uncovered_lines += 1
+                        # Remove single-line comments
+                        line_clean = line.split('//', 1)[0].strip()
+                        
+                        # Check if it is code (non-blank, non-preprocessor)
+                        is_code = line_clean and not line_clean.startswith('#')
+                        
+                        if "TINT_BEGIN_DISABLE_WARNING(UNSAFE_BUFFER_USAGE)" in line_clean:
+                            in_disabled_block = True
+                            
+                        if in_disabled_block:
+                            if is_code:
+                                uncovered_lines += 1
+                        else:
+                            if is_code and any(macro in line_clean for macro in macros_to_check):
+                                uncovered_lines += 1
+                                
+                        if "TINT_END_DISABLE_WARNING(UNSAFE_BUFFER_USAGE)" in line_clean:
+                            in_disabled_block = False
             except IOError as e:
                 print(f"Warning: Could not read file {full_path}: {e}", file=sys.stderr)
                 continue
