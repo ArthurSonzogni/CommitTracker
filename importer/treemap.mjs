@@ -259,22 +259,33 @@ async function processRepository(repo, entries) {
   const id_counter = { value: next_id };
 
   for (const date of dates_to_add) {
-    const date_id = processed_dates.length;
     const date_string = date.toISOString();
-    processed_dates.push(date_string);
+    let commit = "";
 
     await timed(`Checking out at date ${date_string}`, async () => {
       await fs.writeFile("script.sh", `
         cd ./${repo.dirname}
-        commit_at_date() {
-          git --no-pager log origin/main --until="${date_string}" --max-count=1 --pretty=format:"%H"
-        }
-        git checkout $(commit_at_date)
+        COMMIT=$(git --no-pager log origin/main --until="${date_string}" --max-count=1 --pretty=format:"%H")
+        if [ -n "$COMMIT" ]; then
+          if git checkout $COMMIT > /dev/null 2>&1; then
+            echo $COMMIT
+          fi
+        fi
         cd ..;
       `)
       const shell = spawn("sh", ["./script.sh"]);
+      shell.stdout.on("data", chunk => { commit += chunk.toString(); });
       await new Promise(r => shell.on("close", r));
+      commit = commit.trim();
     })
+
+    if (!commit) {
+      console.log(`Skipping date ${date_string} - no commits yet`);
+      continue;
+    }
+
+    const date_id = processed_dates.length;
+    processed_dates.push(date_string);
 
     await timed("Gathering metrics", async () => {
       for (const entry of entries.metrics) {

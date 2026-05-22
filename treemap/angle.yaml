@@ -14,6 +14,29 @@ metrics:
     python3 ../../scripts/cpp_lines.py
   file: line
 
+# Spanification ----------------------------------------------------------------
+#
+- name: "Unsafe Buffer Usage Lines"
+  description: The number of lines with UNSAFE_BUFFER_USAGE, calculated by a script.
+  script: >-
+    python3 ../../scripts/warn_unsafe_buffer_usage_lines_angle.py
+  file: lines_unsafe_buffer_usage
+  tags: ["Spanification"]
+
+- name: allow_unsafe_buffers
+  description: The number of files with allow_unsafe_buffers
+  script: >-
+    git grep -c 'allow_unsafe_buffers' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c' ':!tools/*'
+  file: allow_unsafe_buffers
+  tags: ["Spanification"]
+
+- name: ANGLE_UNSAFE_TODO
+  description: The occurrences of ANGLE_UNSAFE_TODO(...)
+  script: >-
+    git grep -c 'ANGLE_UNSAFE_TODO(' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c' ':!tools/*'
+  file: angle_unsafe_todo
+  tags: ["Spanification"]
+
 # Misc -------------------------------------------------------------------------
 
 - name: TODO
