@@ -3,7 +3,8 @@
 CommitTracker is a [web
 application](https://chrome-commit-tracker.arthursonzogni.com/) that displays
 statistics about commits for web browsers and related libraries. It provides
-insights into the development activity of various open-source projects, helping
+insights into the development activity of various open-source projects
+(including Chromium, Dawn, ANGLE, Skia, and WebRTC), helping
 users visualize and analyze commit data through various charts and graphs.
 
 ## Table of Contents
