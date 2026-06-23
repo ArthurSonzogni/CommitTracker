@@ -7,7 +7,7 @@
     "generate-derived-data": "sh ./generate-derived-data.sh",
     "clean-derived-data": "sh ./clean-derived-data.sh",
     "build": "NODE_OPTIONS='--max-old-space-size=8192' nuxt build",
-    "dev": "NODE_OPTIONS='--max-old-space-size=8192' nuxt dev",
+    "dev": "node scripts/dev.mjs",
     "generate": "NODE_OPTIONS='--max-old-space-size=8192' nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare"
