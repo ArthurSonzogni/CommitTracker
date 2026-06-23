@@ -252,4 +252,14 @@
     reviewers: false,
     treemap: false,
   },
+
+  {
+    name: "Open Screen",
+    dirname: "openscreen",
+    color: "#1abc9c",
+    owner: "chromium",
+    repository: "openscreen",
+    reviewers: true,
+    treemap: false,
+  },
 ]
