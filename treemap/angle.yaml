@@ -30,11 +30,14 @@ metrics:
   file: allow_unsafe_buffers
   tags: ["Spanification"]
 
-- name: ANGLE_UNSAFE_TODO
+- name: UNSAFE_TODO
   description: The occurrences of ANGLE_UNSAFE_TODO(...)
+  aliases:
+    - angle_unsafe_todo
+    - ANGLE_UNSAFE_TODO
   script: >-
     git grep -c 'ANGLE_UNSAFE_TODO(' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c' ':!tools/*'
-  file: angle_unsafe_todo
+  file: unsafe_todo
   tags: ["Spanification"]
 
 # Misc -------------------------------------------------------------------------

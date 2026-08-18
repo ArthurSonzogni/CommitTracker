@@ -137,19 +137,20 @@ watch(() => props.repositories, fetchAvailableMetrics, { immediate: true });
 const entryListFiltered = ref([]);
 
 const computeFilteredList = (name:string) => {
+    const query = name?.toLowerCase() || "";
     entryListFiltered.value = entries.metrics.filter((option:any) => {
         // Must be in the available set
         if (!availableMetrics.value.has(option.file)) {
             return false;
         }
 
-        if (!name || name.length === 0) {
+        if (!query) {
             return true;
         }
-        return option.name.toLowerCase().includes(name.toLowerCase()) ||
-            option.description.toLowerCase().includes(name.toLowerCase()) ||
-            option.file.toLowerCase().includes(name.toLowerCase());
-        ;
+        return option.name.toLowerCase().includes(query) ||
+            option.description.toLowerCase().includes(query) ||
+            option.file.toLowerCase().includes(query) ||
+            (option.aliases && option.aliases.some((alias: string) => alias.toLowerCase().includes(query)));
     });
 };
 

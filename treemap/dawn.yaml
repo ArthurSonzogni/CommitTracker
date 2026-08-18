@@ -30,18 +30,24 @@ metrics:
   file: allow_unsafe_buffers
   tags: ["Spanification"]
 
-- name: DAWN_UNSAFE_BUFFERS
+- name: UNSAFE_BUFFERS
   description: The occurrences of DAWN_UNSAFE_BUFFERS(...)
+  aliases:
+    - dawn_unsafe_buffers
+    - DAWN_UNSAFE_BUFFERS
   script: >-
     git grep -c 'DAWN_UNSAFE_BUFFERS(' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c' ':!tools/*'
-  file: dawn_unsafe_buffers
+  file: unsafe_buffers
   tags: ["Spanification"]
 
-- name: DAWN_UNSAFE_TODO
+- name: UNSAFE_TODO
   description: The occurrences of DAWN_UNSAFE_TODO(...)
+  aliases:
+    - dawn_unsafe_todo
+    - DAWN_UNSAFE_TODO
   script: >-
     git grep -c 'DAWN_UNSAFE_TODO(' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c' ':!tools/*'
-  file: dawn_unsafe_todo
+  file: unsafe_todo
   tags: ["Spanification"]
 
 # MiraclePtr -------------------------------------------------------------------

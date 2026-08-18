@@ -227,6 +227,22 @@ async function processRepository(repo, entries) {
           metrics_data[metric_name] = await parseFile(JSON5, `${metrics_dir}${metric_file}`);
         }
       }
+
+      // Migrate any legacy alias metric files to canonical metric names.
+      for (const entry of entries.metrics || []) {
+        if (!metrics_data[entry.file] && entry.aliases) {
+          for (const alias of entry.aliases) {
+            if (metrics_data[alias]) {
+              metrics_data[entry.file] = metrics_data[alias];
+              delete metrics_data[alias];
+              try {
+                await fs.unlink(`${metrics_dir}${alias}.json`);
+              } catch (e) {}
+              break;
+            }
+          }
+        }
+      }
     } catch (e) {
       console.error("Error loading incremental data, starting from scratch.", e);
       root = undefined;
@@ -329,7 +345,13 @@ for (const repository of repositories) {
   const entries = YAML.parse(await fs.readFile(entries_filename, "utf8"));
   for (const metric of entries.metrics || []) {
     if (!all_metrics_map.has(metric.name)) {
-      all_metrics_map.set(metric.name, metric);
+      all_metrics_map.set(metric.name, {
+        ...metric,
+        aliases: metric.aliases ? [...metric.aliases] : [],
+      });
+    } else if (metric.aliases) {
+      const existing = all_metrics_map.get(metric.name);
+      existing.aliases = Array.from(new Set([...(existing.aliases || []), ...metric.aliases]));
     }
   }
 }

@@ -203,20 +203,28 @@ const treemap = ref(null);
 const route = useRoute()
 const router = useRouter()
 
-const field_color = ref([entries.metrics?.find(e => e.file === 'todo') || entries.metrics?.[0]]);
+const findMetric = (identifier: string) => {
+  return entries.metrics?.find((e: any) =>
+    e.file === identifier ||
+    e.name === identifier ||
+    e.aliases?.includes(identifier)
+  );
+};
+
+const field_color = ref([findMetric('todo') || entries.metrics?.[0]]);
 if (route.query.field_color) {
-  field_color.value = route.query.field_color.split(",").map(file => {
-    return entries.metrics?.find(e => e.file === file)
+  field_color.value = (route.query.field_color as string).split(",").map(file => {
+    return findMetric(file);
   }).filter(f => f)
 }
 const field_color_value = computed(() => {
   return field_color.value?.filter(f => f).map(f => f.file) || [];
 })
 
-const field_size = ref([entries.metrics?.find(e => e.file === 'line') || entries.metrics?.[0]])
+const field_size = ref([findMetric('line') || entries.metrics?.[0]])
 if (route.query.field_size) {
-  field_size.value = route.query.field_size.split(",").map(file => {
-    return entries.metrics?.find(e => e.file === file)
+  field_size.value = (route.query.field_size as string).split(",").map(file => {
+    return findMetric(file);
   }).filter(f => f)
 }
 const field_size_value = computed(() => {
@@ -342,6 +350,15 @@ watch(history_color, updateUrl);
 watch(history_size, updateUrl);
 watch(exclude_test, updateUrl);
 watch(exclude_third_party, updateUrl);
+
+onMounted(() => {
+  if (
+    (route.query.field_color && route.query.field_color !== field_color_value.value.join(",")) ||
+    (route.query.field_size && route.query.field_size !== field_size_value.value.join(","))
+  ) {
+    updateUrl();
+  }
+});
 
 const updateHasScrolled = () => {
   const maxScroll = Math.max(
