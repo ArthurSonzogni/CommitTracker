@@ -126,6 +126,22 @@ metrics:
   file: browser_modularization
   tags: ["Browser Modularization"]
 
+# Checks -----------------------------------------------------------------------
+
+- name: CHECK
+  description: The number of CHECK and its variants (CHECK_EQ, CHECK_NE, etc.)
+  script: >-
+    git grep -c -E '\bCHECK(_[A-Z0-9_]+)?\(' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c' ':!tools/*'
+  file: check
+  tags: ["Checks"]
+
+- name: DCHECK
+  description: The number of DCHECK and its variants (DCHECK_EQ, DCHECK_NE, etc.)
+  script: >-
+    git grep -c -E '\bDCHECK(_[A-Z0-9_]+)?\(' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c' ':!tools/*'
+  file: dcheck
+  tags: ["Checks"]
+
 # Misc -------------------------------------------------------------------------
 
 - name: TODO
@@ -134,3 +150,4 @@ metrics:
     git grep -c 'TODO' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
   file: todo
   tags: ["Misc"]
+
