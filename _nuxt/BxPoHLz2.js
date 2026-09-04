@@ -1,0 +1,1 @@
+var c=1.70158;(function u(n){n=+n;function r(o){return(o=+o)*o*(n*(o-1)+o)}return r.overshoot=u,r})(c);var e=function u(n){n=+n;function r(o){return--o*o*((o+1)*n+o)+1}return r.overshoot=u,r}(c);(function u(n){n=+n;function r(o){return((o*=2)<1?o*o*((n+1)*o-n):(o-=2)*o*((n+1)*o+n)+2)/2}return r.overshoot=u,r})(c);export{e as b};
