@@ -1,0 +1,2804 @@
+[
+ {
+  "date": "2020-01-08T22:12:31Z",
+  "kind": "review",
+  "peers": [
+   "adenilson.cavalcanti@arm.com"
+  ],
+  "additions": 125,
+  "deletions": 208,
+  "files": 10
+ },
+ {
+  "date": "2019-11-09T13:37:29Z",
+  "kind": "review",
+  "peers": [
+   "bsalomon@google.com"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2019-11-07T18:31:44Z",
+  "kind": "review",
+  "peers": [
+   "bsalomon@google.com"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2019-11-06T23:03:58Z",
+  "kind": "review",
+  "peers": [
+   "ckitagawa@chromium.org"
+  ],
+  "additions": 220,
+  "deletions": 84,
+  "files": 5
+ },
+ {
+  "date": "2019-10-24T16:45:19Z",
+  "kind": "review",
+  "peers": [
+   "adenilson.cavalcanti@arm.com"
+  ],
+  "additions": 22,
+  "deletions": 9,
+  "files": 3
+ },
+ {
+  "date": "2019-10-08T20:03:15Z",
+  "kind": "review",
+  "peers": [
+   "jaspercb@chromium.org"
+  ],
+  "additions": 425,
+  "deletions": 0,
+  "files": 8
+ },
+ {
+  "date": "2019-09-27T18:39:18Z",
+  "kind": "review",
+  "peers": [
+   "reed@google.com"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2019-09-24T15:35:18Z",
+  "kind": "review",
+  "peers": [
+   "scroggo@google.com"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2019-08-27T18:47:56Z",
+  "kind": "author",
+  "peers": [
+   "pdr@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2019-06-19T20:20:54Z",
+  "kind": "review",
+  "peers": [
+   "brianosman@google.com"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2019-06-17T20:50:01Z",
+  "kind": "review",
+  "peers": [
+   "brianosman@google.com"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2019-06-04T14:56:09Z",
+  "kind": "review",
+  "peers": [
+   "davidben@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 6,
+  "files": 1
+ },
+ {
+  "date": "2019-05-20T16:58:30Z",
+  "kind": "review",
+  "peers": [
+   "kmoon@chromium.org"
+  ],
+  "additions": 94,
+  "deletions": 41,
+  "files": 4
+ },
+ {
+  "date": "2019-05-15T00:21:39Z",
+  "kind": "review",
+  "peers": [
+   "jimbankoski@google.com"
+  ],
+  "additions": 42,
+  "deletions": 48,
+  "files": 1
+ },
+ {
+  "date": "2019-05-01T14:11:21Z",
+  "kind": "review",
+  "peers": [
+   "brianosman@google.com"
+  ],
+  "additions": 15,
+  "deletions": 17,
+  "files": 13
+ },
+ {
+  "date": "2019-04-26T07:45:11Z",
+  "kind": "author",
+  "peers": [
+   "dmazzoni@chromium.org",
+   "kinuko@chromium.org",
+   "fmalita@chromium.org",
+   "vmpstr@chromium.org",
+   "pdr@chromium.org"
+  ],
+  "additions": 93,
+  "deletions": 163,
+  "files": 50
+ },
+ {
+  "date": "2019-04-24T15:00:10Z",
+  "kind": "author",
+  "peers": [
+   "brianosman@google.com"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2019-04-24T02:32:00Z",
+  "kind": "author",
+  "peers": [
+   "brianosman@google.com"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2019-04-23T21:56:21Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2019-04-23T21:00:11Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org",
+   "brianosman@google.com"
+  ],
+  "additions": 2,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2019-04-22T19:48:22Z",
+  "kind": "review",
+  "peers": [
+   "brianosman@google.com"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2019-04-18T12:29:07Z",
+  "kind": "review",
+  "peers": [
+   "scroggo@google.com"
+  ],
+  "additions": 617,
+  "deletions": 1852,
+  "files": 36
+ },
+ {
+  "date": "2019-04-16T21:08:41Z",
+  "kind": "review",
+  "peers": [
+   "adettenb@microsoft.com"
+  ],
+  "additions": 265,
+  "deletions": 15,
+  "files": 6
+ },
+ {
+  "date": "2019-04-16T20:09:34Z",
+  "kind": "review",
+  "peers": [
+   "bungeman@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2019-04-15T16:33:53Z",
+  "kind": "review",
+  "peers": [
+   "bungeman@chromium.org"
+  ],
+  "additions": 10,
+  "deletions": 14,
+  "files": 2
+ },
+ {
+  "date": "2019-03-21T13:14:13Z",
+  "kind": "review",
+  "peers": [
+   "reed@google.com"
+  ],
+  "additions": 3,
+  "deletions": 67,
+  "files": 6
+ },
+ {
+  "date": "2019-03-21T05:03:46Z",
+  "kind": "review",
+  "peers": [
+   "reed@google.com"
+  ],
+  "additions": 2,
+  "deletions": 4,
+  "files": 2
+ },
+ {
+  "date": "2019-03-18T19:02:13Z",
+  "kind": "review",
+  "peers": [
+   "reed@google.com"
+  ],
+  "additions": 5,
+  "deletions": 8,
+  "files": 1
+ },
+ {
+  "date": "2019-03-18T16:41:35Z",
+  "kind": "review",
+  "peers": [
+   "reed@google.com"
+  ],
+  "additions": 2,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2019-03-06T20:21:25Z",
+  "kind": "review",
+  "peers": [
+   "enne@chromium.org"
+  ],
+  "additions": 57,
+  "deletions": 132,
+  "files": 27
+ },
+ {
+  "date": "2019-03-06T17:45:02Z",
+  "kind": "review",
+  "peers": [
+   "reed@google.com"
+  ],
+  "additions": 0,
+  "deletions": 5,
+  "files": 292
+ },
+ {
+  "date": "2019-03-04T17:01:42Z",
+  "kind": "review",
+  "peers": [
+   "brianosman@google.com"
+  ],
+  "additions": 17,
+  "deletions": 4,
+  "files": 2
+ },
+ {
+  "date": "2019-03-01T23:28:59Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2019-02-15T18:54:58Z",
+  "kind": "review",
+  "peers": [
+   "noel@chromium.org"
+  ],
+  "additions": 37,
+  "deletions": 34,
+  "files": 1
+ },
+ {
+  "date": "2019-02-13T22:47:28Z",
+  "kind": "review",
+  "peers": [
+   "metzman@chromium.org"
+  ],
+  "additions": 32,
+  "deletions": 0,
+  "files": 3
+ },
+ {
+  "date": "2019-02-12T19:10:13Z",
+  "kind": "author",
+  "peers": [
+   "kbr@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 10,
+  "files": 1
+ },
+ {
+  "date": "2019-02-09T20:05:08Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 5,
+  "deletions": 9,
+  "files": 278
+ },
+ {
+  "date": "2019-02-04T12:47:33Z",
+  "kind": "review",
+  "peers": [
+   "reed@google.com"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2019-02-01T18:21:57Z",
+  "kind": "author",
+  "peers": [
+   "kbr@chromium.org",
+   "reed@google.com"
+  ],
+  "additions": 19,
+  "deletions": 12,
+  "files": 1713
+ },
+ {
+  "date": "2019-01-31T21:39:02Z",
+  "kind": "review",
+  "peers": [
+   "adenilson.cavalcanti@arm.com"
+  ],
+  "additions": 3,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2019-01-31T18:49:30Z",
+  "kind": "review",
+  "peers": [
+   "drubery@chromium.org"
+  ],
+  "additions": 340,
+  "deletions": 34,
+  "files": 3
+ },
+ {
+  "date": "2019-01-17T21:11:32Z",
+  "kind": "review",
+  "peers": [
+   "brianosman@google.com"
+  ],
+  "additions": 6,
+  "deletions": 46,
+  "files": 3
+ },
+ {
+  "date": "2019-01-17T17:22:24Z",
+  "kind": "review",
+  "peers": [
+   "reed@google.com"
+  ],
+  "additions": 1,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2019-01-16T14:39:37Z",
+  "kind": "review",
+  "peers": [
+   "kylechar@chromium.org"
+  ],
+  "additions": 50,
+  "deletions": 20,
+  "files": 5
+ },
+ {
+  "date": "2019-01-10T22:51:55Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 2,
+  "files": 60
+ },
+ {
+  "date": "2019-01-10T18:15:19Z",
+  "kind": "review",
+  "peers": [
+   "brianosman@google.com"
+  ],
+  "additions": 90,
+  "deletions": 99,
+  "files": 12
+ },
+ {
+  "date": "2019-01-07T22:44:39Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2018-12-28T16:49:33Z",
+  "kind": "review",
+  "peers": [
+   "brianosman@google.com"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2018-12-07T21:37:08Z",
+  "kind": "author",
+  "peers": [
+   "scroggo@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2018-12-03T19:56:58Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 2,
+  "files": 570
+ },
+ {
+  "date": "2018-11-28T16:14:09Z",
+  "kind": "review",
+  "peers": [
+   "miu@chromium.org"
+  ],
+  "additions": 16,
+  "deletions": 4,
+  "files": 2
+ },
+ {
+  "date": "2018-11-20T15:43:28Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2018-11-12T18:24:19Z",
+  "kind": "review",
+  "peers": [
+   "metzman@chromium.org"
+  ],
+  "additions": 154,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2018-11-09T19:42:44Z",
+  "kind": "review",
+  "peers": [
+   "metzman@chromium.org"
+  ],
+  "additions": 154,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2018-11-05T14:42:40Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 0,
+  "deletions": 2,
+  "files": 8
+ },
+ {
+  "date": "2018-11-05T01:17:49Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 2,
+  "files": 8
+ },
+ {
+  "date": "2018-10-31T22:12:00Z",
+  "kind": "author",
+  "peers": [
+   "bungeman@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 2,
+  "files": 51
+ },
+ {
+  "date": "2018-10-30T21:00:45Z",
+  "kind": "review",
+  "peers": [
+   "hubbe@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2018-10-29T17:52:29Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2018-10-29T15:34:29Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2018-10-21T03:50:19Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 5,
+  "files": 38
+ },
+ {
+  "date": "2018-10-19T11:14:28Z",
+  "kind": "review",
+  "peers": [
+   "brianosman@google.com"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2018-10-17T20:27:11Z",
+  "kind": "review",
+  "peers": [
+   "reed@google.com"
+  ],
+  "additions": 0,
+  "deletions": 4,
+  "files": 110
+ },
+ {
+  "date": "2018-10-17T17:45:07Z",
+  "kind": "review",
+  "peers": [
+   "brianosman@google.com"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2018-10-16T14:47:44Z",
+  "kind": "review",
+  "peers": [
+   "brianosman@google.com"
+  ],
+  "additions": 0,
+  "deletions": 2,
+  "files": 240
+ },
+ {
+  "date": "2018-10-12T17:17:28Z",
+  "kind": "review",
+  "peers": [
+   "reed@google.com"
+  ],
+  "additions": 0,
+  "deletions": 4,
+  "files": 32
+ },
+ {
+  "date": "2018-10-11T18:21:12Z",
+  "kind": "author",
+  "peers": [
+   "robertphillips@google.com"
+  ],
+  "additions": 0,
+  "deletions": 2,
+  "files": 11
+ },
+ {
+  "date": "2018-10-11T13:11:30Z",
+  "kind": "review",
+  "peers": [
+   "brianosman@google.com"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2018-10-09T21:45:04Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2018-10-04T17:56:44Z",
+  "kind": "author",
+  "peers": [
+   "enne@chromium.org"
+  ],
+  "additions": 8,
+  "deletions": 9,
+  "files": 2
+ },
+ {
+  "date": "2018-10-04T17:50:07Z",
+  "kind": "author",
+  "peers": [
+   "ccameron@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2018-10-02T16:40:20Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 2,
+  "files": 79
+ },
+ {
+  "date": "2018-10-01T21:59:11Z",
+  "kind": "review",
+  "peers": [
+   "brianosman@google.com"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2018-09-28T21:58:51Z",
+  "kind": "author",
+  "peers": [
+   "dgozman@chromium.org",
+   "ccameron@chromium.org"
+  ],
+  "additions": 15,
+  "deletions": 17,
+  "files": 1
+ },
+ {
+  "date": "2018-09-28T17:51:49Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2018-09-24T21:05:18Z",
+  "kind": "review",
+  "peers": [
+   "zakerinasab@chromium.org"
+  ],
+  "additions": 213,
+  "deletions": 324,
+  "files": 9
+ },
+ {
+  "date": "2018-09-20T20:34:42Z",
+  "kind": "author",
+  "peers": [
+   "scroggo@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2018-09-18T16:31:49Z",
+  "kind": "author",
+  "peers": [
+   "emircan@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2018-09-17T19:09:38Z",
+  "kind": "review",
+  "peers": [
+   "zakerinasab@chromium.org"
+  ],
+  "additions": 266,
+  "deletions": 460,
+  "files": 10
+ },
+ {
+  "date": "2018-09-13T19:20:55Z",
+  "kind": "review",
+  "peers": [
+   "zakerinasab@chromium.org"
+  ],
+  "additions": 21,
+  "deletions": 78,
+  "files": 1
+ },
+ {
+  "date": "2018-09-05T15:47:06Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org",
+   "danakj@chromium.org",
+   "enne@chromium.org"
+  ],
+  "additions": 5,
+  "deletions": 5,
+  "files": 5
+ },
+ {
+  "date": "2018-08-31T16:51:31Z",
+  "kind": "review",
+  "peers": [
+   "brianosman@google.com"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2018-08-30T19:26:59Z",
+  "kind": "author",
+  "peers": [
+   "ccameron@chromium.org"
+  ],
+  "additions": 14,
+  "deletions": 34,
+  "files": 2
+ },
+ {
+  "date": "2018-08-30T14:31:58Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 2,
+  "files": 36
+ },
+ {
+  "date": "2018-08-29T17:33:10Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 17,
+  "files": 1
+ },
+ {
+  "date": "2018-08-29T04:44:20Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 6,
+  "files": 283
+ },
+ {
+  "date": "2018-08-28T19:52:17Z",
+  "kind": "review",
+  "peers": [
+   "brianosman@google.com"
+  ],
+  "additions": 0,
+  "deletions": 104,
+  "files": 2
+ },
+ {
+  "date": "2018-08-24T12:11:52Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2018-08-23T00:40:55Z",
+  "kind": "review",
+  "peers": [
+   "gbiv@chromium.org"
+  ],
+  "additions": 29,
+  "deletions": 6,
+  "files": 2
+ },
+ {
+  "date": "2018-08-22T17:19:33Z",
+  "kind": "review",
+  "peers": [
+   "scroggo@google.com"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2018-08-22T16:27:04Z",
+  "kind": "review",
+  "peers": [
+   "bungeman@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2018-08-15T01:06:05Z",
+  "kind": "review",
+  "peers": [
+   "adenilson.cavalcanti@arm.com"
+  ],
+  "additions": 39,
+  "deletions": 1,
+  "files": 3
+ },
+ {
+  "date": "2018-08-10T19:28:05Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 34,
+  "deletions": 36,
+  "files": 304
+ },
+ {
+  "date": "2018-08-09T23:11:22Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2018-08-08T18:10:32Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2018-08-07T22:04:42Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2018-08-07T16:08:59Z",
+  "kind": "review",
+  "peers": [
+   "adenilson.cavalcanti@arm.com"
+  ],
+  "additions": 73,
+  "deletions": 0,
+  "files": 3
+ },
+ {
+  "date": "2018-07-26T17:34:43Z",
+  "kind": "review",
+  "peers": [
+   "brianosman@google.com"
+  ],
+  "additions": 18,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2018-07-17T12:32:26Z",
+  "kind": "review",
+  "peers": [
+   "brianosman@google.com"
+  ],
+  "additions": 35,
+  "deletions": 91,
+  "files": 18
+ },
+ {
+  "date": "2018-07-11T21:12:36Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 8,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2018-07-10T18:46:56Z",
+  "kind": "review",
+  "peers": [
+   "halcanary@google.com"
+  ],
+  "additions": 18,
+  "deletions": 12,
+  "files": 1
+ },
+ {
+  "date": "2018-07-03T18:03:00Z",
+  "kind": "review",
+  "peers": [
+   "brianosman@google.com"
+  ],
+  "additions": 20,
+  "deletions": 15,
+  "files": 10
+ },
+ {
+  "date": "2018-06-27T21:05:03Z",
+  "kind": "review",
+  "peers": [
+   "brianosman@google.com"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2018-06-19T17:58:04Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 3,
+  "files": 1
+ },
+ {
+  "date": "2018-06-19T16:11:26Z",
+  "kind": "review",
+  "peers": [
+   "reed@google.com"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2018-06-19T00:19:16Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 52,
+  "files": 1
+ },
+ {
+  "date": "2018-06-14T17:59:30Z",
+  "kind": "author",
+  "peers": [
+   "rjkroege@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2018-06-11T18:37:28Z",
+  "kind": "review",
+  "peers": [
+   "zakerinasab@chromium.org"
+  ],
+  "additions": 289,
+  "deletions": 9,
+  "files": 4
+ },
+ {
+  "date": "2018-06-07T20:41:41Z",
+  "kind": "review",
+  "peers": [
+   "brianosman@google.com"
+  ],
+  "additions": 3,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2018-06-06T19:17:05Z",
+  "kind": "author",
+  "peers": [
+   "zakerinasab@chromium.org"
+  ],
+  "additions": 14,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2018-06-05T22:47:22Z",
+  "kind": "review",
+  "peers": [
+   "zakerinasab@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 7,
+  "files": 1
+ },
+ {
+  "date": "2018-05-31T23:19:55Z",
+  "kind": "review",
+  "peers": [
+   "scroggo@google.com"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2018-05-31T15:11:38Z",
+  "kind": "review",
+  "peers": [
+   "brianosman@google.com"
+  ],
+  "additions": 1,
+  "deletions": 8,
+  "files": 1
+ },
+ {
+  "date": "2018-05-17T19:06:45Z",
+  "kind": "author",
+  "peers": [
+   "bsalomon@chromium.org",
+   "fmalita@chromium.org"
+  ],
+  "additions": 8,
+  "deletions": 4,
+  "files": 320
+ },
+ {
+  "date": "2018-05-17T16:53:17Z",
+  "kind": "review",
+  "peers": [
+   "brianosman@google.com"
+  ],
+  "additions": 79,
+  "deletions": 655,
+  "files": 11
+ },
+ {
+  "date": "2018-05-16T14:53:18Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 25,
+  "deletions": 5,
+  "files": 1
+ },
+ {
+  "date": "2018-05-14T18:53:29Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2018-05-14T17:19:31Z",
+  "kind": "review",
+  "peers": [
+   "brianosman@google.com"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2018-05-11T14:22:21Z",
+  "kind": "review",
+  "peers": [
+   "brianosman@google.com"
+  ],
+  "additions": 655,
+  "deletions": 79,
+  "files": 11
+ },
+ {
+  "date": "2018-05-08T17:47:49Z",
+  "kind": "review",
+  "peers": [
+   "brianosman@google.com"
+  ],
+  "additions": 79,
+  "deletions": 655,
+  "files": 11
+ },
+ {
+  "date": "2018-05-03T17:15:59Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 5,
+  "deletions": 10,
+  "files": 1
+ },
+ {
+  "date": "2018-04-23T23:15:33Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2018-04-23T22:50:09Z",
+  "kind": "review",
+  "peers": [
+   "brianosman@google.com"
+  ],
+  "additions": 16,
+  "deletions": 36,
+  "files": 6
+ },
+ {
+  "date": "2018-04-21T02:53:39Z",
+  "kind": "review",
+  "peers": [
+   "brianosman@google.com"
+  ],
+  "additions": 36,
+  "deletions": 35,
+  "files": 381
+ },
+ {
+  "date": "2018-04-19T19:01:31Z",
+  "kind": "review",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 4,
+  "files": 80
+ },
+ {
+  "date": "2018-04-18T19:35:06Z",
+  "kind": "review",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2018-04-17T08:23:52Z",
+  "kind": "review",
+  "peers": [
+   "brianosman@google.com"
+  ],
+  "additions": 8,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2018-04-17T05:19:36Z",
+  "kind": "review",
+  "peers": [
+   "rockot@chromium.org"
+  ],
+  "additions": 171,
+  "deletions": 142,
+  "files": 31
+ },
+ {
+  "date": "2018-04-16T21:25:17Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2018-03-27T00:23:29Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 0,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2018-03-26T18:03:17Z",
+  "kind": "review",
+  "peers": [
+   "yichunko@google.com"
+  ],
+  "additions": 6,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2018-03-15T00:43:04Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2018-03-07T20:07:48Z",
+  "kind": "review",
+  "peers": [
+   "jose.dapena@lge.com"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2018-02-26T15:51:15Z",
+  "kind": "review",
+  "peers": [
+   "kevin.petit@arm.com"
+  ],
+  "additions": 386,
+  "deletions": 0,
+  "files": 5
+ },
+ {
+  "date": "2018-02-15T00:24:46Z",
+  "kind": "review",
+  "peers": [
+   "gbiv@chromium.org"
+  ],
+  "additions": 108,
+  "deletions": 104,
+  "files": 5
+ },
+ {
+  "date": "2018-02-13T23:26:50Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2018-02-12T16:51:29Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 11
+ },
+ {
+  "date": "2018-02-11T22:43:36Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 14
+ },
+ {
+  "date": "2018-02-09T16:27:05Z",
+  "kind": "review",
+  "peers": [
+   "jonathan.wright@arm.com"
+  ],
+  "additions": 97,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2018-02-09T01:38:56Z",
+  "kind": "review",
+  "peers": [
+   "noel@chromium.org"
+  ],
+  "additions": 7,
+  "deletions": 6,
+  "files": 1
+ },
+ {
+  "date": "2018-02-08T13:09:37Z",
+  "kind": "review",
+  "peers": [
+   "noel@chromium.org"
+  ],
+  "additions": 86,
+  "deletions": 6,
+  "files": 4
+ },
+ {
+  "date": "2018-02-07T18:30:44Z",
+  "kind": "review",
+  "peers": [
+   "jonathan.wright@arm.com"
+  ],
+  "additions": 113,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2018-02-07T14:00:22Z",
+  "kind": "review",
+  "peers": [
+   "noel@chromium.org"
+  ],
+  "additions": 33,
+  "deletions": 13,
+  "files": 3
+ },
+ {
+  "date": "2018-02-07T09:33:01Z",
+  "kind": "review",
+  "peers": [
+   "noel@chromium.org"
+  ],
+  "additions": 15,
+  "deletions": 6,
+  "files": 3
+ },
+ {
+  "date": "2018-02-06T21:01:57Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 4,
+  "files": 2
+ },
+ {
+  "date": "2018-02-06T19:33:29Z",
+  "kind": "review",
+  "peers": [
+   "cblume@chromium.org"
+  ],
+  "additions": 17,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2018-02-06T19:12:06Z",
+  "kind": "review",
+  "peers": [
+   "scroggo@google.com"
+  ],
+  "additions": 3684,
+  "deletions": 1911,
+  "files": 34
+ },
+ {
+  "date": "2018-02-06T15:24:47Z",
+  "kind": "review",
+  "peers": [
+   "scroggo@google.com"
+  ],
+  "additions": 15,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2018-02-05T22:27:57Z",
+  "kind": "review",
+  "peers": [
+   "scroggo@google.com"
+  ],
+  "additions": 6,
+  "deletions": 1,
+  "files": 3
+ },
+ {
+  "date": "2018-02-05T20:37:08Z",
+  "kind": "review",
+  "peers": [
+   "noel@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2018-01-30T01:23:09Z",
+  "kind": "review",
+  "peers": [
+   "noel@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 9,
+  "files": 1
+ },
+ {
+  "date": "2018-01-30T00:35:16Z",
+  "kind": "review",
+  "peers": [
+   "bsalomon@google.com"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2018-01-25T16:33:24Z",
+  "kind": "author",
+  "peers": [
+   "reed@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 9,
+  "files": 2
+ },
+ {
+  "date": "2018-01-24T22:59:04Z",
+  "kind": "author",
+  "peers": [
+   "msw@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2018-01-23T13:58:48Z",
+  "kind": "review",
+  "peers": [
+   "noel@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 3,
+  "files": 1
+ },
+ {
+  "date": "2018-01-16T18:46:42Z",
+  "kind": "review",
+  "peers": [
+   "richard.townsend@arm.com"
+  ],
+  "additions": 554,
+  "deletions": 8,
+  "files": 8
+ },
+ {
+  "date": "2018-01-11T20:54:12Z",
+  "kind": "author",
+  "peers": [
+   "bungeman@chromium.org"
+  ],
+  "additions": 9,
+  "deletions": 3,
+  "files": 1
+ },
+ {
+  "date": "2018-01-04T19:52:52Z",
+  "kind": "review",
+  "peers": [
+   "reed@google.com"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2018-01-04T19:51:59Z",
+  "kind": "review",
+  "peers": [
+   "reed@google.com"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2018-01-03T22:20:54Z",
+  "kind": "review",
+  "peers": [
+   "liyuqian@google.com"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2017-12-22T16:22:33Z",
+  "kind": "review",
+  "peers": [
+   "brianosman@google.com"
+  ],
+  "additions": 2,
+  "deletions": 6,
+  "files": 14
+ },
+ {
+  "date": "2017-12-20T16:23:11Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2017-12-19T20:04:37Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 6,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2017-12-19T20:02:37Z",
+  "kind": "review",
+  "peers": [
+   "brianosman@google.com"
+  ],
+  "additions": 0,
+  "deletions": 5,
+  "files": 251
+ },
+ {
+  "date": "2017-12-13T14:25:29Z",
+  "kind": "review",
+  "peers": [
+   "reed@google.com"
+  ],
+  "additions": 77,
+  "deletions": 151,
+  "files": 3
+ },
+ {
+  "date": "2017-12-13T03:51:05Z",
+  "kind": "review",
+  "peers": [
+   "noel@chromium.org"
+  ],
+  "additions": 7,
+  "deletions": 5,
+  "files": 1
+ },
+ {
+  "date": "2017-11-29T01:41:16Z",
+  "kind": "review",
+  "peers": [
+   "watk@chromium.org"
+  ],
+  "additions": 9,
+  "deletions": 11,
+  "files": 8
+ },
+ {
+  "date": "2017-11-03T19:49:06Z",
+  "kind": "review",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2017-10-31T18:49:36Z",
+  "kind": "author",
+  "peers": [
+   "danakj@chromium.org",
+   "fmalita@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 4,
+  "files": 38
+ },
+ {
+  "date": "2017-10-30T15:12:16Z",
+  "kind": "review",
+  "peers": [
+   "scroggo@google.com"
+  ],
+  "additions": 33,
+  "deletions": 14,
+  "files": 4
+ },
+ {
+  "date": "2017-10-26T15:52:17Z",
+  "kind": "review",
+  "peers": [
+   "fs@opera.com"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2017-10-26T13:28:35Z",
+  "kind": "review",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 4,
+  "files": 7
+ },
+ {
+  "date": "2017-10-25T20:25:11Z",
+  "kind": "review",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2017-10-24T16:43:33Z",
+  "kind": "review",
+  "peers": [
+   "benjaminwagner@google.com"
+  ],
+  "additions": 0,
+  "deletions": 3,
+  "files": 4
+ },
+ {
+  "date": "2017-10-24T01:37:12Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2017-10-20T16:51:41Z",
+  "kind": "review",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 3,
+  "files": 2
+ },
+ {
+  "date": "2017-10-19T19:02:48Z",
+  "kind": "review",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2017-10-09T21:23:21Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 124
+ },
+ {
+  "date": "2017-10-07T15:51:43Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 0,
+  "deletions": 4,
+  "files": 113
+ },
+ {
+  "date": "2017-10-05T16:17:57Z",
+  "kind": "review",
+  "peers": [
+   "scroggo@google.com"
+  ],
+  "additions": 2285,
+  "deletions": 1956,
+  "files": 31
+ },
+ {
+  "date": "2017-10-05T15:47:10Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2017-09-16T18:34:37Z",
+  "kind": "review",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 16,
+  "files": 5
+ },
+ {
+  "date": "2017-09-16T15:28:47Z",
+  "kind": "review",
+  "peers": [
+   "thakis@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2017-09-16T02:20:04Z",
+  "kind": "author",
+  "peers": [
+   "cavalcantii@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 4424,
+  "files": 6
+ },
+ {
+  "date": "2017-09-16T00:01:52Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 5,
+  "deletions": 23,
+  "files": 3
+ },
+ {
+  "date": "2017-09-15T22:18:54Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 3,
+  "deletions": 3,
+  "files": 1
+ },
+ {
+  "date": "2017-09-15T15:17:19Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 32,
+  "deletions": 21,
+  "files": 336
+ },
+ {
+  "date": "2017-09-14T08:28:07Z",
+  "kind": "review",
+  "peers": [
+   "pkasting@chromium.org"
+  ],
+  "additions": 150,
+  "deletions": 183,
+  "files": 35
+ },
+ {
+  "date": "2017-09-14T06:36:01Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2017-09-13T23:18:17Z",
+  "kind": "review",
+  "peers": [
+   "herb@google.com"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2017-09-11T17:34:50Z",
+  "kind": "author",
+  "peers": [
+   "sugoi@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2017-09-09T02:08:14Z",
+  "kind": "review",
+  "peers": [
+   "miu@chromium.org"
+  ],
+  "additions": 30,
+  "deletions": 4,
+  "files": 2
+ },
+ {
+  "date": "2017-09-05T20:33:47Z",
+  "kind": "review",
+  "peers": [
+   "cblume@google.com"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2017-09-05T20:30:29Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 4,
+  "files": 150
+ },
+ {
+  "date": "2017-08-31T21:10:52Z",
+  "kind": "review",
+  "peers": [
+   "adenilson.cavalcanti@arm.com"
+  ],
+  "additions": 23,
+  "deletions": 5,
+  "files": 3
+ },
+ {
+  "date": "2017-08-30T23:44:34Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2017-08-30T21:39:03Z",
+  "kind": "review",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 4,
+  "files": 386
+ },
+ {
+  "date": "2017-08-28T20:49:26Z",
+  "kind": "review",
+  "peers": [
+   "adenilson.cavalcanti@arm.com"
+  ],
+  "additions": 4424,
+  "deletions": 0,
+  "files": 6
+ },
+ {
+  "date": "2017-08-28T19:06:22Z",
+  "kind": "review",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2017-08-25T13:38:03Z",
+  "kind": "review",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 5,
+  "files": 7
+ },
+ {
+  "date": "2017-08-24T18:58:08Z",
+  "kind": "review",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 5,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2017-08-24T16:49:46Z",
+  "kind": "review",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 4,
+  "files": 5
+ },
+ {
+  "date": "2017-08-18T16:57:23Z",
+  "kind": "review",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 90
+ },
+ {
+  "date": "2017-08-16T18:48:38Z",
+  "kind": "review",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 4,
+  "files": 1507
+ },
+ {
+  "date": "2017-08-15T20:00:11Z",
+  "kind": "review",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2017-08-11T15:13:52Z",
+  "kind": "review",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 3,
+  "files": 2
+ },
+ {
+  "date": "2017-08-04T02:01:29Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 4,
+  "files": 334
+ },
+ {
+  "date": "2017-08-03T00:21:09Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2017-07-29T20:09:11Z",
+  "kind": "review",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 7,
+  "deletions": 4,
+  "files": 33
+ },
+ {
+  "date": "2017-07-24T20:06:05Z",
+  "kind": "review",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 4,
+  "files": 135
+ },
+ {
+  "date": "2017-07-23T00:04:17Z",
+  "kind": "review",
+  "peers": [
+   "reed@google.com"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2017-07-20T22:06:51Z",
+  "kind": "review",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 8,
+  "files": 145
+ },
+ {
+  "date": "2017-07-20T20:44:19Z",
+  "kind": "author",
+  "peers": [
+   "bsalomon@chromium.org",
+   "kbr@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2017-07-19T14:42:01Z",
+  "kind": "review",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2017-07-18T23:18:29Z",
+  "kind": "review",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 21,
+  "deletions": 74,
+  "files": 294
+ },
+ {
+  "date": "2017-07-18T17:49:14Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 172,
+  "files": 392
+ },
+ {
+  "date": "2017-07-18T17:13:13Z",
+  "kind": "review",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 4,
+  "files": 12
+ },
+ {
+  "date": "2017-07-17T20:20:43Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2017-06-29T17:46:29Z",
+  "kind": "review",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2017-06-29T16:15:07Z",
+  "kind": "review",
+  "peers": [
+   "reed@google.com"
+  ],
+  "additions": 0,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2017-06-23T17:54:05Z",
+  "kind": "review",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2017-06-14T13:40:29Z",
+  "kind": "review",
+  "peers": [
+   "msarett@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2017-05-25T19:21:54Z",
+  "kind": "review",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 5,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2017-05-23T18:37:57Z",
+  "kind": "review",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 14,
+  "deletions": 1,
+  "files": 5
+ },
+ {
+  "date": "2017-04-11T18:12:59Z",
+  "kind": "author",
+  "peers": [
+   "fmalita@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2017-01-03T18:37:22Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 11,
+  "deletions": 12,
+  "files": 1
+ },
+ {
+  "date": "2016-11-29T14:26:59Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 31,
+  "files": 3
+ },
+ {
+  "date": "2016-11-19T07:10:57Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 31,
+  "deletions": 2,
+  "files": 3
+ },
+ {
+  "date": "2016-09-30T20:01:44Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 10,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2016-08-22T15:51:43Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 14,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2016-08-05T05:00:24Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 3,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2016-08-01T18:48:43Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2016-07-28T21:32:49Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 8,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2016-06-21T17:00:02Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 20,
+  "deletions": 16,
+  "files": 1
+ },
+ {
+  "date": "2016-02-17T14:19:54Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 0,
+  "deletions": 4,
+  "files": 2
+ },
+ {
+  "date": "2015-12-15T21:42:05Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 3,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2015-11-19T17:31:22Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 3,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2015-11-13T14:20:05Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2015-11-11T17:38:18Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 157,
+  "deletions": 6,
+  "files": 2
+ },
+ {
+  "date": "2015-10-20T21:37:44Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 3,
+  "deletions": 13,
+  "files": 3
+ },
+ {
+  "date": "2015-09-09T15:55:58Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 0,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2015-07-30T20:30:57Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2015-07-17T19:54:14Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 0,
+  "deletions": 22,
+  "files": 1
+ },
+ {
+  "date": "2015-07-17T16:23:58Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 19,
+  "deletions": 4,
+  "files": 2
+ },
+ {
+  "date": "2015-07-07T18:13:04Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 6,
+  "deletions": 9,
+  "files": 1
+ },
+ {
+  "date": "2015-07-01T18:51:35Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 7,
+  "deletions": 165,
+  "files": 5
+ },
+ {
+  "date": "2015-07-01T17:09:53Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 0,
+  "deletions": 17,
+  "files": 1
+ },
+ {
+  "date": "2015-07-01T13:46:05Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 1,
+  "files": 2
+ },
+ {
+  "date": "2015-06-30T20:31:05Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2015-06-24T21:16:11Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2015-06-16T15:34:16Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 25,
+  "deletions": 8,
+  "files": 1
+ },
+ {
+  "date": "2015-05-19T21:07:11Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2015-05-12T22:38:06Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2015-05-11T16:46:03Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 0,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2015-04-17T17:54:06Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2015-02-28T00:15:28Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2015-02-20T17:06:14Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2015-02-11T22:33:06Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 0,
+  "deletions": 5,
+  "files": 1
+ },
+ {
+  "date": "2015-01-27T21:52:36Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 62,
+  "deletions": 278,
+  "files": 4
+ },
+ {
+  "date": "2015-01-09T14:12:54Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 4,
+  "deletions": 8,
+  "files": 1
+ },
+ {
+  "date": "2014-12-12T15:24:21Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 9,
+  "files": 1
+ },
+ {
+  "date": "2014-12-11T21:30:17Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 0,
+  "deletions": 47,
+  "files": 7
+ },
+ {
+  "date": "2014-12-11T18:24:56Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 5,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2014-12-11T01:39:28Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 0,
+  "deletions": 15,
+  "files": 1
+ },
+ {
+  "date": "2014-12-01T19:43:00Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 0,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2014-11-24T20:05:38Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2014-11-24T19:55:54Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 28,
+  "deletions": 28,
+  "files": 2
+ },
+ {
+  "date": "2014-11-18T17:53:03Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2014-10-30T16:58:36Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 34,
+  "deletions": 17,
+  "files": 2
+ },
+ {
+  "date": "2014-10-29T23:10:01Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 0,
+  "deletions": 8,
+  "files": 2
+ },
+ {
+  "date": "2014-10-17T15:16:22Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 51,
+  "deletions": 148,
+  "files": 11
+ },
+ {
+  "date": "2014-10-14T14:23:21Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 0,
+  "deletions": 3,
+  "files": 1
+ },
+ {
+  "date": "2014-10-14T13:21:30Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 22,
+  "deletions": 38,
+  "files": 1
+ },
+ {
+  "date": "2014-09-15T22:58:22Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 3,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2014-09-11T18:31:40Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 6,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2014-09-05T17:25:48Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 0,
+  "deletions": 6,
+  "files": 2
+ },
+ {
+  "date": "2014-09-05T12:07:58Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 10,
+  "deletions": 4,
+  "files": 2
+ },
+ {
+  "date": "2014-09-04T17:50:43Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 6,
+  "deletions": 10,
+  "files": 3
+ },
+ {
+  "date": "2014-09-04T04:39:20Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 10,
+  "deletions": 4,
+  "files": 2
+ },
+ {
+  "date": "2014-08-29T02:14:39Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 7,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2014-08-27T15:36:28Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 7,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2014-08-27T14:24:51Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 8,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2014-08-25T19:42:15Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 0,
+  "deletions": 3,
+  "files": 1
+ },
+ {
+  "date": "2014-08-25T17:48:04Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2014-08-08T06:45:57Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2014-08-07T17:52:28Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2014-07-15T19:16:09Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 37,
+  "deletions": 20,
+  "files": 3
+ },
+ {
+  "date": "2014-07-08T13:26:13Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 0,
+  "deletions": 8,
+  "files": 2
+ },
+ {
+  "date": "2014-07-07T18:17:56Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 7,
+  "deletions": 1,
+  "files": 3
+ },
+ {
+  "date": "2014-07-01T19:10:35Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 48,
+  "deletions": 3,
+  "files": 3
+ },
+ {
+  "date": "2014-05-01T18:03:17Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 6,
+  "deletions": 6,
+  "files": 3
+ },
+ {
+  "date": "2014-04-30T14:53:44Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 52,
+  "deletions": 4,
+  "files": 6
+ },
+ {
+  "date": "2014-03-27T21:55:00Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2014-03-26T14:24:26Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 6,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2014-03-25T19:00:38Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 2,
+  "files": 1
+ }
+]
