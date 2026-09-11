@@ -1,0 +1,358 @@
+[
+ {
+  "date": "2023-04-05T08:40:19Z",
+  "kind": "author",
+  "peers": [
+   "mbonadei@webrtc.org",
+   "xalep@webrtc.org"
+  ],
+  "additions": 24,
+  "deletions": 35,
+  "files": 19
+ },
+ {
+  "date": "2023-01-27T08:52:48Z",
+  "kind": "author",
+  "peers": [
+   "mbonadei@webrtc.org"
+  ],
+  "additions": 30,
+  "deletions": 17,
+  "files": 1
+ },
+ {
+  "date": "2023-01-25T14:01:56Z",
+  "kind": "author",
+  "peers": [
+   "jleconte@webrtc.org"
+  ],
+  "additions": 30,
+  "deletions": 1,
+  "files": 4
+ },
+ {
+  "date": "2022-12-19T10:00:14Z",
+  "kind": "review",
+  "peers": [
+   "jleconte@google.com"
+  ],
+  "additions": 13,
+  "deletions": 2,
+  "files": 4
+ },
+ {
+  "date": "2022-12-19T09:36:05Z",
+  "kind": "author",
+  "peers": [
+   "jleconte@webrtc.org",
+   "jleconte@google.com"
+  ],
+  "additions": 1,
+  "deletions": 177,
+  "files": 2
+ },
+ {
+  "date": "2022-11-09T16:36:05Z",
+  "kind": "review",
+  "peers": [
+   "jansson@webrtc.org"
+  ],
+  "additions": 174,
+  "deletions": 328,
+  "files": 7
+ },
+ {
+  "date": "2022-11-09T08:08:17Z",
+  "kind": "author",
+  "peers": [
+   "mbonadei@webrtc.org"
+  ],
+  "additions": 103,
+  "deletions": 274,
+  "files": 8
+ },
+ {
+  "date": "2022-11-08T11:31:12Z",
+  "kind": "author",
+  "peers": [
+   "jleconte@webrtc.org",
+   "jleconte@google.com"
+  ],
+  "additions": 141,
+  "deletions": 3,
+  "files": 4
+ },
+ {
+  "date": "2022-11-08T11:22:41Z",
+  "kind": "review",
+  "peers": [
+   "jleconte@google.com"
+  ],
+  "additions": 38,
+  "deletions": 174,
+  "files": 3
+ },
+ {
+  "date": "2022-11-08T08:18:46Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 21,
+  "deletions": 9,
+  "files": 2
+ },
+ {
+  "date": "2022-11-07T16:02:48Z",
+  "kind": "author",
+  "peers": [
+   "jansson@webrtc.org"
+  ],
+  "additions": 9,
+  "deletions": 21,
+  "files": 2
+ },
+ {
+  "date": "2022-11-07T12:49:20Z",
+  "kind": "author",
+  "peers": [
+   "terelius@webrtc.org"
+  ],
+  "additions": 1,
+  "deletions": 3,
+  "files": 3
+ },
+ {
+  "date": "2022-10-31T12:54:17Z",
+  "kind": "review",
+  "peers": [
+   "titovartem@webrtc.org"
+  ],
+  "additions": 208,
+  "deletions": 34,
+  "files": 3
+ },
+ {
+  "date": "2022-10-31T11:44:59Z",
+  "kind": "review",
+  "peers": [
+   "titovartem@webrtc.org"
+  ],
+  "additions": 0,
+  "deletions": 6,
+  "files": 2
+ },
+ {
+  "date": "2022-10-28T20:42:17Z",
+  "kind": "review",
+  "peers": [
+   "titovartem@webrtc.org"
+  ],
+  "additions": 139,
+  "deletions": 82,
+  "files": 10
+ },
+ {
+  "date": "2022-10-28T11:11:53Z",
+  "kind": "review",
+  "peers": [
+   "titovartem@webrtc.org"
+  ],
+  "additions": 1284,
+  "deletions": 14,
+  "files": 13
+ },
+ {
+  "date": "2022-10-25T17:21:47Z",
+  "kind": "review",
+  "peers": [
+   "titovartem@webrtc.org"
+  ],
+  "additions": 109,
+  "deletions": 19,
+  "files": 4
+ },
+ {
+  "date": "2022-10-25T12:21:52Z",
+  "kind": "review",
+  "peers": [
+   "titovartem@webrtc.org"
+  ],
+  "additions": 4,
+  "deletions": 1,
+  "files": 2
+ },
+ {
+  "date": "2022-10-07T09:58:48Z",
+  "kind": "review",
+  "peers": [
+   "titovartem@webrtc.org"
+  ],
+  "additions": 442,
+  "deletions": 166,
+  "files": 8
+ },
+ {
+  "date": "2022-10-06T10:37:37Z",
+  "kind": "review",
+  "peers": [
+   "titovartem@webrtc.org"
+  ],
+  "additions": 222,
+  "deletions": 54,
+  "files": 5
+ },
+ {
+  "date": "2022-10-05T13:43:07Z",
+  "kind": "review",
+  "peers": [
+   "titovartem@webrtc.org"
+  ],
+  "additions": 70,
+  "deletions": 49,
+  "files": 3
+ },
+ {
+  "date": "2022-09-26T10:59:50Z",
+  "kind": "review",
+  "peers": [
+   "daniel.l@hpcnt.com"
+  ],
+  "additions": 13,
+  "deletions": 11,
+  "files": 1
+ },
+ {
+  "date": "2022-09-13T10:44:59Z",
+  "kind": "review",
+  "peers": [
+   "wangqing-hf@loongson.cn"
+  ],
+  "additions": 11,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2022-09-05T07:56:40Z",
+  "kind": "review",
+  "peers": [
+   "mbonadei@webrtc.org"
+  ],
+  "additions": 13,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2022-08-31T14:47:14Z",
+  "kind": "author",
+  "peers": [
+   "phancke@microsoft.com"
+  ],
+  "additions": 39,
+  "deletions": 45,
+  "files": 5
+ },
+ {
+  "date": "2022-08-31T09:29:44Z",
+  "kind": "author",
+  "peers": [
+   "alessiob@webrtc.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2022-08-30T11:58:34Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 45,
+  "deletions": 829,
+  "files": 5
+ },
+ {
+  "date": "2022-08-30T11:27:50Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 45,
+  "deletions": 39,
+  "files": 5
+ },
+ {
+  "date": "2022-08-29T14:53:02Z",
+  "kind": "review",
+  "peers": [
+   "titovartem@webrtc.org"
+  ],
+  "additions": 4,
+  "deletions": 6,
+  "files": 3
+ },
+ {
+  "date": "2022-08-29T13:03:52Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 45,
+  "deletions": 829,
+  "files": 5
+ },
+ {
+  "date": "2022-08-29T12:17:02Z",
+  "kind": "author",
+  "peers": [
+   "mbonadei@webrtc.org"
+  ],
+  "additions": 23,
+  "deletions": 6,
+  "files": 2
+ },
+ {
+  "date": "2022-08-24T08:53:19Z",
+  "kind": "review",
+  "peers": [
+   "titovartem@webrtc.org"
+  ],
+  "additions": 124,
+  "deletions": 19,
+  "files": 3
+ },
+ {
+  "date": "2022-07-28T07:14:09Z",
+  "kind": "author",
+  "peers": [
+   "mbonadei@webrtc.org"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2022-07-27T16:53:05Z",
+  "kind": "author",
+  "peers": [
+   "mbonadei@webrtc.org"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2022-07-27T15:16:45Z",
+  "kind": "author",
+  "peers": [
+   "mbonadei@webrtc.org",
+   "ivoc@webrtc.org"
+  ],
+  "additions": 40,
+  "deletions": 40,
+  "files": 3
+ },
+ {
+  "date": "2021-06-30T07:20:59Z",
+  "kind": "review",
+  "peers": [
+   "jansson@google.com"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ }
+]
