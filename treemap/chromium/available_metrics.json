@@ -1,0 +1,21 @@
+[
+  "allow_ptr_arithmetic",
+  "allow_unsafe_buffers",
+  "base_unretained",
+  "browser_modularization",
+  "check",
+  "ctrn_expr",
+  "dangling_untriaged",
+  "dcheck",
+  "disable_dangling_ptr_detection",
+  "file",
+  "line",
+  "lines_unsafe_buffer_usage",
+  "raw_ptr",
+  "raw_ptr_exclusion",
+  "raw_ref",
+  "todo",
+  "unsafe_buffer_usage",
+  "unsafe_buffers",
+  "unsafe_todo"
+]
