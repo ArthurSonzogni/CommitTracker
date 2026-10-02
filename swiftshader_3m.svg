@@ -1,0 +1,23 @@
+<svg width="4000" height="2000" viewBox="-0.025 -0.025 2.05 1.05" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    path {
+      fill: none;
+      stroke-linecap: round;
+      stroke-opacity: 0.4;
+    }
+
+    text {
+      text-anchor: middle;
+      alignment-baseline: hanging;
+    }
+  </style>
+  <g opacity="0.4">
+<path d="M1.279 0.609 Q1.629 0.634 1.755 0.469" stroke="hsl(0.0,100%,35%)" stroke-width="0.02500"></path>
+<path d="M1.279 0.609 Q1.183 0.469 0.888 0.485" stroke="hsl(0.0,100%,35%)" stroke-width="0.10000"></path>
+<path d="M1.279 0.609 Q1.160 0.762 1.433 0.853" stroke="hsl(0.0,100%,35%)" stroke-width="0.07500"></path>
+</g>
+<text x="1.279" y="0.538" font-size="0.141421" fill="hsl(0.0,100%,20%)">swiftshader.regress</text>
+<text x="1.755" y="0.444" font-size="0.050000" fill="hsl(0.0,100%,20%)">bclayton</text>
+<text x="0.888" y="0.435" font-size="0.100000" fill="hsl(0.0,100%,20%)">ynovikov</text>
+<text x="1.433" y="0.810" font-size="0.086603" fill="hsl(0.0,100%,20%)">syoussefi</text>
+</svg>
