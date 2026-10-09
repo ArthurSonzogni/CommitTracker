@@ -1,0 +1,242 @@
+{
+  "chromium": {
+    "last_commit": "2026-10-09T04:23:51Z",
+    "total_commits": 1492104,
+    "total_contributors": 9284,
+    "top_organizations": [
+      "Google",
+      "Microsoft",
+      "Igalia"
+    ]
+  },
+  "blink": {
+    "last_commit": "2026-10-09T03:01:54Z",
+    "total_commits": 121381,
+    "total_contributors": 2850,
+    "top_organizations": [
+      "Google",
+      "Microsoft",
+      "Igalia"
+    ]
+  },
+  "partition_alloc": {
+    "last_commit": "2026-10-08T04:26:46Z",
+    "total_commits": 3024,
+    "total_contributors": 465,
+    "top_organizations": [
+      "Google",
+      "Individuals",
+      "ARM"
+    ]
+  },
+  "chromeos": {
+    "last_commit": "2026-10-08T04:35:18Z",
+    "total_commits": 61734,
+    "total_contributors": 1899,
+    "top_organizations": [
+      "Google",
+      "Intel",
+      "Collabora"
+    ]
+  },
+  "v8": {
+    "last_commit": "2026-10-09T03:32:09Z",
+    "total_commits": 100557,
+    "total_contributors": 1053,
+    "top_organizations": [
+      "Google",
+      "Redhat",
+      "Chinese Academy of Sciences"
+    ]
+  },
+  "skia": {
+    "last_commit": "2026-10-08T20:00:30Z",
+    "total_commits": 64130,
+    "total_contributors": 644,
+    "top_organizations": [
+      "Google",
+      "Individuals",
+      "Microsoft"
+    ]
+  },
+  "dawn": {
+    "last_commit": "2026-10-09T01:13:32Z",
+    "total_commits": 20767,
+    "total_contributors": 336,
+    "top_organizations": [
+      "Google",
+      "Intel",
+      "Individuals"
+    ]
+  },
+  "gn": {
+    "last_commit": "2026-10-08T23:18:01Z",
+    "total_commits": 2594,
+    "total_contributors": 353,
+    "top_organizations": [
+      "Google",
+      "Individuals",
+      "Redhat"
+    ]
+  },
+  "angle": {
+    "last_commit": "2026-10-09T04:14:57Z",
+    "total_commits": 24464,
+    "total_contributors": 583,
+    "top_organizations": [
+      "Google",
+      "Samsung",
+      "Individuals"
+    ]
+  },
+  "swiftshader": {
+    "last_commit": "2024-06-21T15:23:51Z",
+    "total_commits": 6291,
+    "total_contributors": 204,
+    "top_organizations": [
+      "Google",
+      "Individuals",
+      "Igalia"
+    ]
+  },
+  "webrtc": {
+    "last_commit": "2026-10-08T13:18:59Z",
+    "total_commits": 40640,
+    "total_contributors": 744,
+    "top_organizations": [
+      "Google",
+      "Individuals",
+      "Meta"
+    ]
+  },
+  "pdfium": {
+    "last_commit": "2025-11-19T14:17:39Z",
+    "total_commits": 17458,
+    "total_contributors": 213,
+    "top_organizations": [
+      "Google",
+      "Individuals",
+      "Collabora"
+    ]
+  },
+  "devtool-frontend": {
+    "last_commit": "2026-10-08T23:35:50Z",
+    "total_commits": 28383,
+    "total_contributors": 663,
+    "top_organizations": [
+      "Google",
+      "Microsoft",
+      "Individuals"
+    ]
+  },
+  "perfetto": {
+    "last_commit": "2026-10-08T19:35:38Z",
+    "total_commits": 19139,
+    "total_contributors": 661,
+    "top_organizations": [
+      "Google",
+      "Individuals",
+      "Meta"
+    ]
+  },
+  "clusterfuzz": {
+    "last_commit": "2026-10-08T17:24:51Z",
+    "total_commits": 4026,
+    "total_contributors": 138,
+    "top_organizations": [
+      "Individuals",
+      "Google",
+      "Redhat"
+    ]
+  },
+  "llvm": {
+    "last_commit": "2026-10-09T03:59:31Z",
+    "total_commits": 589184,
+    "total_contributors": 8380,
+    "top_organizations": [
+      "Individuals",
+      "Google",
+      "AMD"
+    ]
+  },
+  "wpt": {
+    "last_commit": "2026-10-09T02:08:15Z",
+    "total_commits": 58944,
+    "total_contributors": 3021,
+    "top_organizations": [
+      "Google",
+      "Individuals",
+      "Microsoft"
+    ]
+  },
+  "firefox": {
+    "last_commit": "2026-10-09T00:07:27Z",
+    "total_commits": 671546,
+    "total_contributors": 8466,
+    "top_organizations": [
+      "Mozilla",
+      "Individuals",
+      "Redhat"
+    ]
+  },
+  "webkit": {
+    "last_commit": "2026-10-09T03:17:49Z",
+    "total_commits": 315107,
+    "total_contributors": 2381,
+    "top_organizations": [
+      "Apple",
+      "Igalia",
+      "Individuals"
+    ]
+  },
+  "ladybird": {
+    "last_commit": "2026-10-09T04:48:25Z",
+    "total_commits": 38556,
+    "total_contributors": 1400,
+    "top_organizations": [
+      "Ladybird",
+      "Individuals",
+      "Google"
+    ]
+  },
+  "servo": {
+    "last_commit": "2026-10-09T03:02:28Z",
+    "total_commits": 35130,
+    "total_contributors": 1696,
+    "top_organizations": [
+      "Individuals",
+      "Igalia",
+      "Huawei"
+    ]
+  },
+  "spidermonkey": {
+    "last_commit": "2026-10-08T23:42:32Z",
+    "total_commits": 58489,
+    "total_contributors": 1040,
+    "top_organizations": [
+      "Mozilla",
+      "Individuals",
+      "ACM"
+    ]
+  },
+  "jsc": {
+    "last_commit": "2026-10-09T00:18:56Z",
+    "total_commits": 26782,
+    "total_contributors": 694,
+    "top_organizations": [
+      "Apple",
+      "Igalia",
+      "Individuals"
+    ]
+  },
+  "openscreen": {
+    "last_commit": "2026-10-08T07:28:46Z",
+    "total_commits": 1665,
+    "total_contributors": 106,
+    "top_organizations": [
+      "Google",
+      "Intel",
+      "Individuals"
+    ]
+  }
+}
