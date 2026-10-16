@@ -1,0 +1,1 @@
+.line{display:flex;margin:1px}.left{margin-right:10px;text-align:right;width:48px}.center{background:#0080ff;border-radius:5px;color:#000;margin:0 10px 0 0;opacity:.2}.center:hover{opacity:.4}.usernameList{color:#000;display:flex;flex-wrap:wrap;list-style-position:inside;list-style-type:square;padding-left:100px}.usernameList.hidden{display:none}.usernameList>*{flex:1 1 160px}
