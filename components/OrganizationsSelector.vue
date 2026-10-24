@@ -1,63 +1,62 @@
 <template>
-  <div>
-    <div class="columns">
-      <div class="fields column">
-        <button class="sort-button"
-                @click="sortOrganizationsAlphabetically"
-                >
-                <b-icon icon="sort-alphabetical-descending-variant" size="is-medium"> sort alphabetically</b-icon>
-        </button>
-        <button class="sort-button"
-                @click="sortOrganizationsByCommits"
-                >
-                <b-icon icon="sort" size="is-medium"> sort by commits</b-icon>
-        </button>
-        <b-checkbox-button
-          style="margin-right: -0.02rem; margin-left: 0"
-          name="organizations"
-          v-for="(item, index) in items"
-          :key="index"
-          :size="size"
-          v-model="value"
-          @input="update(item)"
-          :native-value="item"
-          >
-          <b-icon
-            :icon="item.toLowerCase()"
-            size="is-small"
-            v-if="availableIcon.includes(item.toLowerCase())"
-            ></b-icon>
-          {{item}}
-        </b-checkbox-button>
+  <div class="organization-selector">
+    <div class="sort-buttons">
+      <button class="sort-button"
+              title="Sort alphabetically"
+              aria-label="Sort alphabetically"
+              @click="sortOrganizationsAlphabetically"
+              >
+              <b-icon icon="sort-alphabetical-descending-variant"></b-icon>
+      </button>
+      <button class="sort-button"
+              title="Sort by commits"
+              aria-label="Sort by commits"
+              @click="sortOrganizationsByCommits"
+              >
+              <b-icon icon="sort"></b-icon>
+      </button>
+    </div>
 
-        <div class="spacer"></div>
-      </div>
+    <!-- A single row, scrolling horizontally. -->
+    <div class="fields chip-track">
+      <b-checkbox-button
+        name="organizations"
+        v-for="(item, index) in items"
+        :key="index"
+        :size="size"
+        v-model="value"
+        @input="update(item)"
+        :native-value="item"
+        >
+        <b-icon
+          :icon="item.toLowerCase()"
+          size="is-small"
+          v-if="availableIcon.includes(item.toLowerCase())"
+          ></b-icon>
+        {{item}}
+      </b-checkbox-button>
+    </div>
 
-      <div class="column is-narrow">
-        <div>
-          <b-checkbox
-            v-if="allowAll"
-            :size="size"
-            name="all"
-            :value="all"
-            @input="updateAll()"
-            type="is-warning"
-            >
-            All
-          </b-checkbox>
-        </div>
-        <div>
-          <b-checkbox
-            v-if="allowMultiple"
-            :size="size"
-            name="multiple"
-            v-model="multiple"
-            >
-            Multiple
-          </b-checkbox>
-        </div>
-        <slot></slot>
-      </div>
+    <div class="options">
+      <b-checkbox
+        v-if="allowAll"
+        :size="size"
+        name="all"
+        :value="all"
+        @input="updateAll()"
+        type="is-warning"
+        >
+        All
+      </b-checkbox>
+      <b-checkbox
+        v-if="allowMultiple"
+        :size="size"
+        name="multiple"
+        v-model="multiple"
+        >
+        Multiple
+      </b-checkbox>
+      <slot></slot>
     </div>
   </div>
 </template>
@@ -177,51 +176,54 @@ onMounted(() => {
 
 <style scoped>
 
-.columns {
-  padding-top: 1rem;
-  margin-bottom: 2rem;
-}
-
-.fields {
+.organization-selector {
+  align-items: center;
   display: flex;
-  flex-direction: row;
   flex-wrap: wrap;
-  gap: 0.4rem;
-  margin:0;
-  padding:0.2rem 0;
-  max-height: 14vh;
-  overflow-y: auto;
+  gap: 0.5rem 1rem;
+  margin-bottom: 1.5rem;
+  padding-top: 0.5rem;
 }
 
-.fields > * {
+/* Keep the sort buttons on the same row, even on narrow screens. */
+.organization-selector .chip-track {
+  flex-basis: 12rem;
+}
+
+.sort-buttons {
+  display: flex;
   flex: 0 0 auto;
-}
-
-
-.spacer {
-  flex: 10;
+  gap: 2px;
 }
 
 .sort-button {
-  flex: 0;
+  align-items: center;
+  background: transparent;
   border: none;
-  background-color: transparent;
-  margin:0;
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
-  padding-top: 0;
-  padding-bottom: 0;
-  opacity: 0.5;
+  border-radius: var(--radius);
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  height: 2.1rem;
+  justify-content: center;
+  width: 2.1rem;
 }
 
 .sort-button:hover {
-  cursor: pointer;
-  background-color: #e5e5e5;
-  opacity: 1.0;
+  background: var(--surface-sunken);
+  color: var(--ink);
 }
 
-.sort-button:active{
-  background-color: #d5d5d5;
+.options {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 1rem;
+}
+
+.options :deep(.b-checkbox.checkbox) {
+  font-size: 0.85rem;
+  margin-right: 0;
 }
 
 </style>
