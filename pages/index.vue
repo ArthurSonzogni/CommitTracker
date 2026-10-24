@@ -5,7 +5,7 @@
       <div class="container">
         <p class="eyebrow">
           <span class="live-dot"></span>
-          Updated {{ lastUpdate }} · {{ repositoryCount }} repositories tracked
+          Updated {{ lastUpdate }} · {{ repositoryCount }} repositories
         </p>
 
         <!-- A transition for the {repository}CommitTracker-->
@@ -15,43 +15,13 @@
 
         <p class="lede">
           Open statistics about the people and organizations building Chromium
-          and the wider web platform: commits, reviews, communities, codebase
-          health and security.
+          and the wider web platform.
         </p>
 
-        <div class="actions">
-          <NuxtLink class="button is-primary is-medium" to="/individuals">
-            Explore contributors
-            <b-icon icon="arrow-right" size="is-small" class="ml-1"></b-icon>
-          </NuxtLink>
-          <NuxtLink class="button is-medium" to="/cve/overview">
-            Security dashboard
-          </NuxtLink>
-        </div>
-
-        <dl class="stats">
-          <div v-for="stat in stats" :key="stat.label" class="stat">
-            <dt>{{ stat.label }}</dt>
-            <dd>{{ stat.value }}</dd>
-          </div>
-        </dl>
-
-        <p class="byline">
-          Made by
-          <a href="https://github.com/ArthurSonzogni">@arthursonzogni</a>
-        </p>
+        <HomeSearch class="hero-search" />
       </div>
     </section>
-    <CommunityMapDemo/>
-    <RenderWhenVisible>
-      <LazyStatsDemo/>
-    </RenderWhenVisible>
-    <RenderWhenVisible>
-      <LazyRepositoryDemo/>
-    </RenderWhenVisible>
-    <RenderWhenVisible>
-      <LazyTreemapDemo/>
-    </RenderWhenVisible>
+    <HomeBento/>
   </div>
 </template>
 
@@ -62,36 +32,11 @@ import repositories_stats from '../public/data/repositories_stats.json'
 const repository = ref("Chromium");
 const repositories = ref(repositories_json);
 
-const compact = new Intl.NumberFormat("en", {
-  notation: "compact",
-  maximumFractionDigits: 1,
-});
 const all_stats = Object.values(repositories_stats);
-const chromium_stats = repositories_stats.chromium;
 const repositoryCount = all_stats.length;
 const lastUpdate = new Date(
   Math.max(...all_stats.map(stat => new Date(stat.last_commit)))
 ).toLocaleDateString("en", { month: "short", day: "numeric", year: "numeric" });
-
-const stats = [
-  {
-    label: "Chromium commits",
-    value: compact.format(chromium_stats.total_commits),
-  },
-  {
-    label: "Chromium contributors",
-    value: compact.format(chromium_stats.total_contributors),
-  },
-  {
-    label: "Commits, all repositories",
-    value: compact.format(
-      all_stats.reduce((sum, stat) => sum + stat.total_commits, 0)),
-  },
-  {
-    label: "Repositories",
-    value: repositoryCount,
-  },
-];
 
 const sleep = async (delay = 500) => {
   return new Promise(resolve => setTimeout(resolve, delay));
@@ -149,9 +94,7 @@ main()
     radial-gradient(60rem 28rem at 85% -10%, rgba(110, 86, 207, 0.16), transparent 70%),
     radial-gradient(40rem 22rem at -10% 10%, rgba(56, 189, 248, 0.10), transparent 70%),
     var(--bg);
-  border-bottom: 1px solid var(--line);
-  overflow: hidden;
-  padding: 4rem 1.25rem 3rem;
+  padding: 3.5rem 1.25rem 2.5rem;
   position: relative;
 }
 
@@ -170,11 +113,12 @@ main()
 
 .home-hero .container {
   position: relative;
+  z-index: 2;
 }
 
 @media (min-width: 769px) {
   .home-hero {
-    padding: 6.5rem 1.5rem 4.5rem;
+    padding: 5.5rem 1.5rem 3.5rem;
   }
 }
 
@@ -227,6 +171,10 @@ main()
   text-shadow: 0 0 24px rgba(110, 86, 207, 0.45);
 }
 
+.hero-search {
+  margin-top: 2rem;
+}
+
 .lede {
   color: var(--ink-2);
   font-size: clamp(1.05rem, 0.95rem + 0.4vw, 1.25rem);
@@ -234,63 +182,13 @@ main()
   max-width: 40rem;
 }
 
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: 2rem;
-}
 
-.stats {
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(6px);
-  box-shadow: var(--shadow-xs);
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin-top: 3rem;
-  overflow: hidden;
-}
 
-@media (min-width: 769px) {
-  .stats {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
 
-.stat {
-  border-right: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-  margin: -1px -1px 0 0;
-  padding: 1.1rem 1.25rem;
-}
 
-.stat dt {
-  color: var(--muted);
-  font-size: 0.75rem;
-  font-weight: 520;
-}
 
-.stat dd {
-  color: var(--ink);
-  font-family: var(--font-mono);
-  font-size: 1.6rem;
-  font-variant-numeric: tabular-nums;
-  font-weight: 550;
-  letter-spacing: -0.03em;
-  margin: 0.15rem 0 0;
-}
 
-.byline {
-  color: var(--faint);
-  font-size: 0.8rem;
-  margin-top: 1.25rem;
-}
 
-.byline a {
-  color: var(--muted);
-}
 
 .non-selectable {
   user-select: none;

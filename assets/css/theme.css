@@ -715,58 +715,6 @@ strong {
   }
 }
 
-/* Home page features ------------------------------------------------------- */
-
-.section.feature {
-  border-bottom: 1px solid var(--line);
-}
-
-.feature-header {
-  align-items: baseline;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem 0.9rem;
-  margin-bottom: 1.75rem;
-}
-
-.feature-header .title {
-  margin: 0 !important;
-}
-
-.feature-index {
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
-  font-weight: 550;
-}
-
-.feature-link {
-  align-items: center;
-  color: var(--muted);
-  display: inline-flex;
-  font-size: 0.875rem;
-  font-weight: 540;
-  margin-left: auto;
-}
-
-.feature-link:hover {
-  color: var(--accent);
-}
-
-.frame {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  display: block;
-  overflow: hidden;
-  padding: 1rem;
-}
-
-.frame img {
-  display: block;
-}
-
 /* Charts (d3 axes) --------------------------------------------------------- */
 
 svg .domain {
