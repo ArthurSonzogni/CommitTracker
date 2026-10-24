@@ -7,11 +7,21 @@ import {octokit} from './octokit.mjs'
 import {IsEmailValid} from './is_email_valid.mjs';
 import {ParseReviewers} from './parse_reviewers.mjs';
 
+// The issue tracker returns component names HTML-escaped, e.g.
+// "Blink&gt;JavaScript".
+const decodeHtmlEntities = (text) => text
+  .replaceAll('&lt;', '<')
+  .replaceAll('&gt;', '>')
+  .replaceAll('&amp;', '&');
+
 const loadDatabase = () => {
   fs.mkdirSync('../data/cve', { recursive: true });
   try {
     const data = JSON.parse(fs.readFileSync('../public/cve/data.json', 'utf8'))
     const values = Object.values(data);
+    for (const cve of values) {
+      cve.components = cve.components?.map(decodeHtmlEntities);
+    }
     return values.filter(cve => cve.id).sort((a, b) => a.id - b.id)
   } catch (e) {
     return {}
@@ -477,7 +487,7 @@ const fetchBugganizer = async (cve, page) => {
   if (parseInt(extracted.vrp_reward) > 0) {
     cve.vrp_reward = extracted.vrp_reward;
   }
-  cve.components = extracted.components;
+  cve.components = extracted.components.map(decodeHtmlEntities);
   cve.found_in = extracted.found_in;
   cve.security_release = extracted.security_release;
   cve.oses = extracted.oses;
