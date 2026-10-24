@@ -2,13 +2,15 @@
   <div class="sankey-page">
     <Navbar />
 
-    <RepositorySelector
-      size="is-medium"
-      v-model="repoList"
-      :allowMultiple="false"
-      :allowAll="false"
-      :filter="repoFilter"
-      />
+    <div class="container px-3">
+      <RepositorySelector
+        size="is-medium"
+        v-model="repoList"
+        :allowMultiple="false"
+        :allowAll="false"
+        :filter="repoFilter"
+        />
+    </div>
 
     <section class="section">
       <div class="container">

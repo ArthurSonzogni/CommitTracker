@@ -14,7 +14,7 @@
       </div>
     </section>
 
-    <section>
+    <section style="overflow-x: auto">
       <svg
         :width="width"
         :height="height"
@@ -173,7 +173,8 @@ const render = (() => {
   }
 
   height.value = Math.max(500, 35 * Math.pow(Object.keys(component_vrp_reward).length, 0.8));
-  width.value = window.innerWidth;
+  // Keep the graph readable on narrow screens; the section scrolls instead.
+  width.value = Math.max(window.innerWidth, 1000);
 
   Object.entries(component_vrp_reward)
     .sort((a, b) => a[0].localeCompare(b[0]))

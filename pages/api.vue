@@ -161,3 +161,11 @@ const sortedRepos = computed(() => {
   return repositories_raw.map(r => r.dirname).sort((a, b) => a.localeCompare(b));
 });
 </script>
+
+<style scoped>
+/* Let long URLs wrap on narrow screens. */
+code {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+</style>

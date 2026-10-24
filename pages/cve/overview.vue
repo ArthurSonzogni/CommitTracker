@@ -96,6 +96,7 @@
 
       <hr>
 
+        <div class="table-container">
         <table class="table is-bordered is-striped is-narrow is-hoverable">
           <thead>
             <tr>
@@ -149,6 +150,7 @@
             </tr>
           </tbody>
         </table>
+        </div>
     </section>
   </div>
 </template>

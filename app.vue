@@ -53,4 +53,18 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Let Buefy form rows wrap on narrow screens. */
+.field.is-grouped > .field,
+.field.has-addons > .field {
+  flex-shrink: 1;
+  min-width: 0;
+}
+.select,
+.select select {
+  max-width: 100%;
+}
+.field.has-addons {
+  flex-wrap: wrap;
+}
+
 </style>

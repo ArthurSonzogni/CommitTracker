@@ -201,8 +201,9 @@ const onQuarterClick = (year: number, quarter: number) => {
 <style scoped>
 .timeline {
    user-select: none;
-   padding-left: 20px;
-   padding-right: 20px;
+   /* Room for the slider's always visible tooltips at both ends. */
+   padding-left: 40px;
+   padding-right: 40px;
 }
 .timeline :deep(.field) {
   margin-bottom: 0 !important;

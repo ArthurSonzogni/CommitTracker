@@ -298,6 +298,7 @@ onMounted(refresh);
   display: flex;
   flex-direction: column;
   justify-content: center;
+  overflow-x: auto;
 }
 
 .sticky {
