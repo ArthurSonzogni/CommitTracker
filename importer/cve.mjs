@@ -3,9 +3,14 @@
 import fs from 'fs'
 import puppeteer from 'puppeteer'
 import spawn from 'child_process'
-import {octokit} from './octokit.mjs'
 import {IsEmailValid} from './is_email_valid.mjs';
 import {ParseReviewers} from './parse_reviewers.mjs';
+
+// The GitHub API requires a token. Without one, we only use Gitiles.
+const hasGithubToken = fs.existsSync('.token') ||
+  !!process.env.GITHUB_TOKEN || !!process.env.TOKEN;
+const octokit = hasGithubToken ?
+  (await import('./octokit.mjs')).octokit : null;
 
 // The issue tracker returns component names HTML-escaped, e.g.
 // "Blink&gt;JavaScript".
@@ -24,7 +29,7 @@ const loadDatabase = () => {
     }
     return values.filter(cve => cve.id).sort((a, b) => a.id - b.id)
   } catch (e) {
-    return {}
+    return []
   }
 }
 
@@ -107,8 +112,9 @@ const cveIsChromium = (cve) => {
   for (const affected of cve.containers.cna.affected) {
     const product = affected.product?.toLowerCase() || ''
     const vendor = affected.vendor?.toLowerCase() || ''
+    // CVEs from ~2017 use vendor="n/a" and product="Google Chrome prior to X".
     if ((product.includes('chrome') || product.includes('chromium')) &&
-      (vendor.includes('google'))) {
+      (vendor.includes('google') || vendor == 'n/a')) {
       return true;
     }
 
@@ -228,22 +234,30 @@ const transformCve = (cve) => {
   let version_fixed = "n/a";
   for (const affected of cve.containers.cna.affected) {
     if (affected.product?.toLowerCase().includes('chrome')) {
-      for (const version of affected.versions) {
+      for (const version of affected.versions || []) {
         version_fixed = version.version;
       }
     }
   }
 
-  // If the version is not specified, it might be part of the description.
-  if (version_fixed == 'unspecified') {
-    const match = description.match(/\b\d+\.\d+\.\d+\.\d+/);
-    if (match) {
-      version_fixed = match[0];
+  // If the version is not a version number, extract it from the "lessThan"
+  // field, the version string itself (e.g. "Google Chrome prior to X"), or
+  // the description (e.g. "Google Chrome before X").
+  const versionRegex = /\b\d+\.\d+\.\d+\.\d+\b/;
+  if (!/^\d+\.\d+\.\d+\.\d+$/.test(version_fixed)) {
+    const candidates = [];
+    for (const affected of cve.containers.cna.affected) {
+      for (const version of affected.versions || []) {
+        candidates.push(version.lessThan || '', version.version || '');
+      }
     }
-  }
-
-  if (version_fixed.startsWith('prior to ')) {
-    version_fixed = version_fixed.replace('prior to ', '');
+    const match =
+      description.match(/(?:prior to|before) (\d+\.\d+\.\d+\.\d+)/) ||
+      candidates.map(c => c.match(versionRegex)).find(m => m) ||
+      description.match(versionRegex);
+    if (match) {
+      version_fixed = match[1] || match[0];
+    }
   }
 
   //const proposedCweId = cve.containers.adp[0].prolemTypes[0].descriptions[0].cweId;
@@ -303,62 +317,303 @@ const retrieveCveList = async (database) => {
   }
 }
 
-// Convert
-//   https://chromium-review.googlesource.com/c/chromium/src/+/5973403
-//   https://skia-review.googlesource.com/c/skia/+/874976
-// Into:
-//  Icd518a869a06ad982767386d5d7a1528e6179e6c
-//  ...
-// Using gerrit API.
-//   GET /changes/myProject~5673403
-const gerritUrlToCommitHash = async (url) => {
+// Fetch a Gerrit-style JSON API response, stripping the )]}' XSSI prefix.
+const fetchGerritJson = async (url) => {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status} for ${url}`);
+  }
+  const text = await response.text();
+  return JSON.parse(text.substring(text.indexOf('\n') + 1));
+}
+
+// Resolve a Gerrit change into the hash of the commit it was submitted as,
+// and its submission date. Returns null if the change was not merged.
+//   GET https://chromium-review.googlesource.com/changes/chromium%2Fsrc~5673403
+const gerritChangeCache = new Map();
+const resolveGerritChangeInfo = async (origin, project, number) => {
+  const id = project ? `${encodeURIComponent(project)}~${number}` : number;
+  const gerrit_url =
+    `https://${origin}/changes/${id}?o=MESSAGES&o=CURRENT_REVISION`;
+  if (gerritChangeCache.has(gerrit_url)) {
+    return gerritChangeCache.get(gerrit_url);
+  }
+
+  let info = null;
   try {
-    const parts = url.split('/');
-    let origin = parts[2];
-    let id = parts[parts.length - 1];
-    
-    if (origin == "crrev.com") {
-      origin = "chromium-review.googlesource.com";
-    }
-
-    // For https://chromium-review.googlesource.com/c/chromium/src/+/5973403
-    // For https://crrev.com/c/5378419
-    const gerrit_url = `https://${origin}/changes/${id}?O=200`;
     console.log("Fetching", gerrit_url);
-    const response = await fetch(gerrit_url);
-    const text = await response.text();
-    const json = JSON.parse(text.substring(4)); // Strip )]}' prefix.
-
-    for(const message of json.messages) {
-      const match = message.message.match(/submitted as ([0-9a-f]{40})/);
-      if (match) {
-        console.log(match[1]);
-        return match[1];
+    const json = await fetchGerritJson(gerrit_url);
+    if (json.status == "MERGED") {
+      let sha = null;
+      for (const message of json.messages || []) {
+        const match = message.message.match(/submitted as ([0-9a-f]{40})/);
+        if (match) {
+          sha = match[1];
+        }
+      }
+      sha ||= json.current_revision || null;
+      // Gerrit dates look like "2024-06-10 22:43:35.000000000", in UTC.
+      const submitted = json.submitted ?
+        new Date(json.submitted.replace(' ', 'T').substring(0, 19) + 'Z') :
+        null;
+      if (sha) {
+        info = { sha, submitted };
       }
     }
+    console.log(info?.sha);
   } catch (e) {
-    console.log("Error fetching", url, e);
+    console.log("Error fetching", gerrit_url, e.message);
+  }
+  gerritChangeCache.set(gerrit_url, info);
+  return info;
+}
+
+const resolveGerritChange = async (origin, project, number) => {
+  return (await resolveGerritChangeInfo(origin, project, number))?.sha || null;
+}
+
+// Resolve a Chromium SVN revision into a git commit hash, using cr-rev.
+const svnRevisionCache = new Map();
+const resolveSvnRevision = async (revision) => {
+  if (svnRevisionCache.has(revision)) {
+    return svnRevisionCache.get(revision);
+  }
+  let sha = null;
+  try {
+    const url = `https://cr-rev.appspot.com/_ah/api/crrev/v1/redirect/${revision}`;
+    console.log("Fetching", url);
+    const json = await (await fetch(url)).json();
+    if (json.repo == "chromium/src" && /^[0-9a-f]{40}$/.test(json.git_sha)) {
+      sha = json.git_sha;
+    }
+  } catch (e) {
+    console.log("Error resolving SVN revision", revision, e.message);
+  }
+  svnRevisionCache.set(revision, sha);
+  return sha;
+}
+
+// Parse a URL referring to a code change. Returns one of:
+//  { sha }                     for a commit URL.
+//  { origin, project, number } for a Gerrit change URL.
+//  { svn }                     for a Chromium SVN revision URL.
+//  null                        otherwise.
+//
+// Supported formats:
+//   https://chromium-review.googlesource.com/c/chromium/src/+/5973403
+//   https://chromium-review.googlesource.com/c/chromium/src/+/5973403/3
+//   https://chromium-review.googlesource.com/5973403
+//   https://chromium-review.googlesource.com/#/c/5973403/
+//   https://skia-review.googlesource.com/c/skia/+/874976
+//   https://crrev.com/c/5378419
+//   https://crrev.com/e598fc599bd920392256d05c61826466c73c8e89
+//   https://chromium.googlesource.com/chromium/src/+/e598fc5...
+//   https://chromium.googlesource.com/chromium/src/+/e598fc5...%5E%21/
+//   http://src.chromium.org/viewvc/chrome?view=rev&revision=169949
+const parseCodeChangeUrl = (url) => {
+  let match;
+
+  match = url.match(/^https?:\/\/crrev\.com\/c\/(\d+)(?:[\/?#]|$)/);
+  if (match) {
+    return {
+      origin: "chromium-review.googlesource.com",
+      project: null,
+      number: match[1],
+    };
+  }
+
+  match = url.match(/^https?:\/\/crrev\.com\/([0-9a-f]{40})(?:[\/?#]|$)/);
+  if (match) {
+    return { sha: match[1] };
+  }
+
+  match = url.match(
+    /^https?:\/\/([a-z0-9-]*review\.googlesource\.com)\/(?:#\/)?(?:c\/)?(?:(.+?)\/\+\/)?(\d+)(?:[\/?#]|$)/);
+  if (match) {
+    return { origin: match[1], project: match[2] || null, number: match[3] };
+  }
+
+  match = url.match(
+    /^https?:\/\/[a-z0-9-]+\.googlesource\.com\/.+?\/\+\/([0-9a-f]{40})(?:\^!|%5E%21)?\/?(?:[?#]|$)/i);
+  if (match) {
+    return { sha: match[1] };
+  }
+
+  match = url.match(
+    /^https?:\/\/src\.chromium\.org\/(?:viewvc\/)?chrome\?[^\s]*?revision=(\d+)/);
+  if (match) {
+    return { svn: match[1] };
   }
 
   return null;
 }
 
+// Resolve a code change URL into a commit hash, or null.
+const codeChangeUrlToCommitHash = async (url) => {
+  const parsed = parseCodeChangeUrl(url);
+  if (!parsed) {
+    return null;
+  }
+  if (parsed.sha) {
+    return parsed.sha;
+  }
+  if (parsed.svn) {
+    return resolveSvnRevision(parsed.svn);
+  }
+  return resolveGerritChange(parsed.origin, parsed.project, parsed.number);
+}
+
+// Collect every string contained in a JSON value.
+const collectStrings = (value, out = []) => {
+  if (typeof value === 'string') {
+    out.push(value);
+  } else if (Array.isArray(value)) {
+    for (const item of value) {
+      collectStrings(item, out);
+    }
+  } else if (value && typeof value === 'object') {
+    for (const item of Object.values(value)) {
+      collectStrings(item, out);
+    }
+  }
+  return out;
+}
+
+// Parse the responses of the issue tracker internal API, captured while the
+// page loads:
+// - `getIssue` contains the structured "Code Changes" fields, encoded as
+//   tuples like ["chromium","chromium/src",5605695,1].
+// - `updates` contains every comment, including the ones collapsed in the UI.
+//   Comments posted by Gitwatcher ("The following revision refers to this
+//   bug") are trusted. Links in other comments often refer to unrelated or
+//   older changes, given as context.
+const parseIssueApiResponses = (responses) => {
+  const out = {
+    title: null,
+    gerrit_changes: [],
+    gitwatcher_urls: new Set(),
+    gitwatcher_hashes: new Set(),
+    comment_urls: new Set(),
+  };
+
+  for (const { kind, text } of responses) {
+    if (kind == 'getIssue') {
+      // The title follows the issue id and five numeric fields, e.g.
+      // [null,40063014,[1456950,6,4,3,4,"Title"
+      const title = text.match(
+        /\[null,\d+,\[\d+,\d+,\d+,\d+,\d+,("(?:[^"\\]|\\.)*")/);
+      if (title) {
+        try {
+          out.title = JSON.parse(title[1]);
+        } catch (e) {}
+      }
+
+      const regex = /\["([a-z0-9-]+)","([^"]+)",(\d+),\d+\]/g;
+      for (const match of text.matchAll(regex)) {
+        out.gerrit_changes.push({
+          origin: `${match[1]}-review.googlesource.com`,
+          project: match[2],
+          number: match[3],
+        });
+      }
+    }
+
+    if (kind == 'updates') {
+      let strings = [];
+      try {
+        strings = collectStrings(JSON.parse(text.substring(text.indexOf('\n') + 1)));
+      } catch (e) {
+        console.log("Error parsing issue updates", e.message);
+      }
+      for (const string of strings) {
+        const isGitwatcher = string.includes('revision refers to this bug');
+        for (const match of string.matchAll(/https?:\/\/[^\s"'<>\\)\]]+/g)) {
+          const url = match[0].replace(/&amp;/g, '&');
+          (isGitwatcher ? out.gitwatcher_urls : out.comment_urls).add(url);
+        }
+        if (!isGitwatcher) {
+          continue;
+        }
+        // Match "commit e598fc599bd920392256d05c61826466c73c8e89"
+        // Match "Hash: 0df9105b154dc5627d81595b9aa379208d119fc2"
+        // The first is used in chromium, the other in v8/skia.
+        for (const match of string.matchAll(/(?:commit|Hash:) ([0-9a-f]{40})\b/g)) {
+          out.gitwatcher_hashes.add(match[1]);
+        }
+      }
+    }
+  }
+
+  return out;
+}
 
 const fetchBugganizer = async (cve, page) => {
   const url = cve.bug
   console.log("Fetching", url)
 
-  await page.goto(url)
+  // Capture the issue tracker's internal API responses. They are more
+  // reliable than the rendered page, which loads asynchronously and collapses
+  // comments.
+  const responses = [];
+  const pending = [];
+  const onResponse = (response) => {
+    const match = response.url().match(/\/action\/issues\/\d+\/(getIssue|updates)\b/);
+    if (!match || !response.ok()) {
+      return;
+    }
+    pending.push(response.text()
+      .then(text => responses.push({ kind: match[1], text }))
+      .catch(() => {}));
+  };
 
-  await page.waitForFunction(() => {
-    labels = Array.from(document.querySelectorAll('label')).map(el => el.textContent.trim());
-    return labels.includes('vrp-reward');
-  }, { timeout: 3000 });
+  page.on('response', onResponse);
+  try {
+    const issueResponse = page.waitForResponse(
+      response => /\/action\/issues\/\d+\/getIssue\b/.test(response.url()),
+      { timeout: 30000 }).catch(() => null);
+    const updatesResponse = page.waitForResponse(
+      response => /\/action\/issues\/\d+\/updates\b/.test(response.url()),
+      { timeout: 30000 }).catch(() => null);
 
-  // Wait for more than 3 messages to appear.
-  await page.waitForFunction(() => {
-    return document.querySelector("#comment4") != null;
-  }, { timeout: 3000 });
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
+
+    // Old URLs from code.google.com and bugs.chromium.org redirect to
+    // issues.chromium.org, unless the issue was not migrated.
+    if (!page.url().includes('issues.chromium.org')) {
+      console.log("Issue not available:", page.url());
+      return;
+    }
+
+    // Restricted issues are rejected with 403.
+    const response = await issueResponse;
+    if (!response || !response.ok()) {
+      console.log("Issue not accessible:", response?.status());
+      return;
+    }
+
+    // Wait for the page to render the issue fields. Issues moved to
+    // issuetracker.google.com only display a redirection notice, but the API
+    // responses are still available.
+    await page.waitForFunction(() => {
+      const rendered = document.querySelector('issue-title') &&
+        Array.from(document.querySelectorAll('label'))
+          .some(el => el.textContent.trim() == 'Component Tags');
+      const moved = document.body.innerText
+        .includes('Redirecting to Issue Tracker');
+      return rendered || moved;
+    }, { timeout: 20000 });
+    await updatesResponse;
+    await Promise.all(pending);
+  } finally {
+    page.off('response', onResponse);
+  }
+
+  const api = parseIssueApiResponses(responses);
+  console.log("Issue API:", responses.map(r => r.kind),
+    "gerrit changes:", api.gerrit_changes.length,
+    "gitwatcher urls:", api.gitwatcher_urls.size,
+    "gitwatcher hashes:", api.gitwatcher_hashes.size,
+    "comment urls:", api.comment_urls.size);
 
   // Search for the cve value to confirm.
   const extracted = await page.evaluate(() => {
@@ -373,7 +628,8 @@ const fetchBugganizer = async (cve, page) => {
       chromium_labels: [],
       bug_date: null,
       severity: null,
-      comment_links: [],
+      code_changes: [],
+      fixed_by: [],
     }
 
     for(const el of document.querySelectorAll('label')) {
@@ -469,31 +725,33 @@ const fetchBugganizer = async (cve, page) => {
     const bug_date = document.querySelector('time')?.getAttribute('datetime');
     out.bug_date = bug_date;
 
-    // Extract all links from comments.
-    out.comment_links = Array.from(document.querySelectorAll('.child a')).map(el => el.href.trim());
 
     return out;
   })
 
   console.log("Extracted:")
   console.log(extracted)
-  if (extracted.cve && extracted.cve != cve.id) {
+  if (extracted.cve && !extracted.cve.includes(cve.id)) {
     console.log("CVE mismatch", extracted.cve, cve.id);
     return;
   }
 
-  cve.id = extracted.cve;
-  cve.title = extracted.title;
+  // Only overwrite fields with values that were actually found, so that a
+  // partially rendered page does not erase known data.
+  extracted.title ||= api.title;
+  extracted.components = extracted.components?.map(decodeHtmlEntities);
+  const isPresent = (value) =>
+    value !== null && value !== undefined && value !== '' &&
+    !(Array.isArray(value) && value.length === 0);
+  for (const field of ['title', 'components', 'found_in', 'security_release',
+    'oses', 'chromium_labels', 'bug_date', 'severity']) {
+    if (isPresent(extracted[field])) {
+      cve[field] = extracted[field];
+    }
+  }
   if (parseInt(extracted.vrp_reward) > 0) {
     cve.vrp_reward = extracted.vrp_reward;
   }
-  cve.components = extracted.components.map(decodeHtmlEntities);
-  cve.found_in = extracted.found_in;
-  cve.security_release = extracted.security_release;
-  cve.oses = extracted.oses;
-  cve.chromium_labels = extracted.chromium_labels;
-  cve.bug_date = extracted.bug_date;
-  cve.severity = extracted.severity;
   cve.last_bug_fetch = new Date().toISOString().split('T')[0];
 
   const hasCommits = cve.commits && Object.keys(cve.commits).length > 0;
@@ -508,47 +766,58 @@ const fetchBugganizer = async (cve, page) => {
 
   const fixed_by = new Set();
   for(const change of extracted.fixed_by) {
-    const sha = await gerritUrlToCommitHash(change);
+    const sha = await codeChangeUrlToCommitHash(change);
     if (sha) fixed_by.add(sha);
   }
-  cve.fixed_by = Array.from(fixed_by).sort();
+  if (fixed_by.size > 0) {
+    cve.fixed_by = Array.from(fixed_by).sort();
+  }
+  cve.fixed_by ||= [];
 
-  // Read the issues descriptions.
+  // Read the structured "Code Changes" fields.
   const commits = new Set(fixed_by);
   for (const change of extracted.code_changes) {
-    const sha = await gerritUrlToCommitHash(change);
+    const sha = await codeChangeUrlToCommitHash(change);
+    if (sha) commits.add(sha);
+  }
+  for (const {origin, project, number} of api.gerrit_changes) {
+    const sha = await resolveGerritChange(origin, project, number);
     if (sha) commits.add(sha);
   }
 
-  // Fallback to comments if no commits were found in the structured fields.
+  // Fallback to Gitwatcher comments if no commits were found in the structured
+  // fields.
   if (commits.size === 0) {
-    for (const link of extracted.comment_links) {
-      if (urlIsChromiumCodeReview(link)) {
-        const sha = await gerritUrlToCommitHash(link);
-        if (sha) commits.add(sha);
-      }
+    for (const link of api.gitwatcher_urls) {
+      const sha = await codeChangeUrlToCommitHash(link);
+      if (sha) commits.add(sha);
     }
-    const issues_commits = await page.evaluate(() => {
-      const hashes = new Set();
-      for(const el of document.querySelectorAll('.child')) {
-        // Match "commit e598fc599bd920392256d05c61826466c73c8e89"
-        // Match "Hash: 0df9105b154dc5627d81595b9aa379208d119fc2"
-        // The first is used in chromium, the other in v8/skia.
-        const text = el.textContent;
-        const matches = [
-          ...(text.match(/commit ([0-9a-f]{40})/g) || []),
-          ...(text.match(/Hash: ([0-9a-f]{40})/g) || [])
-        ];
-        for (const match of matches) {
-          hashes.add(match.split(' ')[1]);
-        }
-      }
-      return Array.from(hashes);
-    })
+    for (const sha of api.gitwatcher_hashes) {
+      commits.add(sha);
+    }
+  }
 
-    for(const commit of issues_commits) {
-      commits.add(commit);
+  // Last resort: Gerrit changes linked from other comments, submitted after
+  // the bug was filed. Older changes are typically mentioned as context.
+  if (commits.size === 0 && cve.bug_date) {
+    const bug_date = new Date(cve.bug_date);
+    for (const link of api.comment_urls) {
+      const parsed = parseCodeChangeUrl(link);
+      if (!parsed?.number) {
+        continue;
+      }
+      const info = await resolveGerritChangeInfo(
+        parsed.origin, parsed.project, parsed.number);
+      if (info?.submitted && info.submitted >= bug_date) {
+        commits.add(info.sha);
+      }
     }
+  }
+
+  // Do not erase known commits if nothing was found this time.
+  if (commits.size === 0) {
+    console.log("No commits found.");
+    return;
   }
 
   cve.commits ||= {}
@@ -584,7 +853,7 @@ const augmentFromBugganizer = async (database) => {
   for(const cve of database) {
     console.log("Processing", cve.id);
 
-    if (cve.bug == undefined) {
+    if (cve.bug == undefined || cve.bug == "n/a") {
       continue;
     }
 
@@ -634,7 +903,155 @@ const augmentFromBugganizer = async (database) => {
   await browser.close()
 }
 
+// Repositories where fixes are searched, on GitHub, then on Gitiles. Gitiles
+// also contains the commits merged into release branches, which the GitHub
+// mirrors do not have.
+const kRepositories = [
+  {
+    github: { owner: 'chromium', repo: 'chromium' },
+    gitiles: { host: 'chromium.googlesource.com', project: 'chromium/src', repo: 'chromium' },
+  },
+  {
+    github: { owner: 'v8', repo: 'v8' },
+    gitiles: { host: 'chromium.googlesource.com', project: 'v8/v8', repo: 'v8' },
+  },
+  {
+    github: { owner: 'google', repo: 'skia' },
+    gitiles: { host: 'skia.googlesource.com', project: 'skia', repo: 'skia' },
+  },
+  {
+    github: { owner: 'google', repo: 'dawn' },
+    gitiles: { host: 'dawn.googlesource.com', project: 'dawn', repo: 'dawn' },
+  },
+  {
+    github: { owner: 'google', repo: 'angle' },
+    gitiles: { host: 'chromium.googlesource.com', project: 'angle/angle', repo: 'angle' },
+  },
+  {
+    github: { owner: 'google', repo: 'swiftshader' },
+    gitiles: { host: 'swiftshader.googlesource.com', project: 'SwiftShader', repo: 'swiftshader' },
+  },
+  {
+    github: { owner: 'maitrungduc1410', repo: 'webrtc' },
+    gitiles: { host: 'webrtc.googlesource.com', project: 'src', repo: 'webrtc' },
+  },
+  {
+    github: { owner: 'chromium', repo: 'pdfium' },
+    gitiles: { host: 'pdfium.googlesource.com', project: 'pdfium', repo: 'pdfium' },
+  },
+  {
+    github: { owner: 'ArthurSonzogni', repo: 'chromiumos-platform2' },
+    gitiles: { host: 'chromium.googlesource.com', project: 'chromiumos/platform2', repo: 'chromiumos-platform2' },
+  },
+  {
+    gitiles: { host: 'chromium.googlesource.com', project: 'devtools/devtools-frontend', repo: 'devtools-frontend' },
+  },
+];
+
+// SVN-era commits use emails like "user@chromium.org@0039d316-1c4b-...".
+const normalizeEmail = (email) => email.replace(/^([^@]+@[^@]+)@.*$/, '$1');
+
+// Returns the commit metadata, null if the commit is not in the repository,
+// or throws on transient errors.
+const fetchCommitFromGithub = async ({owner, repo}, sha) => {
+  try {
+    console.log("Fetching", sha, repo);
+    const response = await octokit.request('GET /repos/{owner}/{repo}/commits/{ref}', {
+      owner,
+      repo,
+      ref: sha,
+    });
+    const data = response.data;
+    return {
+      message: data.commit.message,
+      author: normalizeEmail(data.commit.author.email),
+      date: data.commit.author.date,
+      repo,
+      files: data.files.map(f => f.filename),
+    };
+  } catch (e) {
+    if (e.status == 404 || e.status == 422) {
+      return null;
+    }
+    throw e;
+  }
+}
+
+const fetchCommitFromGitiles = async ({host, project, repo}, sha) => {
+  const url = `https://${host}/${project}/+/${sha}?format=JSON`;
+  console.log("Fetching", url);
+  const response = await fetch(url);
+  if (response.status == 404) {
+    return null;
+  }
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status} for ${url}`);
+  }
+  const text = await response.text();
+  const data = JSON.parse(text.substring(text.indexOf('\n') + 1));
+  return {
+    message: data.message,
+    author: normalizeEmail(data.author.email),
+    date: new Date(`${data.author.time} UTC`).toISOString(),
+    repo,
+    files: (data.tree_diff || [])
+      .map(f => f.new_path != '/dev/null' ? f.new_path : f.old_path),
+  };
+}
+
+// Find the Gitiles repository of a commit using cr-rev, which indexes the
+// repositories hosted on googlesource.com. It answers chromium/src for unknown
+// commits, so this answer is ignored.
+const findGitilesRepositoryWithCrrev = async (sha) => {
+  try {
+    const url = `https://cr-rev.appspot.com/_ah/api/crrev/v1/redirect/${sha}`;
+    console.log("Fetching", url);
+    const json = await (await fetch(url)).json();
+    const match = json.redirectUrl?.match(/^https:\/\/([^\/]+)\/(.+)\/\+\//);
+    if (!match || json.repo == "chromium/src") {
+      return null;
+    }
+    const [, host, project] = match;
+    const known = kRepositories.find(({gitiles}) =>
+      gitiles.host == host && gitiles.project == project);
+    return known?.gitiles ||
+      { host, project, repo: project.split('/').pop() };
+  } catch (e) {
+    console.log("Error querying cr-rev", sha, e.message);
+    return null;
+  }
+}
+
+// Search the commit in every known repository. GitHub is tried first, because
+// it answers quickly, while Gitiles can take seconds to report a missing
+// commit. Returns null if it was not found, or throws on transient errors.
+const fetchCommit = async (sha) => {
+  const crrev = await findGitilesRepositoryWithCrrev(sha);
+  if (crrev) {
+    const commit = await fetchCommitFromGitiles(crrev, sha);
+    if (commit) {
+      return commit;
+    }
+  }
+  if (octokit) {
+    for (const {github} of kRepositories) {
+      const commit = github && await fetchCommitFromGithub(github, sha);
+      if (commit) {
+        return commit;
+      }
+    }
+  }
+  for (const {gitiles} of kRepositories) {
+    const commit = await fetchCommitFromGitiles(gitiles, sha);
+    if (commit) {
+      return commit;
+    }
+  }
+  return null;
+}
+
 const augmentFromGit = async (database) => {
+  let index = 0;
   for(const cve of database) {
     // Convert array to object.
     if (Array.isArray(cve.commits)) {
@@ -649,74 +1066,58 @@ const augmentFromGit = async (database) => {
     }
 
     for(const sha in cve.commits) {
-      if (cve.commits[sha].type != undefined && cve.commits[sha].files != undefined) {
+      // Older versions of this script could insert invalid keys like "null".
+      if (!/^[0-9a-f]{40}$/.test(sha)) {
+        delete cve.commits[sha];
         continue;
       }
 
-      // Use github API (Octokit) to fetch the sha:
+      const type = cve.commits[sha].type;
+      if (type == 'automated' ||
+        (type != undefined && cve.commits[sha].files != undefined)) {
+        continue;
+      }
+
+      // Fetch the sha:
       // - description
       // - author
       // - date
       // - reviewer(s) `Reviewed-by:`
-      //
-      // Iterate for chrome, v8, skia, webrtc, angle.
-
-      let found = false;
-      for(const {owner, repo} of [
-        { owner: 'chromium', repo: 'chromium' },
-        { owner: 'v8', repo: 'v8' },
-        { owner: 'google', repo: 'skia' },
-        { owner: 'google', repo: 'dawn' },
-        { owner: 'google', repo: 'angle' },
-        { owner: 'google', repo: 'swiftshader' },
-        { owner: 'maitrungduc1410', repo: 'webrtc' },
-        { owner: 'chromium', repo: 'pdfium' },
-        { owner: 'ArthurSonzogni', repo: 'chromiumos-platform2' },
-      ]) {
-        try {
-          console.log("Fetching", sha, repo);
-          const response = await octokit.request('GET /repos/{owner}/{repo}/commits/{ref}', {
-            owner,
-            repo,
-            ref: sha,
-          });
-
-          const data = response.data;
-          const message = data.commit.message;
-          const author = data.commit.author.email;
-          const reviewers = ParseReviewers(message)
-            .filter(reviewer => reviewer != author);
-          const title = data.commit.message.split('\n')[0];
-          const date = data.commit.author.date;
-
-          if (!IsEmailValid(author)) {
-            cve.commits[sha] = {
-              type: 'automated',
-            }
-            throw new Error("Invalid email");
-          }
-
-          cve.commits[sha] = {
-            type: 'commit',
-            author,
-            reviewers,
-            title,
-            date,
-            repo,
-            files: data.files.map(f => f.filename),
-          }
-
-          //saveDatabase(database);
-          found = true;
-          break;
-        } catch (e) {
-        }
+      if (++index % 50 == 0) {
+        saveDatabase(database);
+      }
+      let commit;
+      try {
+        commit = await fetchCommit(sha);
+      } catch (e) {
+        // Transient error. Retry on the next run.
+        console.log("Error fetching", sha, e.message);
+        continue;
       }
 
-      if (!found) {
+      if (!commit) {
         cve.commits[sha] = {
           type: 'external',
         }
+        continue;
+      }
+
+      if (!IsEmailValid(commit.author)) {
+        cve.commits[sha] = {
+          type: 'automated',
+        }
+        continue;
+      }
+
+      cve.commits[sha] = {
+        type: 'commit',
+        author: commit.author,
+        reviewers: ParseReviewers(commit.message)
+          .filter(reviewer => reviewer != commit.author),
+        title: commit.message.split('\n')[0],
+        date: commit.date,
+        repo: commit.repo,
+        files: commit.files,
       }
     }
   }
