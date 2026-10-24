@@ -183,6 +183,9 @@
 </template>
 
 <script setup lang="ts">
+// Explicit import: Nuxt 4's auto-import reads <TimelineChart> as the lazy
+// hydration modifier "Time" + "LineChart", and resolves it to LineChart.
+import TimelineChart from '~/components/TimelineChart.vue'
 
 const route = useRoute();
 const router = useRouter();
