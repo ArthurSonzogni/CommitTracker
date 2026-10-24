@@ -1,11 +1,16 @@
 <template>
-  <section class="section">
+  <section class="section feature">
     <div class="container">
-      <h1 class="title">
-        <NuxtLink to="/individuals">
-        2. Individual statistics
+      <header class="feature-header">
+        <span class="feature-index">02</span>
+        <h2 class="title">
+          <NuxtLink to="/individuals">Individual statistics</NuxtLink>
+        </h2>
+        <NuxtLink class="feature-link" to="/individuals">
+          Open
+          <b-icon icon="arrow-right" size="is-small"></b-icon>
         </NuxtLink>
-      </h1>
+      </header>
 
       <div class="columns">
         <div class="column is-5 content">
@@ -35,6 +40,7 @@
         </div>
 
         <div class="column is-7">
+          <div class="frame">
           <TimelineChart
             :developers="developers"
             :dates="[new Date('2000-01-01'), new Date('2030-01-01')]"
@@ -51,6 +57,7 @@
             :stacked="false"
             :take_n="15"
             />
+          </div>
         </div>
 
 

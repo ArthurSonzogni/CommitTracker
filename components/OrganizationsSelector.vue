@@ -183,22 +183,18 @@ onMounted(() => {
 }
 
 .fields {
-  background-color: #f5f5f5;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
+  gap: 0.4rem;
   margin:0;
-  padding:0.2rem;
+  padding:0.2rem 0;
   max-height: 14vh;
   overflow-y: auto;
 }
 
 .fields > * {
-  flex: 1;
-  padding-top:0.1rem;
-  padding-bottom:0.1rem;
-  padding-left: 0.1rem;
-  padding-right: 0.1rem;
+  flex: 0 0 auto;
 }
 
 

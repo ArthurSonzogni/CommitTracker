@@ -1,39 +1,39 @@
 <template>
-  <div>
+  <div class="site-header">
     <img
       async
-      style="position: absolute; top: 0; left: 0; z-index: -1;"
+      style="position: absolute; top: 0; left: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none;"
+      alt=""
       src="https://hitscounter.dev/api/hit?url=https%3A%2F%2Fchrome-commit-tracker.arthursonzogni.com%2F&label=commit-tracker&icon=heart-fill&color=%23fd86aa"
     />
-    <b-navbar type="is-primary">
+    <b-navbar class="site-navbar">
       <template #brand>
-        <b-navbar-item tag="router-link" :to="{ path: '/' }">
-          <b-icon icon="home" >
-          </b-icon>
+        <b-navbar-item tag="router-link" :to="{ path: '/' }" class="brand">
+          <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 3v18M6 8c0 4 12 2 12 7v1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="6" cy="6" r="2.4" fill="currentColor"/>
+            <circle cx="6" cy="18" r="2.4" fill="currentColor"/>
+            <circle cx="18" cy="17" r="2.4" fill="var(--surface)" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          <span class="brand-name">Commit<span>Tracker</span></span>
         </b-navbar-item>
       </template>
 
       <template #start>
         <b-navbar-item tag="router-link" :to="{ path: '/individuals' }">
-          <b-icon icon="account" class="mr-2"></b-icon>
           Individuals
         </b-navbar-item>
 
         <b-navbar-item tag="router-link" :to="{ path: '/communities' }">
-          <b-icon icon="account-group" class="mr-2"></b-icon>
           Community graph
         </b-navbar-item>
 
         <b-navbar-item tag="router-link" :to="{ path: '/treemap' }">
-          <b-icon icon="chart-tree" class="mr-2"></b-icon>
           Treemap
         </b-navbar-item>
 
-        <div class="ml-6"></div>
-
         <b-navbar-dropdown>
           <template #label>
-            <b-icon icon="source-branch" class="mr-2"></b-icon>
             Repositories
           </template>
           <b-navbar-item tag="router-link" :to="{ path: '/repositories' }">
@@ -48,7 +48,6 @@
 
         <b-navbar-dropdown>
           <template #label>
-            <b-icon icon="account-group" class="mr-2"></b-icon>
             Organizations
           </template>
           <b-navbar-item tag="router-link" :to="{ path: '/organizations/commits' }">
@@ -63,7 +62,6 @@
 
         <b-navbar-dropdown>
           <template #label>
-            <b-icon icon="security" class="mr-2"></b-icon>
             CVE
           </template>
 
@@ -98,8 +96,7 @@
 
         <b-navbar-dropdown>
           <template #label>
-            <b-icon icon="one-up" class="mr-2"></b-icon>
-            Misc
+            More
           </template>
           <b-navbar-item tag="router-link" :to="{ path: '/usernames' }">
             <b-icon icon="email" class="mr-2"></b-icon>
@@ -141,12 +138,51 @@
 
       <template #end>
         <b-navbar-item
-          class="is-dark"
+          class="github-link"
           href="https://github.com/ArthurSonzogni/CommitTracker">
-          <b-icon icon="github" class="mr-2"></b-icon>
-          Sources
+          <b-icon icon="github" class="mr-1"></b-icon>
+          GitHub
         </b-navbar-item>
       </template>
     </b-navbar>
   </div>
 </template>
+
+<style scoped>
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.brand {
+  gap: 0.55rem;
+}
+
+.brand-mark {
+  color: var(--accent);
+  height: 1.4rem;
+  width: 1.4rem;
+}
+
+/* Some pages inline SVGs with global styles, e.g. the community graph. */
+.brand-mark path {
+  stroke-opacity: 1;
+}
+
+.brand-name {
+  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.brand-name span {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.github-link {
+  color: var(--muted) !important;
+}
+</style>

@@ -87,7 +87,7 @@
     </section>
 
     <div class="zoomable" v-if="!displayPlaceholder">
-      <svg></svg>
+      <div ref="graph_container"><svg></svg></div>
     </div>
 
     <p v-if="displayPlaceholder" class="container">
@@ -111,6 +111,7 @@ const zoom = ref(1);
 const displayReadme = ref(false);
 const displayPlaceholder = ref(false);
 const cachedObjectSrc = ref(null);
+const graph_container = ref(null);
 
 if (route.query.repositories) {
   repositories.value = route.query.repositories.split(",");
@@ -157,7 +158,7 @@ const fetchSVG = async () => {
     if (!svg) {
       return;
     }
-    document.querySelector("svg").replaceWith(svg);
+    graph_container.value.querySelector("svg").replaceWith(svg);
   } else {
     displayPlaceholder.value = true;
   }
@@ -169,7 +170,7 @@ const updateSVG = async () => {
 };
 
 const updateZoom = () => {
-  const svg = document.querySelector("svg");
+  const svg = graph_container.value.querySelector("svg");
   svg.setAttribute("preserveAspectRatio", "xMinYMin meet");
   svg.setAttribute("margin", "auto")
   svg.setAttribute("aspect-ratio", "2")

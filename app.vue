@@ -16,7 +16,13 @@ useHead({
     { name: "viewport", content: "width=device-width, initial-scale=1" },
   ],
   link: [
-    { rel: "icon", href: "/favicon.ico" }
+    { rel: "icon", href: "/favicon.ico" },
+    { rel: "preconnect", href: "https://fonts.googleapis.com" },
+    { rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: "" },
+    {
+      rel: "stylesheet",
+      href: "https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&display=swap",
+    },
   ],
   htmlAttrs: {
     lang: "en"
@@ -46,25 +52,3 @@ useSeoMeta({
 })
 
 </script>
-
-<style>
-
-html {
-  scroll-behavior: smooth;
-}
-
-/* Let Buefy form rows wrap on narrow screens. */
-.field.is-grouped > .field,
-.field.has-addons > .field {
-  flex-shrink: 1;
-  min-width: 0;
-}
-.select,
-.select select {
-  max-width: 100%;
-}
-.field.has-addons {
-  flex-wrap: wrap;
-}
-
-</style>

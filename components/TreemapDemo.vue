@@ -1,11 +1,16 @@
 <template>
-  <section class="section">
+  <section class="section feature">
     <div class="container">
-      <h1 class="title">
-        <NuxtLink to="/treemap">
-        4. Treemap
+      <header class="feature-header">
+        <span class="feature-index">04</span>
+        <h2 class="title">
+          <NuxtLink to="/treemap">Treemap</NuxtLink>
+        </h2>
+        <NuxtLink class="feature-link" to="/treemap">
+          Open
+          <b-icon icon="arrow-right" size="is-small"></b-icon>
         </NuxtLink>
-      </h1>
+      </header>
 
       <div class="content">
         <p>
@@ -13,7 +18,7 @@
           (WIP).
         </p>
       </div>
-      <div>
+      <div class="frame">
         <Treemap
           :repositories="[default_repo]"
           :path="path"
