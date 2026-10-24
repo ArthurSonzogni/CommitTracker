@@ -14,7 +14,7 @@ import { defineNuxtModule } from '@nuxt/kit'
 const MDI_CSS = '@mdi/font/css/materialdesignicons.min.css'
 const ICON_RULE_RE = /\.mdi-([a-z0-9-]+)::before\{content:"\\([0-9A-F]+)"\}/g
 const TOKEN_RE = /[a-z0-9]+(?:-[a-z0-9]+)*/g
-const SOURCE_DIRS = ['app.vue', 'components', 'composables', 'layouts', 'pages', 'plugins']
+const SOURCE_DIRS = ['app.vue', 'components', 'composables', 'layouts', 'pages', 'plugins', 'utils']
 
 const listFiles = (entry: string): string[] => {
   if (!fs.existsSync(entry)) {

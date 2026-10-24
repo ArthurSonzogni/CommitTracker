@@ -1,4 +1,5 @@
 import repositories_json from '../public/data/repositories.json'
+import site_pages from '../utils/site-pages.json'
 
 // Search over the site's pages, repositories, Chromium developers and CVE ids.
 // Shared by the command palette and the home page search bar.
@@ -12,28 +13,14 @@ export type SearchItem = {
   path: string;
 };
 
-const pages: SearchItem[] = [
-  { label: "Home", path: "/", icon: "home" },
-  { label: "Individuals", path: "/individuals", icon: "account", hint: "Commits and reviews of developers" },
-  { label: "Community graph", path: "/communities", icon: "account-group" },
-  { label: "Treemap", path: "/treemap", icon: "chart-tree", hint: "Codebase metrics over time" },
-  { label: "Repositories charts", path: "/repositories", icon: "chart-bar" },
-  { label: "Repositories heatmap", path: "/pulse", icon: "pulse" },
-  { label: "Organizations commits", path: "/organizations/commits", icon: "domain" },
-  { label: "Organizations emails", path: "/organizations/emails", icon: "email" },
-  { label: "CVE overview", path: "/cve/overview", icon: "chart-pie" },
-  { label: "CVE list", path: "/cve/list", icon: "format-list-bulleted" },
-  { label: "CVE pivot table", path: "/cve/pivot-table", icon: "table" },
-  { label: "CVE reward per component", path: "/cve/reward_per_components", icon: "chart-sankey" },
-  { label: "CVE money tree", path: "/cve/money-tree", icon: "currency-usd" },
-  { label: "Leaderboard", path: "/leaderboard", icon: "trophy" },
-  { label: "Badges", path: "/badges/list", icon: "certificate" },
-  { label: "Usernames distribution", path: "/usernames", icon: "account-multiple" },
-  { label: "Fuzz test", path: "/fuzz-test", icon: "bug" },
-  { label: "Commit rates", path: "/commit-rates", icon: "chart-line" },
-  { label: "API", path: "/api", icon: "code-json" },
-  { label: "Repositories tracking info", path: "/repo-info", icon: "source-branch" },
-].map(page => ({ ...page, group: "Pages", key: "page:" + page.path }));
+const pages: SearchItem[] = site_pages.map(page => ({
+  group: "Pages",
+  key: "page:" + page.path,
+  label: page.label,
+  hint: page.hint,
+  icon: page.icon,
+  path: page.path,
+}));
 
 const repositories: SearchItem[] = repositories_json.map(repo => ({
   group: "Repositories",
@@ -96,9 +83,9 @@ export const useSiteSearch = (options: { onSelect?: () => void, emptyResults?: n
           group: "Developers",
           key: "dev:" + name,
           label: name,
-          hint: "Chromium",
+          hint: "Profile",
           icon: "account",
-          path: `/individuals?developers=${encodeURIComponent(name)}`,
+          path: `/developers/${encodeURIComponent(name)}`,
         });
       }
     }

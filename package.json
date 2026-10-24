@@ -8,7 +8,7 @@
     "clean-derived-data": "sh ./clean-derived-data.sh",
     "build": "NODE_OPTIONS='--max-old-space-size=8192' nuxt build",
     "dev": "node scripts/dev.mjs",
-    "generate": "NODE_OPTIONS='--max-old-space-size=8192' nuxt generate",
+    "generate": "NODE_OPTIONS='--max-old-space-size=8192' nuxt generate && node scripts/static-meta.mjs",
     "preview": "nuxt preview",
     "test:interactions": "node scripts/test-interactions.mjs .output/public",
     "postinstall": "nuxt prepare"

@@ -138,7 +138,7 @@ const tests = [
         await __t.sleep(50);
       }
       input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
-      const ok = await __t.until(() => location.pathname === '/individuals' && location.search.includes('arthursonzogni'));
+      const ok = await __t.until(() => location.pathname.startsWith('/developers/arthursonzogni'));
       return { ok: !!changed && !!panel && !!ok, detail: 'h1: ' + first + ' -> ' + (changed || '') + ' / ' + location.pathname + location.search };
     `,
   },
@@ -197,6 +197,22 @@ const tests = [
       __t.byText('.b-checkbox.button', 'Blink').click();
       const blink = await __t.until(() => location.search.includes('blink'), 8000);
       return { ok: !!monthly && !!prev && !!blink, detail: year + ' -> monthly ' + monthLabel + ' -> previous ' + prevLabel + ' / url ' + location.search };
+    `,
+  },
+  {
+    name: 'developer profile: stats, repositories, charts, links',
+    url: 'developers/arthursonzogni',
+    run: `
+      const ok = await __t.until(() =>
+        document.querySelectorAll('.profile-stat dd').length === 4 &&
+        document.querySelectorAll('.profile-repository').length > 3 &&
+        document.querySelectorAll('.profile-chart svg path').length > 2 &&
+        document.querySelectorAll('.profile-badge').length > 0, 20000);
+      const stats = [...document.querySelectorAll('.profile-stat dd')].map(e => e.textContent.trim()).join(' / ');
+      const title = document.title;
+      document.querySelector('.profile-repository').click();
+      const nav = await __t.until(() => location.pathname === '/individuals' && location.search.includes('arthursonzogni'));
+      return { ok: !!ok && !!nav && title.startsWith('arthursonzogni'), detail: stats + ' / title=' + title };
     `,
   },
   {
@@ -367,7 +383,7 @@ const tests = [
       const dev = await __t.until(() => [...document.querySelectorAll('.palette .search-item')].find(e => e.textContent.includes('arthursonzogni')));
       input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
       dev.click();
-      const ok1 = await __t.until(() => location.pathname === '/individuals' && location.search.includes('arthursonzogni'));
+      const ok1 = await __t.until(() => location.pathname.startsWith('/developers/arthursonzogni'));
       document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, bubbles: true }));
       const input2 = await __t.until(() => document.querySelector('.palette input'));
       input2.value = 'CVE-2026-5919';

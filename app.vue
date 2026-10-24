@@ -10,6 +10,7 @@
 </template>
 
 <script setup lang="ts">
+import site_pages from './utils/site-pages.json'
 
 useHead({
   meta: [
@@ -29,23 +30,31 @@ useHead({
     lang: "en"
   },
 })
-const title = "ChromiumCommitTracker"
-const description =
-  "A web application to show statistics about the Chromium repository, and more.";
+// Title and description of the current page (pages may override them, e.g.
+// the developer profiles). scripts/static-meta.mjs writes the same ones into
+// the generated HTML, for link previews.
+const route = useRoute();
+const page = computed(() =>
+  site_pages.find(page => page.path === (route.path.replace(/\/$/, "") || "/")));
+const title = () => page.value?.title ??
+  (page.value ? `${page.value.label} · CommitTracker` : "CommitTracker");
+const description = () => page.value?.description ?? site_pages[0].description;
+const url = () => "https://chrome-commit-tracker.arthursonzogni.com" + route.path;
 
 useSeoMeta({
-  title: title,
+  title,
   ogTitle: title,
 
-  description: description,
+  description,
   ogDescription: description,
 
-  ogImage: "https://chrome-commit-tracker.arthursonzogni.com/logo.png",
+  ogImage: "https://chrome-commit-tracker.arthursonzogni.com/og-image.png",
 
-  ogUrl: "https://chrome-commit-tracker.arthursonzogni.com",
+  ogUrl: url,
   ogType: "website",
-  ogSiteName: title,
+  ogSiteName: "CommitTracker",
 
+  twitterCard: "summary_large_image",
   twitterSite: "@arthursonzogni",
   twitterCreator: "@arthursonzogni",
   twitterTitle: title,
