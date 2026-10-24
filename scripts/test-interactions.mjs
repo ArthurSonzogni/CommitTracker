@@ -377,6 +377,33 @@ const tests = [
       return { ok: !!opened && !!closed && rect.right <= 412, detail: 'palette width=' + Math.round(rect.width) };
     `,
   },
+  {
+    name: 'icons: every icon has a glyph',
+    url: 'cve/list',
+    run: `
+      const missing = new Set();
+      let checked = 0;
+      const check = () => {
+        for (const el of document.querySelectorAll('.mdi')) {
+          checked++;
+          const content = getComputedStyle(el, '::before').content;
+          if (!content || content === 'none' || content === 'normal') {
+            missing.add([...el.classList].find(c => c.startsWith('mdi-') && !/^mdi-\\d+px$/.test(c)));
+          }
+        }
+      };
+      await __t.until(() => document.body.innerText.includes('Use After Free'), 20000);
+      check();
+      for (const link of document.querySelectorAll('.navbar-item.has-dropdown')) {
+        link.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+      }
+      check();
+      document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true }));
+      await __t.until(() => document.querySelector('.palette .search-item'));
+      check();
+      return { ok: missing.size === 0 && checked > 20, detail: 'checked=' + checked + ' missing=' + [...missing].join(',') };
+    `,
+  },
 ];
 
 let failed = 0;
