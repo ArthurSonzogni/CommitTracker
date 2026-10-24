@@ -314,7 +314,7 @@ async function processRepository(repo, entries) {
 
   await timed("Writing", async () => {
     await fs.writeFile(dates_filename, JSON.stringify(processed_dates, null, 2));
-    await fs.writeFile(file_index_filename, JSON.stringify(root, null, 2));
+    await fs.writeFile(file_index_filename, JSON.stringify(root));
     await fs.mkdir(metrics_dir, { recursive: true });
     const available_metrics = [];
     for (const [metric_name, data] of Object.entries(metrics_data)) {
