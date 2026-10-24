@@ -71,7 +71,7 @@
       <template v-else>
       <section class="section">
         <div class="container">
-          <h2 class="title">0. Counts</h2>
+          <h2 class="title">Counts</h2>
           <TimelineCountBasic
             :repositories="repositories"
             :developers="developers"
@@ -84,7 +84,7 @@
 
       <section class="section">
         <div class="container">
-          <h2 class="title">1. Timeline</h2>
+          <h2 class="title">Timeline</h2>
           <div style="height: calc(50vh);">
             <TimelineChart
               chart="line"
@@ -101,7 +101,7 @@
 
       <section class="section">
         <div class="container">
-          <h2 class="title">2. Timeline wrapped</h2>
+          <h2 class="title">Timeline wrapped</h2>
           <b-field grouped>
             <b-field
               label="Modulo"
@@ -153,7 +153,7 @@
 
       <section class="section">
         <div class="container">
-          <h2 class="title">3. Peers</h2>
+          <h2 class="title">Peers</h2>
           <PeersChart
             :repositories="repositories"
             :developers="developers"
@@ -167,7 +167,7 @@
 
       <section class="section">
         <div class="container">
-          <h2 class="title">4. Details</h2>
+          <h2 class="title">Details</h2>
           <TimelineCount
             :repositories="repositories"
             :developers="developers"
@@ -180,7 +180,7 @@
 
       <section class="section">
         <div class="container">
-          <h2 class="title">5. Heatmap</h2>
+          <h2 class="title">Heatmap</h2>
           <TimelineChart
             chart="heatmap"
             :repositories="repositories"
@@ -345,8 +345,8 @@ document.addEventListener('scroll', updateHasScrolled, { passive: true });
   width: 100%;
   z-index: 1;
 
-  backdrop-filter: blur(4px);
-  background-color: rgba(255, 255, 255, 0.5);
+  backdrop-filter: saturate(180%) blur(12px);
+  background-color: rgba(255, 255, 255, 0.88);
   content: '';
   position:absolute;
   transition: all 0.1s ease-in-out;
@@ -360,7 +360,7 @@ document.addEventListener('scroll', updateHasScrolled, { passive: true });
 
 
 html[data-scrolltop= "1"] .sticky.top {
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid var(--line);
 }
 
 .sticky.top {
@@ -372,9 +372,11 @@ html[data-scrolltop= "1"] .sticky.top {
 }
 
 .sticky.bottom {
+  border-top: 1px solid var(--line);
   bottom: 0;
   margin-bottom:0px;
-  padding-bottom:15px;
+  padding-bottom: 0.5rem;
+  padding-top: 0.6rem;
 }
 
 .anchor {

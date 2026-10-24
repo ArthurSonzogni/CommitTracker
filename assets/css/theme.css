@@ -173,6 +173,11 @@ strong {
   font-size: clamp(1.75rem, 1.2rem + 2vw, 2.4rem);
 }
 
+/* Section titles, below the page title. */
+h2.title:not(.is-1):not(.is-2):not(.is-3):not(.is-4):not(.is-5):not(.is-6) {
+  font-size: clamp(1.3rem, 1.1rem + 0.8vw, 1.6rem);
+}
+
 .title a {
   color: inherit;
 }

@@ -204,7 +204,7 @@ const tests = [
     url: 'individuals',
     run: `
       const chip = await __t.until(() => document.querySelector('.suggestions .button'), 15000);
-      const noCharts = !document.body.innerText.includes('1. Timeline');
+      const noCharts = !document.body.innerText.includes('Timeline wrapped');
       const name = chip.textContent.trim();
       chip.click();
       const ok = await __t.until(() => location.search.includes(encodeURIComponent(name).replace(/%40/g, '@')) && document.querySelectorAll('svg path').length > 5, 20000);

@@ -1,8 +1,6 @@
 <template>
-  <div ref="container" align="center">
-    <b-field grouped group-multiline label="time">
-      <b-field>
-      </b-field>
+  <div ref="container">
+    <b-field grouped group-multiline>
       <b-field>
         <b-select v-model="timeIndexModel" >
           <option v-for="(d, i) in date" :key="i" :value="i">{{ d }} </option>
@@ -517,5 +515,12 @@ onMounted(() => {
 .sticky-bottom{
   position:sticky;
   bottom:0;
+}
+
+/* The year, shown while animating. */
+.sticky-bottom :deep(text) {
+  fill: var(--faint);
+  font-family: var(--font-mono);
+  font-weight: 500;
 }
 </style>
