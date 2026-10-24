@@ -151,6 +151,14 @@
             <kbd>{{ shortcut }}</kbd>
           </button>
         </div>
+        <a
+          role="button"
+          class="navbar-item theme-toggle"
+          :aria-label="dark ? 'Use the light theme' : 'Use the dark theme'"
+          :title="dark ? 'Light theme' : 'Dark theme'"
+          @click="toggleTheme">
+          <b-icon :icon="dark ? 'weather-sunny' : 'weather-night'"></b-icon>
+        </a>
         <b-navbar-item
           class="github-link"
           href="https://github.com/ArthurSonzogni/CommitTracker">
@@ -170,6 +178,24 @@ onMounted(() => {
     shortcut.value = "⌘K";
   }
 });
+
+// The theme follows the system, unless chosen here. The choice is stored, and
+// applied early by app.vue.
+const dark = ref(false);
+onMounted(() => {
+  const theme = document.documentElement.dataset.theme;
+  dark.value = theme
+    ? theme === "dark"
+    : window.matchMedia("(prefers-color-scheme: dark)").matches;
+});
+const toggleTheme = () => {
+  dark.value = !dark.value;
+  const theme = dark.value ? "dark" : "light";
+  document.documentElement.dataset.theme = theme;
+  try {
+    localStorage.setItem("theme", theme);
+  } catch (e) {}
+};
 </script>
 
 <style scoped>
@@ -203,6 +229,14 @@ onMounted(() => {
 .brand-name span {
   color: var(--muted);
   font-weight: 500;
+}
+
+.theme-toggle {
+  color: var(--muted) !important;
+}
+
+.theme-toggle:hover {
+  color: var(--ink) !important;
 }
 
 .github-link {

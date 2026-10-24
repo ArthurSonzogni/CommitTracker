@@ -455,12 +455,12 @@ window.addEventListener("resize", () => {
   position: sticky;
   bottom: 0;
   z-index: 1;
-  background-color: white;
+  background-color: var(--surface);
   width: 100%;
 }
 
 .tooltip {
-  background-color: white;
+  background-color: var(--surface);
 }
 
 </style>

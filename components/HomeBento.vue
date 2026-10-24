@@ -245,6 +245,7 @@ onMounted(async () => {
 }
 
 .bento-preview.is-image img {
+  filter: var(--illustration-filter);
   max-height: 16rem;
   object-fit: contain;
   width: 100%;

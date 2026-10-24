@@ -126,9 +126,13 @@ const refresh = async () => {
   values.sort((a, b) => a - b);
   max_value_98percentile = values[Math.floor(values.length * 0.98)];
 
+  const css = getComputedStyle(document.documentElement);
   const color_scale = scalePow()
     .domain([0, max_value_98percentile + 1])
-    .range(["#ededf2", "#1c5cab"])
+    .range([
+      css.getPropertyValue("--surface-sunken").trim(),
+      css.getPropertyValue("--heat-high").trim(),
+    ])
     .exponent(0.7);
 
 
@@ -305,7 +309,7 @@ onMounted(refresh);
   position: sticky;
   top: 0;
   z-index: 100;
-  background: white;
+  background: var(--surface);
 }
 
 </style>

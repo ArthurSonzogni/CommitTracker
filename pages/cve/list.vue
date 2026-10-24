@@ -109,7 +109,7 @@
           {{ group.key}}
           <b-taglist attached style="display: inline-block;" class="mr-2
           is-pulled-right">
-            <b-tag type="is-danger is-medium" style="background-color: black;">
+            <b-tag type="is-danger is-medium" style="background-color: var(--ink);">
               {{ formatter(group.cves.total_reward) }}$
             </b-tag>
             <b-tag type="is-info is-medium">
@@ -714,7 +714,7 @@ watch([
 h3 {
   position: sticky;
   top: 0;
-  background-color: white;
+  background-color: var(--surface);
   z-index: 100;
   padding-bottom:0.5em;
   padding-top:0.5em;

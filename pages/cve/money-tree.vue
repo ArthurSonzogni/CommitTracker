@@ -598,7 +598,7 @@ onMounted(async () => {
 
 .timeline {
   z-index: 10;
-  background-color: rgba(255, 255, 255, 0.95);
+  background-color: color-mix(in srgb, var(--surface) 95%, transparent);
   backdrop-filter: blur(5px);
   width: 100%;
   padding-top: 0.75rem;

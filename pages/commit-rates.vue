@@ -793,7 +793,7 @@ watch([
   background: #f1f1f1;
 }
 .virtual-scroll-container::-webkit-scrollbar-thumb {
-  background: #ccc;
+  background: var(--line-strong);
   border-radius: 4px;
 }
 .virtual-scroll-container::-webkit-scrollbar-thumb:hover {

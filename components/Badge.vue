@@ -130,7 +130,7 @@ const handleMouseMove = (event) => {
   overflow: hidden;
   perspective: 10000px;
   backface-visibility: hidden;
-  background-color: white;
+  background-color: var(--surface);
   cursor: pointer;
   border-radius: 10px;
   width: 100px;

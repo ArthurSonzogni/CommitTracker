@@ -32,6 +32,12 @@ export default defineNuxtConfig({
   // Crossfade between pages. Skipped when the user prefers reduced motion.
   app: {
     viewTransition: true,
+    head: {
+      // Apply the theme chosen with the navbar toggle, before rendering.
+      script: [{
+        innerHTML: "try{var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t}catch(e){}",
+      }],
+    },
   },
 
   // Global page headers: https://go.nuxtjs.dev/config-head

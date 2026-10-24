@@ -216,17 +216,23 @@ let color_scale2 = scaleSequential(interpolateOranges);
 const thAttrs = (column) => {
   return {
     style: {
-      backgroundColor: "white",
+      backgroundColor: "var(--surface)",
       zIndex: 1,
     }
   }
 }
 
 const tdAttrs = (row, column) => {
+  const t = color_scale(value_projector(row[column.field]));
+  if (isNaN(t)) {
+    return {};
+  }
 
+  // The orange ramp is the same in both themes: pick a readable text color.
   return {
     style: {
-      backgroundColor: color_scale2(color_scale(value_projector(row[column.field]))),
+      backgroundColor: color_scale2(t),
+      color: t > 0.6 ? "#ffffff" : "#121216",
     }
   }
 }
@@ -636,12 +642,12 @@ watch([
   position: sticky;
   bottom: 0;
   z-index: 1;
-  background-color: white;
+  background-color: var(--surface);
   width: 100%;
 }
 
 .tooltip {
-  background-color: white;
+  background-color: var(--surface);
 }
 
 .mycolumns {
@@ -669,7 +675,7 @@ watch([
 }
 
 .table_link {
-  color: black;
+  color: var(--ink);
 }
 
 .table_link:hover {

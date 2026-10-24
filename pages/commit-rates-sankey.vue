@@ -843,14 +843,14 @@ onUnmounted(() => {
 }
 
 .sankey-svg {
-  background-color: #fff;
+  background-color: var(--surface);
   display: block;
   margin: 0 auto;
 }
 
 .chart-tooltip {
   min-width: 150px;
-  background: rgba(255, 255, 255, 0.98);
+  background: color-mix(in srgb, var(--surface) 98%, transparent);
   box-shadow: 0 4px 15px rgba(0,0,0,0.15);
   border: 1px solid #f0f0f0;
   border-radius: 6px;

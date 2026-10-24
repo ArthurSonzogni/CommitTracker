@@ -137,7 +137,7 @@ onMounted(refresh);
   }
 
   .center {
-    color: black;
+    color: var(--ink);
     background: rgba(0,128,255);
     opacity: 0.2;
     margin: 0px 10px 0px 0px;
@@ -149,7 +149,7 @@ onMounted(refresh);
   }
 
   .usernameList {
-    color:black;
+    color: var(--ink);
     list-style-type: square;
     list-style-position: inside;
     display:flex;

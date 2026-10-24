@@ -418,6 +418,19 @@ const tests = [
       return { ok: missing.size === 0 && checked > 20, detail: 'checked=' + checked + ' missing=' + [...missing].join(',') };
     `,
   },
+  {
+    name: 'theme: toggle to dark, choice stored',
+    url: 'leaderboard',
+    run: `
+      const bg = () => getComputedStyle(document.documentElement).backgroundColor;
+      const light = bg();
+      document.querySelector('.theme-toggle').click();
+      const dark = await __t.until(() => document.documentElement.dataset.theme === 'dark' && bg() !== light && bg());
+      const stored = localStorage.getItem('theme');
+      localStorage.removeItem('theme');
+      return { ok: !!dark && stored === 'dark', detail: 'background ' + light + ' -> ' + dark + ', stored=' + stored };
+    `,
+  },
 ];
 
 let failed = 0;

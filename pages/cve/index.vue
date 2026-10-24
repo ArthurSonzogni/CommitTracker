@@ -290,7 +290,7 @@ onMounted(async ()=> {
     position: absolute;
     width: 20px;
     height: 20px;
-    background-color: black;
+    background-color: var(--ink);
     border-radius: 50%;
     top: 50%;
     transform: translateY(-50%);

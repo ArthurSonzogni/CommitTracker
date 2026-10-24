@@ -103,7 +103,7 @@ const toggle = () => {
   border-radius: 4px;
 }
 .node-row:hover {
-  background-color: #f5f5f5;
+  background-color: var(--surface-sunken);
 }
 .node-row.is-open {
 }
@@ -143,7 +143,7 @@ const toggle = () => {
   font-size: 12px;
 }
 .cve-reward {
-  color: black;
+  color: var(--ink);
   font-weight: bold;
   margin-right: 8px;
 }

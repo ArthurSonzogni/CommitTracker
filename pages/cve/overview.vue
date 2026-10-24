@@ -383,8 +383,8 @@ td {
   margin-top: 0;
   padding-top: 10px;
   padding-bottom: 10px;
-  background-color: rgba(255, 255, 255, 0.2);
-  border-bottom: 1px solid rgba(255, 255, 255, 1);
+  background-color: color-mix(in srgb, var(--surface) 20%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--surface) 100%, transparent);
 }
 
 .columns {

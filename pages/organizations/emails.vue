@@ -20,7 +20,7 @@
     <section class="container">
       <div class="card box" v-for="o in data" :key="o.organization">
         <div class="card-header"
-             style="background-color: #f5f5f5;">
+             style="background-color: var(--surface-sunken);">
 
           <div class="card-header-title">
             {{ o.org }}

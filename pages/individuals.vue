@@ -346,7 +346,7 @@ document.addEventListener('scroll', updateHasScrolled, { passive: true });
   z-index: 1;
 
   backdrop-filter: saturate(180%) blur(12px);
-  background-color: rgba(255, 255, 255, 0.88);
+  background-color: color-mix(in srgb, var(--surface) 88%, transparent);
   content: '';
   position:absolute;
   transition: all 0.1s ease-in-out;
@@ -386,7 +386,7 @@ html[data-scrolltop= "1"] .sticky.top {
 }
 
 .anchor-link {
-  color:black;
+  color: var(--ink);
   opacity: 0.1;
   transition: opacity 0.2s ease-in-out;
 }

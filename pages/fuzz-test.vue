@@ -402,7 +402,7 @@ watch(type, () => {
   z-index: 1;
 
   backdrop-filter: blur(4px);
-  background-color: rgba(255, 255, 255, 0.5);
+  background-color: color-mix(in srgb, var(--surface) 50%, transparent);
   content: '';
   position:absolute;
   transition: all 0.1s ease-in-out;
@@ -432,11 +432,11 @@ watch(type, () => {
   padding:10px;
   flex-grow:1;
   background-color: rgba(0,0,0,0.1);
-  color:black;
+  color: var(--ink);
   border-radius: 15px;
 
   a {
-    color:black;
+    color: var(--ink);
     padding:auto;
   }
 }

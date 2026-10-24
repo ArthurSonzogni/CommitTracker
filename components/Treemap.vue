@@ -1052,12 +1052,12 @@ onMounted(() => lock(async () => {
   backdrop-filter: blur(5px);
   position: absolute;
   pointer-events: none;
-  color: black;
+  color: var(--ink);
   z-index: 1;
   opacity: 0;
   box-shadow:
   0 2px 10px rgba(0, 0, 0, 0.5),
-  inset 0 2px 10px rgba(255, 255, 255, 0.9);
+  inset 0 2px 10px color-mix(in srgb, var(--surface) 90%, transparent);
 
   thead {
     font-weight: bold;
@@ -1072,7 +1072,7 @@ onMounted(() => lock(async () => {
 
   tbody {
     tr:nth-child(even) {
-      background-color:rgba(255, 255, 255, 0.35);
+      background-color:color-mix(in srgb, var(--surface) 35%, transparent);
     }
 
     tr:nth-child(odd) {

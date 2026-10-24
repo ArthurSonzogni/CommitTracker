@@ -31,6 +31,128 @@
   --shadow-xs: 0 1px 1px rgba(18, 18, 22, 0.04);
   --shadow-sm: 0 1px 2px rgba(18, 18, 22, 0.06), 0 0 0 1px rgba(18, 18, 22, 0.04);
   --shadow-lg: 0 12px 32px -12px rgba(18, 18, 22, 0.18), 0 0 0 1px rgba(18, 18, 22, 0.05);
+
+  /* Chart categorical palette (utils/palette.ts), per theme. */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --series-5: #e87ba4;
+  --series-6: #008300;
+  --series-7: #6250d6;
+  --series-8: #e34948;
+
+  /* Status tags. */
+  --tag-danger-bg: #fdecee;
+  --tag-danger-ink: #b4232f;
+  --tag-warning-bg: #fdf3dc;
+  --tag-warning-ink: #7a5308;
+  --tag-success-bg: #e3f5ec;
+  --tag-success-ink: #16704a;
+
+  /* Illustrations drawn on a white background. */
+  --illustration-filter: none;
+
+  /* Sequential ramp end, from --surface-sunken (e.g. calendar heatmap). */
+  --heat-high: #1c5cab;
+
+  /* Tooltips stay dark in both themes. */
+  --tooltip-bg: #121216;
+  --tooltip-ink: #ffffff;
+
+  color-scheme: light;
+}
+
+/* Dark theme: follows the system, unless overridden by the navbar toggle
+ * (data-theme on <html>). The two blocks below must stay identical. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e0e11;
+    --surface: #16161a;
+    --surface-sunken: #202027;
+    --ink: #ededf2;
+    --ink-2: #c9c9d3;
+    --muted: #9a9aa8;
+    --faint: #6e6e7c;
+    --line: #2a2a32;
+    --line-strong: #3b3b45;
+
+    --accent: #8b78e6;
+    --accent-hover: #9d8cf0;
+    --accent-ink: #c6bbff;
+    --accent-soft: rgba(139, 120, 230, 0.16);
+    --accent-line: rgba(139, 120, 230, 0.4);
+    --ring: 0 0 0 3px rgba(139, 120, 230, 0.35);
+
+    --shadow-xs: 0 1px 1px rgba(0, 0, 0, 0.3);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    --shadow-lg: 0 16px 40px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06);
+
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+    --series-5: #d55181;
+    --series-6: #008300;
+    --series-7: #9085e9;
+    --series-8: #e66767;
+
+    --tag-danger-bg: rgba(230, 103, 103, 0.16);
+    --tag-danger-ink: #f19999;
+    --tag-warning-bg: rgba(237, 161, 0, 0.16);
+    --tag-warning-ink: #f0c060;
+    --tag-success-bg: rgba(27, 175, 122, 0.16);
+    --tag-success-ink: #6fd3a8;
+    --illustration-filter: invert(1) hue-rotate(180deg);
+    --heat-high: #86b6ef;
+    --tooltip-bg: #2a2a32;
+
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0e0e11;
+  --surface: #16161a;
+  --surface-sunken: #202027;
+  --ink: #ededf2;
+  --ink-2: #c9c9d3;
+  --muted: #9a9aa8;
+  --faint: #6e6e7c;
+  --line: #2a2a32;
+  --line-strong: #3b3b45;
+
+  --accent: #8b78e6;
+  --accent-hover: #9d8cf0;
+  --accent-ink: #c6bbff;
+  --accent-soft: rgba(139, 120, 230, 0.16);
+  --accent-line: rgba(139, 120, 230, 0.4);
+  --ring: 0 0 0 3px rgba(139, 120, 230, 0.35);
+
+  --shadow-xs: 0 1px 1px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  --shadow-lg: 0 16px 40px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06);
+
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --series-5: #d55181;
+  --series-6: #008300;
+  --series-7: #9085e9;
+  --series-8: #e66767;
+
+  --tag-danger-bg: rgba(230, 103, 103, 0.16);
+  --tag-danger-ink: #f19999;
+  --tag-warning-bg: rgba(237, 161, 0, 0.16);
+  --tag-warning-ink: #f0c060;
+  --tag-success-bg: rgba(27, 175, 122, 0.16);
+  --tag-success-ink: #6fd3a8;
+  --illustration-filter: invert(1) hue-rotate(180deg);
+  --heat-high: #86b6ef;
+  --tooltip-bg: #2a2a32;
+
+  color-scheme: dark;
 }
 
 /* Base --------------------------------------------------------------------- */
@@ -556,18 +678,18 @@ h2.title:not(.is-1):not(.is-2):not(.is-3):not(.is-4):not(.is-5):not(.is-6) {
 }
 
 .tag:not(body).is-danger {
-  background: #fdecee;
-  color: #b4232f;
+  background: var(--tag-danger-bg);
+  color: var(--tag-danger-ink);
 }
 
 .tag:not(body).is-warning {
-  background: #fdf3dc;
-  color: #7a5308;
+  background: var(--tag-warning-bg);
+  color: var(--tag-warning-ink);
 }
 
 .tag:not(body).is-success {
-  background: #e3f5ec;
-  color: #16704a;
+  background: var(--tag-success-bg);
+  color: var(--tag-success-ink);
 }
 
 .tag:not(body).is-dark,
@@ -602,7 +724,7 @@ h2.title:not(.is-1):not(.is-2):not(.is-3):not(.is-4):not(.is-5):not(.is-6) {
 }
 
 .table.is-striped tbody tr:not(.is-selected):nth-child(even) {
-  background: #fbfbfc;
+  background: color-mix(in srgb, var(--surface-sunken) 40%, var(--surface));
 }
 
 .table.is-hoverable tbody tr:not(.is-selected):hover {
@@ -617,6 +739,22 @@ h2.title:not(.is-1):not(.is-2):not(.is-3):not(.is-4):not(.is-5):not(.is-6) {
 
 .table-container > .table {
   margin-bottom: 0;
+}
+
+/* Floating labels sit on the input border, over a strip of background. */
+.field.is-floating-label .label:before {
+  background-color: var(--surface);
+}
+
+/* Buefy tables: sticky columns and headers are opaque. */
+.b-table .table td.is-sticky,
+.b-table .table th.is-sticky,
+.b-table .table-wrapper.has-sticky-header tr:first-child th {
+  background: var(--surface);
+}
+
+.b-table .table.is-striped tbody tr:not(.is-selected):nth-child(even) td.is-sticky {
+  background: color-mix(in srgb, var(--surface-sunken) 40%, var(--surface));
 }
 
 /* Cards, boxes, notifications --------------------------------------------- */
@@ -638,10 +776,28 @@ h2.title:not(.is-1):not(.is-2):not(.is-3):not(.is-4):not(.is-5):not(.is-6) {
   color: var(--ink-2);
 }
 
+.message,
+.message-body {
+  background: var(--surface-sunken);
+  border-color: var(--line);
+  color: var(--ink-2);
+}
+
+.dropdown-item {
+  color: var(--ink-2);
+}
+
+.dropdown-item:hover,
+button.dropdown-item:hover {
+  background: var(--surface-sunken);
+  color: var(--ink);
+}
+
 /* Tooltips ----------------------------------------------------------------- */
 
 .b-tooltip .tooltip-content {
-  background: var(--ink) !important;
+  background: var(--tooltip-bg) !important;
+  color: var(--tooltip-ink) !important;
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-lg);
   font-size: 0.75rem;
@@ -650,19 +806,19 @@ h2.title:not(.is-1):not(.is-2):not(.is-3):not(.is-4):not(.is-5):not(.is-6) {
 }
 
 .b-tooltip.is-top .tooltip-content::before {
-  border-top-color: var(--ink) !important;
+  border-top-color: var(--tooltip-bg) !important;
 }
 
 .b-tooltip.is-bottom .tooltip-content::before {
-  border-bottom-color: var(--ink) !important;
+  border-bottom-color: var(--tooltip-bg) !important;
 }
 
 .b-tooltip.is-left .tooltip-content::before {
-  border-left-color: var(--ink) !important;
+  border-left-color: var(--tooltip-bg) !important;
 }
 
 .b-tooltip.is-right .tooltip-content::before {
-  border-right-color: var(--ink) !important;
+  border-right-color: var(--tooltip-bg) !important;
 }
 
 /* Sliders ------------------------------------------------------------------ */
@@ -700,6 +856,7 @@ h2.title:not(.is-1):not(.is-2):not(.is-3):not(.is-4):not(.is-5):not(.is-6) {
 }
 
 .dropdown-content {
+  background: var(--surface);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   padding: 0.35rem;
@@ -710,7 +867,7 @@ h2.title:not(.is-1):not(.is-2):not(.is-3):not(.is-4):not(.is-5):not(.is-6) {
 }
 
 .loading-overlay .loading-background {
-  background: rgba(250, 250, 251, 0.7);
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
   backdrop-filter: blur(2px);
 }
 
@@ -811,3 +968,36 @@ svg .tick text {
   font-family: var(--font-sans);
   font-variant-numeric: tabular-nums;
 }
+
+/* Charts: d3 code sets colors as SVG attributes. Map them to the theme. */
+
+svg {
+  color: var(--ink-2);
+}
+
+svg text:not([fill]) {
+  fill: currentColor;
+}
+
+svg [fill="black"], svg [fill="#000"], svg [fill="#000000"] { fill: var(--ink); }
+svg [stroke="black"], svg [stroke="#000"], svg [stroke="#000000"] { stroke: var(--ink-2); }
+svg [fill="white"], svg [fill="#fff"], svg [fill="#ffffff"] { fill: var(--surface); }
+svg [stroke="white"], svg [stroke="#fff"], svg [stroke="#ffffff"] { stroke: var(--surface); }
+svg [fill="gray"], svg [fill="grey"] { fill: var(--muted); }
+
+svg [fill="#2a78d6"] { fill: var(--series-1); }
+svg [fill="#eb6834"] { fill: var(--series-2); }
+svg [fill="#1baf7a"] { fill: var(--series-3); }
+svg [fill="#eda100"] { fill: var(--series-4); }
+svg [fill="#e87ba4"] { fill: var(--series-5); }
+svg [fill="#008300"] { fill: var(--series-6); }
+svg [fill="#6250d6"] { fill: var(--series-7); }
+svg [fill="#e34948"] { fill: var(--series-8); }
+svg [stroke="#2a78d6"] { stroke: var(--series-1); }
+svg [stroke="#eb6834"] { stroke: var(--series-2); }
+svg [stroke="#1baf7a"] { stroke: var(--series-3); }
+svg [stroke="#eda100"] { stroke: var(--series-4); }
+svg [stroke="#e87ba4"] { stroke: var(--series-5); }
+svg [stroke="#008300"] { stroke: var(--series-6); }
+svg [stroke="#6250d6"] { stroke: var(--series-7); }
+svg [stroke="#e34948"] { stroke: var(--series-8); }
