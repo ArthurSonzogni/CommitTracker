@@ -3,20 +3,22 @@
     <Navbar></Navbar>
     <section class="section zoom">
 
-      <RepositorySelector
-        v-model="repositories"
-        size="small"
-        :allowMultiple="false"
-        :allowAll="true"
-        :filter="repo => repo.reviewers">
-      </RepositorySelector>
+      <FilterPanel :summary="summary">
+        <UiField label="Repository">
+          <RepositorySelector
+            v-model="repositories"
+            size="small"
+            :allowMultiple="false"
+            :allowAll="true"
+            :filter="repo => repo.reviewers">
+          </RepositorySelector>
+        </UiField>
 
-      <TimeRangeSelector v-model="time" />
+        <TimeRangeSelector v-model="time" />
+      </FilterPanel>
 
       <div class="form-row">
         <div class="form-row">
-          <button type="button" class="button is-warning" @click="displayReadme = !displayReadme"><span>Readme</span>
-          </button>
           <button type="button" class="button is-info" @click="view" v-if="!displayPlaceholder"><span>View</span>
           </button>
           <button type="button" class="button is-info is-light" @click="download" v-if="!displayPlaceholder">
@@ -24,61 +26,49 @@
           </button>
         </div>
       </div>
-    </section>
-    <section class="section" v-if="displayReadme">
-      <div class="container">
-        <article v-if="displayReadme" class="message">
-          <div class="message-header">
-            <p>Readme</p>
-            <button type="button" class="delete" aria-label="Close" @click="displayReadme = false"></button>
-          </div>
-          <div class="message-body">
-          <div class="content">
-            <ul>
-              <li>
-                Data is refreshed <strong>weekly</strong>, and
-                <strong>automatically</strong>. See <a
-                  href="https://github.com/ArthurSonzogni/CommitTracker/actions/workflows/importer-graph.yaml">
-                  Job
-                </a>
-              </li>
-              <li>
-                <strong>Label height</strong> is proportional to the number
-                contributions square root (author + review). The goal is to make
-                the surface used to draw one characters proportional to the
-                number of commits.
-              </li>
-              <li>
-                <strong>Edge thickness</strong> is proportional to the number
-                of commit flowing from one author to a reviewer. We ignore long
-                distance edges with a low number of commit. To be precise, there
-                is a "commit" / "length" threshold. The "real" graph is extremly
-                dense and difficult to interpret.
-              </li>
-              <li>
-                <strong>Edge orientation</strong> helps understanding who is the
-                author and who is the reviewer. The edge turn left when going
-                from the author to the reviewer.
-              </li>
-              <li>
-                <strong>Colors</strong> represent different communities who
-                strongly interact together, and do not outside Often, the number
-                of communities is high when considering small range of time
-                (small project), and low when considering large range of time
-                (large product). We are using the
-                <a href="https://en.wikipedia.org/wiki/Louvain_method">
-                  Louvain algorithm
-                </a>.
-              </li>
-              <li>
-                <strong>Code reviews before 2017 are not included.</strong>,
-                the data wasn't part of the commit description before.
-              </li>
-            </ul>
-          </div>
-          </div>
-        </article>
-      </div>
+      <AboutData>
+        <ul>
+          <li>
+            Data is refreshed <strong>weekly</strong>, and
+            <strong>automatically</strong>. See <a
+              href="https://github.com/ArthurSonzogni/CommitTracker/actions/workflows/importer-graph.yaml">
+              Job
+            </a>
+          </li>
+          <li>
+            <strong>Label height</strong> is proportional to the number
+            contributions square root (author + review). The goal is to make
+            the surface used to draw one characters proportional to the
+            number of commits.
+          </li>
+          <li>
+            <strong>Edge thickness</strong> is proportional to the number
+            of commit flowing from one author to a reviewer. We ignore long
+            distance edges with a low number of commit. To be precise, there
+            is a "commit" / "length" threshold. The "real" graph is extremly
+            dense and difficult to interpret.
+          </li>
+          <li>
+            <strong>Edge orientation</strong> helps understanding who is the
+            author and who is the reviewer. The edge turn left when going
+            from the author to the reviewer.
+          </li>
+          <li>
+            <strong>Colors</strong> represent different communities who
+            strongly interact together, and do not outside Often, the number
+            of communities is high when considering small range of time
+            (small project), and low when considering large range of time
+            (large product). We are using the
+            <a href="https://en.wikipedia.org/wiki/Louvain_method">
+              Louvain algorithm
+            </a>.
+          </li>
+          <li>
+            <strong>Code reviews before 2017 are not included.</strong>,
+            the data wasn't part of the commit description before.
+          </li>
+        </ul>
+      </AboutData>
     </section>
 
     <div class="zoomable" v-if="!displayPlaceholder">
@@ -102,8 +92,12 @@ const router = useRouter();
 
 const repositories = ref(["v8"]);
 const time = ref("1y");
+
+const summary = computed(() => [
+  listSummary(repositoryNames(repositories.value), "repositories"),
+  time.value,
+].join(" · "));
 const zoom = ref(1);
-const displayReadme = ref(false);
 const displayPlaceholder = ref(false);
 const cachedObjectSrc = ref(null);
 const graph_container = ref(null);

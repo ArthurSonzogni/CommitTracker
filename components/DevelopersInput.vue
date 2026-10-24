@@ -7,7 +7,7 @@
                 <span v-if="index == 0">
                     {{part}}
                 </span>
-                <strong v-else style="color: blue">
+                <strong v-else style="color: var(--accent)">
                     (@{{ part }})
                 </strong>
             </span>

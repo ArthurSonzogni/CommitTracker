@@ -55,7 +55,7 @@ export default defineNuxtConfig({
   },
 
   css: [
-    'bulma/css/bulma.min.css',
+    '~/assets/css/base.css',
     '@mdi/font/css/materialdesignicons.min.css',
     // Last, to override the above.
     '~/assets/css/theme.css',

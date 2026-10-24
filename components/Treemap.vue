@@ -25,7 +25,7 @@
           </div>
 
           <div>
-            <LineChart v-if="history" :data="history" />
+            <LineChart v-if="history?.length" :data="history" />
           </div>
         </div>
     </div>
@@ -327,7 +327,7 @@ const initText = function(text, index) {
   ;
 };
 
-const renderText = function(text, index, data) {
+const renderText = function(text, index, data, x) {
   const colorScale = scaleLinear()
     .domain(color_domain.value)
     .range([0, 1])
@@ -346,6 +346,30 @@ const renderText = function(text, index, data) {
     return Math.min(20, Math.sqrt(percent) * 30);
   }
 
+  const label = d => {
+    if (index == 0) {
+      return d.data.name;
+    }
+    const color = d.data.color;
+    const size = d.data.area;
+    if (color <= size) {
+      return `${number_format(color)}/${number_format(size)} (${percent_format(color/size)})`;
+    }
+    const multiple = (color / size).toFixed(1);
+    return `${number_format(color)}/${number_format(size)} (${multiple}x)`;
+  };
+
+  // Truncate a label to the width of its tile, estimating the width of a
+  // character from the font size. Hide it when too little would remain.
+  const fit = (d, label) => {
+    const width = x(d.x1) - x(d.x0) - 16;
+    const max_chars = Math.floor(width / (font_size(d) * (4-index) * 0.25 * 0.6));
+    if (label.length <= max_chars) {
+      return label;
+    }
+    return max_chars >= 4 ? label.slice(0, max_chars - 1) + "…" : "";
+  };
+
   text
     .style("fill", d => {
       const color = d.data.color;
@@ -357,21 +381,7 @@ const renderText = function(text, index, data) {
     })
     .style("font-size", d => font_size(d) * (4-index) * 0.25)
     .attr("y", d => 5 + font_size(d) * (index + 1) * 1.2)
-    .text(d => {
-      if (index == 0) {
-        const name = d.data.name;
-        return `${name}`;
-      } else {
-        const color = d.data.color;
-        const size = d.data.area;
-        if (color <= size) {
-          return `${number_format(color)}/${number_format(size)} (${percent_format(color/size)})`;
-        } else {
-          const multiple = (color / size).toFixed(1);
-          return `${number_format(color)}/${number_format(size)} (${multiple}x)`;
-        }
-      }
-    })
+    .text(d => fit(d, label(d)))
   ;
 };
 
@@ -387,8 +397,8 @@ const render = function(group, data, x, y, is_zoom = false, transition) {
         renderRect(rect, x, y, false)
         initText(text_1, 0);
         initText(text_2, 1);
-        renderText(text_1, 0, data);
-        renderText(text_2, 1, data);
+        renderText(text_1, 0, data, x);
+        renderText(text_2, 1, data, x);
         return group;
       },
 
@@ -399,8 +409,8 @@ const render = function(group, data, x, y, is_zoom = false, transition) {
         renderRect(rect, x, y, false)
         const text_1 = group.select("text.text-1");
         const text_2 = group.select("text.text-2");
-        renderText(text_1, 0, data);
-        renderText(text_2, 1, data);
+        renderText(text_1, 0, data, x);
+        renderText(text_2, 1, data, x);
         return update;
       },
 

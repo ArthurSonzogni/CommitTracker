@@ -22,6 +22,7 @@
       </div>
     </section>
     <HomeBento/>
+    <HomeHighlights/>
   </div>
 </template>
 

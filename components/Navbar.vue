@@ -28,6 +28,14 @@
         <a
           role="button"
           tabindex="0"
+          class="navbar-item share-button is-hidden-desktop"
+          aria-label="Share this page"
+          @click="share">
+          <UiIcon name="share-variant" />
+        </a>
+        <a
+          role="button"
+          tabindex="0"
           class="navbar-burger"
           :class="{ 'is-active': menuOpen }"
           aria-label="Menu"
@@ -86,6 +94,15 @@
           <a
             role="button"
             tabindex="0"
+            class="navbar-item share-button is-hidden-touch"
+            aria-label="Copy the link to this page"
+            title="Copy the link"
+            @click="share">
+            <UiIcon name="share-variant" />
+          </a>
+          <a
+            role="button"
+            tabindex="0"
             class="navbar-item theme-toggle"
             :aria-label="dark ? 'Use the light theme' : 'Use the dark theme'"
             :title="dark ? 'Light theme' : 'Dark theme'"
@@ -94,9 +111,10 @@
           </a>
           <a
             class="navbar-item github-link"
-            href="https://github.com/ArthurSonzogni/CommitTracker">
-            <UiIcon name="github" class="mr-1" />
-            GitHub
+            href="https://github.com/ArthurSonzogni/CommitTracker"
+            aria-label="Source on GitHub"
+            title="Source on GitHub">
+            <UiIcon name="github" />
           </a>
         </div>
       </div>
@@ -105,6 +123,7 @@
 </template>
 
 <script setup lang="ts">
+import { showToast } from "~/utils/toast";
 const MENU = [
   { label: "Individuals", to: "/individuals" },
   { label: "Community graph", to: "/communities" },
@@ -164,6 +183,24 @@ onMounted(() => {
   }
 });
 
+// The URL holds the state of every page, so sharing it shares the view. Use
+// the share sheet of phones, and copy the link elsewhere.
+const share = async () => {
+  const url = location.href;
+  if (navigator.share && matchMedia("(pointer: coarse)").matches) {
+    try {
+      await navigator.share({ title: document.title, url });
+    } catch (e) {}
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    showToast({ message: "Link copied", duration: 2500 });
+  } catch (e) {
+    showToast({ message: "Could not copy the link", type: "is-danger" });
+  }
+};
+
 // The theme follows the system, unless chosen here. The choice is stored, and
 // applied early by app.vue.
 const dark = ref(false);
@@ -216,11 +253,13 @@ const toggleTheme = () => {
   font-weight: 500;
 }
 
-.theme-toggle {
+.theme-toggle,
+.share-button {
   color: var(--muted) !important;
 }
 
-.theme-toggle:hover {
+.theme-toggle:hover,
+.share-button:hover {
   color: var(--ink) !important;
 }
 
@@ -231,6 +270,10 @@ const toggleTheme = () => {
 .search-icon {
   color: var(--ink-2) !important;
   margin-left: auto;
+}
+
+.share-button.is-hidden-desktop {
+  color: var(--ink-2) !important;
 }
 
 .search-pill {
@@ -264,5 +307,33 @@ const toggleTheme = () => {
   font-family: var(--font-mono);
   font-size: 0.68rem;
   padding: 0.1rem 0.45rem;
+}
+
+/* On narrow desktops, the search pill keeps only its icon, so that the menu
+ * fits on one line. */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .navbar-item:not(.has-dropdown),
+  .navbar-link {
+    padding-left: 0.5rem;
+  }
+
+  .navbar-link:not(.is-arrowless) {
+    padding-right: 1.9em;
+  }
+
+  .navbar-item:not(.has-dropdown) {
+    padding-right: 0.5rem;
+  }
+
+  .search-pill {
+    justify-content: center;
+    padding: 0;
+    width: 2rem;
+  }
+
+  .search-pill span:not(.icon),
+  .search-pill kbd {
+    display: none;
+  }
 }
 </style>

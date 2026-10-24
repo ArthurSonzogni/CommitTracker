@@ -16,3 +16,8 @@ export function repositoryNames(dirnames: string[]) {
   return dirnames.map(dirname =>
     repositories_json.find(repo => repo.dirname == dirname)?.name ?? dirname);
 }
+
+// "yearly" -> "Yearly".
+export function capitalize(text: string) {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}

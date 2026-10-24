@@ -5,6 +5,11 @@
       <div class="right"><strong>{{valueLabel}}</strong></div>
     </div>
 
+    <!-- Placeholder bars, until the first data arrives. -->
+    <div v-if="!loaded" class="bar-skeleton" aria-hidden="true">
+      <div v-for="i in 12" :key="i" class="skeleton" :style="{ width: (20 + 6 * i) + '%' }" />
+    </div>
+
     <div ref="histogram" class="histogram">
     </div>
 
@@ -46,8 +51,12 @@ const tooltip = ref(null);
 const histogram = ref(null);
 
 const formatter_wrap = ref(null);
+const loaded = ref(false);
 
 const step = async () => {
+  if (props.data?.length) {
+    loaded.value = true;
+  }
   formatter_wrap.value.formatter = props.formatter;
   const row_width = []
   for(const row of props.data) {
@@ -253,6 +262,18 @@ onMounted(() => {
 </script>
 
 <style>
+
+.bar-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+}
+
+.bar-skeleton .skeleton {
+  height: 1.25rem;
+}
+
 .line {
   display:flex;
   justify-content: flex-start;

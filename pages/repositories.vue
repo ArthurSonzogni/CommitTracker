@@ -90,17 +90,9 @@
       </div>
     </section>
 
-    <section class="section">
-      <UiField>
-        <button type="button" class="button is-warning" v-if="!displayReadme" @click="displayReadme = true"><span>Readme</span></button>
-      </UiField>
-      <article v-if="displayReadme" class="message">
-          <div class="message-header">
-            <p>Readme</p>
-            <button type="button" class="delete" aria-label="Close" @click="displayReadme = false"></button>
-          </div>
-          <div class="message-body">
-        <div class="content">
+    <section class="section pt-0">
+      <div class="container">
+        <AboutData>
           <ul>
             <li>
               Data are refreshed <strong>weekly</strong>, and
@@ -123,9 +115,8 @@
               relative small number at the end, as the year is not completed yet.
             </li>
           </ul>
-        </div>
-        </div>
-        </article>
+        </AboutData>
+      </div>
     </section>
   </div>
 </template>
@@ -183,7 +174,6 @@ const min_contributions = ref(0);
 if (route.query.min_contributions) {
   min_contributions.value = parseInt(route.query.min_contributions);
 }
-const displayReadme = ref(false);
 
 watch([
   repositories,

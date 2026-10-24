@@ -329,10 +329,46 @@ const tests = [
     url: 'treemap',
     run: `
       const legend = await __t.until(() => {
-        const text = document.querySelector('.legend')?.textContent.replace(/\\s+/g, ' ').trim();
+        const text = [...document.querySelectorAll('.legend > span:not(.legend-gradient)')].map(e => e.textContent.trim()).join(' -> ');
         return text && !text.endsWith('100%') ? text : null;
       }, 20000);
-      return { ok: !!legend, detail: legend };
+      document.querySelector('.legend .button').click();
+      const fullscreen = await __t.until(() => document.querySelector('.treemap-frame.is-fullscreen'));
+      document.querySelector('[aria-label="Exit full screen"]').click();
+      const closed = await __t.until(() => !document.querySelector('.treemap-frame.is-fullscreen'));
+      return { ok: !!legend && !!fullscreen && !!closed, detail: legend + ' fullscreen=' + !!fullscreen };
+    `,
+  },
+  {
+    name: 'cve list: renders progressively',
+    url: 'cve/list',
+    run: `
+      const first = await __t.until(() => document.querySelectorAll('.cve-link').length, 30000);
+      window.scrollTo(0, document.body.scrollHeight);
+      const more = await __t.until(() => document.querySelectorAll('.cve-link').length > first ? document.querySelectorAll('.cve-link').length : null, 10000);
+      return { ok: first > 0 && first <= 200 && !!more, detail: first + ' -> ' + more };
+    `,
+  },
+  {
+    name: 'home: highlights and footer date',
+    url: '',
+    run: `
+      const author = await __t.until(() => document.querySelector('.highlight a'), 15000);
+      const footer = await __t.until(() => /Data updated/.test(document.querySelector('.site-footer')?.textContent) && document.querySelector('.site-footer').textContent, 10000);
+      const name = author?.textContent;
+      author?.click();
+      const ok = await __t.until(() => location.pathname.startsWith('/developers/'), 10000);
+      return { ok: !!footer && !!ok, detail: name + ' ' + location.pathname + ' ' + (footer || '').replace(/\\s+/g, ' ').trim().slice(0, 50) };
+    `,
+  },
+  {
+    name: 'about data: unfolds',
+    url: 'repositories',
+    run: `
+      const about = document.querySelector('.about-data');
+      about.querySelector('summary').click();
+      const ok = await __t.until(() => about.open && about.querySelector('.about-data-body').offsetHeight > 20);
+      return { ok: !!ok, detail: 'open=' + about.open };
     `,
   },
   {

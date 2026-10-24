@@ -5,14 +5,16 @@
       <div class="container">
         <h1 class="title">Repository commits</h1>
 
-        <strong>Repositories:</strong>
-
-        <RepositorySelector
-          v-model="repositories"
-          size="medium"
-          :allowMultiple="true"
-          :allowAll="true"
-        />
+        <FilterPanel :summary="listSummary(repositoryNames(repositories), 'repositories')">
+          <UiField label="Repositories">
+            <RepositorySelector
+              v-model="repositories"
+              size="medium"
+              :allowMultiple="true"
+              :allowAll="true"
+            />
+          </UiField>
+        </FilterPanel>
 
         <CalendarHeatmap :data="data" />
       </div>

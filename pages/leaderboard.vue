@@ -6,45 +6,49 @@
       <div class="container">
         <h1 class="title">Leaderboard</h1>
 
-        <RepositorySelector
-          v-model="repositories"
-          size="medium"
-          :allowMultiple="true"
-          :allowAll="true"
-          />
-
-        <div class="form-row">
-          <UiField label="As">
-            <UiSegmented
-              v-model="kind"
-              :options="[
-              { value: 'author', label: 'author' },
-              { value: 'review', label: 'Review' },
-              { value: 'both', label: 'both' },
-            ]" />
+        <FilterPanel :summary="summary">
+          <UiField label="Repositories">
+            <RepositorySelector
+              v-model="repositories"
+              size="medium"
+              :allowMultiple="true"
+              :allowAll="true"
+              />
           </UiField>
 
-          <UiField label="Grouping">
-            <UiSegmented
-              v-model="grouping"
-              :options="[
-              { value: 'forever', label: 'Forever' },
-              { value: 'decennial', label: 'Decennial' },
-              { value: 'yearly', label: 'Yearly' },
-              { value: 'quarterly', label: 'Quarterly' },
-              { value: 'monthly', label: 'Monthly' },
-            ]" />
-          </UiField>
+          <div class="form-row">
+            <UiField label="Count as">
+              <UiSegmented
+                v-model="kind"
+                :options="[
+                { value: 'author', label: 'Author' },
+                { value: 'review', label: 'Reviewer' },
+                { value: 'both', label: 'Both' },
+              ]" />
+            </UiField>
 
-          <UiField label="type">
-            <UiSelect v-model="type">
-              <option value="commit">Commits</option>
-              <option value="lines">Lines</option>
-              <option value="added_lines">Additions</option>
-              <option value="deleted_lines">Deletions</option>
-            </UiSelect>
-          </UiField>
-        </div>
+            <UiField label="Grouping">
+              <UiSegmented
+                v-model="grouping"
+                :options="[
+                { value: 'forever', label: 'Forever' },
+                { value: 'decennial', label: 'Decennial' },
+                { value: 'yearly', label: 'Yearly' },
+                { value: 'quarterly', label: 'Quarterly' },
+                { value: 'monthly', label: 'Monthly' },
+              ]" />
+            </UiField>
+
+            <UiField label="Measure">
+              <UiSelect v-model="type">
+                <option value="commit">Commits</option>
+                <option value="lines">Lines</option>
+                <option value="added_lines">Additions</option>
+                <option value="deleted_lines">Deletions</option>
+              </UiSelect>
+            </UiField>
+          </div>
+        </FilterPanel>
 
         <!--If props.type is "line", display a warning that this is heavily biased-->
         <!--around large scale refactoring and large deletion.-->
@@ -71,6 +75,18 @@ const type = ref<string>("commit");
 const grouping = ref<string>("yearly");
 const kind = ref<string>("author");
 const timeIndex = ref<number>(0);
+
+const type_labels = {
+  commit: "Commits",
+  lines: "Lines",
+  added_lines: "Additions",
+  deleted_lines: "Deletions",
+};
+const summary = computed(() => [
+  listSummary(repositoryNames(repositories.value), "repositories"),
+  type_labels[type.value],
+  capitalize(grouping.value),
+].join(" · "));
 
 const router = useRouter();
 const route = useRoute();

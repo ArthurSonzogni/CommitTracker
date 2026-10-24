@@ -6,33 +6,31 @@
 
       <section class="section sticky top">
 
-        <RepositorySelector
-          v-model="repositories"
-          size="is-small"
-          />
-        <div class="form-row">
+        <UiField expanded class="mb-3">
+          <DevelopersInput v-model="developers" allowEmail allowUsername/>
+        </UiField>
 
-          <UiField expanded>
-            <DevelopersInput v-model="developers" allowEmail allowUsername/>
+        <FilterPanel :summary="summary">
+          <UiField label="Repositories">
+            <RepositorySelector
+              v-model="repositories"
+              size="is-small"
+              />
           </UiField>
-
-          <UiField>
-            <UiToggle v-model="options" value="author">
-              Author
-            </UiToggle>
-
-            <UiToggle v-model="options" value="review">
-              Review
-            </UiToggle>
+          <UiField label="Count">
+            <div class="chips">
+              <UiToggle v-model="options" value="author">
+                Author
+              </UiToggle>
+              <UiToggle v-model="options" value="review">
+                Review
+              </UiToggle>
+              <UiToggle v-if="developers.length >= 2" v-model="options" value="stacked">
+                Stacked
+              </UiToggle>
+            </div>
           </UiField>
-
-          <UiField>
-            <UiToggle v-if="developers.length >= 2" v-model="options" value="stacked">
-              Stacked
-            </UiToggle>
-          </UiField>
-
-        </div>
+        </FilterPanel>
       </section>
 
       <section class="section" v-if="developers.length == 0">
@@ -208,6 +206,11 @@ if (route.query.wrappedBuckets) {
 }
 
 const repositories = ref(["chromium"]);
+
+const summary = computed(() => [
+  listSummary(repositoryNames(repositories.value), "repositories"),
+  ...options.value.map(capitalize),
+].join(" · "));
 if (route.query.repositories) {
   repositories.value = route.query.repositories.split(',');
 }
@@ -294,6 +297,12 @@ document.addEventListener('scroll', updateHasScrolled, { passive: true });
 .suggestions .button {
   border-radius: 999px;
   gap: 0.25rem;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .sticky {

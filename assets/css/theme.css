@@ -1022,3 +1022,26 @@ svg [stroke="#e34948"] { stroke: var(--series-8); }
 @keyframes toast-in {
   from { opacity: 0; transform: translateY(8px); }
 }
+
+/* Loading placeholder ------------------------------------------------------ */
+
+.skeleton {
+  animation: skeleton 1.4s ease-in-out infinite;
+  background: linear-gradient(90deg,
+    var(--surface-sunken) 25%,
+    color-mix(in srgb, var(--surface-sunken) 40%, var(--surface)) 50%,
+    var(--surface-sunken) 75%);
+  background-size: 200% 100%;
+  border-radius: var(--radius);
+}
+
+@keyframes skeleton {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}

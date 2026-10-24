@@ -100,30 +100,21 @@
     </section>
   </div>
 
-  <!-- README Section explaining the visualization -->
-  <hr/>
-
-  <section class="section">
-    <div class="container content">
-      <h2 class="title is-4">README</h2>
-      <p>
-        This visualization represents the number of commit in each
-        file/directory. Note that a commit might affect multiple files, so the
-        sum of all children nodes exceeds the parent's commit count.
-      </p>
-    </div>
-  </section>
-
-  <!-- All the params section -->
-
-  <section class="section">
-    <div class="container content">
-      <h2 class="title is-4">Parameters</h2>
-      <ul>
-        <li><strong>Repository:</strong> The code repository being analyzed.</li>
-        <li><strong>Path:</strong> The current directory path in the repository.</li>
-        <li><strong>Smoothing Window:</strong> The number of days over which commit counts are smoothed to reduce noise.</li>
-      </ul>
+  <section class="section pt-0">
+    <div class="container">
+      <AboutData>
+        <p>
+          This visualization represents the number of commit in each
+          file/directory. Note that a commit might affect multiple files, so the
+          sum of all children nodes exceeds the parent's commit count.
+        </p>
+        <h3 class="title is-6">Parameters</h3>
+        <ul>
+          <li><strong>Repository:</strong> The code repository being analyzed.</li>
+          <li><strong>Path:</strong> The current directory path in the repository.</li>
+          <li><strong>Smoothing Window:</strong> The number of days over which commit counts are smoothed to reduce noise.</li>
+        </ul>
+      </AboutData>
     </div>
   </section>
 </template>

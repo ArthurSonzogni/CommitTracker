@@ -6,28 +6,26 @@
       <div class="container is-fluid">
         <h1 class="title is-4" style="display: flex; align-items: center;">
           Chromium Money Tree
-          <button type="button" class="button is-small ml-3" @click="showReadme = !showReadme"><UiIcon name="book-open-outline" size="small" />README</button>
         </h1>
 
-        <div v-show="showReadme" class="message is-info mb-4">
-          <div class="message-body content is-size-6">
-            <p>
-              This site maps Chromium VRP (bug bounty) rewards to changes (fixes) in specific files.
-              <br>
-              The bug bounty reward gets divided between files, eg if a fix to a $1000 bug changed 5 files, each file gets $200
-            </p>
-            <p>
-              This is inspired by the famous
-              <a href="https://lyra.horse/misc/chromium_vrp_tree.html">money tree from Lyra Rebane</a>,
-              but compatible after the Bugganizer migration.
-            </p>
-            <article class="message is-warning is-small mt-2">
-              <div class="message-body">
-                <strong>Disclaimer:</strong> This tool is a best-effort mapping and relies on heuristics. There are known bugs and inaccuracies. Please do not treat these numbers as authoritative.
-              </div>
-            </article>
-          </div>
-        </div>
+        <AboutData>
+          <p>
+            This site maps Chromium VRP (bug bounty) rewards to changes (fixes) in specific files.
+            <br>
+            The bug bounty reward gets divided between files, eg if a fix to a $1000 bug changed 5 files, each file gets $200
+          </p>
+          <p>
+            This is inspired by the famous
+            <a href="https://lyra.horse/misc/chromium_vrp_tree.html">money tree from Lyra Rebane</a>,
+            but compatible after the Bugganizer migration.
+          </p>
+          <article class="message is-warning is-small mt-2">
+            <div class="message-body">
+              <strong>Disclaimer:</strong> This tool is a best-effort mapping and relies on heuristics. There are known bugs and inaccuracies. Please do not treat these numbers as authoritative.
+            </div>
+          </article>
+
+        </AboutData>
 
         <div class="mb-4">
           <p class="is-size-6" v-if="treeData">
@@ -219,7 +217,6 @@ const router = useRouter();
 const formatter = format("$,.0f");
 
 const loading = ref(true);
-const showReadme = ref(false);
 const rawData = shallowRef<any[]>([]);
 const treeData = shallowRef<any>(null);
 const cvesCount = ref(0);

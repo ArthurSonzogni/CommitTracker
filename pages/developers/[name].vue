@@ -42,6 +42,13 @@
             </div>
           </dl>
 
+          <!-- Compare with other developers, on the individuals page. -->
+          <div class="profile-compare">
+            <UiField label="Compare with">
+              <DevelopersInput v-model="compare_with" />
+            </UiField>
+          </div>
+
           <h2 class="title">Repositories</h2>
           <ul class="profile-repositories">
             <li v-for="repository in repositories" :key="repository.dirname">
@@ -245,6 +252,15 @@ const maxCount = computed(() =>
   Math.max(1, ...repositories.value.flatMap(r => [r.author, r.review])));
 const barWidth = (count: number) => `${100 * count / maxCount.value}%`;
 
+const compare_with = ref<string[]>([]);
+watch(compare_with, others => {
+  if (others.length == 0) {
+    return;
+  }
+  const developers = [name.value, ...others].map(encodeURIComponent).join(",");
+  navigateTo(`/individuals?developers=${developers}&repositories=${primaryRepository.value.dirname}`);
+});
+
 const individualsLink = (repository: string) =>
   `/individuals?developers=${encodeURIComponent(name.value)}&repositories=${repository}`;
 
@@ -259,6 +275,12 @@ useSeoMeta({
 </script>
 
 <style scoped>
+
+.profile-compare {
+  margin-bottom: 2rem;
+  max-width: 28rem;
+}
+
 .profile-loading {
   color: var(--muted);
   padding: 4rem 0;

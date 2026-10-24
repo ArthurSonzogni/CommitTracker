@@ -6,14 +6,9 @@
 
     <section class="section pb-2">
       <div class="container content">
-        <h1 class="title">
-            Chromium CVEs
-            <button type="button" class="button ml-4" @click="readme = !readme" :class="readme ? '' : 'is-info'">
-              Readme
-            </button>
-        </h1>
+        <h1 class="title">Chromium CVEs</h1>
 
-        <div v-if="readme">
+        <AboutData>
           <p>
             The list of publicly known vulnerabilities in the Chromium project.
             This only includes the vulnerabilities that have been assigned a CVE
@@ -29,10 +24,7 @@
               Currently the latest public bug was published <strong>{{ latest_public_cve_duration }} ago.</strong>
             </li>
           </ul>
-
-          <div style="border-bottom: 1px solid #ccc; margin-bottom: 1em;"></div>
-
-        </div>
+        </AboutData>
 
         <FilterPanel :summary="summary">
           <div class="form-row">
@@ -80,7 +72,7 @@
     </section>
 
 
-    <section class="section cve-group" v-for="group in grouped" :key="group.key">
+    <section class="section cve-group" v-for="group in visible_groups" :key="group.key">
       <div class="container content">
         <h3 class="title">
           {{ group.key}}
@@ -96,7 +88,7 @@
         </h3>
 
         <div class="grid">
-          <template v-for="cve in group.cves">
+          <template v-for="cve in group.shown">
             <NuxtLink :to="'/cve?id='+cve.id" class="cve-link">
             {{ cve.id }}
             </NuxtLink>
@@ -146,6 +138,13 @@
       </div>
     </section>
 
+    <!-- Render more CVEs when this comes into view. -->
+    <div v-if="limit < total_cves" ref="more" :key="limit" class="container has-text-centered pb-6">
+      <button type="button" class="button" @click="limit += PAGE">
+        Show more ({{ limit }} / {{ total_cves }})
+      </button>
+    </div>
+
   </div>
 </template>
 
@@ -157,22 +156,22 @@ import { format } from "d3-format";
 import cweTitle from "~/utils/cwe.json";
 
 const formatter = format("$,.0f");
+// Dark enough for white text (contrast >= 4.5).
 const repo_color = new Map([
-  ["angle", "orange"],
+  ["angle", "#b45309"],
   ["chromium", "#121212"],
-  ["chromiumos-platform2", "blue"],
-  ["dawn", "#FF5722"],
+  ["chromiumos-platform2", "#1d4ed8"],
+  ["dawn", "#c2410c"],
   ["pdfium", "#9C27B0"],
-  ["skia", "#FFC107"],
-  ["v8", "red"],
-  ["webrtc", "#03A9F4"],
-  ["swiftshader", "#4CAF50"],
+  ["skia", "#a16207"],
+  ["v8", "#c62828"],
+  ["webrtc", "#0369a1"],
+  ["swiftshader", "#15803d"],
 ]);
 
 const router = useRouter();
 const route = useRoute();
 
-const readme = ref(false);
 
 const data = ref([]);
 
@@ -212,7 +211,51 @@ const group_by_options = [
   { value: 'authors', label: 'Authors' },
   { value: 'reviewers', label: 'Reviewers' },
 ];
-const grouped = ref({});
+const grouped = ref([]);
+
+// Render the CVEs progressively, as building the whole list at once is slow.
+const PAGE = 150;
+const limit = ref(PAGE);
+watch(grouped, () => {
+  limit.value = PAGE;
+});
+
+const total_cves = computed(() =>
+  grouped.value.reduce((sum, group) => sum + group.cves.length, 0));
+
+const visible_groups = computed(() => {
+  const out = [];
+  let budget = limit.value;
+  for (const group of grouped.value) {
+    if (budget <= 0) {
+      break;
+    }
+    out.push({ ...group, shown: group.cves.slice(0, budget) });
+    budget -= group.cves.length;
+  }
+  return out;
+});
+
+const more = ref<HTMLElement | null>(null);
+let observer: IntersectionObserver | null = null;
+onMounted(() => {
+  observer = new IntersectionObserver(entries => {
+    if (entries.some(entry => entry.isIntersecting)) {
+      limit.value += PAGE;
+    }
+  }, { rootMargin: "1000px" });
+});
+// The element is recreated at each step, so that it is observed again even
+// when it stays in view.
+watch(more, (element, previous) => {
+  if (previous) {
+    observer?.unobserve(previous);
+  }
+  if (element) {
+    observer?.observe(element);
+  }
+});
+onUnmounted(() => observer?.disconnect());
 
 const data_size = ref(0);
 const latest_cve_duration = ref("n/a");

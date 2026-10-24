@@ -1,5 +1,7 @@
 <template>
   <div class="container" ref="container" align="center">
+    <!-- Placeholder, until the first data arrives. -->
+    <div v-if="!loaded" class="skeleton line-skeleton" aria-hidden="true" />
     <svg>
       <g ref="content">
         <g ref="tooltip" />
@@ -203,6 +205,10 @@ const render = () => {
       ;
     })
     .on("pointerleave", event => {
+      // On touch screens, keep the tooltip of the last tap.
+      if (event.pointerType === "touch") {
+        return;
+      }
       select(tooltip.value)
         .selectAll(".tooltipData")
         .transition()
@@ -210,7 +216,6 @@ const render = () => {
         .attr("opacity", 0)
         .remove()
     })
-    .on("touchstart", event => event.preventDefault())
   ;
 
   select(content.value)
@@ -300,12 +305,31 @@ onMounted(() => {
 
 watch(() => props.data, render);
 
+const loaded = ref(false);
+watchEffect(() => {
+  if (props.data?.length) {
+    loaded.value = true;
+  }
+});
+
 </script>
 
 <style scoped>
 .container {
-  width: 100%;
   height: 100%;
+  position: relative;
+  width: 100%;
+}
+
+/* Scrub horizontally, while still scrolling the page vertically. */
+svg {
+  touch-action: pan-y;
+}
+
+.line-skeleton {
+  inset: 0;
+  min-height: 12rem;
+  position: absolute;
 }
 
 svg {

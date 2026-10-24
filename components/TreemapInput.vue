@@ -4,7 +4,7 @@
             <strong class="mr-2 is-size-6"
                 >{{ props.option.name }}</strong>
             <span class="tag" v-if="props.option.tags" v-for="tag in props.option.tags" :key="tag" :style="{
-                    color: 'white',
+                    color: textColorOn($color(tag)),
                     backgroundColor: $color(tag)
                 }">
                 {{ tag }}

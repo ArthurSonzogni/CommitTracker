@@ -88,35 +88,51 @@
           </ul>
         </nav>
 
-        <!-- The colormap legend -->
-        <div class="legend" aria-label="Color scale">
+        <div class="legend">
+          <!-- The colormap legend -->
           <span>{{ percent(color_domain[0]) }}</span>
           <span class="legend-gradient"
+                aria-label="Color scale"
                 :style="{ background: $GetColormapGradient(colormap) }"/>
           <span>{{ percent(color_domain[1]) }}</span>
+
+          <button type="button" class="button is-small ml-2" @click="fullscreen = true">
+            <UiIcon name="fullscreen" size="small" /><span>Full screen</span>
+          </button>
         </div>
       </div>
     </div>
 
-    <Treemap
-      :repositories="repositories"
-      :path="path"
-      :field_color="field_color_value"
-      :field_size="field_size_value"
-      :colormapMin="colormapMin"
-      :colormapMax="colormapMax"
-      :colormap="colormap"
-      :dates="dates"
-      :animate="animate"
-      :history_color="history_color"
-      :history_size="history_size"
-      :exclude_test="exclude_test"
-      :exclude_third_party="exclude_third_party"
-      @zoomin="path.push($event); updateUrl(0, 1)"
-      @animationend="animationEnd()"
-      ref="treemap"
-      >
-    </Treemap>
+    <div class="treemap-frame" :class="{ 'is-fullscreen': fullscreen }">
+      <div v-if="fullscreen" class="fullscreen-toolbar">
+        <button type="button" class="button" :disabled="path.length == 0" @click="path = path.slice(0, -1)">
+          <UiIcon name="arrow-up" size="small" /><span>Up</span>
+        </button>
+        <span class="fullscreen-path">{{ ['', ...path].join('/') || '/' }}</span>
+        <button type="button" class="button" aria-label="Exit full screen" @click="fullscreen = false">
+          <UiIcon name="fullscreen-exit" size="small" />
+        </button>
+      </div>
+      <Treemap
+        :repositories="repositories"
+        :path="path"
+        :field_color="field_color_value"
+        :field_size="field_size_value"
+        :colormapMin="colormapMin"
+        :colormapMax="colormapMax"
+        :colormap="colormap"
+        :dates="dates"
+        :animate="animate"
+        :history_color="history_color"
+        :history_size="history_size"
+        :exclude_test="exclude_test"
+        :exclude_third_party="exclude_third_party"
+        @zoomin="path.push($event); updateUrl(0, 1)"
+        @animationend="animationEnd()"
+        ref="treemap"
+        >
+      </Treemap>
+    </div>
     <div class="section">
       <div class="form-row">
         <UiField expanded>
@@ -150,38 +166,33 @@
       </ul>
     </section>
 
-    <section class="section content">
-      <h2 class="title is-5">
-        How to read the treemap:
-      </h2>
-      <ul>
-        <li>The area of rectangle is proportional to:
-          <span class="fraction">
-            {{ field_size_value.join(" + ") }}
-          </span>
-        </li>
-        <li> The color is the proportional to:
-          <div class="fraction">
-            <span class="numerator">
-              {{ field_color_value.join(" + ") }}
-            </span>
-            <span class="denominator">
+    <section class="section">
+      <AboutData>
+        <ul>
+          <li>The area of rectangle is proportional to:
+            <span class="fraction">
               {{ field_size_value.join(" + ") }}
             </span>
-          </div>
-        </li>
-      </ul>
-      <h3 class="title is-5">
-        Datasets
-      </h3>
-      <p class="mt-2">
-        Content is updated <strong>weekly</strong>.
-        <br/>
-        To add a new dataset, please edit the yaml files in the
-        <a href="https://github.com/ArthurSonzogni/CommitTracker/tree/main/treemap">
-          <code>treemap/</code> directory.
-        </a>
-      </p>
+          </li>
+          <li> The color is the proportional to:
+            <div class="fraction">
+              <span class="numerator">
+                {{ field_color_value.join(" + ") }}
+              </span>
+              <span class="denominator">
+                {{ field_size_value.join(" + ") }}
+              </span>
+            </div>
+          </li>
+          <li>
+            Content is updated <strong>weekly</strong>.
+            To add a new dataset, please edit the yaml files in the
+            <a href="https://github.com/ArthurSonzogni/CommitTracker/tree/main/treemap">
+              <code>treemap/</code> directory.
+            </a>
+          </li>
+        </ul>
+      </AboutData>
     </section>
 
   </div>
@@ -287,6 +298,15 @@ const exclude_third_party = ref(false);
 if (route.query.exclude_third_party !== undefined) {
   exclude_third_party.value = true;
 }
+
+const fullscreen = ref(false);
+const exitFullscreenOnEscape = (event: KeyboardEvent) => {
+  if (event.key === "Escape") {
+    fullscreen.value = false;
+  }
+};
+onMounted(() => window.addEventListener("keydown", exitFullscreenOnEscape));
+onUnmounted(() => window.removeEventListener("keydown", exitFullscreenOnEscape));
 
 const animate = ref(false);
 const animate_speed = ref(1);
@@ -429,6 +449,40 @@ section {
     padding: 0.3em;
   }
 
+}
+
+.treemap-frame.is-fullscreen {
+  background: var(--surface);
+  inset: 0;
+  overflow: auto;
+  position: fixed;
+  z-index: 50;
+}
+
+.fullscreen-toolbar {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem 0;
+}
+
+.fullscreen-path {
+  color: var(--muted);
+  flex: 1;
+  font-size: 0.85rem;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* In full screen, the treemap fills the screen, without the history chart. */
+.is-fullscreen :deep(.split-view) {
+  height: calc(100dvh - 3rem);
+}
+
+.is-fullscreen :deep(.split-view > div:not(.treemap-container)) {
+  display: none;
 }
 
 .bounds {

@@ -6,6 +6,7 @@
     <NuxtPage>
     </NuxtPage>
     </NuxtLayout>
+    <SiteFooter/>
   </div>
 </template>
 
