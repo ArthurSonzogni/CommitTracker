@@ -23,7 +23,7 @@ export default defineNuxtConfig({
 
   // Avoid watching the heavy data directories in dev. Patterns without a
   // trailing slash, as Nuxt's watcher tests directory paths without one.
-  ignore: isDev ? ['public', 'importer'] : [],
+  ignore: isDev ? ['public', 'importer', 'dist', '.output'] : [],
 
   site: {
     url: 'https://chrome-commit-tracker.arthursonzogni.com',
@@ -94,7 +94,7 @@ export default defineNuxtConfig({
       driver: 'fs',
       readOnly: true,
       base: path.resolve(),
-      ignore: ['**/node_modules/**', '**/.git/**', '**/public/**', '**/importer/**'],
+      ignore: ['**/node_modules/**', '**/.git/**', '**/public/**', '**/importer/**', '**/dist/**', '**/.output/**'],
     }])) : {},
 
     // Proxy requests for files in public/ to the data server. Matching on
