@@ -101,6 +101,9 @@ const sleep = async (delay = 500) => {
 // Setup a timer updating the repository every 5 seconds
 // An animation will be triggered in the UI
 const main = async() => {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    return;
+  }
 
   // Select 5 random repositories to cycle through.
   const next_repository = repositories_json

@@ -29,6 +29,11 @@ export default defineNuxtConfig({
     url: 'https://chrome-commit-tracker.arthursonzogni.com',
   },
 
+  // Crossfade between pages. Skipped when the user prefers reduced motion.
+  app: {
+    viewTransition: true,
+  },
+
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
     title: 'chrome-commit-tracker',
