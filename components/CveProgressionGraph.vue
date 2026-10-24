@@ -10,10 +10,10 @@
       <g ref="axis_y2_ref"></g>
 
       <g>
-        <rect x="45" y="10" width="10" height="10" fill="blue"></rect>
+        <rect x="45" y="10" width="10" height="10" fill="#2a78d6"></rect>
         <text x="60" y="20">Historical</text>
         <template v-if="projection">
-          <rect x="45" y="30" width="10" height="10" fill="#FFA500"></rect>
+          <rect x="45" y="30" width="10" height="10" fill="#eb6834"></rect>
           <text x="60" y="40">Projection</text>
         </template>
       </g>
@@ -64,7 +64,7 @@
 
       <g ref="tooltip_indicators_group_ref" style="display: none; pointer-events: none;">
         <line ref="tooltip_line_ref" stroke="black" stroke-width="1" stroke-dasharray="3,3" y1="0" y2="400"></line>
-        <circle ref="tooltip_circle_ref" r="4" fill="blue" stroke="white" stroke-width="2"></circle>
+        <circle ref="tooltip_circle_ref" r="4" fill="#2a78d6" stroke="white" stroke-width="2"></circle>
       </g>
 
       <g ref="tooltip_label_group_ref" style="display: none; pointer-events: none;">
@@ -74,7 +74,7 @@
 
       <g ref="tooltip_indicators_group_ref_2" style="display: none; pointer-events: none;">
         <line ref="tooltip_line_ref_2" stroke="black" stroke-width="1" stroke-dasharray="3,3" y1="0" y2="400"></line>
-        <circle ref="tooltip_circle_ref_2" r="4" fill="blue" stroke="white" stroke-width="2"></circle>
+        <circle ref="tooltip_circle_ref_2" r="4" fill="#2a78d6" stroke="white" stroke-width="2"></circle>
       </g>
 
       <g ref="tooltip_label_group_ref_2" style="display: none; pointer-events: none;">
@@ -399,14 +399,14 @@ const onMouseMove = (event: MouseEvent | TouchEvent) => {
       const d_high: [Date, number] = [target_date, val_high_inverted];
       
       // Render high projection tooltip (main one)
-      renderTooltip(1, d_high, true, "#FFA500");
+      renderTooltip(1, d_high, true, "#eb6834");
       
       // Render low projection tooltip (second one)
-      renderTooltip(2, d_low, true, "#FFA500");
+      renderTooltip(2, d_low, true, "#eb6834");
       
   } else {
       // Historical or no projection: show single tooltip
-      renderTooltip(1, best_d, false, "blue");
+      renderTooltip(1, best_d, false, "#2a78d6");
       
       // Hide second tooltip
       if (tooltip_indicators_group_ref_2.value) tooltip_indicators_group_ref_2.value.style.display = "none";
@@ -535,7 +535,7 @@ const render = () => {
   graph
     .attr("style", `filter: url(#glow-${props.year});`)
     .attr("fill", "none")
-    .attr("stroke", "blue")
+    .attr("stroke", "#2a78d6")
     .attr("transform", `translate(${margin.left}, ${margin.top})`)
     .data([cve_dates])
     .transition(t)
@@ -551,7 +551,7 @@ const render = () => {
       proj_low
         .attr("style", `filter: url(#glow-${props.year});`)
         .attr("fill", "none")
-        .attr("stroke", "#FFA500")
+        .attr("stroke", "#eb6834")
         .attr("transform", `translate(${margin.left}, ${margin.top})`)
         .attr("stroke-dasharray", "5,5")
         .data([projection_dates_low])
@@ -570,7 +570,7 @@ const render = () => {
       proj_high
         .attr("style", `filter: url(#glow-${props.year});`)
         .attr("fill", "none")
-        .attr("stroke", "#FFA500")
+        .attr("stroke", "#eb6834")
         .attr("transform", `translate(${margin.left}, ${margin.top})`)
         .attr("stroke-dasharray", "5,5")
         .data([projection_dates_high])

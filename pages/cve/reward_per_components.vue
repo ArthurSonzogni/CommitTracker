@@ -48,7 +48,7 @@ import { select } from "d3-selection";
 import { sankey } from "d3-sankey";
 import { sankeyLeft } from "d3-sankey";
 import { scaleOrdinal } from "d3-scale";
-import { schemeCategory10 } from "d3-scale-chromatic";
+import { categoricalPalette } from "~/utils/palette";
 import { format } from "d3-format";
 import { path } from "d3-path";
 import { pointer } from "d3-selection";
@@ -93,7 +93,7 @@ const updateUrl = () => {
   });
 };
 
-const color = scaleOrdinal(schemeCategory10);
+const color = scaleOrdinal(categoricalPalette);
 
 let data = {}
 

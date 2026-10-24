@@ -128,7 +128,7 @@ const refresh = async () => {
 
   const color_scale = scalePow()
     .domain([0, max_value_98percentile + 1])
-    .range(["#eeeeee", "green"])
+    .range(["#ededf2", "#1c5cab"])
     .exponent(0.7);
 
 

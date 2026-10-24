@@ -263,6 +263,7 @@ const bars = (svg) => {
         rect
           .attr("fill", d => $color(d[0]))
           .attr("opacity", 0.5)
+          .attr("rx", 4)
           .attr("x", x(0))
           .attr("height", y.bandwidth())
           .call(updateRect)

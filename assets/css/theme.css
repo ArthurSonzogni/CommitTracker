@@ -469,6 +469,11 @@ strong {
   color: var(--accent-ink);
 }
 
+/* Developer tags get their chart color as background (DevelopersInput). */
+.taginput .tag:not(body) {
+  color: #fff;
+}
+
 .tag:not(body).is-danger {
   background: #fdecee;
   color: #b4232f;
@@ -762,4 +767,20 @@ strong {
 
 .frame img {
   display: block;
+}
+
+/* Charts (d3 axes) --------------------------------------------------------- */
+
+svg .domain {
+  stroke: var(--line-strong);
+}
+
+svg .tick line {
+  stroke: var(--line);
+}
+
+svg .tick text {
+  fill: var(--muted);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
 }

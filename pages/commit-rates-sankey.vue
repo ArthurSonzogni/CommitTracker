@@ -144,7 +144,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { select, pointer } from "d3-selection";
 import { sankey, sankeyLeft } from "d3-sankey";
 import { scaleOrdinal } from "d3-scale";
-import { schemeCategory10 } from "d3-scale-chromatic";
+import { categoricalPalette } from "~/utils/palette";
 import { format } from "d3-format";
 import "d3-transition";
 import { transition } from "d3-transition";
@@ -532,7 +532,7 @@ async function buildGraphData(startPath: string) {
 
 // --- Rendering ---
 
-const colorScale = scaleOrdinal(schemeCategory10);
+const colorScale = scaleOrdinal(categoricalPalette);
 
 async function render() {
   if (!svgRef.value) return;

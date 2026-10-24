@@ -1,7 +1,6 @@
-import { color } from "d3-color";
 import { scaleOrdinal } from "d3-scale";
-import { schemeCategory10 } from "d3-scale-chromatic";
+import { categoricalPalette } from "~/utils/palette";
 
 export default defineNuxtPlugin(nuxtApp => {
-  nuxtApp.provide('color', scaleOrdinal(schemeCategory10));
+  nuxtApp.provide('color', scaleOrdinal(categoricalPalette));
 })
