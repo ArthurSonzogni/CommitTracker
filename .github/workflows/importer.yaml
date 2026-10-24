@@ -78,9 +78,9 @@ jobs:
           echo "run_commit_rates=$DO_COMMIT_RATES" >> $GITHUB_OUTPUT
 
       - name: Setup node env
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '23'
+          node-version: '22'
 
       - name: Checkout main repository
         uses: actions/checkout@v4
