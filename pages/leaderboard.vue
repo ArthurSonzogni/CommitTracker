@@ -186,3 +186,13 @@ watch([
   });
 });
 </script>
+
+<style scoped>
+/* Let the radio button groups wrap on narrow screens. */
+:deep(.field.is-grouped > .field) {
+  flex-shrink: 1;
+}
+:deep(.field.has-addons) {
+  flex-wrap: wrap;
+}
+</style>

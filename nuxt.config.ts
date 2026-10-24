@@ -1,3 +1,7 @@
+import fs from 'fs'
+import path from 'path'
+import { defineEventHandler, proxyRequest } from 'h3'
+
 const isDev = process.env.NODE_ENV === 'development'
 
 console.log('--- NUXT CONFIG LOADED ---')
@@ -16,6 +20,10 @@ export default defineNuxtConfig({
   dir: {
     public: isDev ? 'public_dev' : 'public'
   },
+
+  // Avoid watching the heavy data directories in dev. Patterns without a
+  // trailing slash, as Nuxt's watcher tests directory paths without one.
+  ignore: isDev ? ['public', 'importer'] : [],
 
   site: {
     url: 'https://chrome-commit-tracker.arthursonzogni.com',
@@ -75,16 +83,28 @@ export default defineNuxtConfig({
         dir: 'public_dev'
       }
     ] : [],
-    devProxy: isDev ? {
-      '/data/': { target: 'http://localhost:3001/data/', changeOrigin: true },
-      '/commit_rates/': { target: 'http://localhost:3001/commit_rates/', changeOrigin: true },
-      '/treemap/': { target: 'http://localhost:3001/treemap/', changeOrigin: true },
-      '/community-map/': { target: 'http://localhost:3001/community-map/', changeOrigin: true },
-      '/fuzz-test/': { target: 'http://localhost:3001/fuzz-test/', changeOrigin: true },
-      '/cve/': { target: 'http://localhost:3001/cve/', changeOrigin: true },
-      '/badges/': { target: 'http://localhost:3001/badges/', changeOrigin: true },
-      '/badges.json': { target: 'http://localhost:3001/badges.json', changeOrigin: true },
-    } : {}
+    // Nitro's default dev storage watches the whole project recursively. Skip
+    // the heavy data directories to avoid exhausting the inotify watchers.
+    devStorage: isDev ? Object.fromEntries(['root', 'src'].map(mount => [mount, {
+      driver: 'fs',
+      readOnly: true,
+      base: path.resolve(),
+      ignore: ['**/node_modules/**', '**/.git/**', '**/public/**', '**/importer/**'],
+    }])) : {},
+
+    // Proxy requests for files in public/ to the data server. Matching on
+    // file existence rather than prefix, because some pages share their name
+    // with a data directory (e.g. /treemap, /cve/list).
+    devHandlers: isDev ? [{
+      route: '/',
+      handler: defineEventHandler(event => {
+        const pathname = decodeURIComponent(event.path.split('?')[0]);
+        const file = path.join('public', pathname);
+        if (fs.statSync(file, { throwIfNoEntry: false })?.isFile()) {
+          return proxyRequest(event, `http://localhost:3001${event.path}`);
+        }
+      }),
+    }] : []
   }
 })
 

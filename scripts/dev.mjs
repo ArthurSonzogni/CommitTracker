@@ -18,6 +18,9 @@ async function setupDevPublic() {
     await fs.symlink('../public/CNAME', path.join(publicDevDir, 'CNAME'));
     // On Windows, symlink type 'dir' is important
     await fs.symlink('../public/img', path.join(publicDevDir, 'img'), 'junction');
+    // Imported by components/CommunityMapDemo.vue.
+    await fs.mkdir(path.join(publicDevDir, 'community-map'));
+    await fs.symlink('../../public/community-map/illustration.jpg', path.join(publicDevDir, 'community-map', 'illustration.jpg'));
     console.log('[Dev Setup] Symlinks created successfully.');
   } catch (err) {
     console.error('[Dev Setup] Error creating symlinks:', err);
