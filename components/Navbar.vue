@@ -17,6 +17,13 @@
           </svg>
           <span class="brand-name">Commit<span>Tracker</span></span>
         </b-navbar-item>
+        <a
+          role="button"
+          class="navbar-item search-icon is-hidden-desktop"
+          aria-label="Search"
+          @click="paletteOpen = true">
+          <b-icon icon="magnify"></b-icon>
+        </a>
       </template>
 
       <template #start>
@@ -137,6 +144,13 @@
       </template>
 
       <template #end>
+        <div class="navbar-item is-hidden-touch">
+          <button class="search-pill" @click="paletteOpen = true">
+            <b-icon icon="magnify" size="is-small"></b-icon>
+            <span>Search</span>
+            <kbd>{{ shortcut }}</kbd>
+          </button>
+        </div>
         <b-navbar-item
           class="github-link"
           href="https://github.com/ArthurSonzogni/CommitTracker">
@@ -147,6 +161,16 @@
     </b-navbar>
   </div>
 </template>
+
+<script setup lang="ts">
+const paletteOpen = useState("command-palette-open", () => false);
+const shortcut = ref("Ctrl K");
+onMounted(() => {
+  if (/Mac|iPhone|iPad/.test(navigator.platform)) {
+    shortcut.value = "⌘K";
+  }
+});
+</script>
 
 <style scoped>
 .site-header {
@@ -184,5 +208,43 @@
 
 .github-link {
   color: var(--muted) !important;
+}
+
+.search-icon {
+  color: var(--ink-2) !important;
+  margin-left: auto;
+}
+
+.search-pill {
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  box-shadow: var(--shadow-xs);
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  font-size: 0.8rem;
+  gap: 0.4rem;
+  height: 2rem;
+  padding: 0 0.4rem 0 0.7rem;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.search-pill:hover {
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+.search-pill span {
+  margin-right: 1.5rem;
+}
+
+.search-pill kbd {
+  background: var(--surface-sunken);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  padding: 0.1rem 0.45rem;
 }
 </style>
