@@ -15,23 +15,16 @@
           === 1 ? '' : 's' }}</strong>, displaying activity over <strong>{{
           displayedDurationLabel }}</strong>.
 
-        <b-field>
-          <b-slider
-            v-model="smoothingWindow"
-            :min="1"
-            :max="52"
-            :step="1"
-            size="is-medium"
-            type="is-info"
-            ></b-slider>
-        </b-field>
+        <UiField>
+          <UiSlider v-model="smoothingWindow" :min="1" :max="52" :step="1"></UiSlider>
+        </UiField>
 
 
-        <b-field>
-          <b-checkbox v-model="showDeleted">
+        <UiField>
+          <UiCheckbox v-model="showDeleted">
             Show deleted files
-          </b-checkbox>
-        </b-field>
+          </UiCheckbox>
+        </UiField>
       </div>
 
       <div class="level mb-4">
@@ -149,12 +142,7 @@
             </div>
 
             <div class="column is-2 is-flex is-align-items-center">
-                <b-progress
-                  :value="5+item.activityScore * 95"
-                  :type="getScoreColor(item.activityScore)"
-                  size="is-small"
-                  style="width: 100%; margin-bottom: 0; opacity: 0.8;"
-                ></b-progress>
+                <progress class="progress is-small" style="width: 100%; margin-bottom: 0; opacity: 0.8;" :class="getScoreColor(item.activityScore)" max="100" :value="5+item.activityScore * 95"></progress>
             </div>
 
             <div class="column is-2 has-text-right is-family-monospace is-flex is-align-items-center is-justify-content-flex-end">

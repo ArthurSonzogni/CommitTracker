@@ -1,5 +1,5 @@
 <template>
-  <div class="field has-addons b-numberinput">
+  <div class="field has-addons ui-number-input">
     <p class="control">
       <button
         type="button"
@@ -7,7 +7,7 @@
         aria-label="Decrement"
         :disabled="min !== undefined && value - step < min"
         @click="update(value - step)">
-        <BIcon icon="minus" size="is-small" />
+        <UiIcon name="minus" size="small" />
       </button>
     </p>
     <div class="control is-expanded">
@@ -27,20 +27,19 @@
         aria-label="Increment"
         :disabled="max !== undefined && value + step > max"
         @click="update(value + step)">
-        <BIcon icon="plus" size="is-small" />
+        <UiIcon name="plus" size="small" />
       </button>
     </p>
   </div>
 </template>
 
 <script setup lang="ts">
-// A number input with -/+ buttons. Compatible with Buefy's <b-numberinput>.
+// A number input with -/+ buttons.
 
 const props = withDefaults(defineProps<{
   min?: number | string;
   max?: number | string;
   step?: number | string;
-  controlsPosition?: string;
 }>(), {
   step: 1,
 });
@@ -61,17 +60,17 @@ const update = (newValue: number) => {
 </script>
 
 <style scoped>
-.b-numberinput {
+.ui-number-input {
   margin-bottom: 0;
 }
 
-.b-numberinput input {
+.ui-number-input input {
   text-align: center;
   -moz-appearance: textfield;
 }
 
-.b-numberinput input::-webkit-inner-spin-button,
-.b-numberinput input::-webkit-outer-spin-button {
+.ui-number-input input::-webkit-inner-spin-button,
+.ui-number-input input::-webkit-outer-spin-button {
   appearance: none;
   margin: 0;
 }

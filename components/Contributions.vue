@@ -1,6 +1,7 @@
 <template>
   <BarChart
     :timeLabel="timeLabel"
+    :valueLabel="valueLabel"
     :data="data"
     :formatter="formatter"
     >
@@ -32,6 +33,7 @@ for(const repo of repositories) {
 const label = ref<string>("label");
 const data = shallowRef([]);
 const formatter = ref(format(",d"));
+const valueLabel = ref("");
 
 const sortRepositories = function(a,b) {
   const items = repositories.map(item => item.dirname);
@@ -94,7 +96,7 @@ const traits = function() {
     return {
       label: "Contributors",
       graphLabel: () => "Contributors",
-      formatter: v => format(",d")(v) + " 🧍",
+      formatter: v => format(",d")(v),
       solidify: data => {
         const acc = {};
         for(const user in data) {
@@ -113,7 +115,7 @@ const traits = function() {
     return {
       label: "First time contributor",
       graphLabel: () => "# First time contributors",
-      formatter: v => format(",d")(v) + " 🧍",
+      formatter: v => format(",d")(v),
       solidify: data => {
         const acc = {}
         for(const user in data) {
@@ -132,7 +134,7 @@ const traits = function() {
     return {
       label: "Last time contributor",
       graphLabel: () => "# Last time contributors",
-      formatter: v => format(",d")(v) + " 🧍",
+      formatter: v => format(",d")(v),
       solidify: data => {
         const acc = {}
         for(const user in data) {
@@ -149,9 +151,9 @@ const traits = function() {
 
   if (props.what == "commit") {
     return {
-      label: "Commit",
+      label: "Commits",
       graphLabel: (repo) => repo,
-      formatter: v => format(",d")(v) + " ⚙️",
+      formatter: v => format(",d")(v),
       solidify: data => {
         const acc = {}
         for(const user in data) {
@@ -189,7 +191,7 @@ const traitsPerContributor = function() {
     return {
       label: "Contribution",
       graphLabel: () => "Commit",
-      formatter: v => format(".2f")(v) + " ⚙️",
+      formatter: v => format(".2f")(v),
       solidify: data => {
         return contributionPerYear(data, c => {
           return c.reduce((a,b) => a+b, 0) / c.length;
@@ -202,7 +204,7 @@ const traitsPerContributor = function() {
     return {
       label: "Contribution",
       graphLabel: () => "Commit",
-      formatter: v => format(",d")(v) + " ⚙️",
+      formatter: v => format(",d")(v),
       solidify: data => {
         return contributionPerYear(data, c => {
           return quantile(c, props.percentile / 100);
@@ -215,7 +217,7 @@ const traitsPerContributor = function() {
     return {
       label: "Contribution",
       graphLabel: (repo) => repo == "solidified" ? "Commit" : repo,
-      formatter: v => format(",d")(v) + " ⚙️",
+      formatter: v => format(",d")(v),
       solidify: data => {
         return contributionPerYear(data, c => {
           return top(c, props.individual)
@@ -228,7 +230,7 @@ const traitsPerContributor = function() {
     return {
       label: "Contribution",
       graphLabel: (repo) => repo,
-      formatter: v => format(",d")(v) + " ⚙️",
+      formatter: v => format(",d")(v),
       solidify: data => {
         const acc = {};
         for(const user of props.developers) {
@@ -246,7 +248,7 @@ const traitsPerContributor = function() {
     return {
       label: "Rank",
       graphLabel: () => "Rank",
-      formatter: v => format(",d")(v) + " 🏆",
+      formatter: v => format(",d")(v),
       solidify: data => {
         const contributions = contributionPerYear(data, x => x);
 
@@ -273,7 +275,7 @@ const traitsPerContributor = function() {
     return {
       label: "Rank (%)",
       graphLabel: () => "Rank %",
-      formatter: v => format(".2f")(v) + "% 🏆",
+      formatter: v => format(".2f")(v) + "%",
       solidify: data => {
         const contributions = contributionPerYear(data, x => x);
 
@@ -323,6 +325,7 @@ const refresh = async function() {
   const t = traits();
   label.value = t.label;
   formatter.value = t.formatter;
+  valueLabel.value = t.label;
 
   const graphLabel = t.graphLabel;
   const new_data = {};

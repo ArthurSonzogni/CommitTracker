@@ -13,69 +13,38 @@
           :allowAll="true"
           />
 
-        <b-field grouped group-multiline>
-          <b-field label="As:">
-            <b-radio-button
-              name="kind"
+        <div class="form-row">
+          <UiField label="As">
+            <UiSegmented
               v-model="kind"
-              native-value="author"
-            >
-              author
-            </b-radio-button>
-            <b-radio-button
-              name="kind"
-              v-model="kind"
-              native-value="review"
-            >
-              Review
-            </b-radio-button>
-            <b-radio-button name="kind" v-model="kind" native-value="both">
-              both
-            </b-radio-button>
-          </b-field>
+              :options="[
+              { value: 'author', label: 'author' },
+              { value: 'review', label: 'Review' },
+              { value: 'both', label: 'both' },
+            ]" />
+          </UiField>
 
-          <b-field label="Grouping:">
-            <b-radio-button
-              name="grouping"
+          <UiField label="Grouping">
+            <UiSegmented
               v-model="grouping"
-              native-value="forever">
-              Forever
-            </b-radio-button>
-            <b-radio-button
-              name="grouping"
-              v-model="grouping"
-              native-value="decennial">
-              Decennial
-            </b-radio-button>
-            <b-radio-button
-              name="grouping"
-              v-model="grouping"
-              native-value="yearly">
-              Yearly
-            </b-radio-button>
-            <b-radio-button
-              name="grouping"
-              v-model="grouping"
-              native-value="quarterly">
-              Quarterly
-            </b-radio-button>
-            <b-radio-button
-              name="grouping"
-              v-model="grouping"
-              native-value="monthly">
-              Monthly
-            </b-radio-button>
-          </b-field>
+              :options="[
+              { value: 'forever', label: 'Forever' },
+              { value: 'decennial', label: 'Decennial' },
+              { value: 'yearly', label: 'Yearly' },
+              { value: 'quarterly', label: 'Quarterly' },
+              { value: 'monthly', label: 'Monthly' },
+            ]" />
+          </UiField>
 
-          <b-field label="type">
-            <b-select v-model="type">
+          <UiField label="type">
+            <UiSelect v-model="type">
               <option value="commit">Commits</option>
               <option value="lines">Lines</option>
               <option value="added_lines">Additions</option>
               <option value="deleted_lines">Deletions</option>
-            </b-select>
-          </b-field>
-        </b-field>
+            </UiSelect>
+          </UiField>
+        </div>
 
         <!--If props.type is "line", display a warning that this is heavily biased-->
         <!--around large scale refactoring and large deletion.-->

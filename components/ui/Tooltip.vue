@@ -1,41 +1,36 @@
 <template>
   <span
-    class="b-tooltip"
-    :class="[position, { 'is-multiline': multilined, 'is-always': always, 'is-dashed': dashed }]"
+    class="ui-tooltip"
+    :class="[`is-${position}`, { 'is-multiline': multiline, 'is-dashed': dashed }]"
     @mouseenter="hovered = true"
     @mouseleave="hovered = false"
     @focusin="hovered = true"
     @focusout="hovered = false">
-    <span v-show="active && (hovered || always)" class="tooltip-content" role="tooltip">
-      <slot name="content">{{ label }}</slot>
+    <span v-show="hovered" class="tooltip-content" role="tooltip">
+      <slot name="content">{{ text }}</slot>
     </span>
     <span class="tooltip-trigger"><slot /></span>
   </span>
 </template>
 
 <script setup lang="ts">
-// A tooltip over its content, on hover and focus. Compatible with Buefy's
-// <b-tooltip>.
+// A tooltip over its content, on hover and focus.
 
 withDefaults(defineProps<{
-  label?: string;
-  // is-top, is-bottom, is-left, is-right.
-  position?: string;
-  type?: string;
-  multilined?: boolean;
-  always?: boolean;
+  text?: string;
+  position?: "top" | "bottom" | "left" | "right";
+  multiline?: boolean;
+  // Underline the content, hinting at the tooltip.
   dashed?: boolean;
-  active?: boolean;
 }>(), {
-  position: "is-top",
-  active: true,
+  position: "top",
 });
 
 const hovered = ref(false);
 </script>
 
 <style scoped>
-.b-tooltip {
+.ui-tooltip {
   display: inline-flex;
   position: relative;
 }

@@ -26,12 +26,9 @@
             {{ o.org }}
           </div>
           <div class="card-header-title">
-            <b-tooltip
-              :label="o.username_size + ' unique usernames'"
-              position="is-bottom"
-              type="is-light">
+            <UiTooltip :text="o.username_size + ' unique usernames'" position="bottom">
               <div>{{ o.emails.length }} emails</div>
-            </b-tooltip>
+            </UiTooltip>
           </div>
         </div>
 

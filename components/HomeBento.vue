@@ -11,7 +11,7 @@
           <div class="bento-preview is-image">
             <img src="/community-map/illustration.jpg" alt="" loading="lazy" />
           </div>
-          <span class="bento-link">Explore communities <b-icon icon="arrow-right" size="is-small"></b-icon></span>
+          <span class="bento-link">Explore communities <UiIcon name="arrow-right" size="small"></UiIcon></span>
         </NuxtLink>
 
         <NuxtLink to="/individuals" class="bento-card is-individuals">
@@ -40,7 +40,7 @@
             </ul>
             <p class="bento-caption">Commits per year of the top authors of {{ latestYear }}</p>
           </div>
-          <span class="bento-link">Explore developers <b-icon icon="arrow-right" size="is-small"></b-icon></span>
+          <span class="bento-link">Explore developers <UiIcon name="arrow-right" size="small"></UiIcon></span>
         </NuxtLink>
 
         <NuxtLink to="/repositories" class="bento-card is-repositories">
@@ -63,7 +63,7 @@
             </svg>
             <p class="bento-caption">Chromium commits per year</p>
           </div>
-          <span class="bento-link">Explore repositories <b-icon icon="arrow-right" size="is-small"></b-icon></span>
+          <span class="bento-link">Explore repositories <UiIcon name="arrow-right" size="small"></UiIcon></span>
         </NuxtLink>
 
         <NuxtLink to="/treemap" class="bento-card is-treemap">
@@ -86,7 +86,7 @@
               />
             </svg>
           </div>
-          <span class="bento-link">Explore the treemap <b-icon icon="arrow-right" size="is-small"></b-icon></span>
+          <span class="bento-link">Explore the treemap <UiIcon name="arrow-right" size="small"></UiIcon></span>
         </NuxtLink>
 
       </div>

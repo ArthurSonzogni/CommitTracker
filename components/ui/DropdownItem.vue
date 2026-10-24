@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-// An item of <b-dropdown>. Compatible with Buefy's <b-dropdown-item>.
+// An item of <UiDropdown>.
 
 const props = defineProps<{ value?: any }>();
 

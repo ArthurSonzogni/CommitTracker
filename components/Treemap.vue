@@ -238,9 +238,6 @@ function download(kind) {
 
 }
 
-defineExpose({
-  download,
-});
 
 const get_file_index = () => {
   if (props.exclude_test && props.exclude_third_party) {
@@ -275,6 +272,26 @@ const svgHeight = () => {
   return container.value?.clientHeight;
 }
 
+// The colormap domain. The bounds not given by the user are centered on the
+// ratio of the displayed directory, so that its children contrast.
+const color_domain = ref([0, 1]);
+const parseBound = (value) => {
+  const number = parseFloat(value);
+  return isNaN(number) ? null : number;
+};
+const updateColorDomain = function(data) {
+  const ratio = data.data.area > 0 ? data.data.color / data.data.area : 0;
+  color_domain.value = [
+    parseBound(props.colormapMin) ?? 0,
+    parseBound(props.colormapMax) ?? (2 * ratio || 1),
+  ];
+};
+
+defineExpose({
+  download,
+  color_domain,
+});
+
 const renderGroup = function(group, x, y) {
   return group.attr("transform", d => `translate(${x(d.x0)}, ${y(d.y0)})`) ;
 };
@@ -289,7 +306,7 @@ const renderRect = function(rect, x, y, hover) {
     .attr('height', d => y(d.y1) - y(d.y0))
     .style("fill", d => {
       const colorScale = scaleLinear()
-        .domain([props.colormapMin || 0, props.colormapMax || 1])
+        .domain(color_domain.value)
         .range([0, 1])
       ;
       const color = d.data.color;
@@ -312,7 +329,7 @@ const initText = function(text, index) {
 
 const renderText = function(text, index, data) {
   const colorScale = scaleLinear()
-    .domain([props.colormapMin || 0, props.colormapMax || 1])
+    .domain(color_domain.value)
     .range([0, 1])
   ;
 
@@ -523,6 +540,7 @@ const zoomin = function(child) {
 };
 
 const zoom = async function(data_old, data_new) {
+  updateColorDomain(data_new);
   const transition_imm = transition()
     .duration(0)
     .ease(easeCubicInOut)
@@ -1022,6 +1040,7 @@ async function refresh() {
   }
 
   const data = getCurrentDataFromPath(props.path);
+  updateColorDomain(data);
 
   const group =
     select(content.value)

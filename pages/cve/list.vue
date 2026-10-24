@@ -2,22 +2,15 @@
   <div>
     <Navbar/>
 
-    <b-loading
-      v-if="loading"
-      v-model="loading"
-      :is-full-page="true" ></b-loading>
+    <UiLoading v-if="loading" v-model="loading" :is-full-page="true"></UiLoading>
 
-    <section class="section">
+    <section class="section pb-2">
       <div class="container content">
         <h1 class="title">
             Chromium CVEs
-            <b-button
-              class="ml-4"
-              @click="readme = !readme"
-              :type="readme ? '' : 'is-info'"
-            >
+            <button type="button" class="button ml-4" @click="readme = !readme" :class="readme ? '' : 'is-info'">
               Readme
-            </b-button>
+            </button>
         </h1>
 
         <div v-if="readme">
@@ -41,81 +34,65 @@
 
         </div>
 
-        <b-field>
+        <FilterPanel :summary="summary">
+          <div class="form-row">
+            <UiField label="Year">
+              <UiSelect v-model="filter_date" placeholder="All" @change="updateUrl">
+                <option value="All">All</option>
+                <option v-for="year in all_years" :key="year" :value="year">
+                {{ year }}
+                </option>
+              </UiSelect>
+            </UiField>
 
-          <b-field label="Year">
-            <b-select
-              v-model="filter_date"
-              placeholder="Year"
-              @change="updateUrl"
-              >
-              <option value="All">All</option>
-              <option v-for="year in all_years" :key="year" :value="year">
-              {{ year }}
-              </option>
-            </b-select>
-          </b-field>
+            <UiField label="Component" v-if="!filter_component">
+              <UiSelect v-model="filter_component" placeholder="All" @change="updateUrl">
+                <option v-for="component in all_components" :key="component" :value="component">
+                {{ component }}
+                </option>
+              </UiSelect>
+            </UiField>
 
-          <b-field label="Component" class="ml-2" v-if="!filter_component">
-            <b-select
-              v-model="filter_component"
-              placeholder="Component"
-              @change="updateUrl"
-              >
-              <option v-for="component in all_components" :key="component" :value="component">
-              {{ component }}
-              </option>
-            </b-select>
-          </b-field>
+            <UiField label="Component" v-else>
+              <span class="tag is-medium">
+                {{ filter_component }}
+                <button
+                  type="button"
+                  class="delete is-small"
+                  aria-label="Clear the component"
+                  @click="filter_component = null"></button>
+              </span>
+            </UiField>
 
-          <b-field label="Component" class="ml-2" v-else>
-            <b-tag
-              closable
-              size="is-large"
-              @close="filter_component = null"
-              >
-              {{ filter_component }}
-            </b-tag>
-          </b-field>
+            <UiField label="Private bugs">
+              <UiSwitch v-model="hide_private" @change="updateUrl">Hide</UiSwitch>
+            </UiField>
+            <UiField label="Description">
+              <UiSwitch v-model="show_description" @change="updateUrl">Show</UiSwitch>
+            </UiField>
+          </div>
 
-          <b-field label="Private bugs" class="ml-2">
-            <b-switch v-model="hide_private" @change="updateUrl">Hide</b-switch>
-          </b-field>
-          <b-field label="Description" class="ml-2">
-            <b-switch v-model="show_description" @change="updateUrl">Show</b-switch>
-          </b-field>
-        </b-field>
-
-        <b-field label="Group by">
-          <b-radio-button v-model="group_by" native-value="version">Version</b-radio-button>
-          <b-radio-button v-model="group_by" native-value="version_major">Version major</b-radio-button>
-          <b-radio-button v-model="group_by" native-value="year">Year</b-radio-button>
-          <b-radio-button v-model="group_by" native-value="month">Month</b-radio-button>
-          <b-radio-button v-model="group_by" native-value="vrp_reward">Reward</b-radio-button>
-          <b-radio-button v-model="group_by" native-value="severity">Severity</b-radio-button>
-          <b-radio-button v-model="group_by" native-value="component">Component</b-radio-button>
-          <b-radio-button v-model="group_by" native-value="cwe">CWE</b-radio-button>
-          <b-radio-button v-model="group_by" native-value="authors">Authors</b-radio-button>
-          <b-radio-button v-model="group_by" native-value="reviewers">Reviewers</b-radio-button>
-        </b-field>
-
+          <UiField label="Group by">
+            <UiSegmented v-model="group_by" :options="group_by_options" />
+          </UiField>
+        </FilterPanel>
       </div>
     </section>
 
 
-    <section class="section" v-for="group in grouped" :key="group.key">
+    <section class="section cve-group" v-for="group in grouped" :key="group.key">
       <div class="container content">
         <h3 class="title">
           {{ group.key}}
-          <b-taglist attached style="display: inline-block;" class="mr-2
+          <div style="display: inline-block;" class="tags has-addons mr-2
           is-pulled-right">
-            <b-tag type="is-danger is-medium" style="background-color: var(--ink);">
-              {{ formatter(group.cves.total_reward) }}$
-            </b-tag>
-            <b-tag type="is-info is-medium">
+            <span class="tag is-dark is-medium">
+              {{ formatter(group.cves.total_reward) }}
+            </span>
+            <span class="tag is-info is-medium">
               {{ group.cves.length }} CVEs
-            </b-tag>
-          </b-taglist>
+            </span>
+          </div>
         </h3>
 
         <div class="grid">
@@ -125,44 +102,39 @@
             </NuxtLink>
             <div class="cve-description">
               <div class="taglist">
-                <b-tag type="is-danger is-small" v-if="!cve.bug_date">
+                <span class="tag is-danger is-small" v-if="!cve.bug_date">
                   Private bug
-                </b-tag>
+                </span>
               </div>
               <div class="taglist">
-                <b-tag type="is-info is-small" v-if="cve.vrp_reward">
-                  {{ cve.vrp_reward }}$
-                </b-tag>
+                <span class="tag is-info is-small" v-if="cve.vrp_reward">
+                  {{ formatter(cve.vrp_reward) }}
+                </span>
               </div>
               <div class="taglist">
-                <b-tag v-for="repo in cve.repos" class="ml-2"
-                                                 :style="
+                <span v-for="repo in cve.repos" class="tag ml-2" :style="
                                                  {
                                                  backgroundColor: repo_color.get(repo) || 'black',
                                                  color: 'white',
                                                  }
-                                                 "
-                                                 >
+                                                 ">
                                                  {{ repo }}
-                </b-tag>
+                </span>
               </div>
               <div class="taglist">
-                <b-tag v-if="cve.cweId" class="ml-2">
+                <span v-if="cve.cweId" class="tag ml-2">
                   {{ cve.cweId }} - {{ (cweTitle as Record<string, string>)[cve.cweId] }}
-                </b-tag>
+                </span>
               </div>
               <div class="taglist">
-                <b-tag v-if="cve.severity" class="ml-2" type="is-danger">
+                <span v-if="cve.severity" class="tag is-danger ml-2">
                   {{ cve.severity }}
-                </b-tag>
+                </span>
               </div>
               <div class="taglist">
-                <b-tag v-for="component in cve.components"
-                       class="ml-2"
-                       type="is-warning"
-                >
+                <span v-for="component in cve.components" class="tag is-warning ml-2">
                   {{ component }}
-                </b-tag>
+                </span>
               </div>
               <br>
               <span class="cve-description-text" v-if="show_description">
@@ -228,6 +200,18 @@ const all_years = computed(() => {
 const years = ref([]);
 
 const group_by = ref("version");
+const group_by_options = [
+  { value: 'version', label: 'Version' },
+  { value: 'version_major', label: 'Version major' },
+  { value: 'year', label: 'Year' },
+  { value: 'month', label: 'Month' },
+  { value: 'vrp_reward', label: 'Reward' },
+  { value: 'severity', label: 'Severity' },
+  { value: 'component', label: 'Component' },
+  { value: 'cwe', label: 'CWE' },
+  { value: 'authors', label: 'Authors' },
+  { value: 'reviewers', label: 'Reviewers' },
+];
 const grouped = ref({});
 
 const data_size = ref(0);
@@ -252,6 +236,12 @@ const filter_date = ref(null);
 if (route.query.date) {
   filter_date.value = route.query.date;
 }
+
+const summary = computed(() => [
+  filter_date.value && filter_date.value != "All" ? filter_date.value : "All years",
+  filter_component.value ?? "All components",
+  "By " + group_by_options.find(o => o.value == group_by.value)?.label,
+].join(" · "));
 
 const filter_repo = ref(null);
 if (route.query.repo) {
@@ -732,6 +722,30 @@ h3 {
 
 .taglist {
   display: inline-block;
+}
+
+.cve-group {
+  padding-bottom: 1rem;
+  padding-top: 1rem;
+}
+
+/* On narrow screens, put the CVE id above its description. */
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+    grid-gap: 0.25em;
+  }
+
+  .cve-description {
+    margin-bottom: 1em;
+  }
+
+  .cve-description .tag {
+    height: auto;
+    margin-left: 0 !important;
+    margin-right: 0.5rem;
+    white-space: normal;
+  }
 }
 
 </style>

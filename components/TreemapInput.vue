@@ -1,32 +1,14 @@
 <template>
-    <b-taginput
-        ref="input"
-        v-model="value"
-        @input="updateInput"
-        @typing="computeFilteredList"
-        :data="entryListFiltered"
-        :allow-new=false
-        autocomplete
-        icon="label"
-        field="name"
-        :placeholder="placeholder"
-        type="is-primary"
-        open-on-focus
-        >
+    <UiTagInput ref="input" v-model="value" @input="updateInput" @typing="computeFilteredList" :suggestions="entryListFiltered" :allow-new="false" icon="label" field="name" :placeholder="placeholder" open-on-focus>
         <template v-slot="props">
             <strong class="mr-2 is-size-6"
                 >{{ props.option.name }}</strong>
-            <b-tag
-                v-if="props.option.tags"
-                v-for="tag in props.option.tags"
-                :key="tag"
-                :style="{
+            <span class="tag" v-if="props.option.tags" v-for="tag in props.option.tags" :key="tag" :style="{
                     color: 'white',
                     backgroundColor: $color(tag)
-                }"
-                >
+                }">
                 {{ tag }}
-            </b-tag>
+            </span>
             <p style="font-style: italic">
                 {{ props.option.description }}
             </p>
@@ -36,7 +18,7 @@
                <strong class="is-size-4" >Metrics</strong>
             </div>
         </template>
-    </b-taginput>
+    </UiTagInput>
 </template>
 
 <script setup lang="ts">

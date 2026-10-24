@@ -1,11 +1,10 @@
 <script lang="ts">
-// A column of <b-table>. Renders nothing: <b-table> reads its props, and its
-// default slot to render the cells (with `row` and `index`). Compatible with
-// Buefy's <b-table-column>.
+// A column of <UiTable>. Renders nothing: <UiTable> reads its props, and its
+// default slot to render the cells (with `row` and `index`).
 import { defineComponent } from 'vue'
 
 export default defineComponent({
-  name: 'BTableColumn',
+  name: 'UiTableColumn',
   props: {
     field: String,
     label: String,
@@ -17,7 +16,6 @@ export default defineComponent({
     tdAttrs: Function,
     cellClass: String,
     headerClass: String,
-    draggableColumn: Boolean,
   },
   render: () => null,
 });

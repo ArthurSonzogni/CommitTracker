@@ -2,7 +2,7 @@
   <div>
     <div class="line">
       <div class="left"><strong>{{timeLabel}}</strong></div>
-      <div class="right"><strong># commit</strong></div>
+      <div class="right"><strong>{{valueLabel}}</strong></div>
     </div>
 
     <div ref="histogram" class="histogram">
@@ -28,6 +28,10 @@ const props = defineProps({
   timeLabel: {
     type: String,
     default: "",
+  },
+  valueLabel: {
+    type: String,
+    default: "Commits",
   },
   data: {
     type: Array

@@ -6,9 +6,9 @@
       alt=""
       src="https://hitscounter.dev/api/hit?url=https%3A%2F%2Fchrome-commit-tracker.arthursonzogni.com%2F&label=commit-tracker&icon=heart-fill&color=%23fd86aa"
     />
-    <b-navbar class="site-navbar">
-      <template #brand>
-        <b-navbar-item tag="router-link" :to="{ path: '/' }" class="brand">
+    <nav class="navbar site-navbar" aria-label="Main navigation">
+      <div class="navbar-brand">
+        <NuxtLink to="/" class="navbar-item brand">
           <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M6 3v18M6 8c0 4 12 2 12 7v1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             <circle cx="6" cy="6" r="2.4" fill="currentColor"/>
@@ -16,161 +16,146 @@
             <circle cx="18" cy="17" r="2.4" fill="var(--surface)" stroke="currentColor" stroke-width="2"/>
           </svg>
           <span class="brand-name">Commit<span>Tracker</span></span>
-        </b-navbar-item>
+        </NuxtLink>
         <a
           role="button"
+          tabindex="0"
           class="navbar-item search-icon is-hidden-desktop"
           aria-label="Search"
           @click="paletteOpen = true">
-          <b-icon icon="magnify"></b-icon>
+          <UiIcon name="magnify" />
         </a>
-      </template>
-
-      <template #start>
-        <b-navbar-item tag="router-link" :to="{ path: '/individuals' }">
-          Individuals
-        </b-navbar-item>
-
-        <b-navbar-item tag="router-link" :to="{ path: '/communities' }">
-          Community graph
-        </b-navbar-item>
-
-        <b-navbar-item tag="router-link" :to="{ path: '/treemap' }">
-          Treemap
-        </b-navbar-item>
-
-        <b-navbar-dropdown>
-          <template #label>
-            Repositories
-          </template>
-          <b-navbar-item tag="router-link" :to="{ path: '/repositories' }">
-            <b-icon icon="format-list-bulleted" class="mr-2"></b-icon>
-            Charts
-          </b-navbar-item>
-          <b-navbar-item tag="router-link" :to="{ path: '/pulse' }">
-            <b-icon icon="pulse" class="mr-2"></b-icon>
-            Heatmap
-          </b-navbar-item>
-        </b-navbar-dropdown>
-
-        <b-navbar-dropdown>
-          <template #label>
-            Organizations
-          </template>
-          <b-navbar-item tag="router-link" :to="{ path: '/organizations/commits' }">
-            <b-icon icon="source-branch" class="mr-2"></b-icon>
-            Commits
-          </b-navbar-item>
-          <b-navbar-item tag="router-link" :to="{ path: '/organizations/emails' }">
-            <b-icon icon="email" class="mr-2"></b-icon>
-            Emails
-          </b-navbar-item>
-        </b-navbar-dropdown>
-
-        <b-navbar-dropdown>
-          <template #label>
-            CVE
-          </template>
-
-          <b-navbar-item tag="router-link" :to="{ path: '/cve/overview' }">
-            <b-icon icon="chart-pie" class="mr-2"></b-icon>
-            Overview
-          </b-navbar-item>
-
-          <b-navbar-item tag="router-link" :to="{ path: '/cve/list' }">
-            <b-icon icon="format-list-bulleted" class="mr-2"></b-icon>
-            List
-          </b-navbar-item>
-
-          <b-navbar-item tag="router-link" :to="{ path: '/cve/pivot-table' }">
-            <b-icon icon="table" class="mr-2"></b-icon>
-            Pivot table
-          </b-navbar-item>
-
-          <b-navbar-item tag="router-link" :to="{ path:
-          '/cve/reward_per_components' }">
-            <b-icon icon="chart-sankey" class="mr-2"></b-icon>
-            Reward per component
-          </b-navbar-item>
-
-          <b-navbar-item tag="router-link" :to="{ path:
-          '/cve/money-tree' }">
-            <b-icon icon="currency-usd" class="mr-2"></b-icon>
-            Money tree
-          </b-navbar-item>
-
-        </b-navbar-dropdown>
-
-        <b-navbar-dropdown>
-          <template #label>
-            More
-          </template>
-          <b-navbar-item tag="router-link" :to="{ path: '/usernames' }">
-            <b-icon icon="email" class="mr-2"></b-icon>
-            Usernames distribution
-          </b-navbar-item>
-
-          <b-navbar-item tag="router-link" :to="{ path: '/leaderboard' }">
-            <b-icon icon="trophy" class="mr-2"></b-icon>
-            Leaderboard
-          </b-navbar-item>
-
-          <b-navbar-item tag="router-link" :to="{ path: '/badges/list' }">
-            <b-icon icon="certificate" class="mr-2"></b-icon>
-            Badges
-          </b-navbar-item>
-
-          <b-navbar-item tag="router-link" :to="{ path: '/fuzz-test' }">
-            <b-icon icon="bug" class="mr-2"></b-icon>
-            Fuzz test
-          </b-navbar-item>
-
-          <b-navbar-item tag="router-link" :to="{ path: '/api' }">
-            <b-icon icon="code-json" class="mr-2"></b-icon>
-            API
-          </b-navbar-item>
-
-          <b-navbar-item tag="router-link" :to="{ path: '/repo-info' }">
-            <b-icon icon="source-branch" class="mr-2"></b-icon>
-            Repositories tracking info
-          </b-navbar-item>
-
-          <b-navbar-item tag="router-link" :to="{ path: '/page-view' }">
-            <b-icon icon="eye" class="mr-2"></b-icon>
-            Page view
-          </b-navbar-item>
-        </b-navbar-dropdown>
-
-      </template>
-
-      <template #end>
-        <div class="navbar-item is-hidden-touch">
-          <button class="search-pill" @click="paletteOpen = true">
-            <b-icon icon="magnify" size="is-small"></b-icon>
-            <span>Search</span>
-            <kbd>{{ shortcut }}</kbd>
-          </button>
-        </div>
         <a
           role="button"
-          class="navbar-item theme-toggle"
-          :aria-label="dark ? 'Use the light theme' : 'Use the dark theme'"
-          :title="dark ? 'Light theme' : 'Dark theme'"
-          @click="toggleTheme">
-          <b-icon :icon="dark ? 'weather-sunny' : 'weather-night'"></b-icon>
+          tabindex="0"
+          class="navbar-burger"
+          :class="{ 'is-active': menuOpen }"
+          aria-label="Menu"
+          :aria-expanded="menuOpen"
+          @click="menuOpen = !menuOpen"
+          @keydown.enter.prevent="menuOpen = !menuOpen">
+          <span aria-hidden="true" />
+          <span aria-hidden="true" />
+          <span aria-hidden="true" />
         </a>
-        <b-navbar-item
-          class="github-link"
-          href="https://github.com/ArthurSonzogni/CommitTracker">
-          <b-icon icon="github" class="mr-1"></b-icon>
-          GitHub
-        </b-navbar-item>
-      </template>
-    </b-navbar>
+      </div>
+
+      <div class="navbar-menu" :class="{ 'is-active': menuOpen }">
+        <div ref="start" class="navbar-start">
+          <template v-for="entry in MENU" :key="entry.label">
+            <NuxtLink v-if="entry.to" class="navbar-item" :to="entry.to">
+              {{ entry.label }}
+            </NuxtLink>
+            <div
+              v-else
+              class="navbar-item has-dropdown is-hoverable"
+              :class="{ 'is-active': openDropdown === entry.label }"
+              @mouseleave="openDropdown = null">
+              <a
+                class="navbar-link"
+                role="button"
+                tabindex="0"
+                aria-haspopup="true"
+                :aria-expanded="openDropdown === entry.label"
+                @click="toggleDropdown(entry.label)"
+                @keydown.enter.prevent="toggleDropdown(entry.label)">
+                {{ entry.label }}
+              </a>
+              <div class="navbar-dropdown">
+                <NuxtLink
+                  v-for="item in entry.items"
+                  :key="item.to"
+                  class="navbar-item"
+                  :to="item.to">
+                  <UiIcon :name="item.icon" class="mr-2" />
+                  {{ item.label }}
+                </NuxtLink>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <div class="navbar-end">
+          <div class="navbar-item is-hidden-touch">
+            <button class="search-pill" @click="paletteOpen = true">
+              <UiIcon name="magnify" size="small" />
+              <span>Search</span>
+              <kbd>{{ shortcut }}</kbd>
+            </button>
+          </div>
+          <a
+            role="button"
+            tabindex="0"
+            class="navbar-item theme-toggle"
+            :aria-label="dark ? 'Use the light theme' : 'Use the dark theme'"
+            :title="dark ? 'Light theme' : 'Dark theme'"
+            @click="toggleTheme">
+            <UiIcon :name="dark ? 'weather-sunny' : 'weather-night'" />
+          </a>
+          <a
+            class="navbar-item github-link"
+            href="https://github.com/ArthurSonzogni/CommitTracker">
+            <UiIcon name="github" class="mr-1" />
+            GitHub
+          </a>
+        </div>
+      </div>
+    </nav>
   </div>
 </template>
 
 <script setup lang="ts">
+const MENU = [
+  { label: "Individuals", to: "/individuals" },
+  { label: "Community graph", to: "/communities" },
+  { label: "Treemap", to: "/treemap" },
+  { label: "Repositories", items: [
+    { label: "Charts", to: "/repositories", icon: "format-list-bulleted" },
+    { label: "Heatmap", to: "/pulse", icon: "pulse" },
+  ] },
+  { label: "Organizations", items: [
+    { label: "Commits", to: "/organizations/commits", icon: "source-branch" },
+    { label: "Emails", to: "/organizations/emails", icon: "email" },
+  ] },
+  { label: "CVE", items: [
+    { label: "Overview", to: "/cve/overview", icon: "chart-pie" },
+    { label: "List", to: "/cve/list", icon: "format-list-bulleted" },
+    { label: "Pivot table", to: "/cve/pivot-table", icon: "table" },
+    { label: "Reward per component", to: "/cve/reward_per_components", icon: "chart-sankey" },
+    { label: "Money tree", to: "/cve/money-tree", icon: "currency-usd" },
+  ] },
+  { label: "More", items: [
+    { label: "Usernames distribution", to: "/usernames", icon: "email" },
+    { label: "Leaderboard", to: "/leaderboard", icon: "trophy" },
+    { label: "Badges", to: "/badges/list", icon: "certificate" },
+    { label: "Fuzz test", to: "/fuzz-test", icon: "bug" },
+    { label: "API", to: "/api", icon: "code-json" },
+    { label: "Repositories tracking info", to: "/repo-info", icon: "source-branch" },
+    { label: "Page view", to: "/page-view", icon: "eye" },
+  ] },
+];
+
+// The mobile menu, and the dropdown opened by click (they also open on hover
+// on desktop). Both close when navigating, or clicking elsewhere.
+const menuOpen = ref(false);
+const openDropdown = ref<string | null>(null);
+const start = ref<HTMLElement | null>(null);
+const toggleDropdown = (label: string) => {
+  openDropdown.value = openDropdown.value === label ? null : label;
+};
+const route = useRoute();
+watch(() => route.fullPath, () => {
+  menuOpen.value = false;
+  openDropdown.value = null;
+});
+const onDocumentClick = (event: MouseEvent) => {
+  if (!start.value?.contains(event.target as Node)) {
+    openDropdown.value = null;
+  }
+};
+onMounted(() => document.addEventListener("click", onDocumentClick));
+onBeforeUnmount(() => document.removeEventListener("click", onDocumentClick));
+
 const paletteOpen = useState("command-palette-open", () => false);
 const shortcut = ref("Ctrl K");
 onMounted(() => {

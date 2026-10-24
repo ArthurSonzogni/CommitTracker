@@ -5,119 +5,79 @@
       <div class="container">
         <h1 class="title">Organizations contributions</h1>
 
-        <p>
-          <strong>Repositories?</strong>
-        </p>
-        <RepositorySelector
-          v-model="repositories"
-          size="small"
-          :allowMultiple="true"
-          :allowAll="true"
-          />
+        <FilterPanel :summary="summary">
+          <UiField label="Repositories">
+            <RepositorySelector
+              v-model="repositories"
+              size="small"
+              :allowMultiple="true"
+              :allowAll="true"
+              />
+          </UiField>
 
-        <p>
-          <strong>Organizations:</strong>
-        </p>
-        <OrganizationsSelector
-          v-model="organizations"
-          size="small"
-          :allowMultiple="true"
-          :allowAll="true"
-          :repositories="repositories"
-          >
-          <div>
-            <b-tooltip
-              multilined
-              label="Include all the organizations that are not in the
-              list as 'Others'" position="is-bottom">
-              <b-checkbox
-                size="small"
-                name="others"
-                v-model="others"
-                >
-                Others
-              </b-checkbox>
-            </b-tooltip>
+          <UiField label="Organizations">
+            <OrganizationsSelector
+              v-model="organizations"
+              size="small"
+              :allowMultiple="true"
+              :allowAll="true"
+              :repositories="repositories"
+              >
+              <div>
+                <UiTooltip multiline text="Include all the organizations that are not in the
+                  list as 'Others'" position="bottom">
+                  <UiCheckbox name="others" v-model="others">
+                    Others
+                  </UiCheckbox>
+                </UiTooltip>
+              </div>
+            </OrganizationsSelector>
+          </UiField>
+
+          <div class="form-row">
+            <UiField label="Count as">
+              <UiSegmented
+                v-model="kind"
+                :options="[
+                { value: 'author', label: 'Author' },
+                { value: 'review', label: 'Reviewer' },
+                { value: 'both', label: 'Both' },
+              ]" />
+            </UiField>
+
+            <UiField label="Grouping">
+              <UiSegmented
+                v-model="grouping"
+                :options="[
+                { value: 'forever', label: 'Forever' },
+                { value: 'decennial', label: 'Decennial' },
+                { value: 'yearly', label: 'Yearly' },
+                { value: 'quarterly', label: 'Quarterly' },
+                { value: 'monthly', label: 'Monthly' },
+              ]" />
+            </UiField>
+
+            <UiField label="Colors">
+              <UiSegmented
+                v-model="colors"
+                :options="[
+                { value: 'repositories', label: 'Repositories' },
+                { value: 'organizations', label: 'Organizations' },
+              ]" />
+            </UiField>
+
+            <UiField label="Chart">
+              <UiSegmented
+                v-model="chart"
+                :options="[
+                { value: 'line', label: 'Line' },
+                { value: 'bar', label: 'Bar' },
+              ]" />
+            </UiField>
+
           </div>
-        </OrganizationsSelector>
 
-        <b-field grouped group-multiline>
-          <b-field label="As:">
-            <b-radio-button name="kind" v-model="kind" native-value="author">
-              author
-            </b-radio-button>
-            <b-radio-button name="kind" v-model="kind" native-value="review">
-              reviewer
-            </b-radio-button>
-            <b-radio-button name="kind" v-model="kind" native-value="both">
-              both
-            </b-radio-button>
-          </b-field>
-
-          <b-field label="Grouping:">
-            <b-radio-button
-              name="grouping"
-              v-model="grouping"
-              native-value="forever">
-              Forever
-            </b-radio-button>
-            <b-radio-button
-              name="grouping"
-              v-model="grouping"
-              native-value="decennial">
-              Decennial
-            </b-radio-button>
-            <b-radio-button
-              name="grouping"
-              v-model="grouping"
-              native-value="yearly">
-              Yearly
-            </b-radio-button>
-            <b-radio-button
-              name="grouping"
-              v-model="grouping"
-              native-value="quarterly">
-              Quarterly
-            </b-radio-button>
-            <b-radio-button
-              name="grouping"
-              v-model="grouping"
-              native-value="monthly">
-              Monthly
-            </b-radio-button>
-          </b-field>
-
-          <b-field label="Colors:">
-            <b-radio-button
-              name="colors"
-              v-model="colors"
-              native-value="repositories">
-              Repositories
-            </b-radio-button>
-            <b-radio-button
-              name="colors"
-              v-model="colors"
-              native-value="organizations">
-              Organizations
-            </b-radio-button>
-          </b-field>
-
-          <b-field label="Chart:">
-            <b-radio-button
-              name="chart"
-              v-model="chart"
-              native-value="line">
-              Line
-            </b-radio-button>
-            <b-radio-button
-              name="chart"
-              v-model="chart"
-              native-value="bar">
-              Bar
-            </b-radio-button>
-          </b-field>
-
-        </b-field>
+        </FilterPanel>
 
         <Organizations
           :repositories="repositories"
@@ -132,59 +92,46 @@
           :display="display"
         >
 
-          <b-field class="has-addons">
-            <b-radio-button size="small" name="metric"
-              v-model="metric" native-value="commit">
-              <b-tooltip label="Number of commits">
-              ⚙️
-              </b-tooltip>
-            </b-radio-button>
-            <b-radio-button size="small" name="metric"
-              v-model="metric" native-value="contributor" >
-              <b-tooltip label="Number of contributors">
-              🧍
-              </b-tooltip>
-            </b-radio-button>
-          </b-field>
+          <UiField class="has-addons">
+            <UiSegmented
+              v-model="metric"
+              :options="[
+              { value: 'commit', label: 'Commits', title: 'Number of commits' },
+              { value: 'contributor', label: 'Contributors', title: 'Number of contributors' },
+            ]" />
+          </UiField>
 
           <div class="mr-2"></div>
 
-          <b-field class="has-addons">
-            <b-radio-button size="small" name="display"
-              v-model="display" native-value="accumulative"
-              :disabled="metric == 'contributor'"
-            >
-              Accumulative
-            </b-radio-button>
-            <b-radio-button size="small" name="display"
-              v-model="display" native-value="absolute" >
-              Absolute
-            </b-radio-button>
-            <b-radio-button size="small" name="display"
-              v-model="display" native-value="percent" >
-              percent
-            </b-radio-button>
-          </b-field>
+          <UiField class="has-addons">
+            <UiSegmented
+              v-model="display"
+              :options="[
+              { value: 'accumulative', label: 'Accumulative', disabled: metric == 'contributor' },
+              { value: 'absolute', label: 'Absolute' },
+              { value: 'percent', label: 'Percent' },
+            ]" />
+          </UiField>
 
         </Organizations>
 
         <!-- Warn users for invalid combinaisons -->
         <div v-if="metric == 'contributor'" class="mt-2">
-          <b-notification type="is-warning" v-if="repositories.length > 1">
+          <div class="notification is-warning" v-if="repositories.length > 1">
             <p>
               <strong>Note:</strong> Contributors who have contributed to
               multiple repositories will be counted once per repository.
             </p>
-          </b-notification>
+          </div>
         </div>
 
       </div>
     </section>
 
     <section class="section">
-      <b-field expanded>
+      <UiField expanded>
         <Timeline v-model="dates" ></Timeline>
-      </b-field>
+      </UiField>
     </section>
   </div>
 </template>
@@ -283,6 +230,14 @@ watch([
   others,
   display,
 ], updateUrl);
+
+const summary = computed(() => [
+  listSummary(repositoryNames(repositories.value), "repositories"),
+  organizations.value.length === all_organizations.length
+    ? "All organizations"
+    : listSummary(organizations.value, "organizations"),
+  grouping.value[0].toUpperCase() + grouping.value.slice(1),
+].join(" · "));
 
 // Avoid unsupported combinations:
 watch(metric, () => {

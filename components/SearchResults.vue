@@ -15,7 +15,7 @@
         @mousemove="emit('hover', index)"
         @mousedown.prevent
         @click="emit('select', item)">
-        <b-icon :icon="item.icon" size="is-small" class="search-item-icon"></b-icon>
+        <UiIcon :name="item.icon" class="search-item-icon" size="small"></UiIcon>
         <span class="search-item-label">{{ item.label }}</span>
         <span v-if="item.hint" class="search-item-hint">{{ item.hint }}</span>
       </li>

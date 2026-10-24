@@ -5,15 +5,14 @@
       <div class="container">
         <h2 class="title">
           {{ id }}
-          <b-tag type="is-danger is-small" class="ml-2"
-              v-if="!cve.bug_date">
-            <b-tooltip label="Bug are opened 14 weeks after being fixed" position="is-top">
+          <span class="tag is-danger is-small ml-2" v-if="!cve.bug_date">
+            <UiTooltip text="Bug are opened 14 weeks after being fixed" position="top">
             Private bug
-            </b-tooltip>
-          </b-tag>
-          <b-tag type="is-info is-small" class="ml-2" v-else>
+            </UiTooltip>
+          </span>
+          <span class="tag is-info is-small ml-2" v-else>
             public
-          </b-tag>
+          </span>
         </h2>
         <p v-if="not_found">
           No CVE found with id "{{ id }}". See the
@@ -80,7 +79,7 @@
 
               <div class="content">
                 <div class="header">
-                  <b-icon :icon="event.icon" size="is-small"></b-icon>
+                  <UiIcon :name="event.icon" size="small"></UiIcon>
                   {{ event.title }}
                 </div>
 

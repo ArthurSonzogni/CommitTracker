@@ -1,18 +1,5 @@
 <template>
-    <b-taginput
-        ref="input"
-        v-model="developers"
-        @typing="computeDevelopersListFiltered"
-        :data="developerListFiltered"
-        :allow-new=false
-        autocomplete
-        icon="label"
-        field="this"
-        placeholder="developer username"
-        type="is-primary"
-        :size="size || 'is-medium'"
-        open-on-focus
-    >
+    <UiTagInput ref="input" v-model="developers" @typing="computeDevelopersListFiltered" :suggestions="developerListFiltered" :allow-new="false" icon="label" field="this" placeholder="developer username" open-on-focus>
         <template v-slot="props">
             <!-- Split the tag in 2-3 parts. The part that matches the input is
                 highlighted. The rest isn't. The email domain is yellow. -->
@@ -25,7 +12,7 @@
                 </strong>
             </span>
         </template>
-    </b-taginput>
+    </UiTagInput>
 </template>
 
 <script setup lang="ts">

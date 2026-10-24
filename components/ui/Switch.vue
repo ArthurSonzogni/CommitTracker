@@ -1,5 +1,5 @@
 <template>
-  <label class="switch" :class="[size, { 'is-disabled': disabled }]">
+  <label class="ui-switch" :class="{ 'is-disabled': disabled }">
     <input
       v-model="value"
       type="checkbox"
@@ -12,11 +12,9 @@
 </template>
 
 <script setup lang="ts">
-// An on/off switch. Compatible with Buefy's <b-switch>.
+// An on/off switch.
 
 defineProps<{
-  type?: string;
-  size?: string;
   name?: string;
   disabled?: boolean;
 }>();
@@ -25,7 +23,7 @@ const value = defineModel<boolean>();
 </script>
 
 <style scoped>
-.switch {
+.ui-switch {
   align-items: center;
   cursor: pointer;
   display: inline-flex;

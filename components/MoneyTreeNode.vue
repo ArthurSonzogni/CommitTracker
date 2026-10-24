@@ -5,8 +5,8 @@
       <span class="node-reward">{{ formatter(displayValue) }}</span>
 
       <span class="icon-wrapper ml-2">
-        <b-icon v-if="hasChildren" :icon="isOpen ? 'chevron-down' : 'chevron-right'" size="is-small"></b-icon>
-        <b-icon v-else icon="file-document-outline" size="is-small"></b-icon>
+        <UiIcon v-if="hasChildren" :name="isOpen ? 'chevron-down' : 'chevron-right'" size="small"></UiIcon>
+        <UiIcon v-else name="file-document-outline" size="small"></UiIcon>
       </span>
       <span class="node-name">{{ node.name }}</span>
     </div>

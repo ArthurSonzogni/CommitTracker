@@ -9,30 +9,22 @@
             <h1 class="title">{{ badge_data.name }}</h1>
 
             <p> <strong>Rarity</strong>:
-              <b-icon
-                v-for="i in 5"
-                :key="i"
-                :icon="
+              <UiIcon v-for="i in 5" :key="i" :name="
                   rarity >= i
                   ? 'star'
                   : rarity >= i - 0.5
                     ? 'star-half-full'
                     : 'star-outline'
-                "
-                :style="{
+                " :style="{
                   color: rarity >= i-0.5 ? 'orange' : 'gray',
-                }"
-              />
+                }" />
 
               ({{ Math.round(rarity * 100)/100 }})
             </p>
             <p> <strong>Holder:</strong> {{ badge_data.recipients }} developers</p>
             <p> <strong>Category:</strong> {{ badge_data.category }}</p>
             <p> <strong>Unlocked:</strong>
-              <b-icon
-                :icon="unlocked ? 'check' : 'close'"
-                :style="{ color: unlocked ? 'green' : 'red' }"
-                />
+              <UiIcon :name="unlocked ? 'check' : 'close'" :style="{ color: unlocked ? 'green' : 'red' }" />
             </p>
 
             <p>{{ badge_data.description }}</p>
@@ -57,12 +49,9 @@
             <img :src="badge_data.image" />
           </div>
         </div>
-        <b-button
-          @click="List"
-          color="is-info"
-          >
+        <button type="button" class="button" @click="List">
           <
-        </b-button>
+        </button>
       </div>
     </section>
 

@@ -1,17 +1,14 @@
 <template>
-  <b-dropdown aria-role="list">
+  <UiDropdown>
     <template #trigger="{ active }">
-      <b-button
-        label="Filters"
-        type="is-primary"
-        :icon-right="active ? 'menu-up' : 'menu-down'" />
+      <button type="button" class="button is-primary"><span>Filters</span><UiIcon :name="active ? 'menu-up' : 'menu-down'" size="small" /></button>
     </template>
 
-    <b-dropdown-item aria-role="listitem" v-for="filter in filters" :key="filter">
+    <UiDropdownItem v-for="filter in filters" :key="filter">
         {{filter.name}}
         <p>{{filter.description}}</p>
-    </b-dropdown-item>
-  </b-dropdown>
+    </UiDropdownItem>
+  </UiDropdown>
 </template>
 
 <script setup lang="ts">

@@ -15,26 +15,26 @@
     <section class="section container sticky">
       <div class="columns">
         <div class="column">
-          <b-field label="Severity">
-            <b-checkbox-button v-model="severities" native-value="Low">Low</b-checkbox-button>
-            <b-checkbox-button v-model="severities" native-value="Medium">Medium</b-checkbox-button>
-            <b-checkbox-button v-model="severities" native-value="High">High</b-checkbox-button>
-            <b-checkbox-button v-model="severities" native-value="Critical">Critical</b-checkbox-button>
-          </b-field>
+          <UiField label="Severity">
+            <UiToggle v-model="severities" value="Low">Low</UiToggle>
+            <UiToggle v-model="severities" value="Medium">Medium</UiToggle>
+            <UiToggle v-model="severities" value="High">High</UiToggle>
+            <UiToggle v-model="severities" value="Critical">Critical</UiToggle>
+          </UiField>
         </div>
 
         <div class="column">
           <template v-if="severities.includes('Low')">
-            <b-icon type="is-info" icon="circle"></b-icon> Low
+            <UiIcon name="circle"></UiIcon> Low
           </template>
           <template v-if="severities.includes('Medium')">
-            <b-icon type="is-warning" icon="circle"></b-icon> Medium
+            <UiIcon name="circle"></UiIcon> Medium
           </template>
           <template v-if="severities.includes('High')">
-            <b-icon type="is-danger" icon="circle"></b-icon> High
+            <UiIcon name="circle"></UiIcon> High
           </template>
           <template v-if="severities.includes('Critical')">
-            <b-icon icon="circle"></b-icon> Critical
+            <UiIcon name="circle"></UiIcon> Critical
           </template>
 
         </div>
@@ -115,9 +115,7 @@
                     v-for="cve in cves[project]"
                     :to="`/cve?id=${cve.id}`"
                     >
-                    <b-tooltip
-                      type="is-light"
-                      >
+                    <UiTooltip>
                       <template v-slot:content
                                 style="width: 500px">
                         <p style="white-space: pre-line; width: 500px; ">
@@ -139,11 +137,11 @@
 
                       </template>
 
-                      <b-icon v-if="cve.severity === 'Low'" type="is-info" icon="circle"></b-icon>
-                      <b-icon v-if="cve.severity === 'Medium'" type="is-warning" icon="circle"></b-icon>
-                      <b-icon v-if="cve.severity === 'High'" type="is-danger" icon="circle"></b-icon>
-                      <b-icon v-if="cve.severity === 'Critical'" icon="circle"></b-icon>
-                    </b-tooltip>
+                      <UiIcon v-if="cve.severity === 'Low'" name="circle"></UiIcon>
+                      <UiIcon v-if="cve.severity === 'Medium'" name="circle"></UiIcon>
+                      <UiIcon v-if="cve.severity === 'High'" name="circle"></UiIcon>
+                      <UiIcon v-if="cve.severity === 'Critical'" name="circle"></UiIcon>
+                    </UiTooltip>
                   </NuxtLink>
                 </span>
               </td>

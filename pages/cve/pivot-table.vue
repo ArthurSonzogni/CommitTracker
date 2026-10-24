@@ -5,102 +5,82 @@
     <section class="section">
       <div class="mycolumns">
         <div id="widget-colum">
-          <b-field label="Time division">
-            <b-radio-button v-model="time_division" native-value="all">All</b-radio-button>
-            <b-radio-button v-model="time_division" native-value="year">Year</b-radio-button>
-            <b-radio-button v-model="time_division" native-value="quarter">Quarter</b-radio-button>
-            <b-radio-button v-model="time_division" native-value="month">Month</b-radio-button>
-          </b-field>
+          <UiField label="Time division">
+            <UiSegmented
+              v-model="time_division"
+              :options="[
+              { value: 'all', label: 'All' },
+              { value: 'year', label: 'Year' },
+              { value: 'quarter', label: 'Quarter' },
+              { value: 'month', label: 'Month' },
+            ]" />
+          </UiField>
 
           <!--Lines-->
-          <b-field label="Lines">
-            <b-radio-button v-model="line" native-value="components">components</b-radio-button>
-            <b-radio-button v-model="line" native-value="repositories">repositories</b-radio-button>
-          </b-field>
+          <UiField label="Lines">
+            <UiSegmented
+              v-model="line"
+              :options="[
+              { value: 'components', label: 'components' },
+              { value: 'repositories', label: 'repositories' },
+            ]" />
+          </UiField>
 
-          <b-field label="Components depths" v-if="line == 'components'">
-            <b-numberinput v-model="component_division" min="0" max="4" step="1"></b-numberinput>
-          </b-field>
+          <UiField label="Components depths" v-if="line == 'components'">
+            <UiNumberInput v-model="component_division" min="0" max="4" step="1"></UiNumberInput>
+          </UiField>
 
           <!--Severity ['low', 'medium', 'high', 'critical']-->
-          <b-field label="Severity">
-            <b-checkbox-button v-model="severity" native-value="N/A">N/A</b-checkbox-button>
-            <b-checkbox-button v-model="severity" native-value="Low">Low</b-checkbox-button>
-            <b-checkbox-button v-model="severity" native-value="Medium">Medium</b-checkbox-button>
-            <b-checkbox-button v-model="severity" native-value="High">High</b-checkbox-button>
-            <b-checkbox-button v-model="severity" native-value="Critical">Critical</b-checkbox-button>
-          </b-field>
+          <UiField label="Severity">
+            <UiToggle v-model="severity" value="N/A">N/A</UiToggle>
+            <UiToggle v-model="severity" value="Low">Low</UiToggle>
+            <UiToggle v-model="severity" value="Medium">Medium</UiToggle>
+            <UiToggle v-model="severity" value="High">High</UiToggle>
+            <UiToggle v-model="severity" value="Critical">Critical</UiToggle>
+          </UiField>
 
           <!-- value -->
-          <b-field grouped>
-            <b-field label="Reward">
-              <b-radio-button v-model="cell_value" native-value="vrp_reward">
-                <b-tooltip label="VRP reward" position="is-top">
-                  $$$
-                </b-tooltip>
-              </b-radio-button>
-            </b-field>
-            <b-field label="CVE">
-              <b-radio-button v-model="cell_value" native-value="cve_count">
-                <b-tooltip label="Number of CVE" position="is-top">
-                  Count
-                </b-tooltip>
-              </b-radio-button>
-            </b-field>
-            <b-field label="Velocity" label-position="on">
-              <b-radio-button v-model="cell_value" native-value="time_to_fix_10p">
-                <b-tooltip label="Delay from bug reported to fix released to stable" position="is-top">
-                  10p
-                </b-tooltip>
-              </b-radio-button>
-              <b-radio-button v-model="cell_value" native-value="time_to_fix_median">
-                <b-tooltip label="Delay from bug reported to fix released to stable" position="is-top">
-                  50p
-                </b-tooltip>
-              </b-radio-button>
-              <b-radio-button v-model="cell_value" native-value="time_to_fix_90p">
-                <b-tooltip label="Delay from bug reported to fix released to stable" position="is-top">
-                  90p
-                </b-tooltip>
-              </b-radio-button>
-            </b-field>
-          </b-field>
+          <div class="form-row">
+            <UiField label="Reward">
+              <UiSegmented
+                v-model="cell_value"
+                :options="[
+                { value: 'vrp_reward', label: '$$$', title: 'VRP reward' },
+              ]" />
+            </UiField>
+            <UiField label="CVE">
+              <UiSegmented
+                v-model="cell_value"
+                :options="[
+                { value: 'cve_count', label: 'Count', title: 'Number of CVE' },
+              ]" />
+            </UiField>
+            <UiField label="Velocity">
+              <UiSegmented
+                v-model="cell_value"
+                :options="[
+                { value: 'time_to_fix_10p', label: '10p', title: 'Delay from bug reported to fix released to stable' },
+                { value: 'time_to_fix_median', label: '50p', title: 'Delay from bug reported to fix released to stable' },
+                { value: 'time_to_fix_90p', label: '90p', title: 'Delay from bug reported to fix released to stable' },
+              ]" />
+            </UiField>
+          </div>
 
-          <b-field label="Hide non representative data">
-            <b-switch v-model="hide_low_count" type="is-info"></b-switch>
-          </b-field>
+          <UiField label="Hide non representative data">
+            <UiSwitch v-model="hide_low_count"></UiSwitch>
+          </UiField>
 
         </div>
-        <b-table
-          id="table-column"
-          :data="table_data"
-          striped
-          bordered
-          scrollable
-          sticky-header
-          height="85vh"
-          >
+        <UiTable id="table-column" :data="table_data" striped bordered scrollable sticky-header height="85vh">
           <!--The component field-->
-          <b-table-column
-            field="component"
-            label="Component"
-            sortable
-            sticky
-            >
+          <UiTableColumn field="component" label="Component" sortable sticky>
             <template v-slot="props">
               {{ props.row.line}}
             </template>
 
-          </b-table-column>
+          </UiTableColumn>
 
-          <b-table-column
-            draggable-column
-            v-for="column in table_columns.sort((a, b) => a.label.localeCompare(b.label))"
-            :field="column.field"
-            :label="column.label"
-            :td-attrs="tdAttrs"
-            sortable
-            >
+          <UiTableColumn v-for="column in table_columns.sort((a, b) => a.label.localeCompare(b.label))" :field="column.field" :label="column.label" :td-attrs="tdAttrs" sortable>
             <template v-slot="props">
               <a v-if="line == 'components'"
                 :href="`/cve/list?group_by=component&component=${props.row.line}&date=${column.label}`"
@@ -116,10 +96,10 @@
                 {{ formatter(props.row[column.field]) }}
               </a>
             </template>
-          </b-table-column>
+          </UiTableColumn>
 
 
-        </b-table>
+        </UiTable>
       </div>
     </section>
 

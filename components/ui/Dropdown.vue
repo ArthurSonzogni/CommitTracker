@@ -15,7 +15,7 @@
     <div class="dropdown-menu" role="listbox">
       <div
         class="dropdown-content"
-        :style="scrollable ? { maxHeight, overflowY: 'auto', overflowX: 'hidden' } : undefined">
+        :style="{ maxHeight, overflowY: 'auto', overflowX: 'hidden' }">
         <slot />
       </div>
     </div>
@@ -23,24 +23,21 @@
 </template>
 
 <script setup lang="ts">
-// A dropdown of <b-dropdown-item>, selecting a value. Compatible with
-// Buefy's <b-dropdown>.
+// A dropdown of <UiDropdownItem>, selecting a value. The trigger slot gets
+// `active`.
 
 const props = withDefaults(defineProps<{
   expanded?: boolean;
-  // click, hover.
-  triggers?: string[];
-  scrollable?: boolean;
+  // Also open on hover, not only on click.
+  hover?: boolean;
   maxHeight?: string;
 }>(), {
-  triggers: () => ["click"],
-  maxHeight: "200px",
+  maxHeight: "300px",
 });
 
 const value = defineModel<any>();
 const open = ref(false);
 const root = ref<HTMLElement | null>(null);
-const hover = computed(() => props.triggers.includes("hover"));
 
 provide("dropdown", {
   value,

@@ -118,7 +118,7 @@
           <li>
             <code>repo</code> is one of:
             <span class="tags" style="display: inline-flex; flex-wrap: wrap; gap: 0.5rem; vertical-align: middle; margin-left: 0.5rem;">
-              <b-tag v-for="repo in sortedRepos" :key="repo">{{ repo }}</b-tag>
+              <span class="tag" v-for="repo in sortedRepos" :key="repo">{{ repo }}</span>
             </span>
           </li>
           <li>
@@ -129,15 +129,15 @@
           </li>
           <li>
             <code>group_by</code> is one of:
-            <b-tag>forever</b-tag> <b-tag>decennial</b-tag> <b-tag>yearly</b-tag> <b-tag>quarterly</b-tag> <b-tag>monthly</b-tag>
+            <span class="tag">forever</span> <span class="tag">decennial</span> <span class="tag">yearly</span> <span class="tag">quarterly</span> <span class="tag">monthly</span>
           </li>
           <li>
             <code>side</code> is one of:
-            <b-tag>author</b-tag> <b-tag>review</b-tag> <b-tag>both</b-tag>
+            <span class="tag">author</span> <span class="tag">review</span> <span class="tag">both</span>
           </li>
           <li>
             <code>time_range</code> is one of:
-            <b-tag>1w</b-tag> <b-tag>1m</b-tag> <b-tag>3m</b-tag> <b-tag>6m</b-tag> <b-tag>1y</b-tag> <b-tag>forever</b-tag> ...
+            <span class="tag">1w</span> <span class="tag">1m</span> <span class="tag">3m</span> <span class="tag">6m</span> <span class="tag">1y</span> <span class="tag">forever</span> ...
           </li>
         </ul>
 

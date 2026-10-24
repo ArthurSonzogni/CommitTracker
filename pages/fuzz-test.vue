@@ -5,17 +5,17 @@
     <section class="section">
       <div class="container">
         <h1 class="title">
-          <b-icon icon="strike" />{{ total }} fuzzers in chromium</h1>
+          <UiIcon name="strike" />{{ total }} fuzzers in chromium</h1>
 
         <div style="height: 50vh;">
           <LineChart :data="graph" />
         </div>
 
         <div class="container">
-          <b-field>
-            <b-checkbox-button v-model="type" native-value="fuzzer_test">Fuzz target</b-checkbox-button>
-            <b-checkbox-button v-model="type" native-value="FUZZ_TEST">FUZZ_TEST</b-checkbox-button>
-          </b-field>
+          <UiField>
+            <UiToggle v-model="type" value="fuzzer_test">Fuzz target</UiToggle>
+            <UiToggle v-model="type" value="FUZZ_TEST">FUZZ_TEST</UiToggle>
+          </UiField>
         </div>
       </div>
     </section>
@@ -23,22 +23,12 @@
     <section class="section">
       <div class="container">
         <h2 class="title">Fuzzers</h2>
-        <b-table
-          :data="data"
-          hoverable
-          :paginated="true"
-          :pagination-simple="true"
-          pagination-position="top"
-          :pagination-rounded="true"
-          :per-page="15"
-          striped
-          detailed
-          >
-          <b-table-column field="date" label="Date" v-slot="props" sortable >
+        <UiTable :data="data" hoverable :paginated="true" :per-page="15" striped detailed>
+          <UiTableColumn field="date" label="Date" v-slot="props" sortable>
             {{ props.row.date }}
-          </b-table-column>
+          </UiTableColumn>
 
-          <b-table-column field="author" label="Author" v-slot="props" sortable>
+          <UiTableColumn field="author" label="Author" v-slot="props" sortable>
             <router-link :to="{
             name: 'individuals',
             query: {
@@ -48,36 +38,36 @@
             }">
               {{ props.row.author }}
             </router-link>
-          </b-table-column>
+          </UiTableColumn>
 
-          <b-table-column field="suite_name" label="Name" v-slot="props" sortable>
+          <UiTableColumn field="suite_name" label="Name" v-slot="props" sortable>
             <a :href="'https://cs.chromium.org/chromium/src/' + props.row.file
             + '?l=' + props.row.line
             "
               >
               {{ props.row.suite_name }}
             </a>
-          </b-table-column>
+          </UiTableColumn>
 
-          <b-table-column field="sha" label="Patch" v-slot="props">
+          <UiTableColumn field="sha" label="Patch" v-slot="props">
             <a :href="'https://chromium-review.googlesource.com/q/' + props.row.sha">
               Open
             </a>
-          </b-table-column>
+          </UiTableColumn>
 
-          <b-table-column field="type" label="Type" v-slot="props" sortable>
-            <b-tag type="is-info" v-if="props.row.type == 'fuzzer_test'">
+          <UiTableColumn field="type" label="Type" v-slot="props" sortable>
+            <span class="tag is-info" v-if="props.row.type == 'fuzzer_test'">
               fuzz target
-            </b-tag>
-            <b-tag type="is-danger" v-else-if="props.row.type == 'FUZZ_TEST'">
+            </span>
+            <span class="tag is-danger" v-else-if="props.row.type == 'FUZZ_TEST'">
               FUZZ_TEST
-            </b-tag>
-            <b-tag type="is-danger" v-else>{{ props.row.type }}</b-tag>
-          </b-table-column>
+            </span>
+            <span class="tag is-danger" v-else>{{ props.row.type }}</span>
+          </UiTableColumn>
 
           <template #detail="props">
-            <b-field label="Date" horizontal> {{ props.row.date }} </b-field>
-            <b-field label="Author" horizontal>
+            <UiField label="Date"> {{ props.row.date }} </UiField>
+            <UiField label="Author">
               <router-link :to="{
               name: 'individuals',
               query: {
@@ -87,25 +77,25 @@
               }">
                 {{ props.row.author }}
               </router-link>
-            </b-field>
-            <b-field label="File" horizontal>
+            </UiField>
+            <UiField label="File">
               <a :href="'https://cs.chromium.org/chromium/src/' + props.row.file
               + '?l=' + props.row.line
               "
                 >
                 {{ props.row.file }}
               </a>
-            </b-field>
-            <b-field label="Line" horizontal> {{ props.row.line }} </b-field>
-            <b-field label="Type" horizontal> {{ props.row.type }} </b-field>
-            <b-field label="Sha" horizontal>
+            </UiField>
+            <UiField label="Line"> {{ props.row.line }} </UiField>
+            <UiField label="Type"> {{ props.row.type }} </UiField>
+            <UiField label="Sha">
               <a :href="'https://chromium-review.googlesource.com/q/' + props.row.sha">
                 {{ props.row.sha }}
               </a>
-            </b-field>
+            </UiField>
           </template>
 
-        </b-table>
+        </UiTable>
       </div>
     </section>
 
@@ -124,21 +114,13 @@
     <section class="section">
       <div class="container">
         <h2 class="title">Leaderboard</h2>
-        <b-table
-          :data="leaderboard"
-          hoverable
-          striped
-          >
+        <UiTable :data="leaderboard" hoverable striped>
 
-          <b-table-column field="count" label="Fuzzers" v-slot="props">
+          <UiTableColumn field="count" label="Fuzzers" v-slot="props">
             {{ props.row.count }}
-          </b-table-column>
+          </UiTableColumn>
 
-          <b-table-column
-            field="author"
-            label="Authors"
-            v-slot="props"
-            >
+          <UiTableColumn field="author" label="Authors" v-slot="props">
             <div class="leaderboard-authors">
               <router-link
                 v-for="author in props.row.authors"
@@ -155,16 +137,16 @@
               </router-link>
               <div class="flex-end"></div>
             </div>
-          </b-table-column>
+          </UiTableColumn>
 
-        </b-table>
+        </UiTable>
       </div>
     </section>
 
     <section class="section sticky bottom">
-      <b-field expanded>
+      <UiField expanded>
         <Timeline v-model="dates" />
-      </b-field>
+      </UiField>
     </section>
   </div>
 </template>

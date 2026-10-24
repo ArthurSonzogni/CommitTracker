@@ -1,13 +1,8 @@
 <template>
   <div>
     <div align="center">
-      <b-table
-        :data="filteredData"
-        :columns="columns"
-        height="100%"
-        striped
-      >
-      </b-table>
+      <UiTable :data="filteredData" :columns="columns" height="100%" striped>
+      </UiTable>
     </div>
   </div>
 </template>

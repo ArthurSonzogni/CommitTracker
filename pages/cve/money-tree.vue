@@ -6,7 +6,7 @@
       <div class="container is-fluid">
         <h1 class="title is-4" style="display: flex; align-items: center;">
           Chromium Money Tree
-          <b-button size="is-small" class="ml-3" icon-left="book-open-outline" @click="showReadme = !showReadme">README</b-button>
+          <button type="button" class="button is-small ml-3" @click="showReadme = !showReadme"><UiIcon name="book-open-outline" size="small" />README</button>
         </h1>
 
         <div v-show="showReadme" class="message is-info mb-4">
@@ -44,15 +44,19 @@
           </p>
         </div>
 
-        <b-field label="Group by">
-          <b-radio-button v-model="groupBy" native-value="none">None</b-radio-button>
-          <b-radio-button v-model="groupBy" native-value="cwe">CWE</b-radio-button>
-          <b-radio-button v-model="groupBy" native-value="component">Component</b-radio-button>
-          <b-radio-button v-model="groupBy" native-value="fixed-by">Fixed By</b-radio-button>
-          <b-radio-button v-model="groupBy" native-value="reviewer">Reviewer</b-radio-button>
-        </b-field>
+        <UiField label="Group by">
+          <UiSegmented
+            v-model="groupBy"
+            :options="[
+            { value: 'none', label: 'None' },
+            { value: 'cwe', label: 'CWE' },
+            { value: 'component', label: 'Component' },
+            { value: 'fixed-by', label: 'Fixed By' },
+            { value: 'reviewer', label: 'Reviewer' },
+          ]" />
+        </UiField>
 
-        <b-loading v-model="loading" :is-full-page="false"></b-loading>
+        <UiLoading v-model="loading" :is-full-page="false"></UiLoading>
 
         <div v-if="!loading && treeData">
           <div class="tree-container">

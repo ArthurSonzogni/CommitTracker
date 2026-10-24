@@ -1,12 +1,11 @@
 <template>
-  <div class="b-slider-tick" :style="{ left: position + '%' }">
-    <span v-if="$slots.default" class="b-slider-tick-label"><slot /></span>
+  <div class="ui-slider-tick" :style="{ left: position + '%' }">
+    <span v-if="$slots.default" class="ui-slider-tick-label"><slot /></span>
   </div>
 </template>
 
 <script setup lang="ts">
-// A tick of <b-slider>, with an optional label. Compatible with Buefy's
-// <b-slider-tick>.
+// A tick of <UiSlider>, with an optional label.
 
 const props = defineProps<{ value: number }>();
 
@@ -19,7 +18,7 @@ const position = computed(() => {
 </script>
 
 <style scoped>
-.b-slider-tick {
+.ui-slider-tick {
   background: var(--line-strong);
   border-radius: 1px;
   height: 0.35rem;
@@ -30,7 +29,7 @@ const position = computed(() => {
   width: 2px;
 }
 
-.b-slider-tick-label {
+.ui-slider-tick-label {
   color: var(--muted);
   font-size: 0.7rem;
   left: 50%;

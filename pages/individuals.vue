@@ -10,42 +10,29 @@
           v-model="repositories"
           size="is-small"
           />
-        <b-field grouped>
+        <div class="form-row">
 
-          <b-field expanded>
+          <UiField expanded>
             <DevelopersInput v-model="developers" allowEmail allowUsername/>
-          </b-field>
+          </UiField>
 
-          <b-field>
-            <b-checkbox-button
-              v-model="options"
-              native-value="author"
-              size="is-medium"
-              >
+          <UiField>
+            <UiToggle v-model="options" value="author">
               Author
-            </b-checkbox-button>
+            </UiToggle>
 
-            <b-checkbox-button
-              v-model="options"
-              native-value="review"
-              size="is-medium"
-              >
+            <UiToggle v-model="options" value="review">
               Review
-            </b-checkbox-button>
-          </b-field>
+            </UiToggle>
+          </UiField>
 
-          <b-field>
-            <b-checkbox-button
-              v-if="developers.length >= 2"
-              v-model="options"
-              native-value="stacked"
-              size="is-medium"
-              >
+          <UiField>
+            <UiToggle v-if="developers.length >= 2" v-model="options" value="stacked">
               Stacked
-            </b-checkbox-button>
-          </b-field>
+            </UiToggle>
+          </UiField>
 
-        </b-field>
+        </div>
       </section>
 
       <section class="section" v-if="developers.length == 0">
@@ -61,7 +48,7 @@
               :key="author"
               class="button"
               @click="developers = [author]">
-              <b-icon icon="account" size="is-small"></b-icon>
+              <UiIcon name="account" size="small"></UiIcon>
               <span>{{ author }}</span>
             </button>
           </div>
@@ -102,41 +89,19 @@
       <section class="section">
         <div class="container">
           <h2 class="title">Timeline wrapped</h2>
-          <b-field grouped>
-            <b-field
-              label="Modulo"
-              expanded
-              label-position="on-border"
-              >
-              <b-slider
-                v-model="hourlyParam"
-                :min="0"
-                :max="2"
-                aria-label="Fan"
-                :tooltip="false"
-                rounded
-                >
-                <b-slider-tick :value="0">Day</b-slider-tick>
-                <b-slider-tick :value="1">Week</b-slider-tick>
-                <b-slider-tick :value="2">Year</b-slider-tick>
-              </b-slider>
-            </b-field>
+          <div class="form-row">
+            <UiField label="Modulo" expanded>
+              <UiSlider v-model="hourlyParam" :min="0" :max="2" aria-label="Fan" :tooltip="false">
+                <UiSliderTick :value="0">Day</UiSliderTick>
+                <UiSliderTick :value="1">Week</UiSliderTick>
+                <UiSliderTick :value="2">Year</UiSliderTick>
+              </UiSlider>
+            </UiField>
 
-            <b-field
-              :label="'Buckets: ' + wrappedBuckets"
-              expanded
-              label-position="on-border"
-              >
-              <b-slider
-                v-model="wrappedBuckets"
-                :min="1"
-                :max="500"
-                aria-label="Buckets"
-                lazy
-                rounded
-                ></b-slider>
-            </b-field>
-          </b-field>
+            <UiField :label="'Buckets: ' + wrappedBuckets" expanded>
+              <UiSlider v-model="wrappedBuckets" :min="1" :max="500" aria-label="Buckets" lazy></UiSlider>
+            </UiField>
+          </div>
 
           <TimelineWrappedChart
             :repositories="repositories"
@@ -195,9 +160,9 @@
 
 
       <section class="section sticky bottom">
-        <b-field expanded>
+        <UiField expanded>
           <Timeline v-model="dates" ></Timeline>
-        </b-field>
+        </UiField>
       </section>
       </template>
     </div>

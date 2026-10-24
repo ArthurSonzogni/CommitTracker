@@ -7,7 +7,7 @@
         aria-modal="true"
         aria-label="Search pages, repositories and developers">
         <div class="palette-input">
-          <b-icon icon="magnify" size="is-small" class="palette-input-icon"></b-icon>
+          <UiIcon name="magnify" class="palette-input-icon" size="small"></UiIcon>
           <input
             ref="input"
             v-model="query"

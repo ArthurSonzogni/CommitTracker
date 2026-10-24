@@ -188,13 +188,13 @@ const tests = [
       const timeLabel = () => timeSelect()?.selectedOptions[0]?.textContent.trim();
       await __t.until(() => document.querySelector('svg text.name') && timeLabel());
       const year = timeLabel();
-      __t.byText('.b-radio.button', 'Monthly').click();
+      __t.byText('.segmented-option', 'Monthly').click();
       const monthly = await __t.until(() => /^\\d{4}-\\d{2}/.test(timeLabel() || ''), 8000);
       const monthLabel = timeLabel();
       __t.byText('button', 'Previous').click();
       const prev = await __t.until(() => timeLabel() !== monthLabel, 8000);
       const prevLabel = timeLabel();
-      __t.byText('.b-checkbox.button', 'Blink').click();
+      __t.byText('.chip', 'Blink').click();
       const blink = await __t.until(() => location.search.includes('blink'), 8000);
       return { ok: !!monthly && !!prev && !!blink, detail: year + ' -> monthly ' + monthLabel + ' -> previous ' + prevLabel + ' / url ' + location.search };
     `,
@@ -250,7 +250,7 @@ const tests = [
       await __t.until(() => document.querySelectorAll('svg path').length > 5, 20000);
       const total = () => [...document.querySelectorAll('svg text')].map(t => t.textContent).join('').length;
       const before = __t.count('svg rect');
-      __t.byText('.b-checkbox.button', 'Review').click();
+      __t.byText('.chip', 'Review').click();
       const ok = await __t.until(() => location.search.includes('options') || __t.count('svg rect') !== before, 8000);
       return { ok: !!ok, detail: 'rects ' + before + ' -> ' + __t.count('svg rect') + ' url=' + location.search };
     `,
@@ -260,7 +260,7 @@ const tests = [
     url: 'cve/list',
     run: `
       await __t.until(() => document.body.innerText.includes('Use After Free'), 20000);
-      __t.byText('.b-radio.button', 'Severity').click();
+      __t.byText('.segmented-option', 'Severity').click();
       const grouped = await __t.until(() => location.search.includes('group_by=severity'), 8000);
       const select = document.querySelectorAll('select')[1];
       const option = [...select.options].find(o => o.value.startsWith('Blink'));
@@ -277,7 +277,7 @@ const tests = [
       const total = () => document.body.innerText.match(/Total\\s*:\\s*(\\d+) CVEs/)?.[1];
       await __t.until(() => total(), 25000);
       const before = total();
-      __t.byText('.b-checkbox.button', 'Medium').click();
+      __t.byText('.chip', 'Medium').click();
       const ok = await __t.until(() => total() && total() !== before, 10000);
       return { ok: !!ok, detail: 'total ' + before + ' -> ' + total() };
     `,
@@ -298,15 +298,41 @@ const tests = [
     name: 'repositories: what/grouping update chart',
     url: 'repositories',
     run: `
-      const sig = () => document.body.innerText.split('CONTRIBUTIONS:').pop().slice(0, 300);
+      const sig = () => (document.body.innerText.match(/(Year|Month|Quarter|Decade|Forever)\\s+(Commit|Contributor).*/s)?.[0] ?? '').slice(0, 300);
       await __t.until(() => /20\\d\\d/.test(sig()), 25000);
       const before = sig();
-      __t.byText('.b-radio.button', 'Contributors').click();
+      __t.byText('.segmented-option', 'Contributors').click();
       const ok1 = await __t.until(() => sig() !== before, 10000);
       const mid = sig();
-      __t.byText('.b-radio.button', 'Monthly').click();
+      __t.byText('.segmented-option', 'Monthly').click();
       const ok2 = await __t.until(() => sig() !== mid, 10000);
       return { ok: !!ok1 && !!ok2, detail: [before, mid, sig()].map(t => t.replace(/\\s+/g, ' ').slice(0, 45)).join(' -> ') };
+    `,
+  },
+  {
+    name: 'repositories: mobile filters fold into a summary',
+    url: 'repositories',
+    mobile: true,
+    run: `
+      const toggle = document.querySelector('.filter-panel-toggle');
+      const body = document.querySelector('.filter-panel-body');
+      const hidden = body.offsetHeight === 0;
+      toggle.click();
+      const shown = await __t.until(() => body.offsetHeight > 100);
+      __t.byText('.segmented-option', 'Monthly').click();
+      const summary = await __t.until(() => toggle.textContent.includes('Monthly'));
+      return { ok: hidden && !!shown && !!summary, detail: toggle.textContent.trim() };
+    `,
+  },
+  {
+    name: 'treemap: colormap fits the data',
+    url: 'treemap',
+    run: `
+      const legend = await __t.until(() => {
+        const text = document.querySelector('.legend')?.textContent.replace(/\\s+/g, ' ').trim();
+        return text && !text.endsWith('100%') ? text : null;
+      }, 20000);
+      return { ok: !!legend, detail: legend };
     `,
   },
   {
@@ -316,7 +342,7 @@ const tests = [
       const sig = () => [...document.querySelectorAll('.zoomable svg text')].slice(0, 5).map(t => t.textContent).join(',');
       await __t.until(() => sig(), 20000);
       const before = sig();
-      __t.byText('.b-checkbox.button', 'Skia').click();
+      __t.byText('.chip', 'Skia').click();
       const ok = await __t.until(() => sig() && sig() !== before, 10000);
       return { ok: !!ok, detail: before.slice(0, 50) + ' -> ' + sig().slice(0, 50) };
     `,
@@ -336,7 +362,7 @@ const tests = [
       const sig = () => document.body.innerText.slice(-600);
       await __t.until(() => /20\\d\\d/.test(sig()), 25000);
       const before = sig();
-      __t.byText('.b-checkbox.button', 'Igalia').click();
+      __t.byText('.chip', 'Igalia').click();
       const ok = await __t.until(() => sig() !== before, 10000);
       return { ok: !!ok, detail: before.replace(/\\s+/g, ' ').slice(0, 60) + ' -> ' + sig().replace(/\\s+/g, ' ').slice(0, 60) };
     `,
@@ -451,10 +477,10 @@ const tests = [
     name: 'components: timeline slider drag and date picker',
     url: 'individuals?developers=arthursonzogni',
     run: `
-      const thumb = await __t.until(() => document.querySelector('.timeline .b-slider-thumb'), 15000);
+      const thumb = await __t.until(() => document.querySelector('.timeline .ui-slider-thumb'), 15000);
       const before = location.search;
       const rect = thumb.getBoundingClientRect();
-      const track = document.querySelector('.timeline .b-slider-track').getBoundingClientRect();
+      const track = document.querySelector('.timeline .ui-slider-track').getBoundingClientRect();
       const x = rect.left + rect.width / 2, y = rect.top + rect.height / 2;
       thumb.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, clientX: x, clientY: y }));
       window.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, clientX: track.left + track.width * 0.6, clientY: y }));
@@ -485,7 +511,7 @@ const tests = [
     name: 'components: tooltip on hover',
     url: 'repo-info',
     run: `
-      const trigger = await __t.until(() => document.querySelector('.b-tooltip .tooltip-trigger'), 15000);
+      const trigger = await __t.until(() => document.querySelector('.ui-tooltip .tooltip-trigger'), 15000);
       trigger.parentElement.dispatchEvent(new MouseEvent('mouseenter'));
       const shown = await __t.until(() => [...document.querySelectorAll('.tooltip-content')].find(e => e.offsetParent !== null), 3000);
       return { ok: !!shown, detail: 'tooltip=' + shown?.textContent.trim() };
@@ -495,17 +521,17 @@ const tests = [
     name: 'components: table sort, pagination, details',
     url: 'fuzz-test',
     run: `
-      const rows = () => [...document.querySelectorAll('.b-table tbody tr:not(.detail)')].map(r => r.innerText);
+      const rows = () => [...document.querySelectorAll('.ui-table tbody tr:not(.detail)')].map(r => r.innerText);
       await __t.until(() => rows().length > 5, 20000);
       const first = rows()[0];
-      const header = [...document.querySelectorAll('.b-table th')].find(th => th.textContent.trim() === 'Author');
+      const header = [...document.querySelectorAll('.ui-table th')].find(th => th.textContent.trim() === 'Author');
       header.click();
       const sorted = await __t.until(() => rows()[0] !== first, 5000);
-      const page = () => document.querySelector('.b-table-page')?.textContent;
-      document.querySelector('.b-table-pagination button[aria-label="Next page"]').click();
+      const page = () => document.querySelector('.ui-table-page')?.textContent;
+      document.querySelector('.ui-table-pagination button[aria-label="Next page"]').click();
       const paged = await __t.until(() => page()?.startsWith('2 /'), 5000);
-      document.querySelector('.b-table-detail-toggle button').click();
-      const detail = await __t.until(() => document.querySelector('.b-table tr.detail'), 5000);
+      document.querySelector('.ui-table-detail-toggle button').click();
+      const detail = await __t.until(() => document.querySelector('.ui-table tr.detail'), 5000);
       return { ok: !!sorted && !!paged && !!detail, detail: 'page ' + page() + ', detail=' + !!detail };
     `,
   },

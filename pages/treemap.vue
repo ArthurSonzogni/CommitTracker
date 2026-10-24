@@ -2,96 +2,100 @@
   <div>
     <Navbar/>
     <div class="m-5">
-      <b-field group group-multiline>
-        <b-field>
-          <RepositorySelector
-            v-model="repositories"
-            size="is-small"
-            :allowMultiple="false"
-            :allowAll="false"
-            :filter="repo => repo.treemap"
-          />
-        </b-field>
+      <UiField label="Repository" class="mb-4">
+        <RepositorySelector
+          v-model="repositories"
+          size="is-small"
+          :allowMultiple="false"
+          :allowAll="false"
+          :filter="repo => repo.treemap"
+        />
+      </UiField>
 
-        <TreemapInput v-model:value="field_color"
-                      :repositories="repositories"
-                      placeholder="color/numerator"/>
-        <b-checkbox v-model="history_color" class="ml-4"/>
-        <TreemapInput v-model:value="field_size"
-                      :repositories="repositories"
-                      placeholder="size/denominator"/>
-        <b-checkbox v-model="history_size" class="ml-4"/>
+      <div class="form-row">
+        <UiField label="Color (numerator)" expanded>
+          <TreemapInput v-model:value="field_color"
+                        :repositories="repositories"
+                        placeholder="Add a metric"/>
+          <UiCheckbox v-model="history_color">Show in the history chart</UiCheckbox>
+        </UiField>
 
-        <b-field expanded class="mr-2" label="Colormap"
-                                       label-position="on-border">
-          <b-dropdown
-            v-model="colormap"
-            expanded
-            trap
-            :triggers="['hover']"
-            scrollable
-            max-height="300px"
-            >
+        <UiField label="Size (denominator)" expanded>
+          <TreemapInput v-model:value="field_size"
+                        :repositories="repositories"
+                        placeholder="Add a metric"/>
+          <UiCheckbox v-model="history_size">Show in the history chart</UiCheckbox>
+        </UiField>
+      </div>
+
+      <div class="form-row">
+        <UiField label="Colormap">
+          <UiDropdown v-model="colormap" max-height="300px" hover>
             <template #trigger="{ active }">
-              <b-button
-                type="is-ghost"
-                :icon-right="active ? 'menu-up' : 'menu-down'"
-                >
+              <button type="button" class="button">
                 <span class="color-swatch"
                       :style="{ background: $GetColormapGradient(colormap) }"/>
                 {{ colormap }}
-              </b-button>
+              <UiIcon :name="active ? 'menu-up' : 'menu-down'" size="small" /></button>
             </template>
-            <b-dropdown-item
-              v-for="option in colormap_list"
-              :key="option"
-              :value="option"
-              >
+            <UiDropdownItem v-for="option in colormap_list" :key="option" :value="option">
               <span class="color-swatch"
                     :style="{ background: $GetColormapGradient(option, 10) }"/>
                 {{ truncate(option, 5) }}
-            </b-dropdown-item>
-          </b-dropdown>
-        </b-field>
+            </UiDropdownItem>
+          </UiDropdown>
+        </UiField>
 
-        <b-field class="mr-2" label="Min" label-position="on-border" style="width: 80px;">
-          <b-input
-            v-model="colormapMin"
-            placeholder="Min"
-            >
-          </b-input>
-        </b-field>
+        <!-- Min and Max stay on the same row. -->
+        <div class="form-row bounds">
+          <UiField label="Min" class="bound-field">
+            <input class="input" v-model="colormapMin" inputmode="decimal"
+                   :placeholder="`Auto (${formatBound(color_domain[0])})`" />
+          </UiField>
 
-        <b-field class="mr-2" label="Max" label-position="on-border" style="width: 80px;">
-          <b-input
-            v-model="colormapMax"
-            placeholder="Max"
-            ></b-input>
-        </b-field>
+          <UiField label="Max" class="bound-field">
+            <input class="input" v-model="colormapMax" inputmode="decimal"
+                   :placeholder="`Auto (${formatBound(color_domain[1])})`" />
+          </UiField>
+        </div>
 
-        <b-checkbox v-model="exclude_test" class="ml-4">
-          Exclude tests
-        </b-checkbox>
+        <div class="filters">
+          <UiCheckbox v-model="exclude_test">
+            Exclude tests
+          </UiCheckbox>
 
-        <b-checkbox v-model="exclude_third_party" class="ml-4">
-          Exclude third parties
-        </b-checkbox>
+          <UiCheckbox v-model="exclude_third_party">
+            Exclude third parties
+          </UiCheckbox>
+        </div>
+      </div>
 
-      </b-field>
+      <div class="treemap-header">
+        <nav class="breadcrumb" aria-label="Path">
+          <ul>
+            <li :class="{ 'is-active': path.length == 0 }">
+              <a role="button" @click="path = []">
+                <UiIcon name="home" size="small" />
+                {{ repositoryNames(repositories).join(", ") }}
+              </a>
+            </li>
+            <li
+              v-for="(component, index) in path"
+              :key="index"
+              :class="{ 'is-active': index == path.length - 1 }">
+              <a role="button" @click="path = path.slice(0, index+1)">{{component}}</a>
+            </li>
+          </ul>
+        </nav>
 
-      <b-breadcrumb align="is-left">
-        <b-breadcrumb-item tag='a' v-on:click.native = "path = []">
-          &#60;root&#62;
-        </b-breadcrumb-item>
-        <b-breadcrumb-item
-          tag='a'
-          v-for="(component, index) in path"
-          :key="index"
-          v-on:click.native="path = path.slice(0, index+1)"
-          >
-          {{component}}
-        </b-breadcrumb-item>
-      </b-breadcrumb>
+        <!-- The colormap legend -->
+        <div class="legend" aria-label="Color scale">
+          <span>{{ percent(color_domain[0]) }}</span>
+          <span class="legend-gradient"
+                :style="{ background: $GetColormapGradient(colormap) }"/>
+          <span>{{ percent(color_domain[1]) }}</span>
+        </div>
+      </div>
     </div>
 
     <Treemap
@@ -114,29 +118,19 @@
       >
     </Treemap>
     <div class="section">
-      <b-field grouped>
-        <b-field expanded>
+      <div class="form-row">
+        <UiField expanded>
           <Timeline v-model="dates" ></Timeline>
-        </b-field>
-        <b-field grouped>
-          <b-button
-            class="ml-5"
-            @click="toggleAnimate"
-            :disabled="dates[1].getTime() > new Date().getTime() - 100000000"
-            >
-            <b-icon
-              :icon="animate ? 'pause' : 'play'"
-              size="is-small"
-              ></b-icon>
-          </b-button>
-          <b-button
-            :disabled="dates[1].getTime() > new Date().getTime() - 100000000"
-            @click="increaseAnimateSpeed"
-            >
+        </UiField>
+        <div class="form-row">
+          <button type="button" class="button ml-5" @click="toggleAnimate" :disabled="dates[1].getTime() > new Date().getTime() - 100000000">
+            <UiIcon :name="animate ? 'pause' : 'play'" size="small"></UiIcon>
+          </button>
+          <button type="button" class="button" :disabled="dates[1].getTime() > new Date().getTime() - 100000000" @click="increaseAnimateSpeed">
             x{{animate_speed}}
-          </b-button>
-        </b-field>
-      </b-field>
+          </button>
+        </div>
+      </div>
     </div>
 
     <section class="section content">
@@ -146,12 +140,12 @@
 
       <ul>
         <li>Temporal data:
-          <a @click="treemap.download('temporal_json')" > JSON </a>,
-          <a @click="treemap.download('temporal_csv')" > CSV </a>
+          <button type="button" class="button is-small" @click="treemap.download('temporal_json')">JSON</button>
+          <button type="button" class="button is-small" @click="treemap.download('temporal_csv')">CSV</button>
         </li>
         <li>Spatial data:
-          <a @click="treemap.download('spatial_json')" > JSON </a>,
-          <a @click="treemap.download('spatial_csv')" > CSV </a>
+          <button type="button" class="button is-small" @click="treemap.download('spatial_json')">JSON</button>
+          <button type="button" class="button is-small" @click="treemap.download('spatial_csv')">CSV</button>
         </li>
       </ul>
     </section>
@@ -195,6 +189,7 @@
 
 <script setup lang="ts">
 
+import {format} from "d3-format";
 import repositories_json from '../public/data/repositories.json'
 import entries from '../public/treemap/entries.json'
 
@@ -251,15 +246,20 @@ if (route.query.path) {
   path.value = route.query.path.split(",");
 }
 
-const colormapMin = ref(0);
+// Empty bounds fit the displayed data.
+const colormapMin = ref("");
 if (route.query.colormapMin) {
-  colormapMin.value = parseFloat(route.query.colormapMin);
+  colormapMin.value = route.query.colormapMin;
 }
 
-const colormapMax = ref(0.12);
+const colormapMax = ref("");
 if (route.query.colormapMax) {
-  colormapMax.value = parseFloat(route.query.colormapMax);
+  colormapMax.value = route.query.colormapMax;
 }
+
+const color_domain = computed(() => treemap.value?.color_domain ?? [0, 1]);
+const percent = format(".2~%");
+const formatBound = format(".3~r");
 
 const default_repo = repositories_json?.find?.(repo => repo.treemap)?.dirname || repositories_json?.[0]?.dirname || "chromium";
 
@@ -309,8 +309,8 @@ const increaseAnimateSpeed = () => {
 const updateUrl = (old_value, new_value) => {
   const query = {
     colormap: colormap.value,
-    colormapMax: colormapMax.value,
-    colormapMin: colormapMin.value,
+    colormapMax: colormapMax.value || undefined,
+    colormapMin: colormapMin.value || undefined,
     field_color: field_color.value.map(f => f.file).join(","),
     field_size: field_size.value.map(f => f.file).join(","),
     path: path.value.join(","),
@@ -404,9 +404,6 @@ const toggleAnimate = () => {
   }
 }
 
-console.log($color_map["Viridis"](0.5))
-console.log($GetColormapGradient("Viridis"))
-
 </script>
 
 <style scoped>
@@ -424,7 +421,7 @@ section {
   vertical-align: middle;
 
   .numerator {
-    border-bottom: 1px solid black;
+    border-bottom: 1px solid var(--ink);
     padding: 0.3em;
   }
 
@@ -432,6 +429,50 @@ section {
     padding: 0.3em;
   }
 
+}
+
+.bounds {
+  flex-wrap: nowrap;
+  margin-bottom: 0;
+}
+
+.bound-field {
+  width: 8rem;
+}
+
+.filters {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  min-height: 2.25rem;
+}
+
+.treemap-header {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  justify-content: space-between;
+}
+
+.treemap-header .breadcrumb {
+  margin-bottom: 0;
+}
+
+.legend {
+  align-items: center;
+  color: var(--muted);
+  display: flex;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  gap: 0.5rem;
+}
+
+.legend-gradient {
+  border-radius: 999px;
+  height: 0.6rem;
+  width: 8rem;
 }
 
 .color-swatch {

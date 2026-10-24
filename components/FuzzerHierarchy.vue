@@ -31,39 +31,27 @@ let authors_accu = computed(() => {
   <div>
     <div @click="collapsed = !collapsed" class="clickable_area">
       <span v-if="children && children.length">
-        <b-icon icon="chevron-right"
-          :style="{
+        <UiIcon name="chevron-right" :style="{
             transform: 'rotate(' + (collapsed ? 0 : 90) + 'deg)',
             transition: 'transform 0.2s',
-          }"
-        />
+          }" />
       </span>
-      <b-icon v-else icon="empty"/>
-      <b-tag type="is-primary"
-        v-if="children.length"
-        :style="{
+      <UiIcon v-else name="empty" />
+      <span class="tag is-primary" v-if="children.length" :style="{
           width: '4em',
           'margin-right': '1em',
-        }"
-      >
+        }">
         {{ authors.length }}
-      </b-tag>
+      </span>
       {{name}}
       <Transition name="fade">
       <span v-if="authors_accu && authors_accu.length && (collapsed ||
         children.length == 0)">
         <span class="m-3"/>
-          <b-tag
-            type="is-warning"
-            class="mr-1 mb-1"
-            v-for="author in authors_accu.slice(0,5)">
+          <span class="tag is-warning mr-1 mb-1" v-for="author in authors_accu.slice(0,5)">
             {{author}}
-          </b-tag>
-          <b-tag
-            v-if="authors_accu.length > 5"
-            type="is-warning"
-            class="mr-1 mb-1"
-            >...</b-tag>
+          </span>
+          <span v-if="authors_accu.length > 5" class="tag is-warning mr-1 mb-1">...</span>
         </span>
       </Transition>
     </div>

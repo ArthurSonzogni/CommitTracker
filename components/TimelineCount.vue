@@ -1,17 +1,11 @@
 <template>
   <div>
-    <b-field>
-      <b-switch v-model="full">Full</b-switch>
-    </b-field>
+    <UiField>
+      <UiSwitch v-model="full">Full</UiSwitch>
+    </UiField>
     <div align="center">
-      <b-table
-        :data="filteredData"
-        :columns="columns"
-        sticky-header
-        striped
-        hoverable
-      >
-      </b-table>
+      <UiTable :data="filteredData" :columns="columns" sticky-header striped hoverable>
+      </UiTable>
     </div>
   </div>
 </template>

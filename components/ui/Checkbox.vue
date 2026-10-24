@@ -1,33 +1,31 @@
 <template>
-  <label class="b-checkbox checkbox" :class="[size, { 'is-disabled': disabled }]">
+  <label class="ui-checkbox" :class="{ 'is-disabled': disabled }">
     <input
-      v-model="value"
+      v-model="model"
       type="checkbox"
-      :value="nativeValue"
+      :value="value"
       :name="name"
       :disabled="disabled" />
-    <span class="check" :class="type" />
+    <span class="check" />
     <span class="control-label"><slot /></span>
   </label>
 </template>
 
 <script setup lang="ts">
-// A checkbox, for a boolean, or a value in an array. Compatible with Buefy's
-// <b-checkbox>.
+// A checkbox. Its v-model is a boolean, or an array containing `value` when
+// checked.
 
 defineProps<{
-  nativeValue?: any;
-  type?: string;
-  size?: string;
+  value?: any;
   name?: string;
   disabled?: boolean;
 }>();
 
-const value = defineModel<any>();
+const model = defineModel<any>();
 </script>
 
 <style scoped>
-.b-checkbox.checkbox {
+.ui-checkbox {
   align-items: center;
   cursor: pointer;
   display: inline-flex;
@@ -89,11 +87,4 @@ input:focus-visible + .check {
   opacity: 0.5;
 }
 
-.is-small {
-  font-size: 0.75rem;
-}
-
-.is-medium {
-  font-size: 1.25rem;
-}
 </style>

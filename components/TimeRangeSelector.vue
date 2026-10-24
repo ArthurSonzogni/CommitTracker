@@ -1,20 +1,13 @@
 <template>
-  <b-field grouped label="Time range:">
-    <template v-for="(list, i) in possibleValues" :key="i">
-      <b-field class="has-addons">
-        <template v-for="item in list" :key="item">
-          <b-radio-button
-            v-model="value"
-            :native-value="item"
-            >
-            <b-tooltip :label="tooltip.get(item)">
-              {{ item }}
-            </b-tooltip>
-          </b-radio-button>
-        </template>
-      </b-field>
-    </template>
-  </b-field>
+  <UiField label="Time range">
+    <div class="form-row">
+      <UiSegmented
+        v-for="(list, i) in possibleValues"
+        :key="i"
+        v-model="value"
+        :options="list.map(item => ({ value: item, label: item, title: tooltip.get(item) }))" />
+    </div>
+  </UiField>
 </template>
 
 <script setup lang="ts">

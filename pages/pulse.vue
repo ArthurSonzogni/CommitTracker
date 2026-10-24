@@ -18,9 +18,9 @@
       </div>
     </section>
     <section class="section sticky bottom">
-      <b-field expanded>
+      <UiField expanded>
         <Timeline v-model="dates" ></Timeline>
-      </b-field>
+      </UiField>
     </section>
   </div>
 </template>

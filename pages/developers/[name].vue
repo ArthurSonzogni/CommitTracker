@@ -27,7 +27,7 @@
             <div class="profile-actions">
               <NuxtLink class="button is-primary" :to="individualsLink(primaryRepository.dirname)">
                 Explore in detail
-                <b-icon icon="arrow-right" size="is-small" class="ml-1"></b-icon>
+                <UiIcon name="arrow-right" class="ml-1" size="small"></UiIcon>
               </NuxtLink>
               <NuxtLink class="button" :to="`/badges/list?developers=${encodeURIComponent(name)}`">
                 Badges

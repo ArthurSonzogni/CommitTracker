@@ -2,9 +2,9 @@
   <div ref="root" class="taginput control" :class="{ 'is-expanded': expanded }">
     <div
       class="taginput-container is-focusable"
-      :class="[size, { 'is-focused': focused }]"
+      :class="{ 'is-focused': focused }"
       @click="input?.focus()">
-      <span v-for="(tag, index) in tags" :key="index" class="tag" :class="[type, size]">
+      <span v-for="(tag, index) in tags" :key="index" class="tag is-primary">
         <span>{{ label(tag) }}</span>
         <a
           role="button"
@@ -17,7 +17,6 @@
           ref="input"
           v-model="text"
           class="input"
-          :class="size"
           type="text"
           role="combobox"
           aria-autocomplete="list"
@@ -28,7 +27,7 @@
           @focus="onFocus"
           @blur="focused = false"
           @keydown="onKeydown" />
-        <BIcon v-if="icon" :icon="icon" class="is-left" size="is-small" />
+        <UiIcon v-if="icon" :name="icon" class="is-left" size="small" />
         <div v-show="isOpen" class="dropdown-menu" role="listbox">
           <div class="dropdown-content">
             <div v-if="$slots.header" class="dropdown-header">
@@ -54,24 +53,23 @@
 </template>
 
 <script setup lang="ts">
-// A list of tags, picked from suggestions while typing. Compatible with
-// Buefy's <b-taginput autocomplete>: `data` are the suggestions, `typing` is
-// emitted with the text, and the default slot renders a suggestion.
+// A list of tags, picked from suggestions while typing. `typing` is emitted
+// with the text, to update the suggestions. The default slot renders a
+// suggestion.
 
 const props = withDefaults(defineProps<{
-  data?: any[];
-  // The property of the options to display, or "this".
+  suggestions?: any[];
+  // The property of the suggestions to display, or "this".
   field?: string;
   icon?: string;
   placeholder?: string;
-  type?: string;
-  size?: string;
+  // Also accept the typed text.
   allowNew?: boolean;
-  autocomplete?: boolean;
+  // Show the suggestions on focus, before typing.
   openOnFocus?: boolean;
   expanded?: boolean;
 }>(), {
-  data: () => [],
+  suggestions: () => [],
   field: "this",
 });
 
@@ -85,10 +83,12 @@ const focused = ref(false);
 // The suggestion selected with the arrow keys, if any.
 const hovered = ref(-1);
 
-const label = (option: any) => props.field === "this" ? option : option?.[props.field];
+const label = (option: any) => props.field === "this" || typeof option !== "object"
+  ? option
+  : option?.[props.field];
 
 // The suggestions, without the tags already selected.
-const options = computed(() => props.data.filter(option =>
+const options = computed(() => props.suggestions.filter(option =>
   !tags.value.some(tag => label(tag) === label(option))));
 
 const isOpen = computed(() => focused.value &&
@@ -150,9 +150,6 @@ const onKeydown = (event: KeyboardEvent) => {
   padding: 0.25rem 0.4rem;
 }
 
-.taginput-container.is-medium {
-  font-size: 1.1rem;
-}
 
 .taginput-container .tag {
   gap: 0.25rem;

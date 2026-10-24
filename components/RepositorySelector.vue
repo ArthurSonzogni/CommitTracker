@@ -2,46 +2,27 @@
   <div class="repository-selector">
 
     <!-- The list of repositories. A single row, scrolling horizontally. -->
-    <div class="fields chip-track" ref="fields">
+    <div class="fields chip-track" :class="{ 'is-multiple': multiple }" ref="fields">
       <template
         v-for="(item, index) in items"
         :key="index"
         >
-        <b-checkbox-button
-          name="repositories"
-          v-if="filter(repositories[index])"
-          :size="size"
-          v-model="value"
-          :native-value="repositories[index].dirname"
-          @input="update(repositories[index].dirname)"
-          >
+        <UiToggle v-if="filter(repositories[index])" v-model="value" :value="repositories[index].dirname" @input="update(repositories[index].dirname)">
           {{repositories[index].name}}
-        </b-checkbox-button>
+        </UiToggle>
       </template>
     </div>
 
     <!-- The options -->
     <div class="options" v-if="allowAll || allowMultiple">
       <!-- The "All" checkbox -->
-      <b-checkbox
-        v-if="allowAll"
-        :size="size"
-        name="all"
-        type="is-warning"
-        v-model="all"
-        @input="updateAll()"
-        >
+      <UiCheckbox v-if="allowAll" name="all" v-model="all" @input="updateAll()">
         All
-      </b-checkbox>
+      </UiCheckbox>
       <!-- The "Multiple" checkbox -->
-      <b-checkbox
-        v-if="allowMultiple"
-        :size="size"
-        name="multiple"
-        v-model="multiple"
-        >
+      <UiCheckbox v-if="allowMultiple" name="multiple" v-model="multiple">
         Multiple
-      </b-checkbox>
+      </UiCheckbox>
     </div>
   </div>
 </template>
@@ -116,7 +97,7 @@ const updateAll = async () => {
 // Scroll the first selected repository into view, without scrolling the page.
 const fields = ref<HTMLElement | null>(null);
 onMounted(() => {
-  const selected = fields.value?.querySelector(".is-primary")?.closest(".control");
+  const selected = fields.value?.querySelector(".is-selected");
   if (selected) {
     fields.value.scrollLeft = (selected as HTMLElement).offsetLeft - 24;
   }
@@ -156,11 +137,6 @@ function update(item: string) {
   display: flex;
   flex: 0 0 auto;
   gap: 1rem;
-}
-
-.options :deep(.b-checkbox.checkbox) {
-  font-size: 0.85rem;
-  margin-right: 0;
 }
 
 </style>

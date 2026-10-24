@@ -1,36 +1,36 @@
 <template>
   <div ref="container">
-    <b-field grouped group-multiline>
-      <b-field>
-        <b-select v-model="timeIndexModel" >
+    <div class="form-row">
+      <UiField>
+        <UiSelect v-model="timeIndexModel">
           <option v-for="(d, i) in date" :key="i" :value="i">{{ d }} </option>
-        </b-select>
-      </b-field>
-      <b-field grouped>
-        <b-button @click="previous" :disabled="timeIndexModel == date.length - 1">
+        </UiSelect>
+      </UiField>
+      <div class="form-row">
+        <button type="button" class="button" @click="previous" :disabled="timeIndexModel == date.length - 1">
           Previous
-        </b-button>
-        <b-button @click="next" :disabled="timeIndexModel == 0">
+        </button>
+        <button type="button" class="button" @click="next" :disabled="timeIndexModel == 0">
           Next
-        </b-button>
-      </b-field>
-      <b-field v-if="!is_animating && grouping != 'forever' && timeIndexModel > 0">
-        <b-button @click="animate(false)" class="is-success" >
+        </button>
+      </div>
+      <UiField v-if="!is_animating && grouping != 'forever' && timeIndexModel > 0">
+        <button type="button" @click="animate(false)" class="button is-success">
           Animate
-        </b-button>
-      </b-field>
-      <b-field v-if="!is_animating && grouping != 'forever' && timeIndexModel > 0">
-        <b-button @click="animate(true)" class="is-warning">
+        </button>
+      </UiField>
+      <UiField v-if="!is_animating && grouping != 'forever' && timeIndexModel > 0">
+        <button type="button" @click="animate(true)" class="button is-warning">
           Animate with accumulation
-        </b-button>
-      </b-field>
+        </button>
+      </UiField>
 
-      <b-field v-if="is_animating">
-        <b-button @click="stop" class="is-danger" >
+      <UiField v-if="is_animating">
+        <button type="button" @click="stop" class="button is-danger">
           Stop
-        </b-button>
-      </b-field>
-    </b-field>
+        </button>
+      </UiField>
+    </div>
 
     <svg ref="svg_axis" width="100%" :height="31" class="sticky-top"></svg>
     <svg ref="svg" width="100%" :height="svgHeight"></svg>

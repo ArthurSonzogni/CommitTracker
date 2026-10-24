@@ -1,7 +1,7 @@
 <template>
   <div class="home-search" :class="{ 'is-open': focused }">
     <div class="home-search-field">
-      <b-icon icon="magnify" class="home-search-icon"></b-icon>
+      <UiIcon name="magnify" class="home-search-icon"></UiIcon>
       <input
         ref="input"
         v-model="query"
@@ -24,7 +24,7 @@
         aria-label="Clear the search"
         @mousedown.prevent
         @click="query = ''; input?.focus()">
-        <b-icon icon="close-circle" size="is-small"></b-icon>
+        <UiIcon name="close-circle" size="small"></UiIcon>
       </button>
     </div>
     <div v-if="focused" class="home-search-panel">

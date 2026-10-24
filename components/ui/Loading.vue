@@ -13,8 +13,7 @@
 </template>
 
 <script setup lang="ts">
-// A loading overlay, over its parent or the full page. Compatible with
-// Buefy's <b-loading>.
+// A loading overlay, over its parent or the full page.
 
 withDefaults(defineProps<{ isFullPage?: boolean }>(), { isFullPage: true });
 

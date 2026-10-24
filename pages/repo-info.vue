@@ -11,76 +11,76 @@
             <thead>
               <tr>
                 <th @click="sortBy('name')" class="is-clickable">
-                  <b-tooltip label="The display name of the project in this tracker" position="is-bottom">
+                  <UiTooltip text="The display name of the project in this tracker" position="bottom">
                     <span class="has-tooltip-dotted">Name</span>
-                  </b-tooltip>
-                  <b-icon v-if="sortKey === 'name'" :icon="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'" size="is-small"></b-icon>
+                  </UiTooltip>
+                  <UiIcon v-if="sortKey === 'name'" :name="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'" size="small"></UiIcon>
                 </th>
                 <th @click="sortBy('repository')" class="is-clickable">
-                  <b-tooltip label="The source repository hosted on GitHub" position="is-bottom">
+                  <UiTooltip text="The source repository hosted on GitHub" position="bottom">
                     <span class="has-tooltip-dotted">GitHub Repository</span>
-                  </b-tooltip>
-                  <b-icon v-if="sortKey === 'repository'" :icon="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'" size="is-small"></b-icon>
+                  </UiTooltip>
+                  <UiIcon v-if="sortKey === 'repository'" :name="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'" size="small"></UiIcon>
                 </th>
                 <th @click="sortBy('path')" class="is-clickable">
-                  <b-tooltip label="The specific sub-directory tracked (for monorepos)" position="is-bottom">
+                  <UiTooltip text="The specific sub-directory tracked (for monorepos)" position="bottom">
                     <span class="has-tooltip-dotted">Path</span>
-                  </b-tooltip>
-                  <b-icon v-if="sortKey === 'path'" :icon="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'" size="is-small"></b-icon>
+                  </UiTooltip>
+                  <UiIcon v-if="sortKey === 'path'" :name="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'" size="small"></UiIcon>
                 </th>
                 <th @click="sortBy('reviewers')" class="has-text-centered is-clickable">
-                  <b-tooltip label="Indicates if reviewer data (CR+1/CQ+1) is tracked for this project" position="is-bottom" multilined>
+                  <UiTooltip text="Indicates if reviewer data (CR+1/CQ+1) is tracked for this project" position="bottom" multiline>
                     <span class="has-tooltip-dotted">Reviewers</span>
-                  </b-tooltip>
-                  <b-icon v-if="sortKey === 'reviewers'" :icon="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'" size="is-small"></b-icon>
+                  </UiTooltip>
+                  <UiIcon v-if="sortKey === 'reviewers'" :name="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'" size="small"></UiIcon>
                 </th>
                 <th @click="sortBy('treemap')" class="has-text-centered is-clickable">
-                  <b-tooltip label="Indicates if a component treemap visualization is available" position="is-bottom">
+                  <UiTooltip text="Indicates if a component treemap visualization is available" position="bottom">
                     <span class="has-tooltip-dotted">Treemap</span>
-                  </b-tooltip>
-                  <b-icon v-if="sortKey === 'treemap'" :icon="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'" size="is-small"></b-icon>
+                  </UiTooltip>
+                  <UiIcon v-if="sortKey === 'treemap'" :name="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'" size="small"></UiIcon>
                 </th>
                 <th @click="sortBy('commits')" class="has-text-right is-clickable has-left-border">
-                  <b-tooltip label="Total authored commits recorded in our database" position="is-bottom">
+                  <UiTooltip text="Total authored commits recorded in our database" position="bottom">
                     <span class="has-tooltip-dotted">Commits</span>
-                  </b-tooltip>
-                  <b-icon v-if="sortKey === 'commits'" :icon="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'" size="is-small"></b-icon>
+                  </UiTooltip>
+                  <UiIcon v-if="sortKey === 'commits'" :name="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'" size="small"></UiIcon>
                 </th>
                 <th @click="sortBy('contributors')" class="has-text-right is-clickable">
-                  <b-tooltip label="Total number of unique contributors recorded" position="is-bottom">
+                  <UiTooltip text="Total number of unique contributors recorded" position="bottom">
                     <span class="has-tooltip-dotted">Contributors</span>
-                  </b-tooltip>
-                  <b-icon v-if="sortKey === 'contributors'" :icon="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'" size="is-small"></b-icon>
+                  </UiTooltip>
+                  <UiIcon v-if="sortKey === 'contributors'" :name="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'" size="small"></UiIcon>
                 </th>
                 <th @click="sortBy('driver_1')" class="is-clickable has-left-border">
-                  <b-tooltip label="The organization or group with the most commits in the last 5 years" position="is-bottom" multilined>
+                  <UiTooltip text="The organization or group with the most commits in the last 5 years" position="bottom" multiline>
                     <span class="has-tooltip-dotted">Driver 1</span>
-                  </b-tooltip>
-                  <b-icon v-if="sortKey === 'driver_1'" :icon="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'" size="is-small"></b-icon>
+                  </UiTooltip>
+                  <UiIcon v-if="sortKey === 'driver_1'" :name="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'" size="small"></UiIcon>
                 </th>
                 <th @click="sortBy('driver_2')" class="is-clickable">
-                  <b-tooltip label="The organization or group with the 2nd most commits in the last 5 years" position="is-bottom" multilined>
+                  <UiTooltip text="The organization or group with the 2nd most commits in the last 5 years" position="bottom" multiline>
                     <span class="has-tooltip-dotted">Driver 2</span>
-                  </b-tooltip>
-                  <b-icon v-if="sortKey === 'driver_2'" :icon="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'" size="is-small"></b-icon>
+                  </UiTooltip>
+                  <UiIcon v-if="sortKey === 'driver_2'" :name="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'" size="small"></UiIcon>
                 </th>
                 <th @click="sortBy('driver_3')" class="is-clickable">
-                  <b-tooltip label="The organization or group with the 3rd most commits in the last 5 years" position="is-bottom" multilined>
+                  <UiTooltip text="The organization or group with the 3rd most commits in the last 5 years" position="bottom" multiline>
                     <span class="has-tooltip-dotted">Driver 3</span>
-                  </b-tooltip>
-                  <b-icon v-if="sortKey === 'driver_3'" :icon="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'" size="is-small"></b-icon>
+                  </UiTooltip>
+                  <UiIcon v-if="sortKey === 'driver_3'" :name="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'" size="small"></UiIcon>
                 </th>
                 <th @click="sortBy('last_commit')" class="is-clickable has-left-border">
-                  <b-tooltip label="The date of the most recent commit fetched into the database" position="is-bottom" multilined>
+                  <UiTooltip text="The date of the most recent commit fetched into the database" position="bottom" multiline>
                     <span class="has-tooltip-dotted">Last Commit</span>
-                  </b-tooltip>
-                  <b-icon v-if="sortKey === 'last_commit'" :icon="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'" size="is-small"></b-icon>
+                  </UiTooltip>
+                  <UiIcon v-if="sortKey === 'last_commit'" :name="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'" size="small"></UiIcon>
                 </th>
                 <th @click="sortBy('state')" class="is-clickable">
-                  <b-tooltip label="How up-to-date the local data is compared to the source (green: < 2 days, yellow: < 7 days, red: outdated)" position="is-bottom" multilined>
+                  <UiTooltip text="How up-to-date the local data is compared to the source (green: < 2 days, yellow: < 7 days, red: outdated)" position="bottom" multiline>
                     <span class="has-tooltip-dotted">State</span>
-                  </b-tooltip>
-                  <b-icon v-if="sortKey === 'state'" :icon="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'" size="is-small"></b-icon>
+                  </UiTooltip>
+                  <UiIcon v-if="sortKey === 'state'" :name="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'" size="small"></UiIcon>
                 </th>
               </tr>
             </thead>
@@ -103,12 +103,12 @@
                   <span v-else class="has-text-grey-light">/</span>
                 </td>
                 <td class="has-text-centered">
-                  <b-icon v-if="repo.reviewers" icon="check" type="is-success" size="is-small"></b-icon>
-                  <b-icon v-else icon="close" type="is-danger" size="is-small"></b-icon>
+                  <UiIcon v-if="repo.reviewers" name="check" size="small"></UiIcon>
+                  <UiIcon v-else name="close" size="small"></UiIcon>
                 </td>
                 <td class="has-text-centered">
-                  <b-icon v-if="repo.treemap" icon="check" type="is-success" size="is-small"></b-icon>
-                  <b-icon v-else icon="close" type="is-danger" size="is-small"></b-icon>
+                  <UiIcon v-if="repo.treemap" name="check" size="small"></UiIcon>
+                  <UiIcon v-else name="close" size="small"></UiIcon>
                 </td>
                 <td class="has-text-right is-family-monospace is-size-7 has-left-border">
                   {{ formatNumber(stats[repo.dirname]?.total_commits) }}
@@ -178,13 +178,13 @@
               <div class="is-flex mt-2" style="gap: 0.5rem; align-items: center;">
                 <span class="has-text-grey">Features:</span>
                 <span class="tag is-light">
-                  <b-icon v-if="repo.reviewers" icon="check" type="is-success" size="is-small"></b-icon>
-                  <b-icon v-else icon="close" type="is-danger" size="is-small"></b-icon>
+                  <UiIcon v-if="repo.reviewers" name="check" size="small"></UiIcon>
+                  <UiIcon v-else name="close" size="small"></UiIcon>
                   <span class="ml-1">Reviewers</span>
                 </span>
                 <span class="tag is-light">
-                  <b-icon v-if="repo.treemap" icon="check" type="is-success" size="is-small"></b-icon>
-                  <b-icon v-else icon="close" type="is-danger" size="is-small"></b-icon>
+                  <UiIcon v-if="repo.treemap" name="check" size="small"></UiIcon>
+                  <UiIcon v-else name="close" size="small"></UiIcon>
                   <span class="ml-1">Treemap</span>
                 </span>
               </div>

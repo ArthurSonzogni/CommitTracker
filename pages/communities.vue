@@ -13,32 +13,26 @@
 
       <TimeRangeSelector v-model="time" />
 
-      <b-field grouped>
-        <b-field grouped>
-          <b-button
-            label="Readme"
-            @click="displayReadme = !displayReadme"
-            type="is-warning">
-          </b-button>
-          <b-button
-            @click="view"
-            type="is-info"
-            v-if="!displayPlaceholder"
-            label="View">
-          </b-button>
-          <b-button @click="download" type="is-info is-light"
-                                      v-if="!displayPlaceholder">
+      <div class="form-row">
+        <div class="form-row">
+          <button type="button" class="button is-warning" @click="displayReadme = !displayReadme"><span>Readme</span>
+          </button>
+          <button type="button" class="button is-info" @click="view" v-if="!displayPlaceholder"><span>View</span>
+          </button>
+          <button type="button" class="button is-info is-light" @click="download" v-if="!displayPlaceholder">
             Download
-          </b-button>
-        </b-field>
-      </b-field>
+          </button>
+        </div>
+      </div>
     </section>
     <section class="section" v-if="displayReadme">
       <div class="container">
-        <b-message
-          title="Readme"
-          v-model="displayReadme"
-          aria-close-label="Close message">
+        <article v-if="displayReadme" class="message">
+          <div class="message-header">
+            <p>Readme</p>
+            <button type="button" class="delete" aria-label="Close" @click="displayReadme = false"></button>
+          </div>
+          <div class="message-body">
           <div class="content">
             <ul>
               <li>
@@ -82,7 +76,8 @@
               </li>
             </ul>
           </div>
-        </b-message>
+          </div>
+        </article>
       </div>
     </section>
 

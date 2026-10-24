@@ -13,22 +13,22 @@
 
       <div class="card-content">
 
-        <b-field>
-          <b-icon icon="github">
-          </b-icon>
+        <UiField>
+          <UiIcon name="github">
+          </UiIcon>
           <a :href="`https://github.com/${repo.owner}/${repo.repository}`">
             {{repo.owner}}/{{repo.repository}}
           </a>
-        </b-field>
+        </UiField>
 
-        <b-field>
-          <b-icon icon="subdirectory-arrow-right">
-          </b-icon>
+        <UiField>
+          <UiIcon name="subdirectory-arrow-right">
+          </UiIcon>
           <a
             :href="`https://github.com/${repo.owner}/${repo.repository}/tree/HEAD/${repo.cone || '/'}`">
             {{repo.cone || '/'}}
           </a>
-        </b-field>
+        </UiField>
       </div>
     </div>
   </div>

@@ -1,27 +1,22 @@
 <template>
-  <div class="control">
-    <input
-      class="input"
-      type="date"
-      :value="toInputValue(value)"
-      :min="toInputValue(minDate)"
-      :max="toInputValue(maxDate)"
-      @change="onChange" />
-  </div>
+  <input
+    class="input"
+    type="date"
+    :value="toInputValue(model)"
+    :min="toInputValue(min)"
+    :max="toInputValue(max)"
+    @change="onChange" />
 </template>
 
 <script setup lang="ts">
-// A date input, using the browser's date picker. Compatible with the usage
-// of Buefy's <b-datepicker>: `value`, and an `input` event with the Date.
+// A date input, using the browser's date picker.
 
 defineProps<{
-  value?: Date;
-  minDate?: Date;
-  maxDate?: Date;
-  position?: string;
+  min?: Date;
+  max?: Date;
 }>();
 
-const emit = defineEmits<{ input: [value: Date] }>();
+const model = defineModel<Date>();
 
 // YYYY-MM-DD, in local time.
 const toInputValue = (date?: Date) => {
@@ -36,7 +31,7 @@ const onChange = (event: Event) => {
   const input = event.target as HTMLInputElement;
   if (input.value) {
     const [year, month, day] = input.value.split("-").map(Number);
-    emit("input", new Date(year, month - 1, day));
+    model.value = new Date(year, month - 1, day);
   }
 };
 </script>

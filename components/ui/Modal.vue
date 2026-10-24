@@ -13,8 +13,7 @@
 </template>
 
 <script setup lang="ts">
-// A modal dialog, closed with Escape or by clicking outside. Compatible with
-// Buefy's <b-modal>.
+// A modal dialog, closed with Escape or by clicking outside.
 
 defineProps<{ width?: number | string }>();
 

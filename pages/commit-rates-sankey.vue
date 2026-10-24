@@ -22,20 +22,19 @@
               </div>
 
               <div>
-                <b-breadcrumb size="is-medium" align="is-left">
-                  <b-breadcrumb-item
-                    v-for="(crumb, index) in breadcrumbs"
-                    :key="crumb.path"
-                    :active="index === breadcrumbs.length - 1"
-                    tag="a"
-                    @click="navigateTo(crumb.path)"
-                  >
-                    <span v-if="index === 0" class="icon is-small mr-1">
-                      <i class="fas fa-code-branch"></i>
-                    </span>
-                    {{ crumb.label }}
-                  </b-breadcrumb-item>
-                </b-breadcrumb>
+                <nav class="breadcrumb is-medium" aria-label="Path">
+                  <ul>
+                    <li
+                      v-for="(crumb, index) in breadcrumbs"
+                      :key="crumb.path"
+                      :class="{ 'is-active': index === breadcrumbs.length - 1 }">
+                      <a role="button" @click="navigateTo(crumb.path)">
+                        <UiIcon v-if="index === 0" name="source-branch" size="small" class="mr-1" />
+                        {{ crumb.label }}
+                      </a>
+                    </li>
+                  </ul>
+                </nav>
 
                 <div class="is-size-7 has-text-grey mt-1">
                   *Displaying top active paths.
@@ -50,18 +49,9 @@
                 <div class="mb-1 is-size-7 has-text-weight-bold">
                   Includes: {{ smoothingWindow*7 }} days.
                 </div>
-                <b-field>
-                  <b-slider
-                    v-model="smoothingWindow"
-                    :min="1"
-                    :max="300"
-                    :step="1"
-                    size="is-small"
-                    type="is-info"
-                    @change="debouncedRender"
-                    tooltip
-                  ></b-slider>
-                </b-field>
+                <UiField>
+                  <UiSlider v-model="smoothingWindow" :min="1" :max="300" :step="1" @change="debouncedRender" tooltip></UiSlider>
+                </UiField>
              </div>
           </div>
         </div>

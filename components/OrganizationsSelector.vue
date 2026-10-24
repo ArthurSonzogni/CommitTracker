@@ -6,56 +6,32 @@
               aria-label="Sort alphabetically"
               @click="sortOrganizationsAlphabetically"
               >
-              <b-icon icon="sort-alphabetical-descending-variant"></b-icon>
+              <UiIcon name="sort-alphabetical-descending-variant"></UiIcon>
       </button>
       <button class="sort-button"
               title="Sort by commits"
               aria-label="Sort by commits"
               @click="sortOrganizationsByCommits"
               >
-              <b-icon icon="sort"></b-icon>
+              <UiIcon name="sort"></UiIcon>
       </button>
     </div>
 
     <!-- A single row, scrolling horizontally. -->
-    <div class="fields chip-track">
-      <b-checkbox-button
-        name="organizations"
-        v-for="(item, index) in items"
-        :key="index"
-        :size="size"
-        v-model="value"
-        @input="update(item)"
-        :native-value="item"
-        >
-        <b-icon
-          :icon="item.toLowerCase()"
-          size="is-small"
-          v-if="availableIcon.includes(item.toLowerCase())"
-          ></b-icon>
+    <div class="fields chip-track" :class="{ 'is-multiple': multiple }">
+      <UiToggle v-for="(item, index) in items" :key="index" v-model="value" @input="update(item)" :value="item">
+        <UiIcon :name="item.toLowerCase()" v-if="availableIcon.includes(item.toLowerCase())" size="small"></UiIcon>
         {{item}}
-      </b-checkbox-button>
+      </UiToggle>
     </div>
 
     <div class="options">
-      <b-checkbox
-        v-if="allowAll"
-        :size="size"
-        name="all"
-        :value="all"
-        @input="updateAll()"
-        type="is-warning"
-        >
+      <UiCheckbox v-if="allowAll" name="all" :value="all" @input="updateAll()">
         All
-      </b-checkbox>
-      <b-checkbox
-        v-if="allowMultiple"
-        :size="size"
-        name="multiple"
-        v-model="multiple"
-        >
+      </UiCheckbox>
+      <UiCheckbox v-if="allowMultiple" name="multiple" v-model="multiple">
         Multiple
-      </b-checkbox>
+      </UiCheckbox>
       <slot></slot>
     </div>
   </div>
@@ -219,11 +195,6 @@ onMounted(() => {
   display: flex;
   flex: 0 0 auto;
   gap: 1rem;
-}
-
-.options :deep(.b-checkbox.checkbox) {
-  font-size: 0.85rem;
-  margin-right: 0;
 }
 
 </style>

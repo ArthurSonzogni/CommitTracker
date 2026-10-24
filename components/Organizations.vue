@@ -14,21 +14,22 @@
     <BarChart
       v-if="chart == 'bar'"
       :timeLabel="timeLabel"
+      :valueLabel="metric == 'commit' ? 'Commits' : 'Contributors'"
       :formatter="formatter"
       :data="bar_chart_data"
       >
     </BarChart>
 
-    <b-field position="is-centered">
+    <UiField>
       <slot></slot>
 
       <p class="m-2"></p>
 
-      <b-field position="is-centered">
+      <UiField>
 
-        <b-button @click="download = true" > Download </b-button>
+        <button type="button" class="button" @click="download = true"> Download </button>
 
-        <b-modal v-model="download" :width="640">
+        <UiModal v-model="download" :width="640">
           <div class="card">
             <div class="card-content">
               <div class="media">
@@ -38,17 +39,17 @@
               </div>
 
               <div class="content">
-                <b-button type="is-light" class="download-button" @click="DownloadJSON()" > JSON </b-button>
-                <b-button type="is-light" class="download-button" @click="DownloadJSON2()" > JSON (variant) </b-button>
-                <b-button type="is-light" class="download-button" @click="DownloadCSV()" > CSV (rows)</b-button>
-                <b-button type="is-light" class="download-button" @click="DownloadCSV2()" > CSV (table) </b-button>
+                <button type="button" class="button is-light download-button" @click="DownloadJSON()"> JSON </button>
+                <button type="button" class="button is-light download-button" @click="DownloadJSON2()"> JSON (variant) </button>
+                <button type="button" class="button is-light download-button" @click="DownloadCSV()"> CSV (rows)</button>
+                <button type="button" class="button is-light download-button" @click="DownloadCSV2()"> CSV (table) </button>
               </div>
             </div>
           </div>
-        </b-modal>
+        </UiModal>
 
-      </b-field>
-    </b-field>
+      </UiField>
+    </UiField>
   </div>
 </template>
 
@@ -283,9 +284,7 @@ const refresh = async function() {
 
   formatter = props.display == "percent"
     ? format(".2%")
-    : props.metric == "commit"
-      ? v => format(",d")(v) + ' ⚙️'
-      : v => format(",d")(v) + ' 🧍';
+    : format(",d");
 
   // Turn the object into an array of arrays for D3.
   if (props.chart == "bar") {

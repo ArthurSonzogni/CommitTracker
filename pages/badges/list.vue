@@ -33,13 +33,13 @@
 
                {{ category }}
 
-               <b-tag>
+               <span class="tag">
                {{
                   data.filter(badge => badge.category === category && badge.enabled).length
                }} / {{
                   data.filter(badge => badge.category === category).length
                }}
-               </b-tag>
+               </span>
 
                <div class="cards">
                  <Badge

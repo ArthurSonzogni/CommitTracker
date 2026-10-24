@@ -1,10 +1,10 @@
 <script lang="ts">
 // A table, with sorting, pagination, sticky header/column and detail rows.
-// Compatible with Buefy's <b-table>: the columns come from the `columns` prop,
-// or from <b-table-column> children with a slot rendering the cells.
+// The columns come from the `columns` prop, or from <UiTableColumn> children,
+// whose default slot renders the cells.
 import { Comment, Fragment, defineComponent, h, ref, computed, watch, type PropType, type VNode } from 'vue'
-import BTableColumn from './TableColumn.vue'
-import BIcon from './Icon.vue'
+import UiTableColumn from './TableColumn.vue'
+import UiIcon from './Icon.vue'
 
 type Column = {
   field?: string;
@@ -16,18 +16,18 @@ type Column = {
   tdAttrs?: (row: any, column: Column) => Record<string, any>;
   cellClass?: string;
   headerClass?: string;
-  // From <b-table-column>: renders a cell.
+  // From <UiTableColumn>: renders a cell.
   cell?: (props: { row: any, index: number, column: Column }) => VNode[];
 };
 
 const camelCase = (name: string) => name.replace(/-(\w)/g, (_, c) => c.toUpperCase());
 
-// The <b-table-column> children, with their props and slot.
+// The <UiTableColumn> children, with their props and slot.
 const slotColumns = (nodes: VNode[] = []): Column[] => nodes.flatMap(node => {
   if (node.type === Fragment) {
     return slotColumns(node.children as VNode[]);
   }
-  if (node.type !== BTableColumn) {
+  if (node.type !== UiTableColumn) {
     return [];
   }
   const props = Object.fromEntries(Object.entries(node.props ?? {})
@@ -37,7 +37,7 @@ const slotColumns = (nodes: VNode[] = []): Column[] => nodes.flatMap(node => {
 });
 
 export default defineComponent({
-  name: 'BTable',
+  name: 'UiTable',
   props: {
     data: { type: Array as PropType<any[]>, default: () => [] },
     columns: { type: Array as PropType<Column[]>, default: () => [] },
@@ -104,22 +104,22 @@ export default defineComponent({
       openedDetails.value = opened;
     };
 
-    const pagination = () => h('nav', { class: 'b-table-pagination', 'aria-label': 'Pagination' }, [
+    const pagination = () => h('nav', { class: 'ui-table-pagination', 'aria-label': 'Pagination' }, [
       h('button', {
         type: 'button',
         class: 'button is-small',
         disabled: page.value <= 1,
         'aria-label': 'Previous page',
         onClick: () => page.value--,
-      }, [h(BIcon, { icon: 'chevron-left', size: 'is-small' })]),
-      h('span', { class: 'b-table-page' }, `${page.value} / ${pageCount.value}`),
+      }, [h(UiIcon, { name: 'chevron-left', size: 'small' })]),
+      h('span', { class: 'ui-table-page' }, `${page.value} / ${pageCount.value}`),
       h('button', {
         type: 'button',
         class: 'button is-small',
         disabled: page.value >= pageCount.value,
         'aria-label': 'Next page',
         onClick: () => page.value++,
-      }, [h(BIcon, { icon: 'chevron-right', size: 'is-small' })]),
+      }, [h(UiIcon, { name: 'chevron-right', size: 'small' })]),
     ]);
 
     return () => {
@@ -127,7 +127,7 @@ export default defineComponent({
         .filter(column => column.visible !== false);
 
       const header = h('thead', [h('tr', [
-        props.detailed ? h('th', { class: 'b-table-detail-toggle', 'aria-label': 'Details' }) : null,
+        props.detailed ? h('th', { class: 'ui-table-detail-toggle', 'aria-label': 'Details' }) : null,
         ...columns.map(column => h('th', {
           class: [column.headerClass, {
             'is-sortable': column.sortable,
@@ -143,7 +143,7 @@ export default defineComponent({
           h('span', { class: 'th-wrap' }, [
             column.label,
             sortField.value === column.field
-              ? h(BIcon, { icon: sortAscending.value ? 'arrow-up' : 'arrow-down', size: 'is-small' })
+              ? h(UiIcon, { name: sortAscending.value ? 'arrow-up' : 'arrow-down', size: 'small' })
               : null,
           ]),
         ])),
@@ -163,13 +163,13 @@ export default defineComponent({
           : String(row[column.field ?? ''] ?? '')));
         const tr = h('tr', { key: index, class: { 'is-detail-open': opened } }, [
           props.detailed
-            ? h('td', { class: 'b-table-detail-toggle' }, [h('button', {
+            ? h('td', { class: 'ui-table-detail-toggle' }, [h('button', {
                 type: 'button',
                 class: 'button is-small is-text',
                 'aria-label': opened ? 'Hide details' : 'Show details',
                 'aria-expanded': opened,
                 onClick: () => toggleDetail(row),
-              }, [h(BIcon, { icon: opened ? 'chevron-down' : 'chevron-right', size: 'is-small' })])])
+              }, [h(UiIcon, { name: opened ? 'chevron-down' : 'chevron-right', size: 'small' })])])
             : null,
           ...cells,
         ]);
@@ -190,7 +190,7 @@ export default defineComponent({
       }, [header, body]);
 
       const height = typeof props.height === 'number' ? `${props.height}px` : props.height;
-      return h('div', { class: 'b-table' }, [
+      return h('div', { class: 'ui-table' }, [
         props.paginated ? pagination() : null,
         h('div', {
           class: ['table-wrapper', {
@@ -206,7 +206,7 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.b-table-pagination {
+.ui-table-pagination {
   align-items: center;
   display: flex;
   gap: 0.5rem;
@@ -214,7 +214,7 @@ export default defineComponent({
   margin-bottom: 0.75rem;
 }
 
-.b-table-page {
+.ui-table-page {
   color: var(--muted);
   font-size: 0.85rem;
   font-variant-numeric: tabular-nums;
@@ -253,7 +253,7 @@ export default defineComponent({
   gap: 0.2rem;
 }
 
-:deep(.b-table-detail-toggle) {
+:deep(.ui-table-detail-toggle) {
   width: 2.5rem;
 }
 

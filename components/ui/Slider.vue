@@ -1,22 +1,22 @@
 <template>
   <div
-    class="b-slider"
-    :class="[size, { 'is-disabled': disabled, 'has-ticks': !!$slots.default }]">
-    <div ref="track" class="b-slider-track" @pointerdown="onTrackPointerDown">
-      <div class="b-slider-fill" :style="fillStyle" />
+    class="ui-slider"
+    :class="{ 'is-disabled': disabled, 'has-ticks': !!$slots.default }">
+    <div ref="track" class="ui-slider-track" @pointerdown="onTrackPointerDown">
+      <div class="ui-slider-fill" :style="fillStyle" />
       <slot />
       <div
         v-for="(thumb, index) in values"
         :key="index"
-        class="b-slider-thumb-wrapper"
+        class="ui-slider-thumb-wrapper"
         :style="{ left: percent(thumb) + '%' }">
         <span
           v-if="tooltip && (tooltipAlways || dragging === index || focused === index)"
-          class="b-slider-tooltip">
+          class="ui-slider-tooltip">
           {{ format(thumb) }}
         </span>
         <div
-          class="b-slider-thumb"
+          class="ui-slider-thumb"
           role="slider"
           tabindex="0"
           :aria-label="ariaLabel"
@@ -29,7 +29,7 @@
           @keydown="onKeydown(index, $event)"
           @focus="focused = index"
           @blur="focused = null">
-          <span v-if="indicator" class="b-slider-indicator">{{ format(thumb) }}</span>
+          <span v-if="indicator" class="ui-slider-indicator">{{ format(thumb) }}</span>
         </div>
       </div>
     </div>
@@ -37,15 +37,13 @@
 </template>
 
 <script setup lang="ts">
-// A slider, for a number, or a range [a, b] with two thumbs. Compatible with
-// Buefy's <b-slider>, with <b-slider-tick> children.
+// A slider, for a number, or a range [a, b] with two thumbs. <UiSliderTick>
+// children add labeled ticks.
 
 const props = withDefaults(defineProps<{
   min?: number;
   max?: number;
   step?: number;
-  size?: string;
-  type?: string;
   // Show the value above the thumb while dragging or focused.
   tooltip?: boolean;
   tooltipAlways?: boolean;
@@ -53,9 +51,8 @@ const props = withDefaults(defineProps<{
   indicator?: boolean;
   // Update the model when the drag ends, instead of continuously.
   lazy?: boolean;
-  customFormatter?: (value: number) => string;
+  formatter?: (value: number) => string;
   disabled?: boolean;
-  rounded?: boolean;
   ariaLabel?: string;
 }>(), {
   min: 0,
@@ -96,8 +93,8 @@ const fillStyle = computed(() => {
   };
 });
 
-const format = (value: number) => props.customFormatter
-  ? props.customFormatter(value)
+const format = (value: number) => props.formatter
+  ? props.formatter(value)
   : String(value);
 
 // Round to the step, and to the step's precision to avoid floating errors.
@@ -199,7 +196,7 @@ const onKeydown = (index: number, event: KeyboardEvent) => {
 </script>
 
 <style scoped>
-.b-slider {
+.ui-slider {
   align-items: center;
   display: flex;
   min-height: 1.5rem;
@@ -208,11 +205,11 @@ const onKeydown = (index: number, event: KeyboardEvent) => {
   width: 100%;
 }
 
-.b-slider.has-ticks {
+.ui-slider.has-ticks {
   padding-bottom: 1.6rem;
 }
 
-.b-slider-track {
+.ui-slider-track {
   background: var(--line);
   border-radius: 999px;
   cursor: pointer;
@@ -221,7 +218,7 @@ const onKeydown = (index: number, event: KeyboardEvent) => {
   width: 100%;
 }
 
-.b-slider-fill {
+.ui-slider-fill {
   background: var(--accent);
   border-radius: 999px;
   height: 100%;
@@ -229,14 +226,14 @@ const onKeydown = (index: number, event: KeyboardEvent) => {
   top: 0;
 }
 
-.b-slider-thumb-wrapper {
+.ui-slider-thumb-wrapper {
   position: absolute;
   top: 50%;
   transform: translate(-50%, -50%);
   z-index: 2;
 }
 
-.b-slider-thumb {
+.ui-slider-thumb {
   align-items: center;
   background: var(--surface);
   border: 2px solid var(--accent);
@@ -250,18 +247,18 @@ const onKeydown = (index: number, event: KeyboardEvent) => {
   transition: transform 0.1s, box-shadow 0.15s;
 }
 
-.b-slider-thumb:hover,
-.b-slider-thumb:focus-visible {
+.ui-slider-thumb:hover,
+.ui-slider-thumb:focus-visible {
   box-shadow: var(--ring);
   outline: none;
   transform: scale(1.1);
 }
 
-.b-slider-thumb:active {
+.ui-slider-thumb:active {
   cursor: grabbing;
 }
 
-.b-slider-indicator {
+.ui-slider-indicator {
   color: var(--ink);
   font-size: 0.7rem;
   font-variant-numeric: tabular-nums;
@@ -269,11 +266,11 @@ const onKeydown = (index: number, event: KeyboardEvent) => {
   white-space: nowrap;
 }
 
-.b-slider-thumb:has(.b-slider-indicator) {
+.ui-slider-thumb:has(.ui-slider-indicator) {
   height: 1.5rem;
 }
 
-.b-slider-tooltip {
+.ui-slider-tooltip {
   background: var(--tooltip-bg);
   border-radius: var(--radius-sm);
   bottom: calc(100% + 0.5rem);
@@ -289,7 +286,7 @@ const onKeydown = (index: number, event: KeyboardEvent) => {
   white-space: nowrap;
 }
 
-.b-slider-tooltip::after {
+.ui-slider-tooltip::after {
   border: 4px solid transparent;
   border-top-color: var(--tooltip-bg);
   content: "";
