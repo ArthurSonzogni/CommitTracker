@@ -135,7 +135,7 @@ const refresh = async () => {
   rarity.value = rarity_;
 }
 
-watch([ developers ], refresh )
+watch([ developers ], refresh, { immediate: true })
 
 </script>
 
