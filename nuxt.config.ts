@@ -77,6 +77,11 @@ export default defineNuxtConfig({
   ],
 
   nitro: {
+    // This scan pushes every public file path with `push(...paths)`, which
+    // overflows the call stack with the ~150k files in public/.
+    prerender: {
+      ignoreUnprefixedPublicAssets: false,
+    },
     noPublicDir: isDev,
     publicAssets: isDev ? [
       {
