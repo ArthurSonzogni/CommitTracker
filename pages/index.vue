@@ -9,7 +9,7 @@
         </p>
 
         <!-- A transition for the {repository}CommitTracker-->
-        <h1 class="display" key="repository">
+        <h1 class="display" key="repository" ref="title">
           <span class="repository">{{repository}}</span><span class="caret non-selectable">|</span><wbr>CommitTracker
         </h1>
 
@@ -38,8 +38,19 @@ const lastUpdate = new Date(
   Math.max(...all_stats.map(stat => new Date(stat.last_commit)))
 ).toLocaleDateString("en", { month: "short", day: "numeric", year: "numeric" });
 
+const title = ref<HTMLElement | null>(null);
+
+// Stop the animation when leaving the page: sleep() throws once unmounted.
+let unmounted = false;
+onBeforeUnmount(() => {
+  unmounted = true;
+});
+
 const sleep = async (delay = 500) => {
-  return new Promise(resolve => setTimeout(resolve, delay));
+  await new Promise(resolve => setTimeout(resolve, delay));
+  if (unmounted) {
+    throw new Error("unmounted");
+  }
 };
 
 
@@ -77,14 +88,13 @@ const main = async() => {
     }
   }
 
-  const h1 = document.querySelector("h1");
   await sleep(500);
-  h1.classList.add("flash");
+  title.value?.classList.add("flash");
   await sleep(500);
-  h1.classList.remove("flash");
+  title.value?.classList.remove("flash");
 }
 
-main()
+main().catch(() => {})
 </script>
 
 <style scoped>
