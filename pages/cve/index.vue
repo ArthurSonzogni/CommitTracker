@@ -117,6 +117,7 @@
 </template>
 
 <script setup lang="ts">
+import { fetchCveData } from '~/utils/cve'
 
 import hdate from "human-date";
 import humanizeDuration from "humanize-duration";
@@ -207,8 +208,7 @@ const getEvents = (cve) => {
 }
 
 onMounted(async ()=> {
-  const response=await fetch("/cve/data.json");
-  const data=await response.json();
+  const data=await fetchCveData();
 
   let out=null;
   for (const cve_ of data) {

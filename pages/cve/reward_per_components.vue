@@ -43,6 +43,7 @@
 </template>
 
 <script setup lang="ts">
+import { fetchCveData } from '~/utils/cve'
 
 import { select } from "d3-selection";
 import { sankey } from "d3-sankey";
@@ -98,8 +99,7 @@ const color = scaleOrdinal(categoricalPalette);
 let data = {}
 
 onMounted(async () => {
-  const response = await fetch("/cve/data.json");
-  data = await response.json();
+  data = await fetchCveData();
   render();
 })
 

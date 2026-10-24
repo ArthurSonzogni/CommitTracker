@@ -178,6 +178,7 @@
 </template>
 
 <script setup lang="ts">
+import { fetchCveData } from '~/utils/cve'
 
 import humanizeDuration from "humanize-duration";
 import { format } from "d3-format";
@@ -303,8 +304,7 @@ watch(
 
 
 onMounted(async () => {
-  const response = await fetch("/cve/data.json");
-  data.value = await response.json();
+  data.value = await fetchCveData();
 
   data_size.value = Object.keys(data.value).length;
 

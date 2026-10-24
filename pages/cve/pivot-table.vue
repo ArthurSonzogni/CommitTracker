@@ -134,6 +134,7 @@
 </template>
 
 <script setup lang="ts">
+import { fetchCveData } from '~/utils/cve'
 
 import {format} from "d3-format";
 import {scaleSequential} from "d3-scale";
@@ -231,8 +232,7 @@ const tdAttrs = (row, column) => {
 }
 
 onMounted(async () => {
-  const response = await fetch("/cve/data.json");
-  raw_data = (await response.json()).map(cve => {
+  raw_data = (await fetchCveData()).map(cve => {
     if (["Low", "Medium", "High", "Critical"].indexOf(cve.severity) == -1) {
       cve.severity = "N/A";
     }

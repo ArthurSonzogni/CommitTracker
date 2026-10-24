@@ -156,6 +156,7 @@
 </template>
 
 <script lang="ts" setup>
+import { fetchCveData } from '~/utils/cve'
 
 import { format } from "d3-format";
 import { jStat } from "jstat";
@@ -258,8 +259,7 @@ function calculateProjectedInterval(count, timeFraction, confidence = 0.9) {
 }
 
 onMounted(async () => {
-  const response = await fetch("/cve/data.json");
-  const data = await response.json();
+  const data = await fetchCveData();
   all_cve_data.value = data.map((cve: any) => ({
     ...cve,
     year: getCveYear(cve),

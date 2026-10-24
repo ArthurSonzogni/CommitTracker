@@ -81,6 +81,7 @@
 </template>
 
 <script setup lang="ts">
+import { fetchCveData } from '~/utils/cve'
 import { ref, onMounted, computed, watch, shallowRef } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { format } from 'd3-format';
@@ -533,8 +534,7 @@ watch(filteredData, (newData) => {
 
 onMounted(async () => {
   try {
-    const response = await fetch('/cve/data.json');
-    rawData.value = await response.json();
+    rawData.value = await fetchCveData();
     processedData.value = processRawData(rawData.value);
 
     // If no start date in URL, ensure we span everything
