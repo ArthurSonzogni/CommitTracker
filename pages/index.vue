@@ -43,9 +43,15 @@
       </div>
     </section>
     <CommunityMapDemo/>
-    <StatsDemo/>
-    <RepositoryDemo/>
-    <TreemapDemo/>
+    <RenderWhenVisible>
+      <LazyStatsDemo/>
+    </RenderWhenVisible>
+    <RenderWhenVisible>
+      <LazyRepositoryDemo/>
+    </RenderWhenVisible>
+    <RenderWhenVisible>
+      <LazyTreemapDemo/>
+    </RenderWhenVisible>
   </div>
 </template>
 
