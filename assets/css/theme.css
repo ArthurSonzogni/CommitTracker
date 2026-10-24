@@ -116,7 +116,7 @@ strong {
 /* Motion ------------------------------------------------------------------- */
 
 /* Page transitions (View Transitions API): a short crossfade with a slight
- * lift, while the sticky header stays in place. */
+ * lift, while the header stays in place. */
 .site-header {
   view-transition-name: site-header;
 }
@@ -640,9 +640,7 @@ strong {
 /* Navbar ------------------------------------------------------------------- */
 
 .navbar.site-navbar {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: saturate(180%) blur(14px);
-  -webkit-backdrop-filter: saturate(180%) blur(14px);
+  background: var(--surface);
   border-bottom: 1px solid var(--line);
   min-height: 3.5rem;
 }

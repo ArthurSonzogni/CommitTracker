@@ -174,8 +174,7 @@ onMounted(() => {
 
 <style scoped>
 .site-header {
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 40;
 }
 
