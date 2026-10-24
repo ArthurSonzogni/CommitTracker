@@ -48,6 +48,16 @@ npm run generate-derived-data
 npm run dev
 ```
 
+### Testing
+
+The interaction tests drive a headless Chrome over the generated website.
+They run before every deployment.
+
+```bash
+npm run generate
+npm run test:interactions
+```
+
 ### Pull new data
 
 The data is refreshed automatically every day. You can pull it using:
