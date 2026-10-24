@@ -18,6 +18,14 @@
         @blur="focused = false"
         @keydown="onSearchKeydown"
       />
+      <button
+        v-if="query"
+        class="home-search-clear"
+        aria-label="Clear the search"
+        @mousedown.prevent
+        @click="query = ''; input?.focus()">
+        <b-icon icon="close-circle" size="is-small"></b-icon>
+      </button>
     </div>
     <div v-if="focused" class="home-search-panel">
       <SearchResults
@@ -89,6 +97,29 @@ const onSearchKeydown = (event: KeyboardEvent) => {
   height: 3.4rem;
   min-width: 0;
   outline: none;
+}
+
+/* Replaced by .home-search-clear. */
+.home-search-field input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.home-search-clear {
+  align-items: center;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  color: var(--faint);
+  cursor: pointer;
+  display: flex;
+  height: 2rem;
+  justify-content: center;
+  width: 2rem;
+}
+
+.home-search-clear:hover {
+  background: var(--surface-sunken);
+  color: var(--ink-2);
 }
 
 .home-search-field input::placeholder {
