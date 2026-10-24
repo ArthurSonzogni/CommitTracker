@@ -48,6 +48,27 @@
         </b-field>
       </section>
 
+      <section class="section" v-if="developers.length == 0">
+        <div class="container empty-state">
+          <h2 class="title is-4">Pick a developer</h2>
+          <p>
+            Type a username or an email above, or start with one of the top
+            authors of {{ topAuthorsYear }}:
+          </p>
+          <div class="suggestions">
+            <button
+              v-for="author in topAuthors"
+              :key="author"
+              class="button"
+              @click="developers = [author]">
+              <b-icon icon="account" size="is-small"></b-icon>
+              <span>{{ author }}</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <template v-else>
       <section class="section">
         <div class="container">
           <h2 class="title">0. Counts</h2>
@@ -178,6 +199,7 @@
           <Timeline v-model="dates" ></Timeline>
         </b-field>
       </section>
+      </template>
     </div>
   </div>
 </template>
@@ -225,6 +247,30 @@ if (route.query.repositories) {
   repositories.value = route.query.repositories.split(',');
 }
 
+// Suggestions when no developer is selected: the top authors of the latest
+// year in the first selected repository.
+const topAuthors = ref<string[]>([]);
+const topAuthorsYear = ref("");
+watch([developers, repositories], async () => {
+  if (developers.value.length || topAuthors.value.length) {
+    return;
+  }
+  const response = await fetch(
+    `/data/${repositories.value[0]}/usernames_summary_commit_yearly_author.json`);
+  if (!response.ok) {
+    return;
+  }
+  const summary: Record<string, Record<string, number>> = await response.json();
+  const year = Object.values(summary)
+    .flatMap(years => Object.keys(years))
+    .reduce((a, b) => a > b ? a : b, "");
+  topAuthorsYear.value = year;
+  topAuthors.value = Object.entries(summary)
+    .sort((a, b) => (b[1][year] ?? 0) - (a[1][year] ?? 0))
+    .slice(0, 8)
+    .map(([name]) => name);
+}, { immediate: true });
+
 const updateUrl = () => {
   router.push({
     query: {
@@ -268,6 +314,23 @@ document.addEventListener('scroll', updateHasScrolled, { passive: true });
 </script>
 
 <style scoped>
+.empty-state p {
+  color: var(--muted);
+  max-width: 36rem;
+}
+
+.suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+
+.suggestions .button {
+  border-radius: 999px;
+  gap: 0.25rem;
+}
+
 .sticky {
   position: sticky;
   width: 100%;

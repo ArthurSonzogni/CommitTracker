@@ -1,6 +1,7 @@
 // End-to-end interaction tests, run against a generated site.
 //
 // Usage: node scripts/test-interactions.mjs [dir=.output/public] [filter]
+//        BASE_URL=http://localhost:3000/ node scripts/test-interactions.mjs - [filter]
 //
 // Serves `dir` on a local port, drives a headless Chrome through the DevTools
 // protocol, and checks that the main interactions of the website work: each
@@ -70,8 +71,9 @@ const launchChrome = () => new Promise((resolve, reject) => {
   });
 });
 
-const server = await serve();
-const base = `http://127.0.0.1:${server.address().port}/`;
+// BASE_URL tests an already running website, e.g. the dev server.
+const server = process.env.BASE_URL ? null : await serve();
+const base = process.env.BASE_URL || `http://127.0.0.1:${server.address().port}/`;
 const { chrome, wsUrl } = await launchChrome();
 
 const ws = new WebSocket(wsUrl);
@@ -195,6 +197,18 @@ const tests = [
       __t.byText('.b-checkbox.button', 'Blink').click();
       const blink = await __t.until(() => location.search.includes('blink'), 8000);
       return { ok: !!monthly && !!prev && !!blink, detail: year + ' -> monthly ' + monthLabel + ' -> previous ' + prevLabel + ' / url ' + location.search };
+    `,
+  },
+  {
+    name: 'individuals: empty state suggests developers',
+    url: 'individuals',
+    run: `
+      const chip = await __t.until(() => document.querySelector('.suggestions .button'), 15000);
+      const noCharts = !document.body.innerText.includes('1. Timeline');
+      const name = chip.textContent.trim();
+      chip.click();
+      const ok = await __t.until(() => location.search.includes(encodeURIComponent(name).replace(/%40/g, '@')) && document.querySelectorAll('svg path').length > 5, 20000);
+      return { ok: noCharts && !!ok, detail: 'suggestions=' + __t.count('.suggestions .button') + ' clicked=' + name };
     `,
   },
   {
@@ -442,5 +456,5 @@ for (const test of tests) {
 console.log(failed ? `${failed} failed` : 'all passed');
 ws.close();
 chrome.kill();
-server.close();
+server?.close();
 process.exit(failed ? 1 : 0);
