@@ -105,7 +105,12 @@ const main = async () => {
   }
   const allBadges = await fetchJson(`/badges.json`);
 
-  badge_data.value = allBadges.find((data) => data.name === badge.value);
+  const found = allBadges.find((data) => data.name === badge.value);
+  if (!found) {
+    List();
+    return;
+  }
+  badge_data.value = found;
 
   related_badges.value = allBadges.filter((data) => data.category ===
     badge_data.value.category);
@@ -113,8 +118,8 @@ const main = async () => {
   rarity.value = Math.log2(8200/badge_data.value.recipients) * 0.8
 
   // Fetch the developers's data.
-  const developer_data = (
-    await fetchJson(`/badges/${developer.value[0]}.json`))[developer.value];
+  const developer_data = developer.value ? (
+    await fetchJson(`/badges/${developer.value[0]}.json`))[developer.value] || [] : [];
 
   let unlocked_ = false;
   let data_ = null;
@@ -125,6 +130,9 @@ const main = async () => {
     }
   }
   unlocked.value = unlocked_;
+  if (!unlocked_) {
+    return;
+  }
 
   // Replace the description with the developer's data. The strings to replace
   // are $0, $1, $2, etc.

@@ -15,6 +15,10 @@
             public
           </b-tag>
         </h2>
+        <p v-if="not_found">
+          No CVE found with id "{{ id }}". See the
+          <NuxtLink to="/cve/list">list of CVEs</NuxtLink>.
+        </p>
         <div class="grid" v-if="cve.bug">
           <template v-if="cve.title">
             <strong>Title</strong>
@@ -124,6 +128,7 @@ const router = useRouter();
 const id = ref(route.query.id);
 
 const cve = ref({});
+const not_found = ref(false);
 
 const events = ref([]);
 
@@ -213,6 +218,11 @@ onMounted(async ()=> {
     }
   }
 
+  if (!out) {
+    not_found.value = true;
+    return;
+  }
+
   cve.value=out;
   events.value=getEvents(out);
 });
@@ -221,8 +231,16 @@ onMounted(async ()=> {
 <style scoped>
 .grid {
   display: grid;
-  grid-template-columns: max-content 1fr;
+  grid-template-columns: max-content minmax(0, 1fr);
   gap: 0.5em;
+  overflow-wrap: anywhere;
+}
+
+/* On narrow screens, display the labels above their values. */
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .events {
