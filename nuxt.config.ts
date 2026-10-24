@@ -55,7 +55,10 @@ export default defineNuxtConfig({
   },
 
   css: [
-    '@mdi/font/css/materialdesignicons.min.css'
+    'bulma/css/bulma.min.css',
+    '@mdi/font/css/materialdesignicons.min.css',
+    // Last, to override the above.
+    '~/assets/css/theme.css',
   ],
 
   // Build Configuration: https://go.nuxtjs.dev/config-build

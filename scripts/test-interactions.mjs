@@ -447,6 +447,105 @@ const tests = [
       return { ok: !!dark && stored === 'dark', detail: 'background ' + light + ' -> ' + dark + ', stored=' + stored };
     `,
   },
+  {
+    name: 'components: timeline slider drag and date picker',
+    url: 'individuals?developers=arthursonzogni',
+    run: `
+      const thumb = await __t.until(() => document.querySelector('.timeline .b-slider-thumb'), 15000);
+      const before = location.search;
+      const rect = thumb.getBoundingClientRect();
+      const track = document.querySelector('.timeline .b-slider-track').getBoundingClientRect();
+      const x = rect.left + rect.width / 2, y = rect.top + rect.height / 2;
+      thumb.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, clientX: x, clientY: y }));
+      window.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, clientX: track.left + track.width * 0.6, clientY: y }));
+      window.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, clientX: track.left + track.width * 0.6, clientY: y }));
+      const dragged = await __t.until(() => location.search !== before && location.search.match(/dates=([^&]*)/)?.[1], 8000);
+      __t.byText('button', '+').click();
+      const date = await __t.until(() => document.querySelector('input[type=date]'), 5000);
+      date.value = '2019-03-04';
+      date.dispatchEvent(new Event('change', { bubbles: true }));
+      // The timeline stores dates as a slider position, so the date is close.
+      const picked = await __t.until(() => location.search.match(/dates=(2019-0[23]-\\d\\d)/)?.[1], 8000);
+      return { ok: !!dragged && !!picked, detail: 'dates after drag=' + decodeURIComponent(dragged) + ' picked=' + picked };
+    `,
+  },
+  {
+    name: 'components: dropdown selects a colormap',
+    url: 'treemap',
+    run: `
+      const trigger = await __t.until(() => document.querySelector('.dropdown-trigger'), 15000);
+      trigger.click();
+      const item = await __t.until(() => [...document.querySelectorAll('.dropdown.is-active .dropdown-item')].find(e => e.textContent.trim().startsWith('Blu')), 5000);
+      item.click();
+      const colormap = await __t.until(() => location.search.includes('colormap=Blu') && !document.querySelector('.dropdown.is-active'), 5000);
+      return { ok: !!colormap, detail: decodeURIComponent(location.search.match(/colormap=[^&]*/)?.[0]) };
+    `,
+  },
+  {
+    name: 'components: tooltip on hover',
+    url: 'repo-info',
+    run: `
+      const trigger = await __t.until(() => document.querySelector('.b-tooltip .tooltip-trigger'), 15000);
+      trigger.parentElement.dispatchEvent(new MouseEvent('mouseenter'));
+      const shown = await __t.until(() => [...document.querySelectorAll('.tooltip-content')].find(e => e.offsetParent !== null), 3000);
+      return { ok: !!shown, detail: 'tooltip=' + shown?.textContent.trim() };
+    `,
+  },
+  {
+    name: 'components: table sort, pagination, details',
+    url: 'fuzz-test',
+    run: `
+      const rows = () => [...document.querySelectorAll('.b-table tbody tr:not(.detail)')].map(r => r.innerText);
+      await __t.until(() => rows().length > 5, 20000);
+      const first = rows()[0];
+      const header = [...document.querySelectorAll('.b-table th')].find(th => th.textContent.trim() === 'Author');
+      header.click();
+      const sorted = await __t.until(() => rows()[0] !== first, 5000);
+      const page = () => document.querySelector('.b-table-page')?.textContent;
+      document.querySelector('.b-table-pagination button[aria-label="Next page"]').click();
+      const paged = await __t.until(() => page()?.startsWith('2 /'), 5000);
+      document.querySelector('.b-table-detail-toggle button').click();
+      const detail = await __t.until(() => document.querySelector('.b-table tr.detail'), 5000);
+      return { ok: !!sorted && !!paged && !!detail, detail: 'page ' + page() + ', detail=' + !!detail };
+    `,
+  },
+  {
+    name: 'components: tag input removal',
+    url: 'individuals?developers=arthursonzogni,mkwst',
+    run: `
+      await __t.until(() => document.querySelectorAll('.taginput .tag').length === 2, 15000);
+      document.querySelector('.taginput .tag .delete').click();
+      const removed = await __t.until(() => !location.search.includes('arthursonzogni') && location.search.includes('mkwst'), 5000);
+      const input = document.querySelector('.taginput input');
+      input.focus();
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true }));
+      const empty = await __t.until(() => document.querySelectorAll('.taginput .tag').length === 0, 5000);
+      return { ok: !!removed && !!empty, detail: 'url=' + location.search.slice(0, 60) };
+    `,
+  },
+  {
+    name: 'components: leaderboard warning toast',
+    url: 'leaderboard',
+    run: `
+      const select = await __t.until(() => [...document.querySelectorAll('select')].find(s => [...s.options].some(o => o.value === 'lines')), 15000);
+      select.value = 'lines';
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+      const toast = await __t.until(() => document.querySelector('.toast'), 5000);
+      return { ok: !!toast && toast.textContent.includes('Warning'), detail: toast?.textContent.trim().slice(0, 60) };
+    `,
+  },
+  {
+    name: 'components: navbar dropdown click, outside click closes',
+    url: 'leaderboard',
+    run: `
+      const link = [...document.querySelectorAll('.navbar-link')].find(a => a.textContent.trim() === 'CVE');
+      link.click();
+      const opened = await __t.until(() => link.parentElement.classList.contains('is-active'), 3000);
+      document.querySelector('h1').click();
+      const closed = await __t.until(() => !link.parentElement.classList.contains('is-active'), 3000);
+      return { ok: !!opened && !!closed, detail: 'opened=' + !!opened + ' closed=' + !!closed };
+    `,
+  },
 ];
 
 let failed = 0;

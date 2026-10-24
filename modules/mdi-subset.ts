@@ -2,9 +2,9 @@
 // icons, ~0.4MB font + ~0.3MB CSS) by a subset containing only the icons the
 // website may use.
 //
-// Icon names are not listed by hand: every string token of the sources (and of
-// Buefy, which uses icons internally) matching an icon name is kept. False
-// positives (e.g. "table", "home") only cost a few bytes.
+// Icon names are not listed by hand: every string token of the sources
+// matching an icon name is kept. False positives (e.g. "table", "home") only
+// cost a few bytes.
 
 import fs from 'fs'
 import path from 'path'
@@ -43,11 +43,8 @@ export default defineNuxtModule({
       glyphs.set(name, codepoint)
     }
 
-    // Collect the icon names used by the sources and by Buefy.
-    const files = [
-      ...SOURCE_DIRS.flatMap(entry => listFiles(path.join(nuxt.options.rootDir, entry))),
-      require.resolve('@ntohq/buefy-next/dist/buefy.esm.js'),
-    ]
+    // Collect the icon names used by the sources.
+    const files = SOURCE_DIRS.flatMap(entry => listFiles(path.join(nuxt.options.rootDir, entry)))
     const used = new Set<string>()
     for (const file of files) {
       for (const [token] of fs.readFileSync(file, 'utf8').matchAll(TOKEN_RE)) {

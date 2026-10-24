@@ -95,7 +95,7 @@
 
 <script setup lang="ts">
 
-import { ToastProgrammatic as Toast } from '@ntohq/buefy-next'
+import { showToast } from '~/utils/toast'
 
 const repositories = ref<string[]>(["chromium"]);
 const type = ref<string>("commit");
@@ -130,7 +130,6 @@ watch([
   timeIndex,
 ], (newValues, oldValues) => {
   if (newValues[0] != oldValues[0] && newValues[0] != "commit") {
-    const toast = new Toast();
     let message = "";
     let warning = "";
     switch(newValues[0]) {
@@ -165,13 +164,10 @@ watch([
         `
         break;
     }
-    toast.open({
+    showToast({
       message: warning,
       type: "is-warning",
-      position: "is-bottom",
       duration: 5000,
-      pauseOnHover: true,
-      queue: true,
     });
     //"Warning: This is heavily biased around large scale refactoring and large deletion.");
   }

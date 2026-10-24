@@ -23,7 +23,7 @@
         <b-datepicker
           position="is-top-left"
           :value="value[0]"
-          @input="range[0] = getDateInverse($event)"
+          @input="range = [getDateInverse($event), range[1]]"
           :min-date="minDate"
           :max-date="maxDate"
           ></b-datepicker>
@@ -32,7 +32,7 @@
         <b-datepicker
           position="is-top-left"
           :value="value[1]"
-          @input="range[1] = getDateInverse($event)"
+          @input="range = [range[0], getDateInverse($event)]"
           :min-date="minDate"
           :max-date="maxDate"
           ></b-datepicker>

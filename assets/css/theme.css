@@ -1,6 +1,6 @@
 /*
- * Site-wide theme, layered on top of Bulma/Buefy.
- * Loaded after buefy.css (see plugins/buefy.ts) so it can override it.
+ * Site-wide theme, layered on top of Bulma. The form components are in
+ * components/b/. Loaded last (see nuxt.config.ts) so it can override Bulma.
  */
 
 :root {
@@ -343,7 +343,13 @@ h2.title:not(.is-1):not(.is-2):not(.is-3):not(.is-4):not(.is-5):not(.is-6) {
 
 /* Form layout -------------------------------------------------------------- */
 
-/* Let Buefy form rows wrap on narrow screens. */
+/* Expanded fields grow within a group, like Bulma's expanded controls. */
+.field.is-grouped > .field.is-expanded {
+  flex-grow: 1;
+  flex-shrink: 1;
+}
+
+/* Let form rows wrap on narrow screens. */
 .field.is-grouped > .field,
 .field.has-addons > .field {
   flex-shrink: 1;
@@ -436,6 +442,21 @@ h2.title:not(.is-1):not(.is-2):not(.is-3):not(.is-4):not(.is-5):not(.is-6) {
   border-color: var(--line);
   box-shadow: none;
   color: var(--faint);
+}
+
+/* The native input of the toggle buttons (b-radio-button, b-checkbox-button):
+ * invisible, but still focusable and announced. */
+.visually-hidden-input {
+  height: 1px;
+  left: 0;
+  opacity: 0;
+  position: absolute;
+  width: 1px;
+}
+
+.b-radio.button,
+.b-checkbox.checkbox.button {
+  position: relative;
 }
 
 /* Segmented controls (b-radio-button groups) ------------------------------- */
@@ -632,27 +653,6 @@ h2.title:not(.is-1):not(.is-2):not(.is-3):not(.is-4):not(.is-5):not(.is-6) {
   color: var(--faint);
 }
 
-/* Checkboxes and switches */
-
-.b-checkbox.checkbox:not(.button) input[type="checkbox"] + .check {
-  border: 1.5px solid var(--line-strong);
-  border-radius: 5px;
-  box-shadow: var(--shadow-xs);
-}
-
-.b-checkbox.checkbox:not(.button) input[type="checkbox"]:checked + .check {
-  background-color: var(--accent);
-  border-color: var(--accent);
-}
-
-.switch input[type="checkbox"]:checked + .check {
-  background: var(--accent);
-}
-
-.switch input[type="checkbox"] + .check {
-  background: var(--line-strong);
-}
-
 /* Tags --------------------------------------------------------------------- */
 
 .tag:not(body) {
@@ -673,7 +673,7 @@ h2.title:not(.is-1):not(.is-2):not(.is-3):not(.is-4):not(.is-5):not(.is-6) {
 }
 
 /* Developer tags get their chart color as background (DevelopersInput). */
-.taginput .tag:not(body) {
+.taginput .tag:not(body)[style*="background"] {
   color: #fff;
 }
 
@@ -741,20 +741,23 @@ h2.title:not(.is-1):not(.is-2):not(.is-3):not(.is-4):not(.is-5):not(.is-6) {
   margin-bottom: 0;
 }
 
-/* Floating labels sit on the input border, over a strip of background. */
-.field.is-floating-label .label:before {
-  background-color: var(--surface);
+/* Floating labels (label-position="on-border"), on the input border. */
+.field.is-floating-label {
+  position: relative;
 }
 
-/* Buefy tables: sticky columns and headers are opaque. */
-.b-table .table td.is-sticky,
-.b-table .table th.is-sticky,
-.b-table .table-wrapper.has-sticky-header tr:first-child th {
+.field.is-floating-label > .label {
   background: var(--surface);
-}
-
-.b-table .table.is-striped tbody tr:not(.is-selected):nth-child(even) td.is-sticky {
-  background: color-mix(in srgb, var(--surface-sunken) 40%, var(--surface));
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 560;
+  left: 0.6em;
+  line-height: 1;
+  margin: 0 !important;
+  padding: 0 0.3em;
+  position: absolute;
+  top: -0.45em;
+  z-index: 5;
 }
 
 /* Cards, boxes, notifications --------------------------------------------- */
@@ -793,58 +796,7 @@ button.dropdown-item:hover {
   color: var(--ink);
 }
 
-/* Tooltips ----------------------------------------------------------------- */
-
-.b-tooltip .tooltip-content {
-  background: var(--tooltip-bg) !important;
-  color: var(--tooltip-ink) !important;
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-lg);
-  font-size: 0.75rem;
-  font-weight: 500;
-  padding: 0.3rem 0.55rem;
-}
-
-.b-tooltip.is-top .tooltip-content::before {
-  border-top-color: var(--tooltip-bg) !important;
-}
-
-.b-tooltip.is-bottom .tooltip-content::before {
-  border-bottom-color: var(--tooltip-bg) !important;
-}
-
-.b-tooltip.is-left .tooltip-content::before {
-  border-left-color: var(--tooltip-bg) !important;
-}
-
-.b-tooltip.is-right .tooltip-content::before {
-  border-right-color: var(--tooltip-bg) !important;
-}
-
-/* Sliders ------------------------------------------------------------------ */
-
-.b-slider .b-slider-track {
-  background: var(--line);
-  border-radius: 999px;
-}
-
-.b-slider.is-primary .b-slider-fill,
-.b-slider .b-slider-fill {
-  background: var(--accent) !important;
-}
-
-.b-slider .b-slider-thumb-wrapper .b-slider-thumb {
-  background: var(--surface);
-  border: 2px solid var(--accent);
-  box-shadow: var(--shadow-sm);
-}
-
-.b-slider .b-slider-tick-label {
-  color: var(--muted);
-  font-size: 0.7rem;
-}
-
-/* Breadcrumbs, dropdowns, loading ------------------------------------------ */
+/* Breadcrumbs, dropdowns -------------------------------------------------- */
 
 .breadcrumb a {
   color: var(--muted);
@@ -864,15 +816,6 @@ button.dropdown-item:hover {
 
 .dropdown-item {
   border-radius: var(--radius-sm);
-}
-
-.loading-overlay .loading-background {
-  background: color-mix(in srgb, var(--bg) 70%, transparent);
-  backdrop-filter: blur(2px);
-}
-
-.loading-overlay .loading-icon::after {
-  border-color: transparent transparent var(--accent) var(--accent);
 }
 
 /* Navbar ------------------------------------------------------------------- */
@@ -1001,3 +944,54 @@ svg [stroke="#e87ba4"] { stroke: var(--series-5); }
 svg [stroke="#008300"] { stroke: var(--series-6); }
 svg [stroke="#6250d6"] { stroke: var(--series-7); }
 svg [stroke="#e34948"] { stroke: var(--series-8); }
+
+/* Toasts (utils/toast.ts) ---------------------------------------------------- */
+
+.toasts {
+  align-items: center;
+  bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  left: 50%;
+  pointer-events: none;
+  position: fixed;
+  transform: translateX(-50%);
+  width: min(32rem, calc(100vw - 2rem));
+  z-index: 200;
+}
+
+.toast {
+  animation: toast-in 0.2s cubic-bezier(0.2, 0, 0, 1);
+  background: var(--tooltip-bg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  color: var(--tooltip-ink);
+  font-size: 0.875rem;
+  padding: 0.85rem 1.1rem;
+  pointer-events: auto;
+  transition: opacity 0.2s, transform 0.2s;
+  width: 100%;
+}
+
+.toast.is-warning {
+  border-left: 4px solid #eda100;
+}
+
+.toast strong,
+.toast code {
+  color: inherit;
+}
+
+.toast code {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.toast.is-leaving {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+}
