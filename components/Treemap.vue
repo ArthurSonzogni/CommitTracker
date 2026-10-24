@@ -736,19 +736,69 @@ async function FetchDates() {
 //   "id": 0,
 //   "children": [...]
 // }
-async function FetchFileIndex() {
-  const repo = props.repositories[0] || repositories_json[0]?.dirname || "chromium";
+// Returns the parsed JSON, or null if unavailable.
+async function fetchJson(url) {
   try {
-    const response = await fetch(`/treemap/${repo}/file_index.json`);
-    if (response.ok) {
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        file_index = await response.json();
-      }
+    const response = await fetch(url);
+    const contentType = response.headers.get("content-type");
+    if (response.ok && contentType && contentType.includes("application/json")) {
+      return await response.json();
     }
   } catch (e) {
-    console.error(`Error fetching file index for ${repo}`, e);
+    console.error(`Error fetching ${url}`, e);
   }
+  return null;
+}
+
+// The compact data (see scripts/compact-treemap.mjs) is much smaller, but
+// renumbers the nodes: the file index and the metrics must both come from it,
+// or both from the original files. The compact file index decides.
+let compactFileIndex = null;
+const fetchCompactFileIndex = repo =>
+  compactFileIndex ||= fetchJson(`/treemap/${repo}/file_index.compact.json`);
+
+// [name, ...children] for directories, name for files. Ids are the preorder
+// index.
+const decodeCompactFileIndex = compact => {
+  let id = 0;
+  const decode = node => {
+    if (typeof node === "string") {
+      return { name: node, id: id++ };
+    }
+    const out = { name: node[0], id: id++, children: [] };
+    for (let i = 1; i < node.length; ++i) {
+      out.children.push(decode(node[i]));
+    }
+    return out;
+  };
+  return decode(compact);
+};
+
+// [[id_delta, date_delta, value_delta, ...], ...] -> {id: [[date, value], ...]}
+const decodeCompactMetric = rows => {
+  const out = {};
+  let id = 0;
+  for (const row of rows) {
+    id += row[0];
+    const values = [];
+    let date = 0;
+    let value = 0;
+    for (let i = 1; i < row.length; i += 2) {
+      date += row[i];
+      value += row[i + 1];
+      values.push([date, value]);
+    }
+    out[id] = values;
+  }
+  return out;
+};
+
+async function FetchFileIndex() {
+  const repo = props.repositories[0] || repositories_json[0]?.dirname || "chromium";
+  const compact = await fetchCompactFileIndex(repo);
+  file_index = compact
+    ? decodeCompactFileIndex(compact)
+    : (await fetchJson(`/treemap/${repo}/file_index.json`)) ?? {};
 
   const exclude_test = (parent_name, child_name) => {
     if (!child_name) return false;
@@ -841,20 +891,19 @@ async function FetchMetrics()  {
     .concat(props.field_color)
 
   const repo = props.repositories[0] || repositories_json[0]?.dirname || "chromium";
+  const compact = await fetchCompactFileIndex(repo);
   for(const field of fields) {
     if (!field) continue;
-    try {
-      const response = await fetch(`/treemap/${repo}/metrics/${field}.json`);
-      if (response.ok) {
-        const contentType = response.headers.get("content-type");
-        if (contentType && contentType.includes("application/json")) {
-          metrics[field] = await response.json();
-        } else {
-          console.warn(`Expected JSON for ${field}, but got ${contentType}`);
-        }
+    if (compact) {
+      const rows = await fetchJson(`/treemap/${repo}/metrics/${field}.compact.json`);
+      if (rows) {
+        metrics[field] = decodeCompactMetric(rows);
       }
-    } catch(e) {
-      console.error(`Error fetching metrics ${field} for ${repo}`, e);
+    } else {
+      const metric = await fetchJson(`/treemap/${repo}/metrics/${field}.json`);
+      if (metric) {
+        metrics[field] = metric;
+      }
     }
   }
 }
@@ -929,6 +978,7 @@ function computeFetchedData() {
 }
 
 async function fetchEntries() {
+  compactFileIndex = null;
   await Promise.all([
     FetchDates(),
     FetchFileIndex(),
