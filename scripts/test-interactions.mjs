@@ -715,6 +715,12 @@ console.log(failed ? `${failed} failed` : 'all passed');
 ws.close();
 // Wait for chrome to exit before removing its profile (~250MB).
 await new Promise(resolve => { chrome.once('exit', resolve); chrome.kill(); });
-fs.rmSync(userDataDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
+// Chrome's helper processes can still be writing to it: don't fail the run
+// for a leftover temporary directory.
+try {
+  fs.rmSync(userDataDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
+} catch (e) {
+  console.warn(`Could not remove ${userDataDir}: ${e.code}`);
+}
 server?.close();
 process.exit(failed ? 1 : 0);
