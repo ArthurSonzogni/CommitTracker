@@ -22,15 +22,15 @@
   --accent-ink: #4b3a9e;
   --accent-soft: #f1eefc;
   --accent-line: #d9d1f7;
-  --ring: 0 0 0 3px rgba(110, 86, 207, 0.22);
+  --ring: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
 
   --radius-sm: 6px;
   --radius: 9px;
   --radius-lg: 14px;
 
-  --shadow-xs: 0 1px 1px rgba(18, 18, 22, 0.04);
-  --shadow-sm: 0 1px 2px rgba(18, 18, 22, 0.06), 0 0 0 1px rgba(18, 18, 22, 0.04);
-  --shadow-lg: 0 12px 32px -12px rgba(18, 18, 22, 0.18), 0 0 0 1px rgba(18, 18, 22, 0.05);
+  --shadow-xs: 0 1px 1px color-mix(in srgb, var(--ink) 4%, transparent);
+  --shadow-sm: 0 1px 2px color-mix(in srgb, var(--ink) 6%, transparent), 0 0 0 1px color-mix(in srgb, var(--ink) 4%, transparent);
+  --shadow-lg: 0 12px 32px -12px color-mix(in srgb, var(--ink) 18%, transparent), 0 0 0 1px color-mix(in srgb, var(--ink) 5%, transparent);
 
   /* Chart categorical palette (utils/palette.ts), per theme. */
   --series-1: #2a78d6;
@@ -80,9 +80,9 @@
     --accent: #8b78e6;
     --accent-hover: #9d8cf0;
     --accent-ink: #c6bbff;
-    --accent-soft: rgba(139, 120, 230, 0.16);
-    --accent-line: rgba(139, 120, 230, 0.4);
-    --ring: 0 0 0 3px rgba(139, 120, 230, 0.35);
+    --accent-soft: color-mix(in srgb, var(--accent) 16%, transparent);
+    --accent-line: color-mix(in srgb, var(--accent) 40%, transparent);
+    --ring: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
 
     --shadow-xs: 0 1px 1px rgba(0, 0, 0, 0.3);
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
@@ -125,9 +125,9 @@
   --accent: #8b78e6;
   --accent-hover: #9d8cf0;
   --accent-ink: #c6bbff;
-  --accent-soft: rgba(139, 120, 230, 0.16);
-  --accent-line: rgba(139, 120, 230, 0.4);
-  --ring: 0 0 0 3px rgba(139, 120, 230, 0.35);
+  --accent-soft: color-mix(in srgb, var(--accent) 16%, transparent);
+  --accent-line: color-mix(in srgb, var(--accent) 40%, transparent);
+  --ring: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
 
   --shadow-xs: 0 1px 1px rgba(0, 0, 0, 0.3);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);

@@ -585,12 +585,39 @@ const tests = [
     `,
   },
   {
+    name: 'components: dropdown closes on escape',
+    url: 'treemap',
+    run: `
+      const trigger = await __t.until(() => document.querySelector('.dropdown-trigger'), 15000);
+      trigger.click();
+      const menu = await __t.until(() => [...document.querySelectorAll('.dropdown.is-active .dropdown-menu')].find(e => e.checkVisibility()), 5000);
+      trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      const closed = await __t.until(() => !document.querySelector('.dropdown.is-active') && !menu.checkVisibility(), 3000);
+      return { ok: !!menu && !!closed, detail: 'opened=' + !!menu + ' closed=' + !!closed };
+    `,
+  },
+  {
+    name: 'components: modal opens, outside click closes and restores focus',
+    url: 'communities',
+    run: `
+      const button = await __t.until(() => [...document.querySelectorAll('button')].find(b => b.querySelector('.mdi-information-outline')), 15000);
+      button.focus();
+      button.click();
+      const dialog = await __t.until(() => document.querySelector('dialog.ui-modal[open]'), 3000);
+      const modal = !!dialog && dialog.matches(':modal');
+      dialog.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+      const closed = await __t.until(() => !dialog.open, 3000);
+      await __t.until(() => document.activeElement === button, 1000);
+      return { ok: modal && !!closed && document.activeElement === button, detail: 'modal=' + modal + ' closed=' + !!closed + ' focus=' + (document.activeElement === button) };
+    `,
+  },
+  {
     name: 'components: tooltip on hover',
     url: 'repo-info',
     run: `
       const trigger = await __t.until(() => document.querySelector('.ui-tooltip .tooltip-trigger'), 15000);
       trigger.parentElement.dispatchEvent(new MouseEvent('mouseenter'));
-      const shown = await __t.until(() => [...document.querySelectorAll('.tooltip-content')].find(e => e.offsetParent !== null), 3000);
+      const shown = await __t.until(() => [...document.querySelectorAll('.tooltip-content')].find(e => e.checkVisibility()), 3000);
       return { ok: !!shown, detail: 'tooltip=' + shown?.textContent.trim() };
     `,
   },

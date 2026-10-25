@@ -2,11 +2,18 @@
   <span
     class="ui-tooltip"
     :class="[`is-${position}`, { 'is-multiline': multiline, 'is-dashed': dashed }]"
+    :style="popover ? { anchorName } : undefined"
     @mouseenter="hovered = true"
     @mouseleave="hovered = false"
     @focusin="hovered = true"
     @focusout="hovered = false">
-    <span v-show="hovered" class="tooltip-content" role="tooltip">
+    <span
+      v-show="popover || hovered"
+      ref="content"
+      class="tooltip-content"
+      role="tooltip"
+      :popover="popover ? 'manual' : undefined"
+      :style="popover ? { positionAnchor: anchorName } : undefined">
       <slot name="content">{{ text }}</slot>
     </span>
     <span class="tooltip-trigger"><slot /></span>
@@ -14,6 +21,8 @@
 </template>
 
 <script setup lang="ts">
+import { anchorSupported, uniqueAnchorName } from "~/utils/anchor";
+
 // A tooltip over its content, on hover and focus.
 
 withDefaults(defineProps<{
@@ -27,6 +36,15 @@ withDefaults(defineProps<{
 });
 
 const hovered = ref(false);
+const content = ref<HTMLElement | null>(null);
+const popover = anchorSupported();
+const anchorName = uniqueAnchorName();
+
+watch(hovered, (value) => {
+  if (popover && content.value) {
+    content.value.togglePopover(value);
+  }
+});
 </script>
 
 <style scoped>
@@ -113,6 +131,36 @@ const hovered = ref(false);
   margin-top: -5px;
   right: 100%;
   top: 50%;
+}
+
+/* As a popover, in the top layer, tethered to the trigger. */
+.ui-tooltip .tooltip-content:popover-open {
+  border: none;
+  inset: auto;
+  margin: 0;
+  overflow: visible;
+  position: fixed;
+  transform: none;
+}
+
+.ui-tooltip.is-top .tooltip-content:popover-open {
+  margin-bottom: 8px;
+  position-area: top;
+}
+
+.ui-tooltip.is-bottom .tooltip-content:popover-open {
+  margin-top: 8px;
+  position-area: bottom;
+}
+
+.ui-tooltip.is-left .tooltip-content:popover-open {
+  margin-right: 8px;
+  position-area: left;
+}
+
+.ui-tooltip.is-right .tooltip-content:popover-open {
+  margin-left: 8px;
+  position-area: right;
 }
 
 .is-dashed .tooltip-trigger {

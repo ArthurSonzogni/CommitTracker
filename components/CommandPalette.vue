@@ -1,11 +1,12 @@
 <template>
   <Teleport to="body">
-    <div v-if="open" class="palette-backdrop" @mousedown.self="close">
-      <div
-        class="palette"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Search pages, repositories and developers">
+    <dialog
+      ref="dialog"
+      class="palette-dialog"
+      aria-label="Search pages, repositories and developers"
+      @mousedown.self="close"
+      @close="close">
+      <div v-if="open" class="palette">
         <div class="palette-input">
           <UiIcon name="magnify" class="palette-input-icon" size="small"></UiIcon>
           <input
@@ -37,7 +38,7 @@
           <span><kbd>↵</kbd> open</span>
         </div>
       </div>
-    </div>
+    </dialog>
   </Teleport>
 </template>
 
@@ -52,19 +53,20 @@ const close = () => {
 const { query, active, results, loadUsernames, select, onKeydown } =
   useSiteSearch({ onSelect: close });
 
+const dialog = ref<HTMLDialogElement | null>(null);
 const input = ref<HTMLInputElement | null>(null);
 
-let previousFocus: Element | null = null;
-
+// As a native modal <dialog>, the page behind is inert, and the focus returns
+// to where it was on close.
 watch(open, async (value) => {
   if (!value) {
-    (previousFocus as HTMLElement | null)?.focus?.();
+    dialog.value?.close();
     return;
   }
-  previousFocus = document.activeElement;
   query.value = "";
   active.value = 0;
   await nextTick();
+  dialog.value?.showModal();
   input.value?.focus();
   loadUsernames();
 });
@@ -94,17 +96,30 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onGlobalKeydown));
 </script>
 
 <style scoped>
-.palette-backdrop {
+/* The dialog covers the viewport, so that a click outside of the palette
+ * lands on it. */
+.palette-dialog {
+  background: transparent;
+  border: none;
+  color: inherit;
+  height: 100%;
+  margin: 0;
+  max-height: none;
+  max-width: none;
+  padding: 12vh 1rem 1rem;
+  width: 100%;
+}
+
+.palette-dialog[open] {
   align-items: flex-start;
+  display: flex;
+  justify-content: center;
+}
+
+.palette-dialog::backdrop {
   animation: fade-in 120ms ease-out;
   backdrop-filter: blur(3px);
   background: rgba(18, 18, 22, 0.28);
-  display: flex;
-  inset: 0;
-  justify-content: center;
-  padding: 12vh 1rem 1rem;
-  position: fixed;
-  z-index: 100;
 }
 
 .palette {

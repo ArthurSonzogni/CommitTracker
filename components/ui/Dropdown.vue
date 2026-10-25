@@ -3,6 +3,8 @@
     ref="root"
     class="dropdown"
     :class="{ 'is-active': open, 'is-expanded': expanded }"
+    :style="popover ? { anchorName } : undefined"
+    @keydown.esc="open = false"
     @mouseenter="hover && (open = true)"
     @mouseleave="hover && (open = false)">
     <div
@@ -12,7 +14,12 @@
       @click="open = !open">
       <slot name="trigger" :active="open" />
     </div>
-    <div class="dropdown-menu" role="listbox">
+    <div
+      ref="menu"
+      class="dropdown-menu"
+      role="listbox"
+      :popover="popover ? 'manual' : undefined"
+      :style="popover ? { positionAnchor: anchorName } : undefined">
       <div
         class="dropdown-content"
         :style="{ maxHeight, overflowY: 'auto', overflowX: 'hidden' }">
@@ -23,6 +30,8 @@
 </template>
 
 <script setup lang="ts">
+import { anchorSupported, uniqueAnchorName } from "~/utils/anchor";
+
 // A dropdown of <UiDropdownItem>, selecting a value. The trigger slot gets
 // `active`.
 
@@ -38,6 +47,15 @@ const props = withDefaults(defineProps<{
 const value = defineModel<any>();
 const open = ref(false);
 const root = ref<HTMLElement | null>(null);
+const menu = ref<HTMLElement | null>(null);
+const popover = anchorSupported();
+const anchorName = uniqueAnchorName();
+
+watch(open, (value) => {
+  if (popover && menu.value) {
+    menu.value.togglePopover(value);
+  }
+});
 
 provide("dropdown", {
   value,
@@ -66,5 +84,24 @@ onBeforeUnmount(() => document.removeEventListener("click", onDocumentClick));
 .dropdown.is-expanded .dropdown-trigger,
 .dropdown.is-expanded .dropdown-menu {
   width: 100%;
+}
+
+/* As a popover, in the top layer, tethered to the trigger. It opens upward
+ * when there is no room below. */
+.dropdown .dropdown-menu:popover-open {
+  background: transparent;
+  border: none;
+  color: inherit;
+  inset: auto;
+  margin: 0;
+  overflow: visible;
+  padding: 4px 0 0;
+  position: fixed;
+  position-area: bottom span-right;
+  position-try-fallbacks: flip-block;
+}
+
+.dropdown.is-expanded .dropdown-menu:popover-open {
+  width: anchor-size(width);
 }
 </style>
