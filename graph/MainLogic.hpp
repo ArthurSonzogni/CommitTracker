@@ -14,8 +14,12 @@ class MainLogic {
   public:
   // Usage:
   // - input: path to the input CSV file.
-  // - output: path to the output SVG file.
-  int Main(const std::string& input, const std::string& output);
+  // - output: path to the output SVG file. A JSON file with the same data is
+  //   written next to it, with the ".json" extension.
+  // - community_count: the number of communities to find.
+  int Main(const std::string& input,
+           const std::string& output,
+           int community_count);
 
  private:
   std::unique_ptr<DensityGrid> density;
@@ -25,6 +29,7 @@ class MainLogic {
   std::vector<std::string> labels;
   std::vector<float> user_repulsion;
   std::vector<float> colors;  // Hue in HSV.
+  std::vector<int> clusters;  // Index of the community.
   std::vector<std::vector<Weight>> weights;
   std::vector<std::vector<Weight>> weights_incoming;
   std::vector<glm::vec2> positions;

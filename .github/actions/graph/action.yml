@@ -4,6 +4,10 @@ inputs:
   github_token:
     description: 'GitHub Token'
     required: true
+  force:
+    description: 'Regenerate every graph, even the up to date ones'
+    required: false
+    default: 'false'
 runs:
   using: "composite"
   steps:
@@ -16,11 +20,14 @@ runs:
       with:
         source-dir: graph
         build-dir: graph/build
-        args: -DCMAKE_BUILD_TYPE:STRING=Release
+        # The glm dependency requires an old CMake policy.
+        args: -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5
         run-build: true
 
     - name: Create Graphs
       shell: bash
+      env:
+        GRAPH_FORCE: ${{ inputs.force == 'true' && '1' || '' }}
       run: |
         cd importer
         npm run graph

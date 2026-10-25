@@ -71,7 +71,12 @@
       </AboutData>
     </section>
 
-    <div class="zoomable" v-if="!displayPlaceholder">
+    <section v-if="graph" class="section map-section">
+      <CommunityMap :graph="graph" />
+    </section>
+
+    <!-- Graphs generated before the interactive map only exist as SVG. -->
+    <div class="zoomable" v-if="!displayPlaceholder && !graph">
       <div ref="graph_container"><svg></svg></div>
     </div>
 
@@ -90,6 +95,19 @@
 const route = useRoute();
 const router = useRouter();
 
+// Links made before the yearly time ranges use ranges no longer generated: use
+// the closest one.
+function LegacyTime(time: string) {
+  if (time === "1w") {
+    return "1m";
+  }
+  const years_ago = time.match(/^1y\+(\d)y$/)?.[1];
+  if (years_ago) {
+    return String(new Date().getFullYear() - Number(years_ago));
+  }
+  return time;
+}
+
 const repositories = ref(["v8"]);
 const time = ref("1y");
 
@@ -106,7 +124,7 @@ if (route.query.repositories) {
   repositories.value = route.query.repositories.split(",");
 }
 if (route.query.time) {
-  time.value = route.query.time;
+  time.value = LegacyTime(route.query.time);
 }
 
 const dataset = computed(() => {
@@ -153,9 +171,31 @@ const fetchSVG = async () => {
   }
 };
 
+// The interactive map, when the graph exists as JSON.
+const graph = shallowRef(null);
+const fetchGraph = async () => {
+  try {
+    const response = await fetch(objectSrc.value.replace(/\.svg$/, ".json"));
+    if (response.ok && response.headers.get("content-type")?.includes("json")) {
+      graph.value = await response.json();
+      displayPlaceholder.value = false;
+      return true;
+    }
+  } catch (e) {}
+  graph.value = null;
+  return false;
+};
+
 const updateSVG = async () => {
+  if (await fetchGraph()) {
+    return;
+  }
+  cachedObjectSrc.value = null;
+  await nextTick();
   await fetchSVG();
-  updateZoom();
+  if (!displayPlaceholder.value) {
+    updateZoom();
+  }
 };
 
 const updateZoom = () => {
@@ -180,6 +220,11 @@ const updateUrl = () => {
 watch([time, repositories], updateUrl);
 
 onMounted(() => {
+  // Replace the old time ranges in the URL.
+  if (route.query.time && route.query.time !== time.value) {
+    updateUrl();
+    return;
+  }
   updateSVG();
 });
 
@@ -195,11 +240,19 @@ svg {
 .fullscreenFlexbox {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  min-height: 100vh;
 }
 
 html {
   scroll-behavior: smooth;
+}
+
+.map-section {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  padding-top: 0;
 }
 
 .zoom {

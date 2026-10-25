@@ -22,36 +22,34 @@ const props = defineProps({
   },
 });
 
-const possibleValues =  [
+// Every calendar year since reviews are recorded, most recent first. Kept in
+// sync with importer/graph.mjs.
+const FIRST_YEAR = 2017;
+const years = [];
+for (let year = new Date().getFullYear(); year >= FIRST_YEAR; --year) {
+  years.push(String(year));
+}
+
+const possibleValues = [
   [
     'forever',
-  ],
-  [
-    '1y+4y',
-    '1y+3y',
-    '1y+2y',
-    '1y+1y',
   ],
   [
     '1y',
     '6m',
     '3m',
     '1m',
-    '1w',
-  ]
+  ],
+  years,
 ];
 
 const tooltip = new Map([
   ['forever', "All time"],
-  ['1y+4y', "Five year ago, until four year ago"],
-  ['1y+3y', "Four year ago, until three year ago"],
-  ['1y+2y', "Three year ago, until two year ago"],
-  ['1y+1y', "Two year ago, until last year"],
   ['1y', "The last year"],
   ['6m', "The last 6 months"],
   ['3m', "The last 3 months"],
   ['1m', "The last month"],
-  ['1w', "The last week"],
+  ...years.map(year => [year, year === years[0] ? `${year}, so far` : year]),
 ]);
 
 const items = ref(possibleValues.flat());

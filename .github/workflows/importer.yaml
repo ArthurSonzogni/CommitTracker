@@ -23,6 +23,10 @@ on:
         description: 'Generate C++ Graphs'
         type: boolean
         default: true
+      force_graph:
+        description: 'Regenerate every graph, even the up to date ones'
+        type: boolean
+        default: false
       run_commit_rates:
         description: 'Generate commit rates'
         type: boolean
@@ -122,6 +126,7 @@ jobs:
         uses: ./.github/actions/graph
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          force: ${{ inputs.force_graph == true }}
 
       - name: Run Commit Rates Module
         if: steps.config.outputs.run_commit_rates == 'true'

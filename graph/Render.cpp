@@ -2,7 +2,37 @@
 #include <fmt/core.h>
 #include <fmt/format.h>
 #include <fmt/ostream.h>
+#include <cmath>
 #include <fstream>
+#include <string>
+
+namespace {
+
+// Long distance edges with a low weight are not drawn. They don't bring much
+// informations.
+bool IsEdgeVisible(const std::vector<glm::vec2>& positions,
+                   size_t node_count,
+                   int i,
+                   int j,
+                   float thickness) {
+  const float distance = glm::distance(positions[i], positions[j]);
+  const float typical_distance = 15.0 / std::pow(node_count, 0.5);
+  const float malus = 1.0 / (1.0 + std::pow(distance / typical_distance, 3));
+  return thickness * malus >= 0.00013;
+}
+
+std::string EscapeJSON(const std::string& text) {
+  std::string out;
+  for (char c : text) {
+    if (c == '"' || c == '\\') {
+      out += '\\';
+    }
+    out += c;
+  }
+  return out;
+}
+
+}  // namespace
 
 void Render(DensityGrid* density_grid,
             const std::vector<std::string>& labels,
@@ -63,14 +93,7 @@ void Render(DensityGrid* density_grid,
       glm::vec2 end = b;
 
       const float thickness = weight.weight;
-
-      // Malus for long distance edges. They don't bring much informations.
-      const float distance = glm::length(diff);
-      const float typical_distance = 15.0 / std::pow(labels.size(), 0.5);
-      const float malus =
-          1.0 / (1.0 + std::pow(distance / typical_distance, 3));
-
-      if (thickness * malus < 0.00013) {
+      if (!IsEdgeVisible(positions, labels.size(), i, j, thickness)) {
         continue;
       }
 
@@ -108,4 +131,34 @@ void Render(DensityGrid* density_grid,
   }
 
   output << R"(</svg>)" << std::endl;
+}
+
+void RenderJSON(const std::vector<std::string>& labels,
+                const std::vector<glm::vec2>& positions,
+                const std::vector<float>& label_size,
+                const std::vector<int>& clusters,
+                const std::vector<std::vector<Weight>>& edge_thickness,
+                const std::string& filename) {
+  std::ofstream output(filename);
+  output << R"({"nodes":[)";
+  for (int i = 0; i < labels.size(); ++i) {
+    output << fmt::format(R"({}["{}",{:.4f},{:.4f},{:.5f},{}])",
+                          i ? "," : "", EscapeJSON(labels[i]),
+                          2.0 * positions[i].x, positions[i].y, label_size[i],
+                          clusters[i]);
+  }
+  output << R"(],"edges":[)";
+  bool first = true;
+  for (int i = 0; i < labels.size(); ++i) {
+    for (const auto& weight : edge_thickness[i]) {
+      if (!IsEdgeVisible(positions, labels.size(), i, weight.user_id,
+                         weight.weight)) {
+        continue;
+      }
+      output << fmt::format("{}[{},{},{:.5f}]", first ? "" : ",", i,
+                            weight.user_id, weight.weight);
+      first = false;
+    }
+  }
+  output << "]}" << std::endl;
 }

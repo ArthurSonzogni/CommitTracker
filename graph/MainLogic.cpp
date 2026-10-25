@@ -31,17 +31,71 @@ bool FilterUserName(const std::string& user) {
   });
 }
 
-std::vector<glm::vec2> RandomPositions(size_t n) {
-  std::vector<glm::vec2> positions;
-  std::mt19937 generator(42);
-  std::uniform_real_distribution<float> distribution(0, 1);
+// Initial positions: each node is placed randomly around the position of its
+// community. Communities are laid out with a small force-directed layout of the
+// community graph, so that close communities start next to each other.
+std::vector<glm::vec2> CommunityPositions(
+    const std::vector<std::vector<Weight>>& weights,
+    const std::vector<int>& clusters) {
+  const int count = *std::max_element(clusters.begin(), clusters.end()) + 1;
 
-  positions.resize(n);
-  for (int i = 0; i < n; ++i) {
-    positions[i] = {
-        distribution(generator),
-        distribution(generator),
-    };
+  // The weight between communities, and their size.
+  std::vector<std::vector<float>> between(count, std::vector<float>(count, 0));
+  std::vector<float> size(count, 0);
+  for (int i = 0; i < weights.size(); ++i) {
+    size[clusters[i]] += 1;
+    for (const auto& weight : weights[i]) {
+      between[clusters[i]][clusters[weight.user_id]] += weight.weight;
+    }
+  }
+  float max_between = 0;
+  for (int a = 0; a < count; ++a) {
+    for (int b = 0; b < count; ++b) {
+      if (a != b) {
+        max_between = std::max(max_between, between[a][b]);
+      }
+    }
+  }
+
+  std::mt19937 generator(42);
+  std::uniform_real_distribution<float> uniform(0, 1);
+  std::vector<glm::vec2> center(count);
+  for (auto& c : center) {
+    c = {uniform(generator), uniform(generator)};
+  }
+  for (int iteration = 0; iteration < 500; ++iteration) {
+    const float step = 0.05f * (1.f - iteration / 500.f);
+    std::vector<glm::vec2> force(count, glm::vec2(0.f));
+    for (int a = 0; a < count; ++a) {
+      for (int b = 0; b < count; ++b) {
+        if (a == b) {
+          continue;
+        }
+        glm::vec2 diff = center[b] - center[a];
+        const float d = std::max(0.01f, glm::length(diff));
+        diff /= d;
+        // Repulsion between all communities, attraction between linked ones.
+        force[a] -= diff * 0.02f / (d * d) * std::sqrt(size[b] / weights.size());
+        if (max_between > 0) {
+          force[a] += diff * d * between[a][b] / max_between;
+        }
+      }
+    }
+    for (int a = 0; a < count; ++a) {
+      const float length = glm::length(force[a]);
+      if (length > 0) {
+        center[a] += force[a] / length * std::min(length, 1.f) * step;
+      }
+      center[a] = glm::clamp(center[a], glm::vec2(0.15f), glm::vec2(0.85f));
+    }
+  }
+
+  std::normal_distribution<float> jitter(0.0, 0.05);
+  std::vector<glm::vec2> positions(weights.size());
+  for (int i = 0; i < weights.size(); ++i) {
+    positions[i] = glm::clamp(
+        center[clusters[i]] + glm::vec2(jitter(generator), jitter(generator)),
+        glm::vec2(0.f), glm::vec2(1.f));
   }
   return positions;
 }
@@ -153,6 +207,7 @@ void MainLogic::CreateUser(const std::string& user) {
   weights.push_back({});
   weights_incoming.push_back({});
   colors.push_back(0.f);
+  clusters.push_back(0);
 }
 
 int MainLogic::AddUser(const std::string& user) {
@@ -201,7 +256,9 @@ void MainLogic::RenormalizePositions() {
   density = InitializeDensity(positions, user_repulsion);
 }
 
-int MainLogic::Main(const std::string& input, const std::string& output) {
+int MainLogic::Main(const std::string& input,
+                    const std::string& output,
+                    int community_count) {
   ReadCSV(input, [this](std::vector<std::string> row) {
     assert(row.size() == 3);
     const std::string& user1 = row[0];
@@ -225,18 +282,28 @@ int MainLogic::Main(const std::string& input, const std::string& output) {
 
   const std::vector<float> label_size = LabelSize(weights);
 
-  Colorize(weights, colors);
-  positions = RandomPositions(labels.size());
+  Colorize(weights, colors, clusters, community_count);
+  positions = CommunityPositions(weights, clusters);
   user_repulsion = UserRepulsions(weights);
   density = InitializeDensity(positions, user_repulsion);
 
   Planarize();
   AdjustPositions();
-  Render(density.get(), labels, positions, label_size, colors,
-         EdgesThickness(weights_incoming), output);
+  const auto edge_thickness = EdgesThickness(weights_incoming);
+  Render(density.get(), labels, positions, label_size, colors, edge_thickness,
+         output);
+
+  const std::string json_output =
+      output.substr(0, output.rfind('.')) + ".json";
+  RenderJSON(labels, positions, label_size, clusters, edge_thickness,
+             json_output);
 
   return 0;
 }
+
+// How much the members of a community are pulled toward its center, relative
+// to the pull toward their neighbors.
+constexpr float kCommunityCohesion = 0.3f;
 
 void MainLogic::Planarize() {
   // Initialize the random generator from a known seed, so that the results are
@@ -296,6 +363,26 @@ void MainLogic::Planarize() {
       }
     }
 
+    // The center of each community, to keep them together.
+    std::vector<glm::vec2> community_center;
+    {
+      std::vector<float> community_weight;
+      for (int i = 0; i < positions.size(); ++i) {
+        const int c = clusters[i];
+        if (c >= community_center.size()) {
+          community_center.resize(c + 1, glm::vec2(0.f));
+          community_weight.resize(c + 1, 0.f);
+        }
+        community_center[c] += positions[i];
+        community_weight[c] += 1.f;
+      }
+      for (int c = 0; c < community_center.size(); ++c) {
+        if (community_weight[c] > 0.f) {
+          community_center[c] /= community_weight[c];
+        }
+      }
+    }
+
     for (int i = 0; i < positions.size(); ++i) {
       glm::vec2& position = positions[i];
       density->Add(position, -user_repulsion[i]);
@@ -317,6 +404,9 @@ void MainLogic::Planarize() {
       }
 
       position += attractiveness * (centroid - position);
+      position += std::min(1.f, kCommunityCohesion * attractiveness) *
+                  (community_center[clusters[i]] - position);
+      position = glm::clamp(position, glm::vec2(0.f), glm::vec2(1.f));
 
       for (int i = 0; i < 2; ++i) {
         glm::vec2 new_position = position;
@@ -429,6 +519,8 @@ void MainLogic::AdjustPositions() {
         continue;
       }
       positions[i] += 0.0005f * speed[i] / std::pow(label_size[i], 2.0f);
+      // Stay within the drawing.
+      positions[i] = glm::clamp(positions[i], glm::vec2(0.f), glm::vec2(1.f));
       speed[i] *= 0.90f;
       inert[i] = true;
     }

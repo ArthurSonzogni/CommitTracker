@@ -372,10 +372,40 @@ const tests = [
     `,
   },
   {
+    name: 'communities: interactive map search and select',
+    url: 'communities?repositories=v8&time=1y',
+    run: `
+      const list = await __t.until(() => document.querySelector('.map-communities button'), 20000);
+      if (!list) {
+        return { ok: true, detail: 'no JSON graph for v8 (SVG only)' };
+      }
+      const input = document.querySelector('.map-search');
+      const name = document.querySelector('#community-map-developers option').value;
+      input.value = name;
+      input.dispatchEvent(new Event('input'));
+      input.dispatchEvent(new Event('change'));
+      const card = await __t.until(() => document.querySelector('.map-card')?.innerText.includes(name) && document.querySelector('.map-card').innerText);
+      list.click();
+      const selected = await __t.until(() => document.querySelector('.map-communities button.is-selected') && !document.querySelector('.map-card'));
+      return { ok: !!card && !!selected, detail: (card || '').replace(/\\s+/g, ' ').slice(0, 60) };
+    `,
+  },
+  {
+    name: 'communities: old time range links still work',
+    url: 'communities?repositories=v8&time=1y%2B1y',
+    run: `
+      const year = String(new Date().getFullYear() - 1);
+      const ok = await __t.until(() => document.querySelector('.segmented-option.is-selected')?.textContent.trim() === year && location.search.includes('time=' + year), 10000);
+      return { ok: !!ok, detail: decodeURIComponent(location.search) };
+    `,
+  },
+  {
     name: 'communities: switch repository updates graph',
     url: 'communities',
     run: `
-      const sig = () => [...document.querySelectorAll('.zoomable svg text')].slice(0, 5).map(t => t.textContent).join(',');
+      // The interactive map lists its communities. Older graphs are SVG only.
+      const sig = () => document.querySelector('.map-communities')?.innerText.slice(0, 80) ||
+        [...document.querySelectorAll('.zoomable svg text')].slice(0, 5).map(t => t.textContent).join(',');
       await __t.until(() => sig(), 20000);
       const before = sig();
       __t.byText('.chip', 'Skia').click();
