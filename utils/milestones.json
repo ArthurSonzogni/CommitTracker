@@ -1,0 +1,9 @@
+[
+  { "date": "2015-09-01", "label": "Blink merges into chromium/src", "repository": "chromium", "metrics": ["file", "line", "lines_unsafe_buffer_usage", "check", "dcheck", "todo", "tests", "disabled_tests", "string_piece"] },
+  { "date": "2021-05-15", "label": "base::Optional → absl::optional", "repository": "chromium", "metrics": ["absl_optional", "std_optional"] },
+  { "date": "2021-11-25", "label": "Class fields rewritten to raw_ptr<T>", "repository": "chromium", "metrics": ["raw_ptr", "raw_ref"] },
+  { "date": "2023-01-12", "label": "Rust allowed in Chromium", "repository": "chromium", "metrics": ["rust_file"] },
+  { "date": "2023-07-14", "label": "StringPiece → string_view begins", "repository": "chromium", "metrics": ["string_piece", "string_view"] },
+  { "date": "2023-11-01", "label": "absl::optional → std::optional begins", "repository": "chromium", "metrics": ["absl_optional", "std_optional"] },
+  { "date": "2023-12-18", "label": "First CrLitElement", "repository": "chromium", "metrics": ["polymer_element", "lit_element"] }
+]

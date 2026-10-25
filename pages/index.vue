@@ -22,6 +22,7 @@
       </div>
     </section>
     <HomeBento/>
+    <div class="container commit-rule" aria-hidden="true"><span /><span /><span /></div>
     <HomeHighlights/>
   </div>
 </template>
@@ -99,6 +100,32 @@ main().catch(() => {})
 </script>
 
 <style scoped>
+/* A divider drawn like the commits of a git history, as in the logo. */
+.commit-rule {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-block: 3rem;
+  padding-inline: 1.5rem;
+  position: relative;
+}
+
+.commit-rule::before {
+  background: var(--line-strong);
+  content: "";
+  height: 2px;
+  inset-inline: 1.5rem;
+  position: absolute;
+}
+
+.commit-rule span {
+  background: var(--bg);
+  border: 2px solid var(--accent);
+  border-radius: 999px;
+  height: 12px;
+  position: relative;
+  width: 12px;
+}
 
 .home-hero {
   background:

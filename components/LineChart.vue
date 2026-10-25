@@ -4,6 +4,7 @@
     <div v-if="!loaded" class="skeleton line-skeleton" aria-hidden="true" />
     <svg>
       <g ref="content">
+        <g ref="milestonesGroup" />
         <g ref="tooltip" />
         <g ref="legend" />
       </g>
@@ -55,6 +56,7 @@ const yAxis = ref<SVGGElement | null>(null);
 const content = ref<SVGGElement | null>(null);
 const tooltip = ref<SVGGElement | null>(null);
 const legend = ref<SVGGElement | null>(null);
+const milestonesGroup = ref<SVGGElement | null>(null);
 
 interface Point {
   x: Date;
@@ -73,6 +75,8 @@ const props = defineProps({
     type: Function,
     default: d => "" + d,
   },
+  // Hand-picked events explaining the inflection points: { date, label }.
+  milestones: { type: Array, default: () => [] },
 });
 
 const dateExtent = computed(() => {
@@ -124,6 +128,38 @@ const render = () => {
     .transition()
     .duration(500)
     .call(axisLeft(y));
+
+  // The milestones: a dashed line, labeled near the bottom. Labels on the
+  // right half are written leftward, to stay inside the chart.
+  const milestones = props.milestones
+    .map(m => ({ ...m, x: x(new Date(m.date)) }))
+    .filter(m => m.x >= 0 && m.x <= innerWidth);
+  select(milestonesGroup.value)
+    .selectAll(".milestone")
+    .data(milestones, m => m.label)
+    .join(enter => {
+      const group = enter.append("g").attr("class", "milestone");
+      group.append("line")
+        .style("stroke", "var(--faint)")
+        .attr("stroke-dasharray", "3 3");
+      group.append("text")
+        .attr("font-size", "11px")
+        .attr("font-style", "italic")
+        .style("fill", "var(--muted)");
+      return group;
+    })
+    .call(group => {
+      group.select("line")
+        .attr("x1", m => m.x)
+        .attr("x2", m => m.x)
+        .attr("y1", 0)
+        .attr("y2", innerHeight);
+      group.select("text")
+        .attr("text-anchor", m => m.x > innerWidth / 2 ? "end" : "start")
+        .attr("x", m => m.x > innerWidth / 2 ? m.x - 4 : m.x + 4)
+        .attr("y", (m, i) => innerHeight - 6 - i * 14)
+        .text(m => m.label);
+    });
 
   const max_curve_length = props.data.reduce((acc, d) => Math.max(acc, d.values.length), 0);
 
@@ -303,7 +339,7 @@ onMounted(() => {
   (new ResizeObserver(render)).observe(container.value);
 });
 
-watch(() => props.data, render);
+watch(() => [props.data, props.milestones], render);
 
 const loaded = ref(false);
 watchEffect(() => {

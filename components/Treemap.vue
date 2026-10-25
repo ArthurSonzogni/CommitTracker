@@ -25,7 +25,8 @@
           </div>
 
           <div>
-            <LineChart v-if="history?.length" :data="history" />
+            <LineChart v-if="history?.length" :data="history" :milestones="milestones" />
+            <p v-if="history?.length" class="source-note">{{ sourceNote }}</p>
           </div>
         </div>
     </div>
@@ -47,6 +48,7 @@ import "d3-transition";
 import {transition} from "d3-transition";
 import {format} from "d3-format";
 import repositories_json from '../public/data/repositories.json'
+import MILESTONES from '../utils/milestones.json'
 
 const { $color_map } = useNuxtApp();
 
@@ -71,6 +73,8 @@ const data = shallowRef({});
 let current_date_id = -1;
 
 const history = shallowRef([]);
+const milestones = shallowRef([]);
+const sourceNote = ref("");
 
 let colormapFunc = $color_map[0];
 
@@ -709,6 +713,10 @@ const computeHistory = () => {
     return;
   }
 
+  milestones.value = MILESTONES.filter(m =>
+    props.repositories.includes(m.repository) &&
+    m.metrics.some(metric => fields.includes(metric)));
+
   const out = [];
   for(const field of fields) {
     const values = computeHistoryForField(field);
@@ -729,6 +737,8 @@ const computeHistory = () => {
     });
   };
   history.value = out;
+  sourceNote.value = `Measured on the ${props.repositories[0]} source tree at ` +
+    `${dates.length} dates, the last on ${dates.at(-1)?.toISOString().slice(0, 10)}.`;
 }
 
 // Fetch dates.json
@@ -1126,6 +1136,14 @@ onMounted(() => lock(async () => {
 </script>
 
 <style lang="scss">
+.source-note {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-style: italic;
+  margin-top: 0.25rem;
+  text-align: right;
+}
+
 
 .treemap-tooltip {
   backdrop-filter: blur(5px);
