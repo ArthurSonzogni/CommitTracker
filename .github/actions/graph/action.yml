@@ -24,6 +24,14 @@ runs:
         args: -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5
         run-build: true
 
+    # The graphs use derived data, made by the commits module when it runs.
+    - name: Generate derived data, if missing
+      shell: bash
+      run: |
+        if [ ! -d public/data/chromium/usernames ]; then
+          npm run generate-derived-data
+        fi
+
     - name: Create Graphs
       shell: bash
       env:
