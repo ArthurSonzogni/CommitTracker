@@ -9,6 +9,9 @@
 // - Developer profiles: one page per developer with at least
 //   MIN_CONTRIBUTIONS commits and reviews, from scripts/derive-developers.mjs.
 //   The others are still served by the 404.html fallback.
+// - Years in review: one page per developer and year with at least
+//   MIN_YEAR_CONTRIBUTIONS commits and reviews that year, from the yearly
+//   summaries. Kept in sync with pages/developers/[name]/[year].vue.
 
 import fs from 'fs';
 import path from 'path';
@@ -17,6 +20,7 @@ const output = process.argv[2] || '.output/public';
 const dataDir = process.argv[3] || 'public/data';
 const SITE = 'https://chrome-commit-tracker.arthursonzogni.com';
 const MIN_CONTRIBUTIONS = 10;
+const MIN_YEAR_CONTRIBUTIONS = 25;
 
 const escape = text => text
   .replaceAll('&', '&amp;')
@@ -59,7 +63,7 @@ for (const page of pages) {
   pageCount++;
 }
 
-// Developer profiles. Kept in sync with pages/developers/[name].vue.
+// Developer profiles. Kept in sync with pages/developers/[name]/index.vue.
 const number = new Intl.NumberFormat('en').format;
 
 // Repositories that are a directory of another one (e.g. blink in chromium):
@@ -98,4 +102,51 @@ for (const shard of fs.existsSync(developersDir) ? fs.readdirSync(developersDir)
   }
 }
 
-console.log(`static-meta: ${pageCount} pages, ${developerCount} developer profiles`);
+// Years in review: {name: {year: {author, review, repositories}}}, over the
+// top-level repositories.
+const years = new Map();
+for (const repository of JSON.parse(fs.readFileSync(path.join(dataDir, 'repositories.json'), 'utf8'))) {
+  if (subdirectories.has(repository.dirname)) {
+    continue;
+  }
+  for (const kind of ['author', 'review']) {
+    const file = path.join(dataDir, repository.dirname, `usernames_summary_commit_yearly_${kind}.json`);
+    if (!fs.existsSync(file)) {
+      continue;
+    }
+    for (const [name, counts] of Object.entries(JSON.parse(fs.readFileSync(file, 'utf8')))) {
+      for (const [year, count] of Object.entries(counts)) {
+        if (!years.has(name)) {
+          years.set(name, {});
+        }
+        const entry = years.get(name)[year] ??= { author: 0, review: 0, repositories: new Set() };
+        entry[kind] += count;
+        entry.repositories.add(repository.dirname);
+      }
+    }
+  }
+}
+const plural = (count, word, words = `${word}s`) =>
+  `${number(count)} ${count === 1 ? word : words}`;
+let yearCount = 0;
+for (const [name, entries] of years) {
+  if (!/^[\w.@+-]+$/.test(name) || name.startsWith('.')) {
+    continue;
+  }
+  for (const [year, { author, review, repositories }] of Object.entries(entries)) {
+    if (author + review < MIN_YEAR_CONTRIBUTIONS) {
+      continue;
+    }
+    const dir = path.join(output, 'developers', name, year);
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, 'index.html'), render(shell, {
+      title: `${name} in ${year} · CommitTracker`,
+      description: `${name} in ${year}: ${plural(author, 'commit')} and ${plural(review, 'review')} ` +
+        `across ${plural(repositories.size, 'web platform repository', 'web platform repositories')}.`,
+      url: `${SITE}/developers/${name}/${year}`,
+    }));
+    yearCount++;
+  }
+}
+
+console.log(`static-meta: ${pageCount} pages, ${developerCount} developer profiles, ${yearCount} years in review`);

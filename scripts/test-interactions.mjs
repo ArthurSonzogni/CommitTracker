@@ -200,6 +200,21 @@ const tests = [
     `,
   },
   {
+    name: 'developer year in review: from the profile, stats, months, peers',
+    url: 'developers/arthursonzogni',
+    run: `
+      const link = await __t.until(() => [...document.querySelectorAll('.profile-years a')].find(a => a.textContent.trim() === '2025'), 20000);
+      link.click();
+      const ok = await __t.until(() =>
+        location.pathname === '/developers/arthursonzogni/2025' &&
+        document.querySelectorAll('.review-stat dd').length === 4 &&
+        document.querySelectorAll('.review-month').length === 12 &&
+        document.querySelectorAll('.review-peers li').length > 0, 20000);
+      const stats = [...document.querySelectorAll('.review-stat dd')].map(e => e.textContent.trim()).join(' / ');
+      return { ok: !!ok && document.title.startsWith('arthursonzogni in 2025'), detail: stats + ' / title=' + document.title };
+    `,
+  },
+  {
     name: 'developer profile: stats, repositories, charts, links',
     url: 'developers/arthursonzogni',
     run: `

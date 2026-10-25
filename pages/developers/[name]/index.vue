@@ -42,6 +42,17 @@
             </div>
           </dl>
 
+          <nav class="profile-years" aria-label="Year in review">
+            <span class="profile-years-label">Year in review</span>
+            <NuxtLink
+              v-for="year in activeYears"
+              :key="year"
+              class="chip"
+              :to="`/developers/${encodeURIComponent(name)}/${year}`">
+              {{ year }}
+            </NuxtLink>
+          </nav>
+
           <!-- Compare with other developers, on the individuals page. -->
           <div class="profile-compare">
             <UiField label="Compare with">
@@ -157,7 +168,7 @@
 // Explicit import: Nuxt 4's auto-import reads <TimelineChart> as the lazy
 // hydration modifier "Time" + "LineChart", and resolves it to LineChart.
 import TimelineChart from '~/components/TimelineChart.vue'
-import repositories_json from '../../public/data/repositories.json'
+import repositories_json from '../../../public/data/repositories.json'
 
 const route = useRoute();
 const name = computed(() => String(route.params.name));
@@ -241,6 +252,11 @@ const lastYear = computed(() => Math.max(...repositories.value.map(r => r.last))
 const totalAuthor = computed(() => repositories.value.reduce((sum, r) => sum + r.author, 0));
 const totalReview = computed(() => repositories.value.reduce((sum, r) => sum + r.review, 0));
 
+// Newest first.
+const activeYears = computed(() => Array.from(
+  { length: lastYear.value - firstYear.value + 1 },
+  (_, i) => lastYear.value - i));
+
 const stats = computed(() => [
   { label: "Commits", value: number(totalAuthor.value) },
   { label: "Reviews", value: number(totalReview.value) },
@@ -275,6 +291,20 @@ useSeoMeta({
 </script>
 
 <style scoped>
+
+.profile-years {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: -1.5rem 0 2rem;
+}
+
+.profile-years-label {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-right: 0.4rem;
+}
 
 .profile-compare {
   margin-bottom: 2rem;

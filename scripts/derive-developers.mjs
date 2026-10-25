@@ -1,5 +1,5 @@
 // Derives a per-developer index from the per-repository summaries, used by the
-// developer profile pages (pages/developers/[name].vue).
+// developer profile pages (pages/developers/[name]/index.vue).
 //
 // Usage: node scripts/derive-developers.mjs [dir=public/data]
 //
@@ -18,7 +18,7 @@ import path from 'path';
 
 const dir = process.argv[2] || 'public/data';
 
-// The shard of a username. Kept in sync with pages/developers/[name].vue.
+// The shard of a username. Kept in sync with pages/developers/[name]/index.vue.
 const shardOf = username => {
   const c = username[0].toLowerCase();
   return /[a-z0-9]/.test(c) ? c : '_';
