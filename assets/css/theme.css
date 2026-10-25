@@ -266,6 +266,7 @@ strong {
 }
 
 .button:active:not([disabled]) {
+  box-shadow: inset 0 1px 2px color-mix(in srgb, black 14%, transparent);
   transform: scale(0.97);
 }
 
@@ -516,6 +517,7 @@ h2.title:not(.is-1):not(.is-2):not(.is-3):not(.is-4):not(.is-5):not(.is-6) {
 }
 
 .segmented-option:active {
+  box-shadow: inset 0 1px 2px color-mix(in srgb, black 14%, transparent);
   transform: scale(0.97);
 }
 
@@ -563,6 +565,7 @@ h2.title:not(.is-1):not(.is-2):not(.is-3):not(.is-4):not(.is-5):not(.is-6) {
 }
 
 .chip:active {
+  box-shadow: inset 0 1px 2px color-mix(in srgb, black 14%, transparent);
   transform: scale(0.97);
 }
 
@@ -868,9 +871,15 @@ button.dropdown-item:hover {
   font-weight: 520;
 }
 
+/* Bulma also gives a light background to focused links, which stays after a
+ * click. */
 .navbar.site-navbar .navbar-item:hover,
 .navbar.site-navbar .navbar-link:hover,
-.navbar.site-navbar .navbar-item.has-dropdown:hover .navbar-link {
+.navbar.site-navbar .navbar-item.has-dropdown:hover .navbar-link,
+.navbar.site-navbar a.navbar-item:focus,
+.navbar.site-navbar a.navbar-item:focus-within,
+.navbar.site-navbar .navbar-link:focus,
+.navbar.site-navbar .navbar-link:focus-within {
   background: transparent;
   color: var(--ink);
 }

@@ -31,7 +31,7 @@
           class="navbar-item share-button is-hidden-desktop"
           aria-label="Share this page"
           @click="share">
-          <UiIcon name="share-variant" />
+          <UiIcon :key="String(copied)" :name="copied ? 'check' : 'share-variant'" :class="{ 'share-icon': copied }" />
         </a>
         <a
           role="button"
@@ -100,7 +100,7 @@
             aria-label="Copy the link to this page"
             title="Copy the link"
             @click="share">
-            <UiIcon name="share-variant" />
+            <UiIcon :key="String(copied)" :name="copied ? 'check' : 'share-variant'" :class="{ 'share-icon': copied }" />
           </a>
           <a
             role="button"
@@ -121,6 +121,7 @@
         </div>
       </div>
     </nav>
+    <span class="live-status" role="status">{{ copied ? "Link copied" : "" }}</span>
   </div>
 </template>
 
@@ -186,7 +187,10 @@ onMounted(() => {
 });
 
 // The URL holds the state of every page, so sharing it shares the view. Use
-// the share sheet of phones, and copy the link elsewhere.
+// the share sheet of phones, and copy the link elsewhere. A copy is confirmed
+// by the button itself, turning into a check mark.
+const copied = ref(false);
+let copiedTimer: ReturnType<typeof setTimeout> | undefined;
 const share = async () => {
   const url = location.href;
   if (navigator.share && matchMedia("(pointer: coarse)").matches) {
@@ -197,7 +201,9 @@ const share = async () => {
   }
   try {
     await navigator.clipboard.writeText(url);
-    showToast({ message: "Link copied", duration: 2500 });
+    copied.value = true;
+    clearTimeout(copiedTimer);
+    copiedTimer = setTimeout(() => copied.value = false, 1600);
   } catch (e) {
     showToast({ message: "Could not copy the link", type: "is-danger" });
   }
@@ -258,6 +264,22 @@ const toggleTheme = () => {
 .theme-toggle,
 .share-button {
   color: var(--muted) !important;
+}
+
+.share-icon {
+  animation: pop-in 0.25s cubic-bezier(0.2, 0, 0, 1.4);
+}
+
+@keyframes pop-in {
+  from { transform: scale(0.6); }
+}
+
+/* Announced to screen readers, not shown. */
+.live-status {
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  width: 1px;
 }
 
 .theme-toggle:hover,

@@ -17,6 +17,7 @@
         </span>
         <div
           class="ui-slider-thumb"
+          :class="{ 'is-dragging': dragging === index }"
           role="slider"
           tabindex="0"
           :aria-label="ariaLabel"
@@ -244,7 +245,7 @@ const onKeydown = (index: number, event: KeyboardEvent) => {
   height: 1.1rem;
   justify-content: center;
   min-width: 1.1rem;
-  transition: transform 0.1s, box-shadow 0.15s;
+  transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1.4), box-shadow 0.2s;
 }
 
 .ui-slider-thumb:hover,
@@ -256,6 +257,12 @@ const onKeydown = (index: number, event: KeyboardEvent) => {
 
 .ui-slider-thumb:active {
   cursor: grabbing;
+}
+
+/* Lifted while dragged. */
+.ui-slider-thumb.is-dragging {
+  box-shadow: var(--ring), var(--shadow-lg);
+  transform: scale(1.25);
 }
 
 .ui-slider-indicator {

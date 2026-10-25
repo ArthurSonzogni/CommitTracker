@@ -305,6 +305,7 @@ document.addEventListener('scroll', updateHasScrolled, { passive: true });
 
 .sticky {
   position: sticky;
+  transition: box-shadow 0.2s;
   width: 100%;
   z-index: 2;
 }
@@ -338,8 +339,13 @@ document.addEventListener('scroll', updateHasScrolled, { passive: true });
   gap: 0.5rem 1rem;
 }
 
+/* Elevated when the content scrolls under them. */
 html[data-scrolltop= "1"] .sticky.top {
-  border-bottom: 1px solid var(--line);
+  box-shadow: 0 10px 24px -14px color-mix(in srgb, black 30%, transparent);
+}
+
+html[data-scrollbottom= "1"] .sticky.bottom {
+  box-shadow: 0 -10px 24px -14px color-mix(in srgb, black 30%, transparent);
 }
 
 .sticky.top {
