@@ -24,6 +24,12 @@
   --accent-line: #d9d1f7;
   --ring: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
 
+  /* The navigation bar, in the accent color. */
+  --nav-bg: var(--accent);
+  --nav-ink: #ffffff;
+  --nav-ink-muted: rgba(255, 255, 255, 0.72);
+  --nav-hover: rgba(255, 255, 255, 0.14);
+
   --radius-sm: 6px;
   --radius: 9px;
   --radius-lg: 14px;
@@ -83,6 +89,7 @@
     --accent-soft: color-mix(in srgb, var(--accent) 16%, transparent);
     --accent-line: color-mix(in srgb, var(--accent) 40%, transparent);
     --ring: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
+    --nav-bg: color-mix(in srgb, var(--accent) 45%, var(--bg));
 
     --shadow-xs: 0 1px 1px rgba(0, 0, 0, 0.3);
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
@@ -128,6 +135,7 @@
   --accent-soft: color-mix(in srgb, var(--accent) 16%, transparent);
   --accent-line: color-mix(in srgb, var(--accent) 40%, transparent);
   --ring: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
+  --nav-bg: color-mix(in srgb, var(--accent) 45%, var(--bg));
 
   --shadow-xs: 0 1px 1px rgba(0, 0, 0, 0.3);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
@@ -848,8 +856,8 @@ button.dropdown-item:hover {
 /* Navbar ------------------------------------------------------------------- */
 
 .navbar.site-navbar {
-  background: var(--surface);
-  border-bottom: 1px solid var(--line);
+  background: var(--nav-bg);
+  border-bottom: 1px solid var(--nav-bg);
   min-height: 3.5rem;
 }
 
@@ -906,7 +914,50 @@ button.dropdown-item:hover {
 }
 
 .navbar.site-navbar .navbar-burger {
-  color: var(--ink);
+  color: var(--nav-ink);
+}
+
+/* Keyboard focus on the colored bar. */
+.navbar.site-navbar .navbar-brand :focus-visible {
+  outline-color: var(--nav-ink);
+}
+
+/* On desktop, the menu sits on the colored bar, while its dropdowns stay on
+ * the surface. On mobile, the menu opens on the surface. */
+@media (min-width: 1024px) {
+  .navbar.site-navbar .navbar-start > .navbar-item,
+  .navbar.site-navbar .navbar-start > .navbar-item > .navbar-link {
+    color: var(--nav-ink);
+  }
+
+  /* Pills, not the full height of the bar. */
+  .navbar.site-navbar .navbar-start > .navbar-item {
+    margin-block: 0.6rem;
+  }
+
+  .navbar.site-navbar .navbar-start > .navbar-item:not(.has-dropdown):hover,
+  .navbar.site-navbar .navbar-start > .navbar-item > .navbar-link:hover,
+  .navbar.site-navbar .navbar-start > .navbar-item.has-dropdown:hover > .navbar-link,
+  .navbar.site-navbar .navbar-start > .navbar-item.has-dropdown.is-active > .navbar-link,
+  .navbar.site-navbar .navbar-start > .navbar-item.router-link-exact-active {
+    background: var(--nav-hover);
+    color: var(--nav-ink);
+  }
+
+  .navbar.site-navbar .navbar-start > .navbar-item > .icon,
+  .navbar.site-navbar .navbar-start > .navbar-item > .navbar-link > .icon {
+    color: var(--nav-ink-muted);
+  }
+
+  .navbar.site-navbar .navbar-start > .navbar-item > .navbar-link::after {
+    border-color: var(--nav-ink-muted);
+  }
+
+  .navbar.site-navbar .navbar-start > .navbar-item:focus-visible,
+  .navbar.site-navbar .navbar-start > .navbar-item > .navbar-link:focus-visible,
+  .navbar.site-navbar .navbar-end :focus-visible {
+    outline-color: var(--nav-ink);
+  }
 }
 
 @media (max-width: 1023px) {

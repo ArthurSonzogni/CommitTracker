@@ -13,7 +13,7 @@
             <path d="M6 3v18M6 8c0 4 12 2 12 7v1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             <circle cx="6" cy="6" r="2.4" fill="currentColor"/>
             <circle cx="6" cy="18" r="2.4" fill="currentColor"/>
-            <circle cx="18" cy="17" r="2.4" fill="var(--surface)" stroke="currentColor" stroke-width="2"/>
+            <circle cx="18" cy="17" r="2.4" fill="var(--nav-bg)" stroke="currentColor" stroke-width="2"/>
           </svg>
           <span class="brand-name">Commit<span>Tracker</span></span>
         </NuxtLink>
@@ -233,7 +233,7 @@ const toggleTheme = () => {
 }
 
 .brand-mark {
-  color: var(--accent);
+  color: var(--nav-ink);
   height: 1.4rem;
   width: 1.4rem;
 }
@@ -244,14 +244,14 @@ const toggleTheme = () => {
 }
 
 .brand-name {
-  color: var(--ink);
+  color: var(--nav-ink);
   font-size: 1rem;
   font-weight: 650;
   letter-spacing: -0.02em;
 }
 
 .brand-name span {
-  color: var(--muted);
+  color: var(--nav-ink-muted);
   font-weight: 500;
 }
 
@@ -269,22 +269,37 @@ const toggleTheme = () => {
   color: var(--muted) !important;
 }
 
+/* On desktop, the buttons sit on the colored bar. */
+@media (min-width: 1024px) {
+  .theme-toggle,
+  .share-button,
+  .github-link {
+    color: var(--nav-ink-muted) !important;
+  }
+
+  .theme-toggle:hover,
+  .share-button:hover,
+  .github-link:hover {
+    background: var(--nav-hover) !important;
+    color: var(--nav-ink) !important;
+  }
+}
+
 .search-icon {
-  color: var(--ink-2) !important;
+  color: var(--nav-ink) !important;
   margin-left: auto;
 }
 
 .share-button.is-hidden-desktop {
-  color: var(--ink-2) !important;
+  color: var(--nav-ink) !important;
 }
 
 .search-pill {
   align-items: center;
-  background: var(--surface);
-  border: 1px solid var(--line);
+  background: var(--nav-hover);
+  border: 1px solid transparent;
   border-radius: 999px;
-  box-shadow: var(--shadow-xs);
-  color: var(--muted);
+  color: var(--nav-ink-muted);
   cursor: pointer;
   display: flex;
   font-size: 0.8rem;
@@ -295,8 +310,8 @@ const toggleTheme = () => {
 }
 
 .search-pill:hover {
-  border-color: var(--line-strong);
-  color: var(--ink);
+  border-color: var(--nav-ink-muted);
+  color: var(--nav-ink);
 }
 
 .search-pill span {
@@ -304,7 +319,7 @@ const toggleTheme = () => {
 }
 
 .search-pill kbd {
-  background: var(--surface-sunken);
+  background: var(--nav-hover);
   border-radius: 999px;
   font-family: var(--font-mono);
   font-size: 0.68rem;
