@@ -3,6 +3,7 @@
     <Navbar/>
 
     <section class="section">
+      <h1 class="title">CVE pivot table</h1>
       <div class="mycolumns">
         <div id="widget-colum">
           <UiField label="Time division">
@@ -32,11 +33,13 @@
 
           <!--Severity ['low', 'medium', 'high', 'critical']-->
           <UiField label="Severity">
-            <UiToggle v-model="severity" value="N/A">N/A</UiToggle>
-            <UiToggle v-model="severity" value="Low">Low</UiToggle>
-            <UiToggle v-model="severity" value="Medium">Medium</UiToggle>
-            <UiToggle v-model="severity" value="High">High</UiToggle>
-            <UiToggle v-model="severity" value="Critical">Critical</UiToggle>
+            <div class="chips">
+              <UiToggle v-model="severity" value="N/A">N/A</UiToggle>
+              <UiToggle v-model="severity" value="Low">Low</UiToggle>
+              <UiToggle v-model="severity" value="Medium">Medium</UiToggle>
+              <UiToggle v-model="severity" value="High">High</UiToggle>
+              <UiToggle v-model="severity" value="Critical">Critical</UiToggle>
+            </div>
           </UiField>
 
           <!-- value -->
@@ -652,6 +655,12 @@ watch([
 #table-column {
   flex: 1;
   overflow: auto;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .table_link {

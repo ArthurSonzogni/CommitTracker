@@ -4,7 +4,7 @@
 
     <section class="section">
       <div class="container">
-        <h1 class="title">Contributions</h1>
+        <h1 class="title">Repositories charts</h1>
 
         <FilterPanel :summary="summary">
           <UiField>

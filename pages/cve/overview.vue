@@ -2,7 +2,7 @@
   <div>
     <Navbar/>
     <section class="section container">
-      <h1 class="title">Chromium CVE</h1>
+      <h1 class="title">CVE overview</h1>
       <p>
         Note: vulnerabilities aren't always associated with a CVE. Bugs are
         often fixed before affecting stable releases. Some are immediately found

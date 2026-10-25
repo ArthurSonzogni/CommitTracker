@@ -4,9 +4,7 @@
 
     <section class="section pb-2">
       <div class="container is-fluid">
-        <h1 class="title is-4" style="display: flex; align-items: center;">
-          Chromium Money Tree
-        </h1>
+        <h1 class="title">CVE money tree</h1>
 
         <AboutData>
           <p>
@@ -76,7 +74,7 @@
 
     <section class="timeline">
       <div class="container">
-        <Timeline v-model="dates" :minDate="new Date('2011-01-01')"/>
+        <Timeline v-model="dates" :minDate="new Date('2008-01-01')"/>
       </div>
     </section>
   </div>

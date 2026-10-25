@@ -4,8 +4,8 @@
 
     <section class="section">
       <div class="container">
-        <h1 class="title">
-          <UiIcon name="strike" />{{ total }} fuzzers in chromium</h1>
+        <h1 class="title">Fuzz test</h1>
+        <p class="mb-4">{{ total }} fuzzers in Chromium.</p>
 
         <div style="height: 50vh;">
           <LineChart :data="graph" />
@@ -145,7 +145,7 @@
 
     <section class="section sticky bottom">
       <UiField expanded>
-        <Timeline v-model="dates" />
+        <Timeline v-model="dates" :minDate="new Date('2015-12-01')" />
       </UiField>
     </section>
   </div>
@@ -156,8 +156,9 @@
 const route = useRoute();
 const router = useRouter();
 
+// The first fuzzer was added in December 2015.
 const dates = ref<Date[]>([
-  new Date("2000-01-01"),
+  new Date("2015-12-01"),
   new Date(),
 ]);
 if (route.query.dates) {

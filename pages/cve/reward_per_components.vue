@@ -4,9 +4,7 @@
 
     <section class="section">
       <div class="container">
-        <h1 class="title">
-          VRP reward per component in the Chromium project.
-        </h1>
+        <h1 class="title">CVE reward per component</h1>
         <ul>
           <li>{{cve_count}} CVEs in between {{dates[0].toISOString().split("T")[0]}} and {{dates[1].toISOString().split("T")[0]}}</li>
           <li>{{dollars_formatter(total_reward)}} total reward</li>
@@ -14,7 +12,22 @@
       </div>
     </section>
 
-    <section style="overflow-x: auto">
+    <!-- On phones, the diagram is unreadable: a ranking is shown instead. -->
+    <section class="section ranking">
+      <div class="container">
+        <ol>
+          <li v-for="row in ranking" :key="row.component">
+            <div class="ranking-row">
+              <span class="ranking-component">{{ row.component }}</span>
+              <span class="ranking-reward">{{ dollars_formatter(row.reward) }}</span>
+            </div>
+            <div class="ranking-bar" :style="{ width: 100 * row.reward / ranking[0].reward + '%' }"></div>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="sankey" style="overflow-x: auto">
       <svg
         :width="width"
         :height="height"
@@ -64,6 +77,7 @@ const route = useRoute();
 const router = useRouter();
 
 const cve_count = ref(0);
+const ranking = ref([]);
 const total_reward = ref(0);
 
 const svg_nodes = ref(null);
@@ -171,6 +185,11 @@ const render = (() => {
       delete component_vrp_reward[component];
     }
   }
+
+  ranking.value = Object.entries(component_vrp_reward)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 50)
+    .map(([component, reward]) => ({ component, reward }));
 
   height.value = Math.max(500, 35 * Math.pow(Object.keys(component_vrp_reward).length, 0.8));
   // Keep the graph readable on narrow screens; the section scrolls instead.
@@ -461,6 +480,55 @@ window.addEventListener("resize", () => {
 
 .tooltip {
   background-color: var(--surface);
+}
+
+.ranking {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .ranking {
+    display: block;
+    padding-top: 0;
+  }
+
+  .sankey {
+    display: none;
+  }
+}
+
+.ranking ol {
+  list-style: none;
+  margin: 0;
+}
+
+.ranking li {
+  margin-bottom: 0.6rem;
+}
+
+.ranking-row {
+  display: flex;
+  font-size: 0.875rem;
+  gap: 0.5rem;
+  justify-content: space-between;
+}
+
+.ranking-component {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ranking-reward {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ranking-bar {
+  background: var(--accent);
+  border-radius: 2px;
+  height: 4px;
+  margin-top: 0.2rem;
+  opacity: 0.6;
 }
 
 </style>

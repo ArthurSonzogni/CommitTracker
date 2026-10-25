@@ -4,7 +4,7 @@
 
     <section class="section">
       <div class="container is-fluid">
-        <h1 class="title">Repositories info</h1>
+        <h1 class="title">Repositories tracking info</h1>
 
         <div class="table-container is-hidden-touch">
           <table class="table is-striped is-hoverable is-fullwidth">
@@ -53,34 +53,16 @@
                   <UiIcon v-if="sortKey === 'contributors'" :name="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'" size="small"></UiIcon>
                 </th>
                 <th @click="sortBy('driver_1')" class="is-clickable has-left-border">
-                  <UiTooltip text="The organization or group with the most commits in the last 5 years" position="bottom" multiline>
-                    <span class="has-tooltip-dotted">Driver 1</span>
+                  <UiTooltip text="The organizations or groups with the most commits in the last 5 years" position="bottom" multiline>
+                    <span class="has-tooltip-dotted">Top organizations</span>
                   </UiTooltip>
                   <UiIcon v-if="sortKey === 'driver_1'" :name="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'" size="small"></UiIcon>
                 </th>
-                <th @click="sortBy('driver_2')" class="is-clickable">
-                  <UiTooltip text="The organization or group with the 2nd most commits in the last 5 years" position="bottom" multiline>
-                    <span class="has-tooltip-dotted">Driver 2</span>
-                  </UiTooltip>
-                  <UiIcon v-if="sortKey === 'driver_2'" :name="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'" size="small"></UiIcon>
-                </th>
-                <th @click="sortBy('driver_3')" class="is-clickable">
-                  <UiTooltip text="The organization or group with the 3rd most commits in the last 5 years" position="bottom" multiline>
-                    <span class="has-tooltip-dotted">Driver 3</span>
-                  </UiTooltip>
-                  <UiIcon v-if="sortKey === 'driver_3'" :name="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'" size="small"></UiIcon>
-                </th>
                 <th @click="sortBy('last_commit')" class="is-clickable has-left-border">
-                  <UiTooltip text="The date of the most recent commit fetched into the database" position="bottom" multiline>
+                  <UiTooltip text="The date of the most recent commit fetched into the database, and how up-to-date it is (green: < 2 days, yellow: < 7 days, red: outdated)" position="bottom" multiline>
                     <span class="has-tooltip-dotted">Last Commit</span>
                   </UiTooltip>
                   <UiIcon v-if="sortKey === 'last_commit'" :name="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'" size="small"></UiIcon>
-                </th>
-                <th @click="sortBy('state')" class="is-clickable">
-                  <UiTooltip text="How up-to-date the local data is compared to the source (green: < 2 days, yellow: < 7 days, red: outdated)" position="bottom" multiline>
-                    <span class="has-tooltip-dotted">State</span>
-                  </UiTooltip>
-                  <UiIcon v-if="sortKey === 'state'" :name="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'" size="small"></UiIcon>
                 </th>
               </tr>
             </thead>
@@ -117,20 +99,12 @@
                   {{ formatNumber(stats[repo.dirname]?.total_contributors) }}
                 </td>
                 <td class="is-size-7 has-left-border">
-                  {{ stats[repo.dirname]?.top_organizations?.[0] || '-' }}
+                  {{ stats[repo.dirname]?.top_organizations?.slice(0, 3).join(' · ') || '-' }}
                 </td>
-                <td class="is-size-7">
-                  {{ stats[repo.dirname]?.top_organizations?.[1] || '-' }}
-                </td>
-                <td class="is-size-7">
-                  {{ stats[repo.dirname]?.top_organizations?.[2] || '-' }}
-                </td>
-                <td class="has-left-border">
+                <td class="has-left-border last-commit">
                   <span class="is-size-7">
                     {{ formatMetadata(repo.dirname)?.date || 'N/A' }}
                   </span>
-                </td>
-                <td>
                   <span v-if="formatMetadata(repo.dirname)" :class="['tag', 'is-small', getStateClass(repo.dirname)]">
                     {{ formatMetadata(repo.dirname).days }}d ago
                   </span>
@@ -173,7 +147,7 @@
                 <strong>Contributors:</strong> {{ formatNumber(stats[repo.dirname]?.total_contributors) }}
               </p>
               <p style="margin-bottom: 0.5rem;">
-                <strong>Top Driver:</strong> {{ stats[repo.dirname]?.top_organizations?.[0] || '-' }}
+                <strong>Top organizations:</strong> {{ stats[repo.dirname]?.top_organizations?.slice(0, 3).join(' · ') || '-' }}
               </p>
               <div class="is-flex mt-2" style="gap: 0.5rem; align-items: center;">
                 <span class="has-text-grey">Features:</span>
@@ -240,18 +214,12 @@ const sortedRepositories = computed(() => {
         valA = stats.value[a.dirname]?.total_contributors || 0; valB = stats.value[b.dirname]?.total_contributors || 0; break;
       case 'driver_1':
         valA = stats.value[a.dirname]?.top_organizations?.[0] || ''; valB = stats.value[b.dirname]?.top_organizations?.[0] || ''; break;
-      case 'driver_2':
-        valA = stats.value[a.dirname]?.top_organizations?.[1] || ''; valB = stats.value[b.dirname]?.top_organizations?.[1] || ''; break;
-      case 'driver_3':
-        valA = stats.value[a.dirname]?.top_organizations?.[2] || ''; valB = stats.value[b.dirname]?.top_organizations?.[2] || ''; break;
       case 'reviewers':
         valA = a.reviewers ? 1 : 0; valB = b.reviewers ? 1 : 0; break;
       case 'treemap':
         valA = a.treemap ? 1 : 0; valB = b.treemap ? 1 : 0; break;
       case 'last_commit':
         valA = stats.value[a.dirname]?.last_commit || ''; valB = stats.value[b.dirname]?.last_commit || ''; break;
-      case 'state':
-        valA = formatMetadata(a.dirname)?.days ?? Infinity; valB = formatMetadata(b.dirname)?.days ?? Infinity; break;
     }
 
     if (valA < valB) return sortOrder.value === 'asc' ? -1 : 1;
@@ -336,6 +304,12 @@ function formatNumber(num: number | undefined) {
 }
 .is-clickable:hover {
   background-color: rgba(0,0,0,0.02);
+}
+.last-commit {
+  white-space: nowrap;
+}
+.last-commit .tag {
+  margin-left: 0.5rem;
 }
 .has-left-border {
   border-left: 2px solid hsl(0, 0%, 86%);

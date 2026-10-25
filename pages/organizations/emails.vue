@@ -3,17 +3,16 @@
     <Navbar></Navbar>
     <section class="section">
       <div class="container">
-        <h1 class="title">Organization's Developers emails</h1>
+        <h1 class="title">Organizations emails</h1>
 
-        <p>
-          <strong>Repositories?</strong>
-        </p>
-        <RepositorySelector
-          v-model="repositories"
-          size="medium"
-          :allowMultiple="true"
-          :allowAll="true">
-        </RepositorySelector>
+        <FilterPanel :summary="listSummary(repositoryNames(repositories), 'repositories')">
+          <RepositorySelector
+            v-model="repositories"
+            size="medium"
+            :allowMultiple="true"
+            :allowAll="true">
+          </RepositorySelector>
+        </FilterPanel>
       </div>
     </section>
 

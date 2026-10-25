@@ -1,15 +1,18 @@
 <template>
   <div>
     <Navbar />
-    <RepositorySelector
-      class="ml-4 mr-4"
-      size="is-medium"
-      v-model="repositories"
-      :allowMultiple="false"
-      :allowAll="false"
-      :filter="(repo) => !repo.cone"
-    />
+    <section class="section">
     <div class="container">
+      <h1 class="title">Commit rates</h1>
+      <FilterPanel :summary="listSummary(repositoryNames(repositories), 'repositories')">
+        <RepositorySelector
+          size="is-medium"
+          v-model="repositories"
+          :allowMultiple="false"
+          :allowAll="false"
+          :filter="(repo) => !repo.cone"
+        />
+      </FilterPanel>
       <div>
         Smoothing Window: <strong>{{ smoothingWindow }} week{{ smoothingWindow
           === 1 ? '' : 's' }}</strong>, displaying activity over <strong>{{
@@ -180,6 +183,7 @@
       </div>
 
     </div>
+    </section>
   </div>
 </template>
 

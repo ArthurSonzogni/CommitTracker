@@ -62,7 +62,8 @@ const interpolatorInverse = (date) => {
   const max_date_time = props.maxDate.getTime();
   const date_time = date.getTime();
   const pos = (date_time - min_date_time) / (max_date_time - min_date_time);
-  return Math.pow(pos, date_pow_factor);
+  // Dates outside of the range are clamped, instead of producing NaN.
+  return Math.pow(Math.min(1, Math.max(0, pos)), date_pow_factor);
 }
 
 const value = defineModel()
@@ -105,7 +106,7 @@ const toggleMore = () => {
 
 const formatDate = (val: number) => {
   const date = interpolator(val);
-  return date.getFullYear() + "-" + (date.getMonth() + 1);
+  return date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0");
 }
 
 const getDate = (val: number) => {

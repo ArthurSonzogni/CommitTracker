@@ -3,7 +3,7 @@
     <Navbar/>
     <section class="section">
       <div class="container">
-        <h1 class="title">Repository commits</h1>
+        <h1 class="title">Repositories heatmap</h1>
 
         <FilterPanel :summary="listSummary(repositoryNames(repositories), 'repositories')">
           <UiField>

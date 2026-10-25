@@ -11,7 +11,10 @@
           history of the contributors.
         </p>
         <DevelopersInput v-model="developers"/>
-        <p style="margin-top: 1rem;">
+        <p v-if="!developer" style="margin-top: 1rem;">
+          Pick a developer to see which of them they earned.
+        </p>
+        <p v-else style="margin-top: 1rem;">
           <strong>Badges:</strong>
           {{
             data.filter(badge => badge.enabled).length
@@ -33,7 +36,7 @@
 
                {{ category }}
 
-               <span class="tag">
+               <span v-if="developer" class="tag">
                {{
                   data.filter(badge => badge.category === category && badge.enabled).length
                }} / {{
@@ -84,17 +87,12 @@ const refresh = async () => {
     }
   })
 
-  if (developers.value.length === 0) {
-    developer.value = "";
-    return
-  }
-
-  if (developers.value.length != 1) {
+  if (developers.value.length > 1) {
     // Take the last one.
       developers.value = developers.value.slice(-1);
     return;
   }
-  developer.value = developers.value[0];
+  developer.value = developers.value[0] ?? "";
 
   const fetchJson = async (path) => {
     const data = await fetch(path);
@@ -106,6 +104,16 @@ const refresh = async () => {
   for(const badge of allBadges) {
     badge.enabled = false;
     categories.value.add(badge.category);
+  }
+
+  // Without developer, the whole collection is shown.
+  if (!developer.value) {
+    for (const badge of allBadges) {
+      badge.enabled = true;
+    }
+    data.value = allBadges;
+    rarity.value = 0;
+    return;
   }
 
   console.log("Developer: ", developer.value);

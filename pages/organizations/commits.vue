@@ -3,7 +3,7 @@
     <Navbar/>
     <section class="section">
       <div class="container">
-        <h1 class="title">Organizations contributions</h1>
+        <h1 class="title">Organizations commits</h1>
 
         <FilterPanel :summary="summary">
           <UiField>

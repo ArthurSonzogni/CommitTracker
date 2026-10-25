@@ -23,7 +23,7 @@
             </p>
             <p> <strong>Holder:</strong> {{ badge_data.recipients }} developers</p>
             <p> <strong>Category:</strong> {{ badge_data.category }}</p>
-            <p> <strong>Unlocked:</strong>
+            <p v-if="developer"> <strong>Unlocked:</strong>
               <UiIcon :name="unlocked ? 'check' : 'close'" :style="{ color: unlocked ? 'green' : 'red' }" />
             </p>
 

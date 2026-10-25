@@ -4,7 +4,7 @@
 
     <section class="section">
       <div class="container content">
-        <h1 class="title">The API</h1>
+        <h1 class="title">API</h1>
         <p>
           This is a static server. All the responses are static JSON files. They
           are refreshed every week by a bot running on Github actions.

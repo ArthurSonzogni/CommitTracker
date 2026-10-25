@@ -3,14 +3,16 @@
     <Navbar/>
     <section class="section">
       <div class="container">
-        <h1 class="title">Usernames length distribution</h1>
+        <h1 class="title">Usernames distribution</h1>
 
-        <RepositorySelector
-          v-model="repositories"
-          size="medium"
-          :allowMultiple="true"
-          :allowAll="true"
-        />
+        <FilterPanel :summary="listSummary(repositoryNames(repositories), 'repositories')">
+          <RepositorySelector
+            v-model="repositories"
+            size="medium"
+            :allowMultiple="true"
+            :allowAll="true"
+          />
+        </FilterPanel>
 
         <p>
           Approximatively <strong>{{sum}}</strong> developers contributed to

@@ -40,8 +40,8 @@
 
       <text
         ref="previous_year_label_ref"
-        x="200"
-        y="150"
+        x="250"
+        y="40"
         class="previous_year_label"
         font-size="19"
         font-weight="bold"
@@ -52,7 +52,7 @@
       <text
         ref="current_year_label_ref"
         x="600"
-        y="150"
+        y="40"
         class="current_year_label"
         font-size="19"
         font-weight="bold"
@@ -251,7 +251,7 @@ const renderTooltip = (
 
     const x_pos = active_x_scale(d[0]);
     const y_pos = active_y_scale(d[1]);
-    const margin = {top: 20, right: 30, bottom: 20, left: 30}; // Must match render
+    const margin = {top: 20, right: 45, bottom: 20, left: 45}; // Must match render
     const x_svg = x_pos + margin.left;
     const y_svg = y_pos + margin.top;
 
@@ -312,7 +312,7 @@ const onMouseMove = (event: MouseEvent | TouchEvent) => {
   if (!active_x_scale || !active_y_scale || active_cve_dates.length === 0 || !svg_ref.value) return;
 
   const point = getSVGCoordinates(event, svg_ref.value);
-  const margin = {top: 20, right: 30, bottom: 20, left: 30}; // Must match render
+  const margin = {top: 20, right: 45, bottom: 20, left: 45}; // Must match render
 
   // Convert SVG coordinate to Graph coordinate (remove margin)
   const mx_graph = point.x - margin.left;
@@ -500,7 +500,7 @@ const render = () => {
   // svg.attr("height", 400); // Removed
   // Ensure viewBox is set (done in template)
 
-  const margin = {top: 20, right: 30, bottom: 20, left: 30};
+  const margin = {top: 20, right: 45, bottom: 20, left: 45};
   const width = 800 - margin.left - margin.right;
   const height = 400 - margin.top - margin.bottom;
 
@@ -597,13 +597,17 @@ const render = () => {
   const axis_y1 = select(axis_y1_ref.value);
   const axis_y2 = select(axis_y2_ref.value);
 
+  // One tick every ~40px at most, for the labels not to overlap.
+  const tickCount = (scale) =>
+    Math.max(1, Math.floor(Math.abs(scale.range()[0] - scale.range()[1]) / 40));
+
   axis_x.transition(t).call(axisBottom(x_scale));
   axis_x.attr("transform", `translate(${margin.left}, ${height + margin.top})`);
 
-  axis_y1.transition(t).call(axisLeft(y1));
+  axis_y1.transition(t).call(axisLeft(y1).ticks(tickCount(y1)));
   axis_y1.attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-  axis_y2.transition(t).call(axisRight(y2));
+  axis_y2.transition(t).call(axisRight(y2).ticks(tickCount(y2)));
   axis_y2.attr("transform", `translate(${margin.left + width}, ${margin.top})`);
 
   // Vertical split line
@@ -622,14 +626,6 @@ const render = () => {
     .attr("x1", x_scale(min_date))
     .attr("x2", x_scale(max_date))
     .attr("transform", `translate(${margin.left}, ${margin.top})`);
-
-  select(previous_year_label_ref.value)
-    .transition(t)
-    .attr("y", y_scale(0));
-
-  select(current_year_label_ref.value)
-    .transition(t)
-    .attr("y", y_scale(0) + 19 * 3);
 
   // Update Overlay Rect size/position
   if (overlay_rect_ref.value) {

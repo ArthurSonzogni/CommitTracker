@@ -6,7 +6,7 @@
 
     <section class="section pb-2">
       <div class="container content">
-        <h1 class="title">Chromium CVEs</h1>
+        <h1 class="title">CVE list</h1>
 
         <AboutData>
           <p>
