@@ -40,6 +40,7 @@
 <script setup lang="ts">
 
 import { interpolateDate } from "d3-interpolate";
+import { chromeMilestoneAt } from "~/utils/chrome-releases";
 
 const props = defineProps({
   minDate: {
@@ -104,9 +105,12 @@ const toggleMore = () => {
   more.value = !more.value;
 }
 
+// The month, and the Chrome milestone on the stable channel then.
 const formatDate = (val: number) => {
   const date = interpolator(val);
-  return date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0");
+  const month = date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0");
+  const milestone = chromeMilestoneAt(date);
+  return milestone ? `${month} · M${milestone}` : month;
 }
 
 const getDate = (val: number) => {

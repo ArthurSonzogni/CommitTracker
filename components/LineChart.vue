@@ -9,6 +9,7 @@
         <g ref="legend" />
       </g>
       <g ref="xAxis" />
+      <g ref="releaseAxis" />
       <g ref="yAxis" />
 
       <!--
@@ -47,6 +48,7 @@ import {bisector} from "d3-array";
 import "d3-transition";
 import {curveMonotoneX} from "d3-shape"
 import {curveLinear} from "d3-shape"
+import { chromeReleases } from "~/utils/chrome-releases";
 
 const { $color } = useNuxtApp();
 
@@ -57,6 +59,7 @@ const content = ref<SVGGElement | null>(null);
 const tooltip = ref<SVGGElement | null>(null);
 const legend = ref<SVGGElement | null>(null);
 const milestonesGroup = ref<SVGGElement | null>(null);
+const releaseAxis = ref<SVGGElement | null>(null);
 
 interface Point {
   x: Date;
@@ -97,7 +100,7 @@ const render = () => {
   const margin = {
     top: 10,
     right: 30,
-    bottom: 30,
+    bottom: 44,
     left: 60,
   };
 
@@ -128,6 +131,30 @@ const render = () => {
     .transition()
     .duration(500)
     .call(axisLeft(y));
+
+  // Chrome releases, every 10 milestones, under the years. Labels without
+  // room are skipped.
+  let lastLabel = -Infinity;
+  const releases = chromeReleases
+    .filter(release => release.milestone % 10 == 0)
+    .map(release => ({ ...release, x: x(release.date) }))
+    .filter(release => {
+      if (release.x < 0 || release.x > innerWidth || release.x - lastLabel < 40) {
+        return false;
+      }
+      lastLabel = release.x;
+      return true;
+    });
+  select(releaseAxis.value)
+    .attr("transform", `translate(${margin.left}, ${margin.top + innerHeight + 34})`)
+    .selectAll("text")
+    .data(releases, release => release.milestone)
+    .join("text")
+    .attr("x", release => release.x)
+    .attr("text-anchor", "middle")
+    .attr("font-size", "10px")
+    .style("fill", "var(--faint)")
+    .text(release => `M${release.milestone}`);
 
   // The milestones: a dashed line, labeled near the bottom. Labels on the
   // right half are written leftward, to stay inside the chart.
