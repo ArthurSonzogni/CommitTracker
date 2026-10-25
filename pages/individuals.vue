@@ -317,7 +317,7 @@ document.addEventListener('scroll', updateHasScrolled, { passive: true });
   top: 0;
   height: 100%;
   width: 100%;
-  z-index: 1;
+  z-index: -1;
 
   backdrop-filter: saturate(180%) blur(12px);
   background-color: color-mix(in srgb, var(--surface) 88%, transparent);
@@ -326,12 +326,6 @@ document.addEventListener('scroll', updateHasScrolled, { passive: true });
   transition: all 0.1s ease-in-out;
   transition: background-color 0.2s ease-in-out;
 }
-
-.sticky > * {
-  z-index: 2;
-  position: relative;
-}
-
 
 html[data-scrolltop= "1"] .sticky.top {
   border-bottom: 1px solid var(--line);
