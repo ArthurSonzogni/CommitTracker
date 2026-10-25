@@ -52,6 +52,7 @@
         <div ref="start" class="navbar-start">
           <template v-for="entry in MENU" :key="entry.label">
             <NuxtLink v-if="entry.to" class="navbar-item" :to="entry.to">
+              <UiIcon :name="entry.icon" size="small" class="mr-2 menu-icon" />
               {{ entry.label }}
             </NuxtLink>
             <div
@@ -67,6 +68,7 @@
                 :aria-expanded="openDropdown === entry.label"
                 @click="toggleDropdown(entry.label)"
                 @keydown.enter.prevent="toggleDropdown(entry.label)">
+                <UiIcon :name="entry.icon" size="small" class="mr-2 menu-icon" />
                 {{ entry.label }}
               </a>
               <div class="navbar-dropdown">
@@ -125,25 +127,25 @@
 <script setup lang="ts">
 import { showToast } from "~/utils/toast";
 const MENU = [
-  { label: "Individuals", to: "/individuals" },
-  { label: "Community graph", to: "/communities" },
-  { label: "Treemap", to: "/treemap" },
-  { label: "Repositories", items: [
+  { label: "Individuals", to: "/individuals", icon: "account" },
+  { label: "Community graph", to: "/communities", icon: "account-group" },
+  { label: "Treemap", to: "/treemap", icon: "chart-tree" },
+  { label: "Repositories", icon: "chart-bar", items: [
     { label: "Charts", to: "/repositories", icon: "format-list-bulleted" },
     { label: "Heatmap", to: "/pulse", icon: "pulse" },
   ] },
-  { label: "Organizations", items: [
+  { label: "Organizations", icon: "domain", items: [
     { label: "Commits", to: "/organizations/commits", icon: "source-branch" },
     { label: "Emails", to: "/organizations/emails", icon: "email" },
   ] },
-  { label: "CVE", items: [
+  { label: "CVE", icon: "shield-bug", items: [
     { label: "Overview", to: "/cve/overview", icon: "chart-pie" },
     { label: "List", to: "/cve/list", icon: "format-list-bulleted" },
     { label: "Pivot table", to: "/cve/pivot-table", icon: "table" },
     { label: "Reward per component", to: "/cve/reward_per_components", icon: "chart-sankey" },
     { label: "Money tree", to: "/cve/money-tree", icon: "currency-usd" },
   ] },
-  { label: "More", items: [
+  { label: "More", icon: "dots-horizontal", items: [
     { label: "Usernames distribution", to: "/usernames", icon: "email" },
     { label: "Leaderboard", to: "/leaderboard", icon: "trophy" },
     { label: "Badges", to: "/badges/list", icon: "certificate" },
@@ -309,8 +311,14 @@ const toggleTheme = () => {
   padding: 0.1rem 0.45rem;
 }
 
-/* On narrow desktops, the search pill keeps only its icon, so that the menu
- * fits on one line. */
+/* On narrow desktops, the menu drops its icons, so that it fits on one line. */
+@media (min-width: 1024px) and (max-width: 1379px) {
+  .menu-icon {
+    display: none;
+  }
+}
+
+/* On narrower desktops, the search pill also keeps only its icon. */
 @media (min-width: 1024px) and (max-width: 1279px) {
   .navbar-item:not(.has-dropdown),
   .navbar-link {

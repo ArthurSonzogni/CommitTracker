@@ -901,7 +901,7 @@ button.dropdown-item:hover {
   background: var(--surface-sunken);
 }
 
-.navbar.site-navbar .navbar-dropdown .icon {
+.navbar.site-navbar .navbar-start .icon {
   color: var(--faint);
 }
 
