@@ -7,7 +7,7 @@
         <h1 class="title">Contributions</h1>
 
         <FilterPanel :summary="summary">
-          <UiField label="Repositories">
+          <UiField>
             <RepositorySelector
               v-model="repositories"
               size="medium"

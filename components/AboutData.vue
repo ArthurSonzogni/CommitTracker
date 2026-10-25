@@ -1,6 +1,24 @@
 <template>
+  <!-- The explanations of a page, in a dialog opened by a button. -->
+  <template v-if="modal">
+    <button type="button" class="button" @click="dialog = true">
+      <UiIcon name="information-outline" size="small" />
+      <span>{{ title }}</span>
+    </button>
+    <UiModal v-model="dialog" :width="720">
+      <div class="card">
+        <div class="card-content">
+          <p class="title is-4">{{ title }}</p>
+          <div class="content">
+            <slot />
+          </div>
+        </div>
+      </div>
+    </UiModal>
+  </template>
+
   <!-- The explanations of a page, folded by default. -->
-  <details class="about-data" :open="open">
+  <details v-else class="about-data" :open="open">
     <summary>
       <UiIcon name="information-outline" size="small" />
       {{ title }}
@@ -15,10 +33,16 @@
 withDefaults(defineProps<{
   title?: string;
   open?: boolean;
+  // Show a button opening the explanations in a dialog, instead of folding
+  // them in the page.
+  modal?: boolean;
 }>(), {
   title: "About this data",
   open: false,
+  modal: false,
 });
+
+const dialog = ref(false);
 </script>
 
 <style scoped>

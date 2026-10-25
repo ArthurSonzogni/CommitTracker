@@ -1,17 +1,6 @@
 <template>
   <div class="community-map">
     <div class="map-toolbar">
-      <input
-        v-model="query"
-        class="input map-search"
-        type="search"
-        list="community-map-developers"
-        placeholder="Find a developer"
-        aria-label="Find a developer"
-        @change="findDeveloper" />
-      <datalist id="community-map-developers">
-        <option v-for="label in sortedLabels" :key="label" :value="label" />
-      </datalist>
       <div class="map-zoom">
         <button type="button" class="button" aria-label="Zoom in" @click="zoomBy(1.5)">
           <UiIcon name="plus" size="small" />
@@ -65,6 +54,18 @@
         </button>
       </li>
     </ul>
+
+    <input
+      v-model="query"
+      class="input map-search"
+      type="search"
+      list="community-map-developers"
+      placeholder="Find a developer"
+      aria-label="Find a developer"
+      @change="findDeveloper" />
+    <datalist id="community-map-developers">
+      <option v-for="label in sortedLabels" :key="label" :value="label" />
+    </datalist>
   </div>
 </template>
 

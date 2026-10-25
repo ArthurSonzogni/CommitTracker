@@ -6,7 +6,7 @@
         <h1 class="title">Repository commits</h1>
 
         <FilterPanel :summary="listSummary(repositoryNames(repositories), 'repositories')">
-          <UiField label="Repositories">
+          <UiField>
             <RepositorySelector
               v-model="repositories"
               size="medium"

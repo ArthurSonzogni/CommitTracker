@@ -2,7 +2,7 @@
   <div>
     <Navbar/>
     <div class="m-5">
-      <UiField label="Repository" class="mb-4">
+      <UiField class="mb-4">
         <RepositorySelector
           v-model="repositories"
           size="is-small"
@@ -12,7 +12,8 @@
         />
       </UiField>
 
-      <div class="form-row">
+      <!-- On large screens, every control on a single row. -->
+      <div class="form-row controls">
         <UiField label="Color (numerator)" expanded>
           <TreemapInput v-model:value="field_color"
                         :repositories="repositories"
@@ -26,9 +27,7 @@
                         placeholder="Add a metric"/>
           <UiCheckbox v-model="history_size">Show in the history chart</UiCheckbox>
         </UiField>
-      </div>
 
-      <div class="form-row">
         <UiField label="Colormap">
           <UiDropdown v-model="colormap" max-height="300px" hover>
             <template #trigger="{ active }">
@@ -59,15 +58,17 @@
           </UiField>
         </div>
 
-        <div class="filters">
-          <UiCheckbox v-model="exclude_test">
-            Exclude tests
-          </UiCheckbox>
+        <UiField label="Options">
+          <div class="filters">
+            <UiCheckbox v-model="exclude_test">
+              Exclude tests
+            </UiCheckbox>
 
-          <UiCheckbox v-model="exclude_third_party">
-            Exclude third parties
-          </UiCheckbox>
-        </div>
+            <UiCheckbox v-model="exclude_third_party">
+              Exclude third parties
+            </UiCheckbox>
+          </div>
+        </UiField>
       </div>
 
       <div class="treemap-header">
@@ -483,6 +484,11 @@ section {
 
 .is-fullscreen :deep(.split-view > div:not(.treemap-container)) {
   display: none;
+}
+
+/* The color and size fields have a checkbox below: align on the labels. */
+.controls {
+  align-items: flex-start;
 }
 
 .bounds {

@@ -16,25 +16,27 @@
       <div class="columns">
         <div class="column">
           <UiField label="Severity">
-            <UiToggle v-model="severities" value="Low">Low</UiToggle>
-            <UiToggle v-model="severities" value="Medium">Medium</UiToggle>
-            <UiToggle v-model="severities" value="High">High</UiToggle>
-            <UiToggle v-model="severities" value="Critical">Critical</UiToggle>
+            <div class="chips">
+              <UiToggle v-model="severities" value="Low">Low</UiToggle>
+              <UiToggle v-model="severities" value="Medium">Medium</UiToggle>
+              <UiToggle v-model="severities" value="High">High</UiToggle>
+              <UiToggle v-model="severities" value="Critical">Critical</UiToggle>
+            </div>
           </UiField>
         </div>
 
         <div class="column">
           <template v-if="severities.includes('Low')">
-            <UiIcon name="circle"></UiIcon> Low
+            <UiIcon name="circle" class="severity-low"></UiIcon> Low
           </template>
           <template v-if="severities.includes('Medium')">
-            <UiIcon name="circle"></UiIcon> Medium
+            <UiIcon name="circle" class="severity-medium"></UiIcon> Medium
           </template>
           <template v-if="severities.includes('High')">
-            <UiIcon name="circle"></UiIcon> High
+            <UiIcon name="circle" class="severity-high"></UiIcon> High
           </template>
           <template v-if="severities.includes('Critical')">
-            <UiIcon name="circle"></UiIcon> Critical
+            <UiIcon name="circle" class="severity-critical"></UiIcon> Critical
           </template>
 
         </div>
@@ -137,10 +139,10 @@
 
                       </template>
 
-                      <UiIcon v-if="cve.severity === 'Low'" name="circle"></UiIcon>
-                      <UiIcon v-if="cve.severity === 'Medium'" name="circle"></UiIcon>
-                      <UiIcon v-if="cve.severity === 'High'" name="circle"></UiIcon>
-                      <UiIcon v-if="cve.severity === 'Critical'" name="circle"></UiIcon>
+                      <UiIcon v-if="cve.severity === 'Low'" name="circle" class="severity-low"></UiIcon>
+                      <UiIcon v-if="cve.severity === 'Medium'" name="circle" class="severity-medium"></UiIcon>
+                      <UiIcon v-if="cve.severity === 'High'" name="circle" class="severity-high"></UiIcon>
+                      <UiIcon v-if="cve.severity === 'Critical'" name="circle" class="severity-critical"></UiIcon>
                     </UiTooltip>
                   </NuxtLink>
                 </span>
@@ -387,6 +389,28 @@ td {
 
 .columns {
   align-items: flex-end;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.severity-low {
+  color: var(--series-1);
+}
+
+.severity-medium {
+  color: var(--series-4);
+}
+
+.severity-high {
+  color: var(--series-2);
+}
+
+.severity-critical {
+  color: var(--series-8);
 }
 
 </style>

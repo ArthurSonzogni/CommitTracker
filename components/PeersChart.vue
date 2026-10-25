@@ -141,7 +141,9 @@ const render = () => {
     .domain([0, max(filteredData.value, d => max(d.developers, d => d.right))])
     .range([0, svgWidth - 200]);
 
+  // About one tick every 60px, for the labels not to overlap.
   const axis_ = axisTop(scale)
+    .ticks(Math.max(2, Math.floor((svgWidth - 200) / 60)))
 
   select(axis.value)
     .attr("transform", `translate(130, 25)`)

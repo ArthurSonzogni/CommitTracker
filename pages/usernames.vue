@@ -5,8 +5,6 @@
       <div class="container">
         <h1 class="title">Usernames length distribution</h1>
 
-        <strong>Repositories:</strong>
-
         <RepositorySelector
           v-model="repositories"
           size="medium"

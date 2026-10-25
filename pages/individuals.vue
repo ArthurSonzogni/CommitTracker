@@ -6,31 +6,31 @@
 
       <section class="section sticky top">
 
-        <UiField expanded class="mb-3">
-          <DevelopersInput v-model="developers" allowEmail allowUsername/>
-        </UiField>
-
         <FilterPanel :summary="summary">
-          <UiField label="Repositories">
+          <UiField>
             <RepositorySelector
               v-model="repositories"
               size="is-small"
               />
           </UiField>
-          <UiField label="Count">
-            <div class="chips">
-              <UiToggle v-model="options" value="author">
-                Author
-              </UiToggle>
-              <UiToggle v-model="options" value="review">
-                Review
-              </UiToggle>
-              <UiToggle v-if="developers.length >= 2" v-model="options" value="stacked">
-                Stacked
-              </UiToggle>
-            </div>
-          </UiField>
         </FilterPanel>
+
+        <div class="developers-row">
+          <UiField expanded>
+            <DevelopersInput v-model="developers" allowEmail allowUsername/>
+          </UiField>
+          <div class="chips" role="group" aria-label="Count">
+            <UiToggle v-model="options" value="author">
+              Author
+            </UiToggle>
+            <UiToggle v-model="options" value="review">
+              Review
+            </UiToggle>
+            <UiToggle v-if="developers.length >= 2" v-model="options" value="stacked">
+              Stacked
+            </UiToggle>
+          </div>
+        </div>
       </section>
 
       <section class="section" v-if="developers.length == 0">
@@ -207,10 +207,8 @@ if (route.query.wrappedBuckets) {
 
 const repositories = ref(["chromium"]);
 
-const summary = computed(() => [
-  listSummary(repositoryNames(repositories.value), "repositories"),
-  ...options.value.map(capitalize),
-].join(" · "));
+const summary = computed(() =>
+  listSummary(repositoryNames(repositories.value), "repositories"));
 if (route.query.repositories) {
   repositories.value = route.query.repositories.split(',');
 }
@@ -333,6 +331,13 @@ document.addEventListener('scroll', updateHasScrolled, { passive: true });
 }
 
 
+.developers-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+}
+
 html[data-scrolltop= "1"] .sticky.top {
   border-bottom: 1px solid var(--line);
 }
@@ -343,6 +348,13 @@ html[data-scrolltop= "1"] .sticky.top {
   padding-top:15px;
   margin-bottom:0;
   padding-bottom:15px;
+}
+
+/* On phones, the filters take too much of the screen to stay visible. */
+@media (max-width: 768px) {
+  .sticky.top {
+    position: relative;
+  }
 }
 
 .sticky.bottom {

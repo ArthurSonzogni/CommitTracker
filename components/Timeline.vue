@@ -24,19 +24,15 @@
       </UiField>
     </div>
 
-    <div class="form-row" v-if="!more">
-      <button type="button" @click="toggleMore" class="button is-small mr-5"> + </button>
-      <UiSlider expanded v-model="range" :min="0" :max="1" :step="0.001" :formatter="formatDate" tooltip-always lazy>
-        <template
-          v-for="diff in [0, 1, 2, 3, 4, 6, 8, 10, 12, 14, 16, 18, 20]"
-          :key="diff"
-        >
-        <UiSliderTick :value="getDateInverse(new Date(year-diff + '-01-01'))" v-if="getDateInverse(new Date(year-diff + '-01-01')) >= 0.1">
-          {{year-diff}}
-        </UiSliderTick>
-        </template>
-        <UiSliderTick :value="1">today</UiSliderTick>
-      </UiSlider>
+    <div class="form-row slider-row" v-if="!more">
+      <button type="button" @click="toggleMore" class="button is-small"> + </button>
+      <div ref="sliderBox" class="slider-box">
+        <UiSlider expanded v-model="range" :min="0" :max="1" :step="0.001" :formatter="formatDate" tooltip-always lazy>
+          <UiSliderTick v-for="tick in ticks" :key="tick.label" :value="tick.value">
+            {{tick.label}}
+          </UiSliderTick>
+        </UiSlider>
+      </div>
     </div>
   </div>
 </template>
@@ -120,6 +116,41 @@ const getDateInverse = (date: Date) => {
   return interpolatorInverse(date);
 }
 
+// The labeled ticks: today, and past years. Only the ones with room for their
+// label are kept, so that they don't overlap on narrow screens.
+const sliderBox = ref<HTMLElement | null>(null);
+const sliderWidth = ref(1000);
+let resizeObserver: ResizeObserver | null = null;
+watch(sliderBox, (element) => {
+  resizeObserver?.disconnect();
+  if (element) {
+    resizeObserver = new ResizeObserver(() => {
+      sliderWidth.value = element.clientWidth;
+    });
+    resizeObserver.observe(element);
+  }
+});
+onBeforeUnmount(() => resizeObserver?.disconnect());
+
+const TICK_SPACING = 40;  // px.
+const ticks = computed(() => {
+  const candidates = [{ value: 1, label: "today" }];
+  for (const diff of [0, 1, 2, 3, 4, 6, 8, 10, 12, 14, 16, 18, 20]) {
+    const value = getDateInverse(new Date(year.value - diff + "-01-01"));
+    if (value >= 0.1) {
+      candidates.push({ value, label: String(year.value - diff) });
+    }
+  }
+  const kept = [];
+  for (const tick of candidates) {
+    const last = kept[kept.length - 1];
+    if (!last || (last.value - tick.value) * sliderWidth.value >= TICK_SPACING) {
+      kept.push(tick);
+    }
+  }
+  return kept;
+});
+
 const isQuarterSelected = (year_quarter: number) => {
   const year = Math.floor(year_quarter / 4);
   const quarter = year_quarter % 4;
@@ -177,6 +208,16 @@ const onQuarterClick = (year: number, quarter: number) => {
    padding-left: 40px;
    padding-right: 40px;
 }
+.slider-row {
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.slider-box {
+  flex: 1;
+  min-width: 0;
+}
+
 .timeline :deep(.field) {
   margin-bottom: 0 !important;
 }
