@@ -1,10 +1,11 @@
 <template>
-  <UiField label="Time range">
+  <UiField>
     <div class="form-row">
       <UiSegmented
         v-for="(list, i) in possibleValues"
         :key="i"
         v-model="value"
+        aria-label="Time range"
         :options="list.map(item => ({ value: item, label: item, title: tooltip.get(item) }))" />
     </div>
   </UiField>

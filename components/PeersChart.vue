@@ -193,7 +193,6 @@ const render = () => {
           .attr("text-anchor", "end")
           .attr("text-baseline", "middle")
           .attr("x", -5)
-          .attr("color", d => $color(d.peer))
 
         const value = group.append("text");
         value

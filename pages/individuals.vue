@@ -88,12 +88,15 @@
         <div class="container">
           <h2 class="title">Timeline wrapped</h2>
           <div class="form-row">
-            <UiField label="Modulo" expanded>
-              <UiSlider v-model="hourlyParam" :min="0" :max="2" aria-label="Fan" :tooltip="false">
-                <UiSliderTick :value="0">Day</UiSliderTick>
-                <UiSliderTick :value="1">Week</UiSliderTick>
-                <UiSliderTick :value="2">Year</UiSliderTick>
-              </UiSlider>
+            <UiField label="Modulo">
+              <UiSegmented
+                v-model="hourlyParam"
+                aria-label="Modulo"
+                :options="[
+                  { value: 0, label: 'Day' },
+                  { value: 1, label: 'Week' },
+                  { value: 2, label: 'Year' },
+                ]" />
             </UiField>
 
             <UiField :label="'Buckets: ' + wrappedBuckets" expanded>
