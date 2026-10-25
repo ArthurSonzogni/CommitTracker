@@ -364,9 +364,15 @@ const updateUrl = (old_value, new_value) => {
   router.push({ query });
 }
 
-const selectPreset = (preset: { color: string[], size: string[] }) => {
+const selectPreset = (preset: {
+  color: string[], size: string[], start?: string, history_size?: boolean,
+}) => {
   field_size.value = preset.size.map(findMetric).filter(f => f);
   field_color.value = preset.color.map(findMetric).filter(f => f);
+  history_size.value = !!preset.history_size;
+  if (preset.start) {
+    dates.value = [new Date(preset.start), dates.value[1]];
+  }
 };
 
 const truncate = (str, n) => {

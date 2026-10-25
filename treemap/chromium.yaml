@@ -225,11 +225,25 @@ metrics:
   file: absl_optional
   tags: ["Migrations"]
 
+- name: "std::optional"
+  description: The occurrences of std::optional, replacing absl::optional.
+  script: >-
+    git grep -c 'std::optional' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
+  file: std_optional
+  tags: ["Migrations"]
+
 - name: "base::StringPiece"
   description: The occurrences of base::StringPiece, replaced by std::string_view.
   script: >-
     git grep -c 'base::StringPiece' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
   file: string_piece
+  tags: ["Migrations"]
+
+- name: "std::string_view"
+  description: The occurrences of std::string_view, replacing base::StringPiece.
+  script: >-
+    git grep -c 'std::string_view' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
+  file: string_view
   tags: ["Migrations"]
 
 - name: "Legacy base::Bind"

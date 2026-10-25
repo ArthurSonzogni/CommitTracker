@@ -23,7 +23,13 @@
 
 import entries from '../public/treemap/entries.json'
 
-type Preset = { name: string; color: string[]; size: string[] };
+type Preset = {
+  name: string; color: string[]; size: string[];
+  // The first date of the history, when the metric became relevant.
+  start?: string;
+  // Also plot the denominator in the history chart.
+  history_size?: boolean;
+};
 
 const props = defineProps<{ repository: string }>();
 const emit = defineEmits<{ select: [preset: Preset] }>();
@@ -35,8 +41,8 @@ const CATEGORIES: {
     name: "Memory safety",
     description: "Patterns behind most security bugs, and their safer replacements.",
     presets: [
-      { name: "MiraclePtr", color: ["raw_ptr"], size: ["line"] },
-      { name: "Dangling pointers", color: ["dangling_untriaged"], size: ["raw_ptr"] },
+      { name: "MiraclePtr", color: ["raw_ptr", "raw_ref"], size: ["file"], start: "2021-01-01" },
+      { name: "Dangling pointers", color: ["dangling_untriaged"], size: ["file"], start: "2022-01-01" },
       { name: "reinterpret_cast", color: ["reinterpret_cast"], size: ["line"] },
     ],
   },
@@ -44,7 +50,7 @@ const CATEGORIES: {
     name: "Spanification",
     description: "Buffer accesses being rewritten with bounds-checked spans.",
     presets: [
-      { name: "Unsafe buffer usage", color: ["lines_unsafe_buffer_usage"], size: ["line"] },
+      { name: "Unsafe buffer usage", color: ["lines_unsafe_buffer_usage"], size: ["line"], history_size: true },
       { name: "Unsafe libc calls", color: ["unsafe_libc"], size: ["line"] },
       { name: "base::span adoption", color: ["base_span"], size: ["line"] },
     ],
@@ -53,18 +59,18 @@ const CATEGORIES: {
     name: "Tests",
     description: "Where the tests are, and how many are turned off.",
     presets: [
-      { name: "Test density", color: ["tests"], size: ["line"] },
-      { name: "Disabled tests", color: ["disabled_tests"], size: ["tests"] },
+      { name: "Test density", color: ["tests"], size: ["file"] },
+      { name: "Disabled tests", color: ["disabled_tests"], size: ["tests", "disabled_tests"] },
     ],
   },
   {
     name: "Migrations",
     description: "Old APIs on their way out. Play the timeline to watch them shrink.",
     presets: [
-      { name: "Polymer → Lit", color: ["polymer_element"], size: ["polymer_element", "lit_element"] },
+      { name: "Polymer → Lit", color: ["lit_element"], size: ["polymer_element", "lit_element"] },
       { name: "Legacy IPC → Mojo", color: ["legacy_ipc"], size: ["line"] },
-      { name: "absl::optional → std::optional", color: ["absl_optional"], size: ["line"] },
-      { name: "StringPiece → string_view", color: ["string_piece"], size: ["line"] },
+      { name: "absl::optional → std::optional", color: ["std_optional"], size: ["absl_optional", "std_optional"] },
+      { name: "StringPiece → string_view", color: ["string_view"], size: ["string_piece", "string_view"] },
     ],
   },
   {
@@ -80,7 +86,7 @@ const CATEGORIES: {
     name: "Code health",
     description: "Assertions, feature flags, and work left to do.",
     presets: [
-      { name: "DCHECK vs CHECK", color: ["dcheck"], size: ["check", "dcheck"] },
+      { name: "DCHECK vs CHECK", color: ["dcheck"], size: ["check", "dcheck"], history_size: true },
       { name: "Feature flags", color: ["base_feature"], size: ["line"] },
       { name: "TODOs", color: ["todo"], size: ["line"] },
     ],
@@ -92,6 +98,10 @@ const url = (preset: Preset) => `/treemap?${new URLSearchParams({
   field_color: preset.color.join(","),
   field_size: preset.size.join(","),
   repositories: props.repository,
+  ...(preset.start && {
+    dates: `${preset.start},${new Date().toISOString().split("T")[0]}`,
+  }),
+  ...(preset.history_size && { history_size: "1" }),
 })}`;
 
 const metricName = (file: string) =>
