@@ -16,6 +16,12 @@ on:
     branches:
       - main
 
+# One deployment at a time: a newer run waits for the current one, instead of
+# racing it to push gh-pages.
+concurrency:
+  group: cd
+  cancel-in-progress: false
+
 jobs:
   cd:
     runs-on: ubuntu-latest
