@@ -71,7 +71,7 @@
         </UiField>
       </div>
 
-      <div class="treemap-header">
+      <div class="treemap-header" v-if="field_color_value.length">
         <nav class="breadcrumb" aria-label="Path">
           <ul>
             <li :class="{ 'is-active': path.length == 0 }">
@@ -104,68 +104,77 @@
       </div>
     </div>
 
-    <div class="treemap-frame" :class="{ 'is-fullscreen': fullscreen }">
-      <div v-if="fullscreen" class="fullscreen-toolbar">
-        <button type="button" class="button" :disabled="path.length == 0" @click="path = path.slice(0, -1)">
-          <UiIcon name="arrow-up" size="small" /><span>Up</span>
-        </button>
-        <span class="fullscreen-path">{{ ['', ...path].join('/') || '/' }}</span>
-        <button type="button" class="button" aria-label="Exit full screen" @click="fullscreen = false">
-          <UiIcon name="fullscreen-exit" size="small" />
-        </button>
-      </div>
-      <Treemap
-        :repositories="repositories"
-        :path="path"
-        :field_color="field_color_value"
-        :field_size="field_size_value"
-        :colormapMin="colormapMin"
-        :colormapMax="colormapMax"
-        :colormap="colormap"
-        :dates="dates"
-        :animate="animate"
-        :history_color="history_color"
-        :history_size="history_size"
-        :exclude_test="exclude_test"
-        :exclude_third_party="exclude_third_party"
-        @zoomin="path.push($event); updateUrl(0, 1)"
-        @animationend="animationEnd()"
-        ref="treemap"
-        >
-      </Treemap>
-    </div>
-    <div class="section">
-      <div class="form-row">
-        <UiField expanded>
-          <Timeline v-model="dates" ></Timeline>
-        </UiField>
-        <div class="form-row">
-          <button type="button" class="button ml-5" @click="toggleAnimate" :disabled="dates[1].getTime() > new Date().getTime() - 100000000">
-            <UiIcon :name="animate ? 'pause' : 'play'" size="small"></UiIcon>
+    <!-- Without a color metric, propose some views. -->
+    <TreemapPresets
+      v-if="field_color_value.length == 0"
+      :repository="repositories[0]"
+      @select="selectPreset" />
+
+    <template v-else>
+      <div class="treemap-frame" :class="{ 'is-fullscreen': fullscreen }">
+        <div v-if="fullscreen" class="fullscreen-toolbar">
+          <button type="button" class="button" :disabled="path.length == 0" @click="path = path.slice(0, -1)">
+            <UiIcon name="arrow-up" size="small" /><span>Up</span>
           </button>
-          <button type="button" class="button" :disabled="dates[1].getTime() > new Date().getTime() - 100000000" @click="increaseAnimateSpeed">
-            x{{animate_speed}}
+          <span class="fullscreen-path">{{ ['', ...path].join('/') || '/' }}</span>
+          <button type="button" class="button" aria-label="Exit full screen" @click="fullscreen = false">
+            <UiIcon name="fullscreen-exit" size="small" />
           </button>
         </div>
+        <Treemap
+          :repositories="repositories"
+          :path="path"
+          :field_color="field_color_value"
+          :field_size="field_size_value"
+          :colormapMin="colormapMin"
+          :colormapMax="colormapMax"
+          :colormap="colormap"
+          :dates="dates"
+          :animate="animate"
+          :history_color="history_color"
+          :history_size="history_size"
+          :exclude_test="exclude_test"
+          :exclude_third_party="exclude_third_party"
+          @zoomin="path.push($event); updateUrl(0, 1)"
+          @animationend="animationEnd()"
+          ref="treemap"
+          >
+        </Treemap>
       </div>
-    </div>
+      <div class="section">
+        <div class="form-row">
+          <UiField expanded>
+            <Timeline v-model="dates" ></Timeline>
+          </UiField>
+          <div class="form-row">
+            <button type="button" class="button ml-5" @click="toggleAnimate" :disabled="dates[1].getTime() > new Date().getTime() - 100000000">
+              <UiIcon :name="animate ? 'pause' : 'play'" size="small"></UiIcon>
+            </button>
+            <button type="button" class="button" :disabled="dates[1].getTime() > new Date().getTime() - 100000000" @click="increaseAnimateSpeed">
+              x{{animate_speed}}
+            </button>
+          </div>
+        </div>
+      </div>
 
-    <section class="section content">
-      <h2 class="title is-5">
-        Download data:
-      </h2>
+      <section class="section content">
+        <h2 class="title is-5">
+          Download data:
+        </h2>
 
-      <ul>
-        <li>Temporal data:
-          <button type="button" class="button is-small" @click="treemap.download('temporal_json')">JSON</button>
-          <button type="button" class="button is-small" @click="treemap.download('temporal_csv')">CSV</button>
-        </li>
-        <li>Spatial data:
-          <button type="button" class="button is-small" @click="treemap.download('spatial_json')">JSON</button>
-          <button type="button" class="button is-small" @click="treemap.download('spatial_csv')">CSV</button>
-        </li>
-      </ul>
-    </section>
+        <ul>
+          <li>Temporal data:
+            <button type="button" class="button is-small" @click="treemap.download('temporal_json')">JSON</button>
+            <button type="button" class="button is-small" @click="treemap.download('temporal_csv')">CSV</button>
+          </li>
+          <li>Spatial data:
+            <button type="button" class="button is-small" @click="treemap.download('spatial_json')">JSON</button>
+            <button type="button" class="button is-small" @click="treemap.download('spatial_csv')">CSV</button>
+          </li>
+        </ul>
+      </section>
+
+    </template>
 
     <section class="section">
       <AboutData>
@@ -218,7 +227,8 @@ const findMetric = (identifier: string) => {
   );
 };
 
-const field_color = ref([findMetric('todo') || entries.metrics?.[0]]);
+// Empty by default: the page then proposes some views.
+const field_color = ref([]);
 if (route.query.field_color) {
   field_color.value = (route.query.field_color as string).split(",").map(file => {
     return findMetric(file);
@@ -353,6 +363,11 @@ const updateUrl = (old_value, new_value) => {
 
   router.push({ query });
 }
+
+const selectPreset = (preset: { color: string[], size: string[] }) => {
+  field_size.value = preset.size.map(findMetric).filter(f => f);
+  field_color.value = preset.color.map(findMetric).filter(f => f);
+};
 
 const truncate = (str, n) => {
   if (str.length <= n) return str;

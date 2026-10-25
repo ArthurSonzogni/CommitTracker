@@ -142,6 +142,165 @@ metrics:
   file: dcheck
   tags: ["Checks"]
 
+# Tests ----------------------------------------------------------------------
+
+- name: "Tests"
+  description: The number of tests (TEST, TEST_F, TEST_P, TYPED_TEST, IN_PROC_BROWSER_TEST_F, ...)
+  script: >-
+    git grep -cE '^\s*(IN_PROC_BROWSER_TEST|TYPED_TEST|TEST)(_F|_P)?\(' -- '*test*.cc' '*test*.cpp' '*test*.mm'
+  file: tests
+  tags: ["Tests"]
+
+- name: "Disabled tests"
+  description: The lines with DISABLED_ in test files, for tests disabled everywhere, or on some platforms with MAYBE_
+  script: >-
+    git grep -cE '\bDISABLED_' -- '*test*.cc' '*test*.cpp' '*test*.mm'
+  file: disabled_tests
+  tags: ["Tests"]
+
+# Languages ------------------------------------------------------------------
+
+- name: "Rust file"
+  description: The number of Rust files.
+  script: >-
+    git ls-files -- '*.rs'
+  file: rust_file
+  tags: ["Languages"]
+
+- name: "Java file"
+  description: The number of Java files.
+  script: >-
+    git ls-files -- '*.java'
+  file: java_file
+  tags: ["Languages"]
+
+- name: "Kotlin file"
+  description: The number of Kotlin files.
+  script: >-
+    git ls-files -- '*.kt'
+  file: kotlin_file
+  tags: ["Languages"]
+
+- name: "TypeScript file"
+  description: The number of TypeScript files, omitting declaration files.
+  script: >-
+    git ls-files -- '*.ts' ':!*.d.ts'
+  file: typescript_file
+  tags: ["Languages"]
+
+- name: "JavaScript file"
+  description: The number of JavaScript files.
+  script: >-
+    git ls-files -- '*.js'
+  file: javascript_file
+  tags: ["Languages"]
+
+- name: "Mojom file"
+  description: The number of Mojo interface files.
+  script: >-
+    git ls-files -- '*.mojom'
+  file: mojom_file
+  tags: ["Languages"]
+
+# Migrations -----------------------------------------------------------------
+
+- name: "PolymerElement"
+  description: The occurrences of PolymerElement, replaced by Lit (CrLitElement) in WebUI.
+  script: >-
+    git grep -c 'PolymerElement' -- '*.ts' '*.js'
+  file: polymer_element
+  tags: ["Migrations"]
+
+- name: "CrLitElement"
+  description: The occurrences of CrLitElement, the Lit base element of WebUI.
+  script: >-
+    git grep -c 'CrLitElement' -- '*.ts' '*.js'
+  file: lit_element
+  tags: ["Migrations"]
+
+- name: "absl::optional"
+  description: The occurrences of absl::optional, replaced by std::optional.
+  script: >-
+    git grep -c 'absl::optional' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
+  file: absl_optional
+  tags: ["Migrations"]
+
+- name: "base::StringPiece"
+  description: The occurrences of base::StringPiece, replaced by std::string_view.
+  script: >-
+    git grep -c 'base::StringPiece' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
+  file: string_piece
+  tags: ["Migrations"]
+
+- name: "Legacy base::Bind"
+  description: The occurrences of base::Bind( and base::Callback<, replaced by BindOnce/BindRepeating and OnceCallback/RepeatingCallback.
+  script: >-
+    git grep -cE 'base::Bind\(|base::Callback<' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
+  file: legacy_bind
+  tags: ["Migrations"]
+
+- name: "Legacy IPC"
+  description: The legacy IPC messages (IPC_MESSAGE_ROUTED, IPC_SYNC_MESSAGE_CONTROL, ...), replaced by Mojo.
+  script: >-
+    git grep -cE '\bIPC_(SYNC_)?MESSAGE_(ROUTED|CONTROL)' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
+  file: legacy_ipc
+  tags: ["Migrations"]
+
+# Memory Safety (more) ------------------------------------------------------
+
+- name: "reinterpret_cast"
+  description: The occurrences of reinterpret_cast.
+  script: >-
+    git grep -c 'reinterpret_cast<' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c' ':!tools/*'
+  file: reinterpret_cast
+  tags: ["Memory Safety"]
+
+- name: "Unsafe libc calls"
+  description: The calls to memcpy, memmove, memset, memcmp, strcpy, strncpy, strcat, strlen and sprintf.
+  script: >-
+    git grep -cE '\b(memcpy|memmove|memset|memcmp|strcpy|strncpy|strcat|strlen|sprintf)\(' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c' ':!tools/*'
+  file: unsafe_libc
+  tags: ["Spanification"]
+
+- name: "base::span"
+  description: The occurrences of base::span, the bounds-checked view replacing pointer arithmetic.
+  script: >-
+    git grep -c 'base::span<' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c' ':!tools/*'
+  file: base_span
+  tags: ["Spanification"]
+
+# Features -------------------------------------------------------------------
+
+- name: "BASE_FEATURE"
+  description: The number of feature flags (BASE_FEATURE).
+  script: >-
+    git grep -c 'BASE_FEATURE(' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
+  file: base_feature
+  tags: ["Features"]
+
+- name: "UMA histograms"
+  description: The calls recording UMA histograms (UMA_HISTOGRAM_*, base::UmaHistogram*).
+  script: >-
+    git grep -cE '\b(UMA_HISTOGRAM_[A-Z0-9_]+|base::UmaHistogram[A-Za-z0-9]+)\(' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c'
+  file: uma_histogram
+  tags: ["Features"]
+
+# Ownership ------------------------------------------------------------------
+
+- name: "OWNERS file"
+  description: The number of OWNERS files.
+  script: >-
+    git ls-files -- 'OWNERS' '*/OWNERS'
+  file: owners_file
+  tags: ["Ownership"]
+
+- name: "DIR_METADATA file"
+  description: The number of DIR_METADATA files, mapping directories to bug components.
+  script: >-
+    git ls-files -- 'DIR_METADATA' '*/DIR_METADATA'
+  file: dir_metadata_file
+  tags: ["Ownership"]
+
 # Misc -------------------------------------------------------------------------
 
 - name: TODO

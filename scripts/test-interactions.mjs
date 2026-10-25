@@ -66,7 +66,7 @@ const launchChrome = () => new Promise((resolve, reject) => {
   chrome.stderr.on('data', chunk => {
     const match = chunk.toString().match(/DevTools listening on (ws:\/\/\S+)/);
     if (match) {
-      resolve({ chrome, wsUrl: match[1] });
+      resolve({ chrome, wsUrl: match[1], userDataDir });
     }
   });
 });
@@ -74,7 +74,7 @@ const launchChrome = () => new Promise((resolve, reject) => {
 // BASE_URL tests an already running website, e.g. the dev server.
 const server = process.env.BASE_URL ? null : await serve();
 const base = process.env.BASE_URL || `http://127.0.0.1:${server.address().port}/`;
-const { chrome, wsUrl } = await launchChrome();
+const { chrome, wsUrl, userDataDir } = await launchChrome();
 
 const ws = new WebSocket(wsUrl);
 await new Promise(resolve => ws.addEventListener('open', resolve));
@@ -284,7 +284,7 @@ const tests = [
   },
   {
     name: 'treemap: click tile zooms in',
-    url: 'treemap',
+    url: 'treemap?field_color=todo&field_size=line',
     run: `
       const tile = await __t.until(() => [...document.querySelectorAll('svg g')].find(g => g.querySelector(':scope > text')?.textContent === 'chrome'), 20000);
       const before = location.search;
@@ -325,8 +325,19 @@ const tests = [
     `,
   },
   {
-    name: 'treemap: colormap fits the data',
+    name: 'treemap: presets select metrics',
     url: 'treemap',
+    run: `
+      const preset = await __t.until(() => [...document.querySelectorAll('.treemap-presets a')].find(a => a.textContent === 'TODOs'), 15000);
+      const count = document.querySelectorAll('.treemap-presets a').length;
+      preset.click();
+      const selected = await __t.until(() => location.search.includes('field_color=todo') && document.querySelector('.treemap-frame svg g text'), 20000);
+      return { ok: !!selected && !document.querySelector('.treemap-presets'), detail: 'presets=' + count + ' ' + decodeURIComponent(location.search.match(/field_color=[^&]*&field_size=[^&]*/)?.[0]) };
+    `,
+  },
+  {
+    name: 'treemap: colormap fits the data',
+    url: 'treemap?field_color=todo&field_size=line',
     run: `
       const legend = await __t.until(() => {
         const text = [...document.querySelectorAll('.legend > span:not(.legend-gradient)')].map(e => e.textContent.trim()).join(' -> ');
@@ -675,6 +686,8 @@ for (const test of tests) {
 
 console.log(failed ? `${failed} failed` : 'all passed');
 ws.close();
-chrome.kill();
+// Wait for chrome to exit before removing its profile (~250MB).
+await new Promise(resolve => { chrome.once('exit', resolve); chrome.kill(); });
+fs.rmSync(userDataDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
 server?.close();
 process.exit(failed ? 1 : 0);

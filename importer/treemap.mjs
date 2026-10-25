@@ -9,7 +9,9 @@ const CONFIG = {
     end: new Date(),
     iterations: 200,
     power: 0.3, // More iterations near the end.
-  }
+  },
+  // The number of metric scripts running at once.
+  parallel_scripts: 1,
 }
 
 async function pathExists(path) {
@@ -94,22 +96,61 @@ const clone = async (repo, incremental) => {
 //   pattern     : string,
 //   file        : string,
 // }
-async function ProcessEntry(repo, date_id, root, entry, metrics_data, id_counter) {
-  await fs.writeFile("script.sh", `
+//
+// Runs the script of an entry, in the checkout of `repo`. Several can run at
+// once.
+async function RunEntry(repo, entry) {
+  const start = new Date();
+  const shell = spawn("sh", ["-c", `
     export REPO_DIRNAME="${repo.dirname}"
     export REPO_NAME="${repo.name}"
     cd ./${repo.dirname}
     cd ${repo.cone ? repo.cone : "."}
     ${entry.script}
-    cd ..;
-  `)
-  let output = "";
-  const shell = spawn("sh", ["./script.sh"]);
-  shell.stdout.on("data", chunk => {
-    output += chunk.toString();
-  });
+  `]);
+  const chunks = [];
+  shell.stdout.on("data", chunk => chunks.push(chunk));
   await new Promise(r => shell.on("close", r));
+  console.log(" ".repeat(timed_indent * 2 + 2), entry.name,
+    "took", (new Date() - start) / 1000, "seconds");
+  return Buffer.concat(chunks).toString();
+}
 
+// Runs `tasks` (functions returning promises), at most `limit` at once.
+async function RunParallel(tasks, limit) {
+  const results = new Array(tasks.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < tasks.length) {
+      const i = next++;
+      results[i] = await tasks[i]();
+    }
+  };
+  await Promise.all(Array.from({ length: limit }, worker));
+  return results;
+}
+
+// The children of each node, by name. Built lazily, for fast lookups.
+const children_by_name = new WeakMap();
+function GetChild(node, name, id_counter) {
+  node.children ||= [];
+  let children = children_by_name.get(node);
+  if (!children) {
+    children = new Map(node.children.map(child => [child.name, child]));
+    children_by_name.set(node, children);
+  }
+  let child = children.get(name);
+  if (!child) {
+    child = { name, id: id_counter.value++ };
+    node.children.push(child);
+    children.set(name, child);
+  }
+  return child;
+}
+
+// Records the output of an entry's script, as the value of the metric at
+// `date_id`.
+function ApplyEntry(output, date_id, root, entry, metrics_data, id_counter) {
   const file_occurrences = new Map();
   const max_depth = entry.max_depth || 999;
   output.split('\n').forEach(line => {
@@ -133,54 +174,78 @@ async function ProcessEntry(repo, date_id, root, entry, metrics_data, id_counter
     // Clamp the filename size to `max_depth`
     filename = filename.split('/').slice(0, max_depth).join('/');
 
-    file_occurrences[filename] ||= 0;
-    file_occurrences[filename] += occurrences;
+    file_occurrences.set(filename,
+      (file_occurrences.get(filename) || 0) + occurrences);
   })
 
   const processed = new Set();
-  for (const [filename, occurrences] of Object.entries(file_occurrences)) {
+  for (const [filename, occurrences] of file_occurrences) {
     let current = root;
     for (const component of filename.split('/')) {
       if (!component) continue;
-      current.children ||= [];
-      let next = current.children.find(c => c.name == component);
-      if (!next) {
-        next = { name: component, id: id_counter.value++ };
-        current.children.push(next);
-      }
-      current = next;
+      current = GetChild(current, component, id_counter);
     }
     processed.add(current.id);
     update_metric(metrics_data, entry.file, current.id, date_id, occurrences);
   }
 
-  // Fill with zeros the missing values for this metric at this date_id.
-  const fill_zeros = (node, depth) => {
-    if (node.children) {
-      node.children.forEach(fill_zeros)
-    }
-
-    if (processed.has(node.id)) {
-      return;
-    }
-
-    // This is a leaf node
-    const history = metrics_data[entry.file]?.[node.id];
-    if (!history) {
-      return;
+  // Fill with zeros the missing values for this metric at this date_id. Only
+  // the nodes with a history for this metric can need one.
+  for (const [node_id, history] of Object.entries(metrics_data[entry.file] || {})) {
+    if (processed.has(Number(node_id))) {
+      continue;
     }
 
     // Does it already have a value for this date?
     if (history.length == 0) {
-      return;
+      continue;
     }
     if (history[history.length - 1][0] >= date_id) {
-      return;
+      continue;
     }
 
-    update_metric(metrics_data, entry.file, node.id, date_id, 0);
+    update_metric(metrics_data, entry.file, node_id, date_id, 0);
   }
-  fill_zeros(root);
+}
+
+// Computes `entries` at `date_id`, for the current checkout of `repo`.
+async function GatherMetrics(repo, date_id, root, entries, metrics_data, id_counter) {
+  await timed("Gathering metrics", async () => {
+    const outputs = await RunParallel(
+      entries.map(entry => () => RunEntry(repo, entry)), CONFIG.parallel_scripts);
+    entries.forEach((entry, i) => {
+      ApplyEntry(outputs[i], date_id, root, entry, metrics_data, id_counter);
+    });
+  });
+}
+
+// Checks out the last commit of `repo` before `date_string`. Returns its hash,
+// or an empty string if there is none.
+async function Checkout(repo, date_string) {
+  let commit = "";
+  await timed(`Checking out at date ${date_string}`, async () => {
+    const shell = spawn("sh", ["-c", `
+      cd ./${repo.dirname}
+      COMMIT=$(git --no-pager log origin/main --until="${date_string}" --max-count=1 --pretty=format:"%H")
+      if [ -n "$COMMIT" ]; then
+        if git checkout --force $COMMIT > /dev/null 2>&1; then
+          echo $COMMIT
+        fi
+      fi
+    `]);
+    shell.stdout.on("data", chunk => { commit += chunk.toString(); });
+    await new Promise(r => shell.on("close", r));
+  });
+  return commit.trim();
+}
+
+async function IsShallow(repo) {
+  let output = "";
+  const shell = spawn("git", ["rev-parse", "--is-shallow-repository"],
+    { cwd: repo.dirname });
+  shell.stdout.on("data", chunk => { output += chunk.toString(); });
+  await new Promise(r => shell.on("close", r));
+  return output.trim() !== "false";
 }
 
 async function processRepository(repo, entries) {
@@ -222,7 +287,8 @@ async function processRepository(repo, entries) {
       await fs.mkdir(metrics_dir, { recursive: true });
       const metric_files = await fs.readdir(metrics_dir);
       for (const metric_file of metric_files) {
-        if (metric_file.endsWith('.json')) {
+        // Skip the compact copies, derived by scripts/compact-treemap.mjs.
+        if (metric_file.endsWith('.json') && !metric_file.endsWith('.compact.json')) {
           const metric_name = metric_file.slice(0, -5);
           metrics_data[metric_name] = await parseFile(JSON5, `${metrics_dir}${metric_file}`);
         }
@@ -274,26 +340,34 @@ async function processRepository(repo, entries) {
 
   const id_counter = { value: next_id };
 
+  // Metrics added since the last import: compute them at the dates already
+  // imported, for them to have a history. This needs the full history of the
+  // repository, so it is skipped for shallow clones, like in the CI.
+  const new_entries = incremental
+    ? entries.metrics.filter(entry => !metrics_data[entry.file])
+    : [];
+  if (new_entries.length > 0 && await IsShallow(repo)) {
+    console.log("Shallow clone: the new metrics start from today:",
+      new_entries.map(entry => entry.name).join(", "));
+  } else if (new_entries.length > 0) {
+    await timed(`Backfilling ${new_entries.map(entry => entry.name).join(", ")}`, async () => {
+      let previous_commit = "";
+      for (let date_id = 0; date_id < processed_dates.length; date_id++) {
+        const commit = await Checkout(repo, processed_dates[date_id]);
+        // The same commit has the same values: there is nothing to record.
+        if (!commit || commit === previous_commit) {
+          continue;
+        }
+        previous_commit = commit;
+        await GatherMetrics(repo, date_id, root, new_entries, metrics_data, id_counter);
+      }
+    });
+  }
+
+  let previous_commit = "";
   for (const date of dates_to_add) {
     const date_string = date.toISOString();
-    let commit = "";
-
-    await timed(`Checking out at date ${date_string}`, async () => {
-      await fs.writeFile("script.sh", `
-        cd ./${repo.dirname}
-        COMMIT=$(git --no-pager log origin/main --until="${date_string}" --max-count=1 --pretty=format:"%H")
-        if [ -n "$COMMIT" ]; then
-          if git checkout $COMMIT > /dev/null 2>&1; then
-            echo $COMMIT
-          fi
-        fi
-        cd ..;
-      `)
-      const shell = spawn("sh", ["./script.sh"]);
-      shell.stdout.on("data", chunk => { commit += chunk.toString(); });
-      await new Promise(r => shell.on("close", r));
-      commit = commit.trim();
-    })
+    const commit = await Checkout(repo, date_string);
 
     if (!commit) {
       console.log(`Skipping date ${date_string} - no commits yet`);
@@ -303,13 +377,12 @@ async function processRepository(repo, entries) {
     const date_id = processed_dates.length;
     processed_dates.push(date_string);
 
-    await timed("Gathering metrics", async () => {
-      for (const entry of entries.metrics) {
-        await timed(`Processing ${entry.name}`, async () => {
-          await ProcessEntry(repo, date_id, root, entry, metrics_data, id_counter);
-        });
-      }
-    });
+    // The same commit has the same values: there is nothing to record.
+    if (commit === previous_commit) {
+      continue;
+    }
+    previous_commit = commit;
+    await GatherMetrics(repo, date_id, root, entries.metrics, metrics_data, id_counter);
   }
 
   await timed("Writing", async () => {

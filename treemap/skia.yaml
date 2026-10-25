@@ -14,6 +14,22 @@ metrics:
     python3 ../../scripts/cpp_lines.py
   file: line
 
+# Memory Safety --------------------------------------------------------------
+
+- name: "reinterpret_cast"
+  description: The occurrences of reinterpret_cast.
+  script: >-
+    git grep -c 'reinterpret_cast<' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c' ':!tools/*'
+  file: reinterpret_cast
+  tags: ["Memory Safety"]
+
+- name: "Unsafe libc calls"
+  description: The calls to memcpy, memmove, memset, memcmp, strcpy, strncpy, strcat, strlen and sprintf.
+  script: >-
+    git grep -cE '\b(memcpy|memmove|memset|memcmp|strcpy|strncpy|strcat|strlen|sprintf)\(' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c' ':!tools/*'
+  file: unsafe_libc
+  tags: ["Spanification"]
+
 # Misc -------------------------------------------------------------------------
 
 - name: TODO

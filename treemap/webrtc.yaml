@@ -14,6 +14,38 @@ metrics:
     python3 ../../scripts/cpp_lines.py
   file: line
 
+# Tests ----------------------------------------------------------------------
+
+- name: "Tests"
+  description: The number of tests (TEST, TEST_F, TEST_P, TYPED_TEST, IN_PROC_BROWSER_TEST_F, ...)
+  script: >-
+    git grep -cE '^\s*(IN_PROC_BROWSER_TEST|TYPED_TEST|TEST)(_F|_P)?\(' -- '*test*.cc' '*test*.cpp' '*test*.mm'
+  file: tests
+  tags: ["Tests"]
+
+- name: "Disabled tests"
+  description: The lines with DISABLED_ in test files, for tests disabled everywhere, or on some platforms with MAYBE_
+  script: >-
+    git grep -cE '\bDISABLED_' -- '*test*.cc' '*test*.cpp' '*test*.mm'
+  file: disabled_tests
+  tags: ["Tests"]
+
+# Memory Safety --------------------------------------------------------------
+
+- name: "reinterpret_cast"
+  description: The occurrences of reinterpret_cast.
+  script: >-
+    git grep -c 'reinterpret_cast<' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c' ':!tools/*'
+  file: reinterpret_cast
+  tags: ["Memory Safety"]
+
+- name: "Unsafe libc calls"
+  description: The calls to memcpy, memmove, memset, memcmp, strcpy, strncpy, strcat, strlen and sprintf.
+  script: >-
+    git grep -cE '\b(memcpy|memmove|memset|memcmp|strcpy|strncpy|strcat|strlen|sprintf)\(' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c' ':!tools/*'
+  file: unsafe_libc
+  tags: ["Spanification"]
+
 # Misc -------------------------------------------------------------------------
 
 - name: TODO
