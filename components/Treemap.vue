@@ -693,6 +693,10 @@ const computeHistoryForField = (field) => {
 }
 
 const computeHistory = () => {
+  if (isSnapshot) {
+    history.value = [];
+    return;
+  }
   let fields = [];
 
   // If there are only a single field, use it.
@@ -831,9 +835,23 @@ const decodeCompactMetric = rows => {
   return out;
 };
 
-async function FetchFileIndex() {
+// [[id_delta, value], ...] -> {id: [[date, value]]}, for a snapshot of the
+// date `date`.
+const decodeLatestMetric = (rows, date) => {
+  const out = {};
+  let id = 0;
+  for (const [id_delta, value] of rows) {
+    id += id_delta;
+    out[id] = [[date, value]];
+  }
+  return out;
+};
+
+// `index`: a compact file index, from the snapshot of the last date. Without
+// it, the whole history's.
+async function FetchFileIndex(index = null) {
   const repo = props.repositories[0] || repositories_json[0]?.dirname || "chromium";
-  const compact = await fetchCompactFileIndex(repo);
+  const compact = index ?? await fetchCompactFileIndex(repo);
   file_index = compact
     ? decodeCompactFileIndex(compact)
     : (await fetchJson(`/treemap/${repo}/file_index.json`)) ?? {};
@@ -920,7 +938,7 @@ async function FetchFileIndex() {
 //  "<id>": [[<date_id>, value], ...],
 //  ...
 // }
-async function FetchMetrics()  {
+async function FetchMetrics(latest = false)  {
   metrics = {}; // Reset metrics
 
   // Metrics to fetch:
@@ -929,11 +947,21 @@ async function FetchMetrics()  {
     .concat(props.field_color)
 
   const repo = props.repositories[0] || repositories_json[0]?.dirname || "chromium";
+  if (latest) {
+    await Promise.all(fields.filter(field => field).map(async field => {
+      const rows = await fetchJson(`/treemap/${repo}/metrics/${field}.latest.json`);
+      if (rows) {
+        metrics[field] = decodeLatestMetric(rows, dates.length - 1);
+      }
+    }));
+    return;
+  }
   const compact = await fetchCompactFileIndex(repo);
   for(const field of fields) {
     if (!field) continue;
     if (compact) {
-      const rows = await fetchJson(`/treemap/${repo}/metrics/${field}.compact.json`);
+      const rows = await (prefetchedMetrics[field] ??
+        fetchJson(`/treemap/${repo}/metrics/${field}.compact.json`));
       if (rows) {
         metrics[field] = decodeCompactMetric(rows);
       }
@@ -1015,13 +1043,54 @@ function computeFetchedData() {
   return;
 }
 
+// While only the snapshot of the last date is loaded: the history is unknown.
+let isSnapshot = false;
+
+// The whole history, downloading while the snapshot is drawn.
+let prefetchedMetrics = {};
+const prefetchHistory = repo => {
+  compactFileIndex = fetchJson(`/treemap/${repo}/file_index.compact.json`);
+  prefetchedMetrics = {};
+  for (const field of [].concat(props.field_size).concat(props.field_color)) {
+    if (field) {
+      prefetchedMetrics[field] = fetchJson(`/treemap/${repo}/metrics/${field}.compact.json`);
+    }
+  }
+};
+
+// The snapshot of the last date: much smaller than the whole history, it
+// shows the treemap quickly, on the first load. Returns whether it was used.
+async function fetchLatestEntries() {
+  const repo = props.repositories[0] || repositories_json[0]?.dirname || "chromium";
+  await FetchDates();
+  if (dates.length == 0 || formatDate(props.dates[1]) != dates.length - 1) {
+    return false;
+  }
+  const index = await fetchJson(`/treemap/${repo}/file_index.latest.json`);
+  if (!index) {
+    return false;
+  }
+  await Promise.all([FetchFileIndex(index), FetchMetrics(true)]);
+  prefetchHistory(repo);
+  isSnapshot = true;
+  current_date_id = dates.length - 1;
+  computeMetricsAccumulation();
+  computeFetchedData();
+  return true;
+}
+
 async function fetchEntries() {
-  compactFileIndex = null;
+  if (!isSnapshot) {
+    compactFileIndex = null;
+    prefetchedMetrics = {};
+  }
+  isSnapshot = false;
   await Promise.all([
     FetchDates(),
     FetchFileIndex(),
     FetchMetrics(),
   ]);
+  prefetchedMetrics = {};
   // From the dates, find the date_id to display.
   current_date_id = formatDate(props.dates[1]);
 
@@ -1126,6 +1195,9 @@ watch(() => [
 watch(path_wrapped, (new_path, old_path) => lock(() => pathChanged(new_path, old_path)));
 
 onMounted(() => lock(async () => {
+  if (await fetchLatestEntries()) {
+    await render_refresh();
+  }
   await fetchEntries();
   await render_refresh();
   if (container.value) {
