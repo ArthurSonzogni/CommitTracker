@@ -4,6 +4,7 @@
     <svg>
       <g ref="content">
         <g ref="areas" />
+        <g ref="milestonesGroup" />
         <g ref="labels" />
         <g ref="tooltip" />
       </g>
@@ -31,12 +32,15 @@ const props = defineProps({
   data: { type: Object },
   // Each year as a share of the total, instead of a number of lines.
   share: { type: Boolean, default: false },
+  // Hand-picked events explaining the steps: { date, label }.
+  milestones: { type: Array, default: () => [] },
 });
 
 const container = ref<HTMLElement | null>(null);
 const content = ref<SVGGElement | null>(null);
 const areas = ref<SVGGElement | null>(null);
 const labels = ref<SVGGElement | null>(null);
+const milestonesGroup = ref<SVGGElement | null>(null);
 const tooltip = ref<SVGGElement | null>(null);
 const xAxis = ref<SVGGElement | null>(null);
 const yAxis = ref<SVGGElement | null>(null);
@@ -94,6 +98,39 @@ const render = () => {
     .attr("fill", s => color(s.key, years))
     .transition().duration(500)
     .attr("d", shape);
+
+  // The milestones: a dashed line, labeled near the top. Labels on the right
+  // half are written leftward, to stay inside the chart.
+  const milestones = props.milestones
+    .map(m => ({ ...m, x: x(new Date(m.date)) }))
+    .filter(m => m.x >= 0 && m.x <= width);
+  select(milestonesGroup.value)
+    .selectAll(".milestone")
+    .data(milestones, m => m.label)
+    .join(enter => {
+      const group = enter.append("g").attr("class", "milestone");
+      group.append("line")
+        .style("stroke", "var(--ink)")
+        .style("stroke-opacity", 0.6)
+        .attr("stroke-dasharray", "3 3");
+      group.append("text")
+        .attr("font-size", "11px")
+        .attr("font-style", "italic")
+        .style("fill", "var(--muted)");
+      return group;
+    })
+    .call(group => {
+      group.select("line")
+        .attr("x1", m => m.x)
+        .attr("x2", m => m.x)
+        .attr("y1", 0)
+        .attr("y2", height);
+      group.select("text")
+        .attr("text-anchor", m => m.x > width / 2 ? "end" : "start")
+        .attr("x", m => m.x > width / 2 ? m.x - 4 : m.x + 4)
+        .attr("y", (m, i) => 12 + i * 14)
+        .text(m => m.label);
+    });
 
   // Label the years thick enough at the right edge.
   const last = series.map(s => ({ key: s.key, d: s.at(-1) }))
@@ -185,7 +222,7 @@ onMounted(() => {
   render();
   (new ResizeObserver(render)).observe(container.value);
 });
-watch(() => [props.data, props.share], render);
+watch(() => [props.data, props.share, props.milestones], render);
 </script>
 
 <style scoped>

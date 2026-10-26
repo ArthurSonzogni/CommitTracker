@@ -23,7 +23,7 @@
         </FilterPanel>
 
         <div class="chart">
-          <AccretionChart :data="cohorts" :share="share" />
+          <AccretionChart :data="cohorts" :share="share" :milestones="milestones" />
         </div>
 
         <h2 class="title is-4 mt-6">Developers</h2>
@@ -66,6 +66,12 @@ const route = useRoute();
 const router = useRouter();
 
 const repository = "chromium";
+
+// The events explaining the largest steps of the chart.
+const milestones = [
+  { date: "2015-09-23", label: "Blink merged into Chromium" },
+  { date: "2023-11-28", label: "Legacy DOM conformance tests removed" },
+];
 const lines = format(",");
 
 const share = ref(route.query.share === "true");
