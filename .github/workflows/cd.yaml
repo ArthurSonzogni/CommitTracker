@@ -42,6 +42,9 @@ jobs:
           rm -f public/accretion/*/state.bin.gz
           npm run generate-derived-data
           npm run generate
+        env:
+          # Fetching files from GitHub is less throttled with a token.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Test website interactions
         run: npm run test:interactions

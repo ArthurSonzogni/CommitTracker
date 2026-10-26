@@ -2,16 +2,34 @@ import JSON5 from "json5";
 import fs from "fs/promises";
 import statusLine from '@alt-jero/status-line';
 
-// From Gitiles, as raw.githubusercontent.com rate-limits the CI (429). It
-// serves the files base64-encoded with `?format=TEXT`.
-const commit_stats =
-  "https://chromium.googlesource.com/chromium/src/+/main/third_party/blink/tools/commit_stats";
+// Both sources throttle the CI (429 from GitHub, 503 from Gitiles): try them
+// in turn, a few times. GitHub allows more to authenticated requests.
+const commit_stats = "third_party/blink/tools/commit_stats";
+const token = process.env.GITHUB_TOKEN || process.env.TOKEN;
+const sources = [
+  {
+    url: file => `https://raw.githubusercontent.com/chromium/chromium/main/${commit_stats}/${file}`,
+    headers: token ? { Authorization: `token ${token}` } : {},
+    decode: text => text,
+  },
+  {
+    // Gitiles serves the files base64-encoded with `?format=TEXT`.
+    url: file => `https://chromium.googlesource.com/chromium/src/+/main/${commit_stats}/${file}?format=TEXT`,
+    headers: {},
+    decode: text => Buffer.from(text, "base64").toString(),
+  },
+];
 const fetchCommitStats = async file => {
-  const response = await fetch(`${commit_stats}/${file}?format=TEXT`);
-  if (!response.ok) {
-    throw new Error(`Fetching ${file}: ${response.status}`);
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const source = sources[attempt % sources.length];
+    const response = await fetch(source.url(file), { headers: source.headers });
+    if (response.ok) {
+      return source.decode(await response.text());
+    }
+    console.log(`Fetching ${file}: ${response.status}, retrying`);
+    await new Promise(resolve => setTimeout(resolve, 2000 * 2 ** attempt / 2));
   }
-  return Buffer.from(await response.text(), "base64").toString();
+  throw new Error(`Fetching ${file} failed`);
 };
 
 // -----------------------------------------------------------------------------
