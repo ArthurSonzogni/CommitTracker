@@ -107,7 +107,7 @@ function LegacyTime(time: string) {
   return time;
 }
 
-const repositories = ref(["v8"]);
+const repositories = ref(["chromium"]);
 const time = ref("1y");
 
 const summary = computed(() => [
