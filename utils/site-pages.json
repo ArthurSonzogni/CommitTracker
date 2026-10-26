@@ -36,8 +36,12 @@
     "description": "The fuzzers of Chromium, over time." },
   { "path": "/commit-rates", "label": "Commit rates", "icon": "chart-line",
     "description": "Commit rates of the web platform repositories, per directory." },
+  { "path": "/commit-rates-sankey", "label": "Commit rates sankey", "icon": "chart-sankey",
+    "description": "Commit rates of the web platform repositories, as a sankey of directories to explore." },
   { "path": "/api", "label": "API", "icon": "code-json",
     "description": "The static JSON files behind CommitTracker, free to use." },
   { "path": "/repo-info", "label": "Repositories tracking info", "icon": "source-branch",
-    "description": "The repositories tracked by CommitTracker, and how." }
+    "description": "The repositories tracked by CommitTracker, and how." },
+  { "path": "/page-view", "label": "Page view", "icon": "eye",
+    "description": "How many times CommitTracker has been visited, per day." }
 ]

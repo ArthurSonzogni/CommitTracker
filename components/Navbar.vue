@@ -134,6 +134,8 @@ const MENU = [
   { label: "Repositories", icon: "chart-bar", items: [
     { label: "Charts", to: "/repositories", icon: "format-list-bulleted" },
     { label: "Heatmap", to: "/pulse", icon: "pulse" },
+    { label: "Commit rates", to: "/commit-rates", icon: "chart-line" },
+    { label: "Commit rates sankey", to: "/commit-rates-sankey", icon: "chart-sankey" },
   ] },
   { label: "Organizations", icon: "domain", items: [
     { label: "Commits", to: "/organizations/commits", icon: "source-branch" },

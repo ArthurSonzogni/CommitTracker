@@ -2,18 +2,18 @@
   <div class="sankey-page">
     <Navbar />
 
-    <div class="container px-3">
-      <RepositorySelector
-        size="is-medium"
-        v-model="repoList"
-        :allowMultiple="false"
-        :allowAll="false"
-        :filter="repoFilter"
-        />
-    </div>
-
     <section class="section">
       <div class="container">
+        <h1 class="title">Commit rates sankey</h1>
+        <FilterPanel :summary="listSummary(repositoryNames(repoList), 'repositories')">
+          <RepositorySelector
+            size="is-medium"
+            v-model="repoList"
+            :allowMultiple="false"
+            :allowAll="false"
+            :filter="repoFilter"
+            />
+        </FilterPanel>
         <div class="level mb-5">
           <div class="level-left">
             <div class="is-flex is-align-items-center">
