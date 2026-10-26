@@ -498,6 +498,20 @@ const tests = [
     `,
   },
   {
+    name: 'badges: book turns pages and jumps from the contents',
+    url: 'badges/list?developers=arthursonzogni',
+    run: `
+      const position = () => document.querySelector('.book-position')?.textContent.trim();
+      const cover = await __t.until(() => position() == 'Cover' && document.querySelector('.cover-medallion'), 25000);
+      document.querySelector('.book-controls button:last-child').click();
+      const opened = await __t.until(() => position() == 'Pages 1–2', 3000);
+      [...document.querySelectorAll('.contents a')].find(a => /veteran/i.test(a.textContent)).click();
+      const jumped = await __t.until(() => /^Pages/.test(position()) && position() != 'Pages 1–2', 3000);
+      const flipped = document.querySelectorAll('.leaf.is-flipped').length;
+      return { ok: !!(cover && opened && jumped && flipped > 1), detail: position() + ' flipped=' + flipped };
+    `,
+  },
+  {
     name: 'palette: ctrl+k, search page, enter',
     url: 'leaderboard',
     run: `

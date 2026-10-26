@@ -25,9 +25,26 @@
           <strong>Score</strong>
           : {{ Math.round(rarity) }}
         </p>
+        <UiSegmented
+          v-if="developer"
+          v-model="view"
+          aria-label="View"
+          :options="[
+          { value: 'book', label: 'Book', icon: 'book-open-variant' },
+          { value: 'grid', label: 'Grid', icon: 'view-grid' },
+        ]" />
       </div>
 
-      <div class="container content">
+      <div v-if="developer && view == 'book'" class="container">
+        <BadgeBook
+          :developer="developer"
+          :badges="data"
+          :categories="[...categories]"
+          :score="rarity"
+          />
+      </div>
+
+      <div v-else class="container content">
         <div class="card_list_container">
           <div class="card_list"
                v-for="category in categories"
@@ -79,6 +96,8 @@ const categories = ref(new Set());
 const data = shallowRef([]);
 
 const rarity = ref(0);
+
+const view = ref("book");
 
 const refresh = async () => {
   router.push({
