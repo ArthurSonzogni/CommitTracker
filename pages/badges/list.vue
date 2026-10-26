@@ -116,14 +116,10 @@ const refresh = async () => {
     return;
   }
 
-  console.log("Developer: ", developer.value);
-
   // The JSON file are grouping the badges of every users sharing the first
   // letter of their username.
   const badges = (await
     fetchJson(`/badges/${developer.value[0]}.json`))[developer.value];
-
-  console.log(badges);
 
   for (const badge of badges) {
     allBadges[badge[0]].enabled = true;
@@ -131,7 +127,6 @@ const refresh = async () => {
   }
 
   data.value = allBadges;
-  console.log(data.value);
 
   // Compute the rarity of the badges.
   let rarity_ = 0;

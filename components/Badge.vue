@@ -54,7 +54,6 @@ const handleClick = () => {
       badge: props.name,
     },
   };
-  console.log("params: ", params);
 
   if (props.hover) {
     navigateTo(params);

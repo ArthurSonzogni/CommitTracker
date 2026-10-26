@@ -131,7 +131,6 @@ function browserDownload(content, filename, contentType) {
 }
 
 function download(kind) {
-  console.log("Download", kind);
 
   if (kind == "temporal_json") {
     const fields = []
@@ -919,15 +918,6 @@ async function FetchFileIndex(index = null) {
     (parent, child) =>
       exclude_test(parent, child) || exclude_third_party(parent, child),
     "root"
-  );
-
-  console.log("file_index", file_index);
-  console.log("file_index_excluding_test", file_index_excluding_test);
-  console.log("file_index_excluding_third_party",
-    file_index_excluding_third_party
-  );
-  console.log("file_index_excluding_test_and_third_party",
-    file_index_excluding_test_and_third_party
   );
 }
 

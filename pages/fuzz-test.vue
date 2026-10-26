@@ -201,7 +201,6 @@ const getData = async function() {
   });
 
   // Filter by type:
-  console.log(type.value);
   response_json = response_json.filter(d => {
     return type.value.includes(d.type);
   });
@@ -322,8 +321,6 @@ const getData = async function() {
 
     current
   }
-
-  console.log(new_hierarchy);
 
   // Collapse children with only one child.
   const collapse = (node) => {

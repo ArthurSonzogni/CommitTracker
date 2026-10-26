@@ -635,7 +635,6 @@ async function fetchDirectoryData(repo: string, path: string) {
       url = `${BASE_URL}/${repo}/main.json`;
     } else {
       const bucketId = getBucketId(path);
-      console.log("Fetching bucket:", bucketId, "for path:", path);
       url = `${BASE_URL}/${repo}/${bucketId}.json`;
     }
 

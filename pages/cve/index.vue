@@ -155,7 +155,6 @@ const getEvents = (cve) => {
     })
   }
 
-  console.log(cve)
   for (const [channel, date] of Object.entries(cve.version_dates)) {
     events.push({
       icon: 'cloud-upload',

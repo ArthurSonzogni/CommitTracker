@@ -107,7 +107,6 @@ const installInputHandler = async () => {
         await new Promise(r => setTimeout(r, 100));
     }
     input.value.$el.querySelector("input").addEventListener("keydown", (e) => {
-        console.log("keydown", e);
         if (e.key == "Enter") {
             const first = input.value.$el.querySelector(".dropdown-item");
             if (first) {

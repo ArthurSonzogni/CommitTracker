@@ -428,7 +428,6 @@ const cveMap = computed(() => {
 });
 
 const buildTree = (cves: any[]) => {
-  console.log("Building tree with", cves.length, "CVEs");
   const root = { name: 'root', children: new Map(), value: 0, cveIds: new Set() };
   let cvesWithReward = 0;
 
