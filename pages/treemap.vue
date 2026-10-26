@@ -229,55 +229,22 @@ const findMetric = (identifier: string) => {
 
 // Empty by default: the page then proposes some views.
 const field_color = ref([]);
-if (route.query.field_color) {
-  field_color.value = (route.query.field_color as string).split(",").map(file => {
-    return findMetric(file);
-  }).filter(f => f)
-}
 const field_color_value = computed(() => {
   return field_color.value?.filter(f => f).map(f => f.file) || [];
 })
 
-const field_size = ref([findMetric('line') || entries.metrics?.[0]])
-if (route.query.field_size) {
-  field_size.value = (route.query.field_size as string).split(",").map(file => {
-    return findMetric(file);
-  }).filter(f => f)
-}
+const field_size = ref([]);
 const field_size_value = computed(() => {
   return field_size.value?.filter(f => f).map(f => f.file) || [];
 })
 
-const dates = ref([
-  new Date("2020-01-01"),
-  new Date(),
-])
-if (route.query.dates) {
-  dates.value = route.query.dates
-    .split(',')
-    .map(d => new Date(d))
-}
-
+const dates = ref([]);
 const colormap = ref("Red");
-if (route.query.colormap) {
-  colormap.value = route.query.colormap;
-}
-
 const path = ref([]);
-if (route.query.path) {
-  path.value = route.query.path.split(",");
-}
 
 // Empty bounds fit the displayed data.
 const colormapMin = ref("");
-if (route.query.colormapMin) {
-  colormapMin.value = route.query.colormapMin;
-}
-
 const colormapMax = ref("");
-if (route.query.colormapMax) {
-  colormapMax.value = route.query.colormapMax;
-}
 
 const color_domain = computed(() => treemap.value?.color_domain ?? [0, 1]);
 const percent = format(".2~%");
@@ -285,30 +252,36 @@ const formatBound = format(".3~r");
 
 const default_repo = repositories_json?.find?.(repo => repo.treemap)?.dirname || repositories_json?.[0]?.dirname || "chromium";
 
-const repositories = ref([default_repo]);
-if (route.query.repositories) {
-  repositories.value = route.query.repositories.split(",");
-}
-
+const repositories = ref([]);
 const history_color = ref(true);
-if (route.query.history_color == "0") {
-  history_color.value = false;
-}
-
 const history_size = ref(false);
-if (route.query.history_size == "1") {
-  history_size.value = true;
-}
-
 const exclude_test = ref(false);
-if (route.query.exclude_test !== undefined) {
-  exclude_test.value = true;
-}
-
 const exclude_third_party = ref(false);
-if (route.query.exclude_third_party !== undefined) {
-  exclude_third_party.value = true;
-}
+
+// Set the state from the URL. Missing parameters reset to their defaults.
+const applyQuery = (query) => {
+  field_color.value = query.field_color
+    ? (query.field_color as string).split(",").map(findMetric).filter(f => f)
+    : [];
+  field_size.value = query.field_size
+    ? (query.field_size as string).split(",").map(findMetric).filter(f => f)
+    : [findMetric('line') || entries.metrics?.[0]];
+  dates.value = query.dates
+    ? query.dates.split(',').map(d => new Date(d))
+    : [new Date("2020-01-01"), new Date()];
+  colormap.value = query.colormap || "Red";
+  path.value = query.path ? query.path.split(",") : [];
+  colormapMin.value = query.colormapMin || "";
+  colormapMax.value = query.colormapMax || "";
+  repositories.value = query.repositories
+    ? query.repositories.split(",")
+    : [default_repo];
+  history_color.value = query.history_color != "0";
+  history_size.value = query.history_size == "1";
+  exclude_test.value = query.exclude_test !== undefined;
+  exclude_third_party.value = query.exclude_third_party !== undefined;
+};
+applyQuery(route.query);
 
 const fullscreen = ref(false);
 const exitFullscreenOnEscape = (event: KeyboardEvent) => {
@@ -361,8 +334,27 @@ const updateUrl = (old_value, new_value) => {
     query.exclude_third_party = null;
   }
 
+  if (restoring) {
+    return;
+  }
+  last_full_path = router.resolve({ query }).fullPath;
   router.push({ query });
 }
+
+// Back/forward navigation: restore the state from the new URL, without
+// pushing it again.
+let restoring = false;
+let last_full_path = route.fullPath;
+watch(() => route.fullPath, async (full_path) => {
+  if (full_path === last_full_path) {
+    return;
+  }
+  last_full_path = full_path;
+  restoring = true;
+  applyQuery(route.query);
+  await nextTick();
+  restoring = false;
+});
 
 const selectPreset = (preset: {
   color: string[], size: string[], start?: string, history_size?: boolean,
