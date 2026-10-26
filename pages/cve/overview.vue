@@ -103,7 +103,7 @@
           <thead>
             <tr>
               <th scope="col" ></th>
-              <th scope="col" v-for="project in project_list">
+              <th scope="col" v-for="project in project_list" :style="{ minWidth: columnWidth(data, project) }">
                 {{ project }}
               </th>
             </tr>
@@ -194,6 +194,19 @@ watch(severities, () => {
 });
 
 const all_cve_data = shallowRef<Cve[]>([]);
+
+// The width of a circle (UiIcon), and the horizontal padding and border of a
+// cell, in px.
+const CIRCLE_WIDTH = 24;
+const CELL_PADDING = 16;
+
+// A column holds the square root of its largest cell, in circles: that cell
+// is then about square, and the columns with few CVEs stay narrow. A minimum,
+// as the table would squeeze the columns to fit the page.
+const columnWidth = (data: { cves: Record<string, Record<string, Cve[]>> }, project: string) => {
+  const largest = Math.max(1, ...Object.values(data.cves).map(cves => cves[project]?.length ?? 0));
+  return `${Math.ceil(Math.sqrt(largest)) * CIRCLE_WIDTH + CELL_PADDING}px`;
+};
 
 const project_list = [
   "angle",
@@ -370,10 +383,6 @@ const projection = computed(() => {
   text-align: right;
 }
 
-td {
-  max-width: 400px;
-}
-
 .sticky {
   position: sticky;
   top: 0;
@@ -406,11 +415,11 @@ td {
 }
 
 .severity-high {
-  color: var(--series-2);
+  color: var(--severity-high);
 }
 
 .severity-critical {
-  color: var(--series-8);
+  color: var(--severity-critical);
 }
 
 </style>

@@ -24,6 +24,11 @@
   --accent-line: #d9d1f7;
   --ring: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
 
+  /* CVE severities. High and Critical differ by lightness, not only by hue,
+   * to stay apart for color blind people. */
+  --severity-high: #eb6834;
+  --severity-critical: #8c1d5a;
+
   /* The navigation bar, in the accent color. */
   --nav-bg: var(--accent);
   --nav-ink: #ffffff;
@@ -90,6 +95,8 @@
     --accent-line: color-mix(in srgb, var(--accent) 40%, transparent);
     --ring: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
     --nav-bg: color-mix(in srgb, var(--accent) 45%, var(--bg));
+    --severity-high: #d95926;
+    --severity-critical: #ff8fb8;
 
     --shadow-xs: 0 1px 1px rgba(0, 0, 0, 0.3);
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
@@ -136,6 +143,8 @@
   --accent-line: color-mix(in srgb, var(--accent) 40%, transparent);
   --ring: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
   --nav-bg: color-mix(in srgb, var(--accent) 45%, var(--bg));
+  --severity-high: #d95926;
+  --severity-critical: #ff8fb8;
 
   --shadow-xs: 0 1px 1px rgba(0, 0, 0, 0.3);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
