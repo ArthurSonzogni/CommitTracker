@@ -6,7 +6,7 @@ dates=public/data_updated.json
 echo "{" > $dates
 separator=""
 
-for branch in "data" "community-map" "fuzz-test" "treemap" "cve" "commit_rates"
+for branch in "data" "community-map" "fuzz-test" "treemap" "cve" "commit_rates" "accretion"
 do
   rm -rf public/$branch
   git clone --branch $branch --single-branch --depth=1 $repo public/$branch

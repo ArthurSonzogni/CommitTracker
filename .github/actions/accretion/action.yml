@@ -1,0 +1,22 @@
+name: 'Generate Accretion'
+description: 'Replays the new commits, and pushes the accretion data'
+inputs:
+  github_token:
+    description: 'GitHub Token'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Generate accretion data
+      shell: bash
+      run: |
+        cd importer
+        npm run accretion
+
+    - name: Push accretion data
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ inputs.github_token }}
+        publish_dir: ./public/accretion/
+        publish_branch: accretion
+        force_orphan: true

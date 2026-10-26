@@ -38,6 +38,8 @@ jobs:
         run: |
           npm install
           npm run pull-data
+          # Only the importer needs the accretion state, not the site.
+          rm -f public/accretion/*/state.bin.gz
           npm run generate-derived-data
           npm run generate
 

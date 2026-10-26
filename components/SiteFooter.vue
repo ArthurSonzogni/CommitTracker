@@ -17,6 +17,7 @@ const BRANCHES: [RegExp, string][] = [
   [/^\/communities/, "community-map"],
   [/^\/fuzz-test/, "fuzz-test"],
   [/^\/commit-rates/, "commit_rates"],
+  [/^\/accretion/, "accretion"],
 ];
 
 const route = useRoute();

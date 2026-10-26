@@ -80,6 +80,7 @@ export default defineNuxtConfig({
           '**/public/community-map/**',
           '**/public/fuzz-test/**',
           '**/public/cve/**',
+          '**/public/accretion/**',
           '**/importer/**'
         ]
       }

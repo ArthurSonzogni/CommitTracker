@@ -142,6 +142,7 @@ const MENU = [
     { label: "Heatmap", to: "/pulse", icon: "pulse" },
     { label: "Commit rates", to: "/commit-rates", icon: "chart-line" },
     { label: "Commit rates sankey", to: "/commit-rates-sankey", icon: "chart-sankey" },
+    { label: "Code accretion", to: "/accretion", icon: "layers" },
   ] },
   { label: "Organizations", icon: "domain", items: [
     { label: "Commits", to: "/organizations/commits", icon: "source-branch" },

@@ -31,6 +31,10 @@ on:
         description: 'Generate commit rates'
         type: boolean
         default: true
+      run_accretion:
+        description: 'Replay the new commits for the code accretion'
+        type: boolean
+        default: true
   schedule:
     - cron: '0 0 * * 1,2,3,4,5'
 
@@ -49,11 +53,13 @@ jobs:
           DO_CVE="false"
           DO_GRAPH="false"
           DO_COMMIT_RATES="false"
+          DO_ACCRETION="false"
 
           # Logic for Scheduled Runs (Cron)
           if [[ "${{ github.event_name }}" == "schedule" ]]; then
-            # Commits run every day
+            # Commits and accretion run every day
             DO_COMMITS="true"
+            DO_ACCRETION="true"
 
             DAY_OF_WEEK=$(date +%u)
 
@@ -72,6 +78,7 @@ jobs:
             DO_CVE="${{ inputs.run_cve }}"
             DO_GRAPH="${{ inputs.run_graph }}"
             DO_COMMIT_RATES="${{ inputs.run_commit_rates }}"
+            DO_ACCRETION="${{ inputs.run_accretion }}"
           fi
 
           echo "run_commits=$DO_COMMITS" >> $GITHUB_OUTPUT
@@ -80,6 +87,7 @@ jobs:
           echo "run_cve=$DO_CVE" >> $GITHUB_OUTPUT
           echo "run_graph=$DO_GRAPH" >> $GITHUB_OUTPUT
           echo "run_commit_rates=$DO_COMMIT_RATES" >> $GITHUB_OUTPUT
+          echo "run_accretion=$DO_ACCRETION" >> $GITHUB_OUTPUT
 
       - name: Setup node env
         uses: actions/setup-node@v4
@@ -134,4 +142,8 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
-
+      - name: Run Accretion Module
+        if: steps.config.outputs.run_accretion == 'true'
+        uses: ./.github/actions/accretion
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}

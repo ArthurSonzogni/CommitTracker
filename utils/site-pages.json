@@ -8,6 +8,8 @@
     "description": "Who reviews whom: the communities of developers, and how they evolved over the years." },
   { "path": "/treemap", "label": "Treemap", "icon": "chart-tree", "hint": "Codebase metrics over time",
     "description": "Codebase metrics over space and time: memory safety, TODOs, and more." },
+  { "path": "/accretion", "label": "Code accretion", "icon": "layers", "hint": "Lines alive, per year written",
+    "description": "The lines of code alive over time, per year they were written in, and per developer." },
   { "path": "/repositories", "label": "Repositories charts", "icon": "chart-bar",
     "description": "Commits, contributors and newcomers of the web platform repositories." },
   { "path": "/pulse", "label": "Repositories heatmap", "icon": "pulse",
