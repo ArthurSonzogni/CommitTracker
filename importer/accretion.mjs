@@ -113,7 +113,8 @@ const GitLog = (cwd, chunk, pathspecs) => {
     "'^(\x01|diff --git |rename (from|to) |(new|deleted) file mode |index |new mode |Binary files |@@ )'";
   // Kept as a Buffer, outside of the JavaScript heap: large refactorings have
   // millions of hunks.
-  return run(["sh", "-c", `set -o pipefail; ${git} | ${filter} || [ $? = 1 ]`],
+  // bash, as the dash of the CI has no pipefail.
+  return run(["bash", "-c", `set -o pipefail; ${git} | ${filter} || [ $? = 1 ]`],
     cwd, true);
 };
 
