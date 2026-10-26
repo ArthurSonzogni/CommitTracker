@@ -650,6 +650,21 @@ h2.title:not(.is-1):not(.is-2):not(.is-3):not(.is-4):not(.is-5):not(.is-6) {
   display: none;
 }
 
+/* A mouse wheel can't scroll it horizontally: wrap instead, so every chip is
+ * reachable, and scroll vertically past three rows and a half. */
+@media (hover: hover) and (pointer: fine) {
+  .chip-track {
+    align-content: flex-start;
+    animation: none;
+    flex-wrap: wrap;
+    mask-image: none;
+    max-height: calc(3.5 * 1.75rem + 3 * 2px + 3px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+}
+
 @property --fade-start {
   syntax: "<length>";
   inherits: false;
