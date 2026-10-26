@@ -14,7 +14,9 @@ users visualize and analyze commit data through various charts and graphs.
   - [Installation](#installation)
 - [Usage](#usage)
   - [Running the Development Server](#running-the-development-server)
-  - [Fetching and Processing Data](#fetching-and-processing-data)
+  - [Testing](#testing)
+  - [Pull new data](#pull-new-data)
+- [Architecture](#architecture)
 - [Contact](#contact)
 
 ## Getting Started
@@ -92,9 +94,17 @@ npm run fuzztest
 # Fetch new CVE data.
 npm run cve
 
+# Compute the commit rates per directory.
+npm run commit_rates
+
 # Pre-compute derived data.
 npm run derive_data
 ```
+
+## Architecture
+
+[AGENTS.md](AGENTS.md) describes how the code and data fit together: the data
+branches, the dev server, the importer pipeline and the CI workflows.
 
 ## Contact
 
