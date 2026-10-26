@@ -220,7 +220,7 @@ async function processCommits(repo, lastCommit, callback) {
   let args = [];
   if (lastCommit) {
     console.log(`  Running git log (Incremental: ${lastCommit.substring(0,7)}..HEAD) ...`);
-    args = ['log', `${lastCommit}..HEAD`, '--name-status', '--no-renames', ,'--ignore-submodules', `--pretty=format:${delimiter}%h %ae %aI`, '.'];
+    args = ['log', `${lastCommit}..HEAD`, '--name-status', '--no-renames', '--ignore-submodules', `--pretty=format:${delimiter}%h %ae %aI`, '.'];
   } else {
     console.log(`  Running git log (First run: Full history) ...`);
     args = ['log', '--name-status', '--no-renames', '--ignore-submodules', `--pretty=format:${delimiter}%h %ae %aI`, '.'];
@@ -565,4 +565,7 @@ async function main() {
   }
 }
 
-main().catch(console.error);
+main().catch(error => {
+  console.error(error);
+  process.exitCode = 1;
+});
