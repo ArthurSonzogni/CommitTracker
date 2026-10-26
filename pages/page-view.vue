@@ -2,22 +2,22 @@
   <div>
     <Navbar />
     <section class="section">
-      <div class="container content">
+      <div class="container content page-view">
         <h1 class="title">Page view</h1>
-        <template v-if="json.history">
+        <UiLoading v-model="loading" :is-full-page="false" />
+        <template v-if="history.length">
           <p>
-            Since <strong>2025-05-06</strong>, the website has been visited <strong>{{ json.total_hits }}</strong> times,
-            with <strong>{{ json.today_hits }}</strong> visits today.
+            Since <strong>{{ history[0].hit_date }}</strong>, the website has
+            been visited <strong>{{ number(json.total_hits) }}</strong> times,
+            with <strong>{{ number(json.today_hits) }}</strong> visits today.
           </p>
 
-          <LineChart :data=data />
+          <LineChart :data="data" :formatter="number" :milestones="milestones" />
         </template>
-        <p v-else>The visit counts could not be loaded.</p>
+        <p v-else-if="!loading">The visit counts could not be loaded.</p>
 
         <hr>
         <p class="has-text-centered">
-          <img
-            src="https://hitscounter.dev/api/hit?url=https%3A%2F%2Fchrome-commit-tracker.arthursonzogni.com%2F&label=commit-tracker&icon=heart-fill&color=%23fd86aa">
           Powered by <a href="https://hitscounter.dev/">hitscounter</a>.
         </p>
       </div>
@@ -26,39 +26,48 @@
 </template>
 
 <script setup lang="ts">
+import { format } from "d3-format";
 
 const target = new URL('https://chrome-commit-tracker.arthursonzogni.com');
 const hitscounter = new URL('https://hitscounter.dev/api/history');
 hitscounter.searchParams.append('url', target.toString());
 
-const fetchData = async () => {
-  try {
-    const response = await fetch(hitscounter.toString());
-    const json = await response.json();
-    return json;
-  } catch (error) {
-    console.error('Error fetching data:', error);
-    return {};
-  }
-};
+const number = format(",");
 
-const json = await fetchData();
+// Events explaining the inflection points of the chart.
+const milestones = [
+  { date: new Date("2026-10-24"), label: "Tests and dev servers counted as visits" },
+];
 
-const data = ref([{
+const loading = ref(true);
+const json = shallowRef<any>({});
+const history = computed(() => json.value.history ?? []);
+
+const data = computed(() => [{
   label: 'Page view',
-  values: (json.history ?? []).map(item => ({
+  values: history.value.map(item => ({
     x: new Date(item.hit_date),
     y: item.hit_count,
   })),
 }]);
 
+onMounted(async () => {
+  try {
+    const response = await fetch(hitscounter.toString());
+    json.value = await response.json();
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
+  loading.value = false;
+});
+
 </script>
 
 <style scoped>
 
-img {
-  display: block;
-  margin: 0 auto;
+.page-view {
+  min-height: 200px;
+  position: relative;
 }
 
 </style>

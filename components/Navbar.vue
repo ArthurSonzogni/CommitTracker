@@ -1,6 +1,7 @@
 <template>
   <div class="site-header">
     <img
+      v-if="countVisit"
       async
       style="position: absolute; top: 0; left: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none;"
       alt=""
@@ -127,6 +128,11 @@
 
 <script setup lang="ts">
 import { showToast } from "~/utils/toast";
+
+// Count the visits of the deployed website only, not the dev server's or the
+// interaction tests'.
+const countVisit = location.hostname === "chrome-commit-tracker.arthursonzogni.com";
+
 const MENU = [
   { label: "Individuals", to: "/individuals", icon: "account" },
   { label: "Community graph", to: "/communities", icon: "account-group" },
