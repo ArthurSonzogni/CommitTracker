@@ -1,31 +1,55 @@
 <template>
   <div class="timeline">
-    <div class="form-row" v-if="more">
-      <button type="button" @click="toggleMore" class="button is-small mr-5"> - </button>
-      <UiField v-for="year in [year-1, year]" :key="year" :label="year + '-Quarters'">
-        <button type="button" v-for="i in 4" :key="i" @click="onQuarterClick(year, i)" class="button is-primary is-rounded mr-1">
-          {{'Q' + i}}
-        </button>
+    <div class="form-row quarter-row" v-if="more">
+      <button type="button" @click="toggleMore" class="button is-small toggle" title="Back to the slider" aria-label="Back to the slider">
+        <UiIcon name="tune-variant" size="small" />
+      </button>
+      <UiField :label="anchor === null ? 'Click a quarter, or two for a range' : 'Click the end of the range'" expanded>
+        <div ref="strip" class="quarter-strip" @pointerleave="hovered = null">
+          <div v-for="y in years" :key="y" class="quarter-year">
+            <button
+              type="button"
+              class="quarter-year-label"
+              :title="'Select ' + y"
+              @click="onYearClick(y)">
+              {{y}}
+            </button>
+            <button
+              v-for="q in 4"
+              :key="q"
+              type="button"
+              class="quarter-cell"
+              :class="['is-' + quarterState(4 * y + q - 1), { 'is-anchor': anchor === 4 * y + q - 1 }]"
+              :disabled="!isSelectable(4 * y + q - 1)"
+              :aria-pressed="quarterState(4 * y + q - 1) === 'full'"
+              :title="quarterTitle(4 * y + q - 1)"
+              @pointerenter="hovered = 4 * y + q - 1"
+              @click="onQuarterClick(4 * y + q - 1)">
+              Q{{q}}
+            </button>
+          </div>
+        </div>
       </UiField>
-
       <UiField label="Min">
         <UiDateInput
           :model-value="value[0]"
-          @update:model-value="range = [getDateInverse($event), range[1]]"
+          @update:model-value="value = [$event, value[1]]"
           :min="minDate"
           :max="maxDate" />
       </UiField>
       <UiField label="Max">
         <UiDateInput
           :model-value="value[1]"
-          @update:model-value="range = [range[0], getDateInverse($event)]"
+          @update:model-value="value = [value[0], $event]"
           :min="minDate"
           :max="maxDate" />
       </UiField>
     </div>
 
     <div class="form-row slider-row" v-if="!more">
-      <button type="button" @click="toggleMore" class="button is-small"> + </button>
+      <button type="button" @click="toggleMore" class="button is-small toggle" title="Select quarters or dates" aria-label="Select quarters or dates">
+        <UiIcon name="calendar-range" size="small" />
+      </button>
       <div ref="sliderBox" class="slider-box">
         <UiSlider expanded v-model="range" :min="0" :max="1" :step="0.001" :formatter="formatDate" tooltip-always lazy>
           <UiSliderTick v-for="tick in ticks" :key="tick.label" :value="tick.value">
@@ -70,11 +94,11 @@ const interpolatorInverse = (date) => {
 const value = defineModel()
 
 const range = ref<Number[]>(value.value.map(interpolatorInverse));
-const more = ref<boolean>(false);
 const minDate = ref<Date>(props.minDate);
 const maxDate = ref<Date>(props.maxDate);
 const today = new Date();
 const year = ref<number>(today.getFullYear());
+const more = ref<boolean>(false);
 
 let updating_range = false;
 let updating_value = false;
@@ -90,6 +114,11 @@ watch(range, () => {
   }, 1);
 })
 
+const toggleMore = () => {
+  more.value = !more.value;
+  anchor.value = null;
+}
+
 watch(value, () => {
   if (updating_value || updating_range) {
     return;
@@ -100,10 +129,6 @@ watch(value, () => {
     updating_range = false;
   }, 1);
 })
-
-const toggleMore = () => {
-  more.value = !more.value;
-}
 
 // The month, and the Chrome milestone on the stable channel then.
 const formatDate = (val: number) => {
@@ -156,53 +181,94 @@ const ticks = computed(() => {
   return kept;
 });
 
-const isQuarterSelected = (year_quarter: number) => {
-  const year = Math.floor(year_quarter / 4);
-  const quarter = year_quarter % 4;
-  const startDate = new Date(year, (quarter-1)*3);
-  const endDate = new Date(year, (quarter-1)*3 + 3);
-  return range.value[0] <= getDateInverse(startDate) &&
-    range.value[1] >= getDateInverse(endDate);
+// The quarter strip. A quarter is identified by 4 * year + (0..3).
+const quarterStart = (quarter: number) => {
+  return new Date(Math.floor(quarter / 4), (quarter % 4) * 3);
+}
+const quarterEnd = (quarter: number) => {
+  return new Date(Math.min(quarterStart(quarter + 1).getTime(), maxDate.value.getTime()));
+}
+const quarterOf = (date: Date) => {
+  return 4 * date.getFullYear() + Math.floor(date.getMonth() / 3);
 }
 
-const onQuarterClick = (year: number, quarter: number) => {
-  const startDate = new Date(year, (quarter-1)*3);
-  const endDate = new Date(year, (quarter-1)*3 + 3);
-
-  if (!isQuarterSelected(4*year+quarter)) {
-    range.value = [
-      Math.min(range.value[0], getDateInverse(startDate)),
-      Math.max(range.value[1], getDateInverse(endDate))
-    ];
-    return;
+const years = computed(() => {
+  const list = [];
+  for (let y = minDate.value.getFullYear(); y <= maxDate.value.getFullYear(); ++y) {
+    list.push(y);
   }
+  return list;
+});
 
-  const yearquarter_left = 4*year+quarter-1;
-  const yearquarter_right = 4*year+quarter+1;
-
-  if (isQuarterSelected(yearquarter_left) && isQuarterSelected(yearquarter_right)) {
-    range.value = [getDateInverse(startDate), getDateInverse(endDate)];
-    return;
-  }
-
-  if (isQuarterSelected(yearquarter_left)) {
-    const left_year = Math.floor(yearquarter_left / 4);
-    const left_quarter = yearquarter_left % 4;
-    const left_endDate = new Date(left_year, (left_quarter-1)*3 + 3);
-    range.value = [range.value[0], getDateInverse(left_endDate)];
-    return;
-  }
-
-  if (isQuarterSelected(yearquarter_right)) {
-    const right_year = Math.floor(yearquarter_right / 4);
-    const right_quarter = yearquarter_right % 4;
-    const right_startDate = new Date(right_year, (right_quarter-1)*3);
-    range.value = [getDateInverse(right_startDate), range.value[1]];
-    return;
-  }
-
-  range.value = [getDateInverse(startDate), getDateInverse(endDate)];
+const isSelectable = (quarter: number) => {
+  return quarter >= quarterOf(minDate.value) && quarter <= quarterOf(maxDate.value);
 }
+
+const selectQuarters = (a: number, b: number) => {
+  const first = Math.max(Math.min(a, b), quarterOf(minDate.value));
+  const last = Math.min(Math.max(a, b), quarterOf(maxDate.value));
+  const start = new Date(Math.max(quarterStart(first).getTime(), minDate.value.getTime()));
+  value.value = [start, quarterEnd(last)];
+}
+
+// Dates can be off by a few hours (time zones) or days (the slider's
+// resolution), so they are compared with some tolerance.
+const TOLERANCE = 2 * 24 * 60 * 60 * 1000;  // ms.
+
+// The start of a range being selected, waiting for a click on its end, and
+// the quarter under the pointer, to preview the range.
+const anchor = ref<number | null>(null);
+const hovered = ref<number | null>(null);
+
+const quarterState = (quarter: number) => {
+  if (anchor.value !== null && hovered.value !== null) {
+    return Math.min(anchor.value, hovered.value) <= quarter &&
+      quarter <= Math.max(anchor.value, hovered.value) ? "preview" : "none";
+  }
+  const start = Math.max(quarterStart(quarter).getTime(), minDate.value.getTime());
+  const end = quarterEnd(quarter).getTime();
+  const from = value.value[0].getTime();
+  const to = value.value[1].getTime();
+  if (from <= start + TOLERANCE && to >= end - TOLERANCE) {
+    return "full";
+  }
+  if (Math.min(to, end) - Math.max(from, start) > TOLERANCE) {
+    return "partial";
+  }
+  return "none";
+}
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const quarterTitle = (quarter: number) => {
+  const month = (quarter % 4) * 3;
+  return `${Math.floor(quarter / 4)} Q${quarter % 4 + 1} ` +
+    `(${MONTHS[month]}–${MONTHS[month + 2]})`;
+}
+
+// A first click selects a quarter, and a second one extends it into a range.
+const onQuarterClick = (quarter: number) => {
+  if (anchor.value === null) {
+    anchor.value = quarter;
+    selectQuarters(quarter, quarter);
+    return;
+  }
+  selectQuarters(anchor.value, quarter);
+  anchor.value = null;
+}
+
+const onYearClick = (y: number) => {
+  anchor.value = null;
+  selectQuarters(4 * y, 4 * y + 3);
+}
+
+// Show the most recent quarters first.
+const strip = ref<HTMLElement | null>(null);
+watch(strip, (element) => {
+  if (element) {
+    element.scrollLeft = element.scrollWidth;
+  }
+});
 
 </script>
 
@@ -226,4 +292,93 @@ const onQuarterClick = (year: number, quarter: number) => {
 .timeline :deep(.field) {
   margin-bottom: 0 !important;
 }
+
+.quarter-row {
+  flex-wrap: nowrap;
+}
+@media (max-width: 768px) {
+  .quarter-row {
+    flex-wrap: wrap;
+  }
+}
+.quarter-row > .ui-field.is-expanded {
+  min-width: 0;
+}
+
+.toggle {
+  flex-shrink: 0;
+}
+.quarter-row .toggle {
+  align-self: flex-end;
+}
+
+.quarter-strip {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding: 3px 3px 0.25rem;
+  scrollbar-width: thin;
+}
+
+.quarter-year {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 2px;
+}
+
+.quarter-year-label {
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 0 0.2rem;
+}
+.quarter-year-label:hover {
+  color: var(--ink);
+}
+
+.quarter-cell {
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  color: var(--ink-2);
+  cursor: pointer;
+  font-size: 0.75rem;
+  min-width: 2.1rem;
+  padding: 0.2rem 0;
+}
+.quarter-cell:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+.quarter-cell.is-full {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.quarter-cell.is-partial {
+  background: linear-gradient(to top, var(--accent-line) 50%, var(--surface) 50%);
+  border-color: var(--accent-line);
+}
+.quarter-cell.is-preview {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+.quarter-cell.is-anchor {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.quarter-cell:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+.quarter-year-label:focus-visible,
+.quarter-cell:focus-visible {
+  box-shadow: var(--ring);
+  outline: none;
+}
+
 </style>

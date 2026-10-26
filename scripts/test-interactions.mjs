@@ -600,13 +600,33 @@ const tests = [
       window.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, clientX: track.left + track.width * 0.6, clientY: y }));
       window.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, clientX: track.left + track.width * 0.6, clientY: y }));
       const dragged = await __t.until(() => location.search !== before && location.search.match(/dates=([^&]*)/)?.[1], 8000);
-      __t.byText('button', '+').click();
-      const date = await __t.until(() => document.querySelector('input[type=date]'), 5000);
+      document.querySelector('.timeline .toggle').click();
+      const date = await __t.until(() => document.querySelector('.timeline input[type=date]'), 5000);
       date.value = '2019-03-04';
       date.dispatchEvent(new Event('change', { bubbles: true }));
-      // The timeline stores dates as a slider position, so the date is close.
-      const picked = await __t.until(() => location.search.match(/dates=(2019-0[23]-\\d\\d)/)?.[1], 8000);
+      // Dates are local midnights, serialized as UTC.
+      const picked = await __t.until(() => location.search.match(/dates=(2019-03-0[34])/)?.[1], 8000);
       return { ok: !!dragged && !!picked, detail: 'dates after drag=' + decodeURIComponent(dragged) + ' picked=' + picked };
+    `,
+  },
+  {
+    name: 'components: timeline quarter, range of quarters and year',
+    url: 'individuals?developers=arthursonzogni',
+    run: `
+      (await __t.until(() => document.querySelector('.timeline .toggle'), 15000)).click();
+      await __t.until(() => document.querySelector('.timeline .quarter-cell'), 5000);
+      const cell = (year, q) => [...document.querySelectorAll('.timeline .quarter-year')]
+        .find(e => e.querySelector('.quarter-year-label').textContent.trim() === String(year))
+        .querySelectorAll('.quarter-cell')[q - 1];
+      const selected = () => [...document.querySelectorAll('.timeline .quarter-cell.is-full')]
+        .map(e => e.title.split(' (')[0]).join(',');
+      cell(2020, 3).click();
+      const one = await __t.until(() => selected() === '2020 Q3' && location.search.includes('2020-0'), 5000);
+      cell(2021, 2).click();
+      const many = await __t.until(() => selected() === '2020 Q3,2020 Q4,2021 Q1,2021 Q2', 5000);
+      __t.byText('.timeline .quarter-year-label', '2019').click();
+      const year = await __t.until(() => selected() === '2019 Q1,2019 Q2,2019 Q3,2019 Q4', 5000);
+      return { ok: !!one && !!many && !!year, detail: 'one=' + !!one + ' many=' + !!many + ' year=' + !!year + ' last=' + selected() };
     `,
   },
   {
