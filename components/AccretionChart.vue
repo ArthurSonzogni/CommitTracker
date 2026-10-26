@@ -22,7 +22,6 @@ import { axisBottom, axisLeft } from "d3-axis";
 import { bisector, max } from "d3-array";
 import { format } from "d3-format";
 import { scaleLinear, scaleTime } from "d3-scale";
-import { interpolateViridis } from "d3-scale-chromatic";
 import { pointer, select } from "d3-selection";
 import { area, stack, stackOffsetExpand, stackOffsetNone } from "d3-shape";
 import "d3-transition";
@@ -45,10 +44,12 @@ const tooltip = ref<SVGGElement | null>(null);
 const xAxis = ref<SVGGElement | null>(null);
 const yAxis = ref<SVGGElement | null>(null);
 
+// The site's series colors, rotating every 8 years, for the neighbor years to
+// differ clearly.
 const color = (year: string, years: string[]) => {
   if (year === "unknown") return "var(--faint)";
   const known = years.filter(y => y !== "unknown");
-  return interpolateViridis(known.indexOf(year) / Math.max(1, known.length - 1));
+  return `var(--series-${known.indexOf(year) % 8 + 1})`;
 };
 
 const lines = format(".3~s");
@@ -116,7 +117,11 @@ const render = () => {
       group.append("text")
         .attr("font-size", "11px")
         .attr("font-style", "italic")
-        .style("fill", "var(--muted)");
+        .style("fill", "var(--ink)")
+        // A halo, to stay readable over the areas.
+        .style("paint-order", "stroke")
+        .style("stroke", "var(--bg)")
+        .style("stroke-width", 3);
       return group;
     })
     .call(group => {

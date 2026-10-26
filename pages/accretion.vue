@@ -69,8 +69,12 @@ const repository = "chromium";
 
 // The events explaining the largest steps of the chart.
 const milestones = [
+  { date: "2009-08-21", label: "Hunspell moved to DEPS" },
   { date: "2015-09-23", label: "Blink merged into Chromium" },
+  { date: "2018-10-24", label: "Redundant web test baselines removed" },
   { date: "2023-11-28", label: "Legacy DOM conformance tests removed" },
+  { date: "2024-05-17", label: "Content extraction test data trimmed" },
+  { date: "2025-06-26", label: "native_client_sdk removed" },
 ];
 const lines = format(",");
 
