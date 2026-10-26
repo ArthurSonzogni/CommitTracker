@@ -9,19 +9,16 @@
     'disabled': !enabled,
     'is-hovered': mouse_hover,
     }"
+    :title="description"
     >
     <div class="card_inner"
          :style="{ transform }"
          :class="{ 'is-hovered': mouse_hover }"
          >
 
-         <div class="img_wrapper">
-           <img :src="img" :alt="name" />
-         </div>
-
-         <div class="badge-name">{{ name }}</div>
-         <p class="badge-description">{{ description }}</p>
+         <img :src="img" :alt="name" />
     </div>
+    <div class="badge-name">{{ name }}</div>
   </div>
 </template>
 
@@ -107,9 +104,8 @@ const handleMouseMove = (event) => {
 <style scoped>
 
 .card_wrapper {
-  width: 100px;
-  height: 100px;
-  margin: 4px;
+  width: 140px;
+  margin: 6px;
   z-index: 0;
   perspective: 2100px;
 
@@ -132,8 +128,8 @@ const handleMouseMove = (event) => {
   background-color: var(--surface);
   cursor: pointer;
   border-radius: 10px;
-  width: 100px;
-  height: 100px;
+  width: 140px;
+  height: 140px;
   filter: drop-shadow(0 8px 8px rgba(0, 0, 0, 0.5));
 
   transition:
@@ -158,7 +154,18 @@ const handleMouseMove = (event) => {
 }
 
 
-.disabled:not(.is-hovered) {
+/* Crop the engraved frame shared by every image, so the subject stands out.
+   The details page shows the full image. In every image, the frame ends 12.4%
+   from each side (127px out of 1024px), so: 1024 / (1024 - 2 * 127) = 1.33. */
+.card_inner img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.33);
+}
+
+.disabled:not(.is-hovered) .card_inner {
   filter:
   contrast(0.5)
   brightness(1.5)
@@ -167,14 +174,15 @@ const handleMouseMove = (event) => {
   ;
 }
 
-.badge-name {
-  font-size: 1em;
-  padding: 10px;
+.disabled:not(.is-hovered) .badge-name {
+  opacity: 0.5;
 }
 
-.badge-description {
-  font-size: 0.5em;
-  padding: 10px;
+.badge-name {
+  font-size: 0.8em;
+  line-height: 1.2;
+  text-align: center;
+  padding-top: 6px;
 }
 
 @keyframes glow {
