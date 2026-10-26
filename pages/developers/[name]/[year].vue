@@ -68,7 +68,9 @@
           <ul class="review-facts">
             <li><strong>{{ MONTH_NAMES[busiestMonth] }}</strong> was the busiest month.</li>
             <li>Most active on <strong>{{ WEEKDAYS[busiestWeekday] }}s</strong>, around <strong>{{ busiestHour }}:00 UTC</strong>.</li>
-            <li>The longest streak: <strong>{{ plural(longestStreak, "day") }}</strong> in a row.</li>
+            <li>Active in <strong>{{ activeWeeks }} of {{ plural(weeksInYear, "week") }}</strong>, the longest streak: <strong>{{ plural(longestWeekStreak.length, "week") }}</strong> in a row, from {{ formatDay(new Date(longestWeekStreak.from)) }} to {{ formatDay(new Date(longestWeekStreak.to)) }}.</li>
+            <li>The longest streak of working days: <strong>{{ plural(longestWorkingStreak.length, "day") }}</strong> in a row, from {{ formatDay(new Date(longestWorkingStreak.from)) }} to {{ formatDay(new Date(longestWorkingStreak.to)) }}.</li>
+            <li>The busiest day: <strong>{{ plural(busiestDay.count, "contribution") }}</strong> on <strong>{{ formatDay(new Date(busiestDay.day)) }}</strong>.</li>
             <li>The first contribution of the year on <strong>{{ formatDay(first) }}</strong>, the last on <strong>{{ formatDay(last) }}</strong>.</li>
           </ul>
 
@@ -252,17 +254,52 @@ const busiestHour = computed(() => {
 
 const days = computed(() => [...new Set(inYear.value.map(r => r.date.slice(0, 10)))].sort());
 const activeDays = computed(() => days.value.length);
-const longestStreak = computed(() => {
-  let longest = 0;
-  let current = 0;
-  let previous = 0;
-  for (const day of days.value) {
-    const time = Date.parse(day);
-    current = time - previous === 86400000 ? current + 1 : 1;
-    longest = Math.max(longest, current);
-    previous = time;
+const DAY = 86400000;
+
+// The longest run of sorted days whose keys follow each other, with its first
+// and last day. Its length counts the distinct keys.
+const longestRun = (sorted: string[], key: (time: number) => number) => {
+  let longest = { length: 0, from: "", to: "" };
+  let current = { length: 0, from: "", to: "" };
+  let previous = NaN;
+  for (const day of sorted) {
+    const value = key(Date.parse(day));
+    if (value - previous === 1) {
+      current = { ...current, length: current.length + 1, to: day };
+    } else if (value !== previous) {
+      current = { length: 1, from: day, to: day };
+    } else {
+      current = { ...current, to: day };
+    }
+    if (current.length >= longest.length) longest = current;
+    previous = value;
   }
   return longest;
+};
+
+// Weeks start on Monday. The epoch was a Thursday.
+const weekOf = (time: number) => Math.floor((time / DAY + 3) / 7);
+const activeWeeks = computed(() => new Set(days.value.map(day => weekOf(Date.parse(day)))).size);
+const weeksInYear = computed(() => {
+  const end = Math.min(Date.UTC(year.value, 11, 31), Date.now());
+  return weekOf(end) - weekOf(Date.UTC(year.value, 0, 1)) + 1;
+});
+const longestWeekStreak = computed(() => longestRun(days.value, weekOf));
+
+// Weekends neither break nor extend a streak of working days.
+const isWeekend = (date: Date) => date.getUTCDay() === 0 || date.getUTCDay() === 6;
+const workingDayOf = (time: number) => {
+  const day = Math.floor(time / DAY) + 3; // Days since a Monday.
+  return 5 * Math.floor(day / 7) + day % 7;
+};
+const longestWorkingStreak = computed(() => longestRun(
+  days.value.filter(day => !isWeekend(new Date(day))), workingDayOf));
+
+const busiestDay = computed(() => {
+  const counts = new Map<string, number>();
+  inYear.value.forEach(r => counts.set(r.date.slice(0, 10), (counts.get(r.date.slice(0, 10)) ?? 0) + 1));
+  const [day, count] = [...counts].reduce((a, b) => b[1] > a[1] ? b : a);
+  return { day, count };
 });
 const first = computed(() => new Date(days.value[0]));
 const last = computed(() => new Date(days.value.at(-1)!));
