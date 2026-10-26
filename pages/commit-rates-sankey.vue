@@ -1,5 +1,5 @@
 <template>
-  <div class="sankey-page">
+  <div>
     <Navbar />
 
     <section class="section">
@@ -16,107 +16,101 @@
         </FilterPanel>
         <div class="level mb-5">
           <div class="level-left">
-            <div class="is-flex is-align-items-center">
+            <div>
+              <nav class="breadcrumb is-medium" aria-label="Path">
+                <ul>
+                  <li
+                    v-for="(crumb, index) in breadcrumbs"
+                    :key="crumb.path"
+                    :class="{ 'is-active': index === breadcrumbs.length - 1 }">
+                    <NuxtLink
+                      :to="{ query: { ...route.query, path: crumb.path } }"
+                      :aria-current="index === breadcrumbs.length - 1 ? 'page' : undefined">
+                      <UiIcon v-if="index === 0" name="source-branch" size="small" class="mr-1" />
+                      {{ crumb.label }}
+                    </NuxtLink>
+                  </li>
+                </ul>
+              </nav>
 
-              <div class="mr-5">
+              <div class="is-size-7 has-text-grey mt-1">
+                *Displaying top active paths.
               </div>
-
-              <div>
-                <nav class="breadcrumb is-medium" aria-label="Path">
-                  <ul>
-                    <li
-                      v-for="(crumb, index) in breadcrumbs"
-                      :key="crumb.path"
-                      :class="{ 'is-active': index === breadcrumbs.length - 1 }">
-                      <a role="button" @click="navigateTo(crumb.path)">
-                        <UiIcon v-if="index === 0" name="source-branch" size="small" class="mr-1" />
-                        {{ crumb.label }}
-                      </a>
-                    </li>
-                  </ul>
-                </nav>
-
-                <div class="is-size-7 has-text-grey mt-1">
-                  *Displaying top active paths.
-                </div>
-              </div>
-
             </div>
           </div>
 
           <div class="level-right">
              <div style="min-width: 250px;">
                 <div class="mb-1 is-size-7 has-text-weight-bold">
-                  Includes: {{ smoothingWindow*7 }} days.
+                  Window: {{ smoothingWindow }} week{{ smoothingWindow === 1 ? '' : 's' }} ({{ smoothingWindow*7 }} days).
                 </div>
                 <UiField>
-                  <UiSlider v-model="smoothingWindow" :min="1" :max="300" :step="1" @change="debouncedRender" tooltip></UiSlider>
+                  <UiSlider v-model="smoothingWindow" :min="1" :max="300" :step="1" @change="onWindowChange" tooltip></UiSlider>
                 </UiField>
              </div>
           </div>
         </div>
 
-        <div v-if="loading" class="notification is-info is-light">
-          <span class="icon mr-2">
-            <i class="fas fa-spinner fa-spin"></i>
-          </span>
-          Loading data... Analyzing repository structure...
-        </div>
         <div v-if="error" class="notification is-danger">
           {{ error }}
         </div>
-      </div>
-    </section>
 
-    <section class="section p-0" style="position: relative; overflow: hidden; min-height: 500px;">
-      <svg
-        ref="svgRef"
-        :width="width"
-        :height="height"
-        class="sankey-svg"
-      >
-        <g ref="layerLinks" />
-        <g ref="layerNodes" />
-        <g ref="layerLabels" />
-      </svg>
+        <div class="sankey-container">
+          <UiLoading v-model="loading" :is-full-page="false" />
+          <svg
+            ref="svgRef"
+            :width="width"
+            :height="height"
+            class="sankey-svg"
+          >
+            <g ref="layerLinks" />
+            <g ref="layerNodes" />
+            <g ref="layerLabels" />
+          </svg>
 
-      <div
-        ref="tooltipRef"
-        class="chart-tooltip card"
-        style="display: none; position: absolute; pointer-events: none; z-index: 100;"
-      >
-        <div class="card-content p-3">
-          <p class="title is-6 mb-1">{{ tooltipData.name }}</p>
-          <div class="content is-small">
-            <p class="mb-0">
-              Commits: <strong>{{ formatNumber(tooltipData.value) }}</strong>
-            </p>
-            <p>
-              Commit/Days: <strong>{{ tooltipData.commit_per_day }}</strong>
-            </p>
+          <div
+            ref="tooltipRef"
+            class="chart-tooltip card"
+            style="display: none; position: absolute; pointer-events: none; z-index: 100;"
+          >
+            <div class="card-content p-3">
+              <p class="title is-6 mb-1">{{ tooltipData.name }}</p>
+              <div class="content is-small">
+                <p class="mb-0">
+                  Commits: <strong>{{ formatNumber(tooltipData.value) }}</strong>
+                </p>
+                <p>
+                  Commits per day: <strong>{{ tooltipData.commit_per_day }}</strong>
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </section>
-  </div>
 
-  <section class="section pt-0">
-    <div class="container">
-      <AboutData>
-        <p>
-          This visualization represents the number of commit in each
-          file/directory. Note that a commit might affect multiple files, so the
-          sum of all children nodes exceeds the parent's commit count.
-        </p>
-        <h3 class="title is-6">Parameters</h3>
-        <ul>
-          <li><strong>Repository:</strong> The code repository being analyzed.</li>
-          <li><strong>Path:</strong> The current directory path in the repository.</li>
-          <li><strong>Smoothing Window:</strong> The number of days over which commit counts are smoothed to reduce noise.</li>
-        </ul>
-      </AboutData>
-    </div>
-  </section>
+    <section class="section pt-0">
+      <div class="container">
+        <AboutData>
+          <p>
+            This visualization represents the number of commit in each
+            file/directory. Note that a commit might affect multiple files, so the
+            sum of all children nodes exceeds the parent's commit count.
+          </p>
+          <p>
+            Click a directory to explore it, or the first node to go back to
+            its parent.
+          </p>
+          <h3 class="title is-6">Parameters</h3>
+          <ul>
+            <li><strong>Repository:</strong> The code repository being analyzed.</li>
+            <li><strong>Path:</strong> The current directory path in the repository.</li>
+            <li><strong>Window:</strong> The number of weeks of commits counted, ending today.</li>
+          </ul>
+        </AboutData>
+      </div>
+    </section>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -127,7 +121,6 @@ import { sankey, sankeyLeft } from "d3-sankey";
 import { scaleOrdinal } from "d3-scale";
 import { categoricalPalette } from "~/utils/palette";
 import { format } from "d3-format";
-import "d3-transition";
 import { transition } from "d3-transition";
 import { easeQuadInOut } from "d3-ease";
 
@@ -146,6 +139,7 @@ interface GraphNode {
   activity: number;
   height: number; // New field for visual calculation
   depth: number;
+  isDirectory: boolean;
   parent?: number;
   value?: number;
   x0?: number;
@@ -169,6 +163,7 @@ interface GraphLink {
 const BASE_URL = '/commit_rates';
 const CONFIG_START_DATE = '2018-01-01';
 const MAX_NODES = 300;
+const DEFAULT_WINDOW = 40;
 
 // --- State ---
 const route = useRoute();
@@ -176,7 +171,7 @@ const router = useRouter();
 
 const repository = ref<string>("chromium");
 const currentRootPath = ref<string>(".");
-const smoothingWindow = ref(40);
+const smoothingWindow = ref(DEFAULT_WINDOW);
 const width = ref(1200);
 const height = ref(800);
 const loading = ref(false);
@@ -189,7 +184,7 @@ const layerNodes = ref<SVGGElement | null>(null);
 const layerLabels = ref<SVGGElement | null>(null);
 const tooltipRef = ref<HTMLDivElement | null>(null);
 
-const tooltipData = ref({ name: '', path: '', value: 0, percent: '' });
+const tooltipData = ref({ name: '', value: 0, commit_per_day: '' });
 
 // Caching & Concurrency Control
 // 1. dirCache: Stores processed RateData[] for a specific path to avoid re-parsing
@@ -201,8 +196,6 @@ const bucketCache = new Map<string, Promise<Record<string, any>>>();
 let renderRequestId = 0;
 
 // --- Computed Props ---
-const startYear = computed(() => new Date(CONFIG_START_DATE).getFullYear());
-
 const maxAvailableWeeks = computed(() => {
   const start = new Date(CONFIG_START_DATE);
   const now = new Date();
@@ -220,7 +213,7 @@ const repoList = computed({
       const name = typeof selected === 'object' ? selected.name : selected;
       if (name && name !== repository.value) {
         // Reset path to root when repo changes
-        router.push({ query: { repository: name, path: '.' } });
+        router.push({ query: { ...route.query, repository: name, path: '.' } });
       }
     }
   }
@@ -247,10 +240,22 @@ function navigateTo(path: string) {
   router.push({ query: { ...route.query, path } });
 }
 
+function parentPath(path: string): string {
+  return path.split('/').slice(0, -1).join('/') || '.';
+}
+
+// Where clicking a node leads: the root goes back to its parent, a directory
+// opens, and a file leads nowhere.
+function nodeTarget(d: GraphNode): string | null {
+  if (d.node === 0) {
+    return currentRootPath.value === '.' ? null : parentPath(currentRootPath.value);
+  }
+  return d.isDirectory ? d.path : null;
+}
+
 // --- Helpers ---
 const intFormatter = format(",");
 function formatNumber(n: number) { return intFormatter(Math.round(n)); }
-const percentFormatter = format(".1%");
 
 function getBucketId(filepath: string): number {
   let hash = 5381;
@@ -388,16 +393,14 @@ async function fetchPathItems(repo: string, path: string): Promise<RateData[]> {
     if (!targetDir) return [];
 
     const items = Object.entries(targetDir).map(([name, data]: [string, any]) => {
-      if (data.d && typeof data.d === 'number') return null;
-      const deletedAt = (typeof data.d === 'number') ? data.d : null;
-      const isDeleted = deletedAt !== null;
+      // Skip the deleted files and directories.
+      if (typeof data.d === 'number') return null;
 
       return {
         name,
         path: path === '.' ? name : `${path}/${name}`,
         rates: decompressRates(data.r),
         isDirectory: data.f == undefined || data.f != 1,
-        isDeleted,
       };
     }).filter(Boolean) as RateData[];
 
@@ -431,7 +434,8 @@ async function buildGraphData(startPath: string) {
     path: startPath,
     activity: 0,
     height: 0,
-    depth: 0
+    depth: 0,
+    isDirectory: true,
   });
   nodeMap.set(startPath, 0);
 
@@ -456,7 +460,7 @@ async function buildGraphData(startPath: string) {
     const itemsWithActivity = items.map(item => ({
       ...item,
       activity: calculateActivity(item.rates)
-    })).filter(i => i.activity > 0 && !i.isDeleted);
+    })).filter(i => i.activity > 0);
 
     itemsWithActivity.sort((a, b) => b.activity - a.activity);
 
@@ -492,6 +496,7 @@ async function buildGraphData(startPath: string) {
         activity: child.activity,
         height: relativeHeight,
         depth: parentNode.depth + 1,
+        isDirectory: child.isDirectory,
         parent: parentIndex
       });
       nodeMap.set(child.path, childIndex);
@@ -535,11 +540,11 @@ async function render() {
       return;
     }
 
-    width.value = Math.min(window.innerWidth - 40, 1600);
+    width.value = svgRef.value.parentElement!.clientWidth;
     height.value = nodes.length * 10 + 25
 
     const sankeyGenerator = sankey<GraphNode, GraphLink>()
-      .nodeWidth(50)
+      .nodeWidth(width.value < 700 ? 24 : 50)
       .nodePadding(5)
       .nodeAlign(sankeyLeft)
       .extent([[1, 1], [width.value - 1, height.value - 6]])
@@ -606,14 +611,21 @@ async function render() {
         .attr("opacity", 0.9),
       exit => exit.transition(exit_transition).attr("opacity", 0).remove()
     )
-    .attr("cursor", "pointer")
+    .attr("cursor", d => nodeTarget(d) ? "pointer" : null)
+    .attr("tabindex", d => nodeTarget(d) ? 0 : null)
+    .attr("role", d => nodeTarget(d) ? "link" : null)
+    .attr("aria-label", d => nodeTarget(d) && (d.node === 0
+      ? `Go back to ${parentPath(currentRootPath.value)}`
+      : `Explore ${d.path}, ${formatNumber(d.activity)} commits`))
     .on("click", (e, d) => {
-       router.push({
-         query: { ...route.query, path: d.path }
-       });
+      const target = nodeTarget(d);
+      if (target) navigateTo(target);
     })
-    // Pass root activity for percentage calc
-    .on("mouseover", (e, d) => showTooltip(e, d, graph.nodes[0].activity || 0))
+    .on("keydown", (e, d) => {
+      const target = nodeTarget(d);
+      if (target && e.key === "Enter") navigateTo(target);
+    })
+    .on("mouseover", showTooltip)
     .on("mousemove", moveTooltip)
     .on("mouseout", hideTooltip);
 
@@ -639,10 +651,9 @@ async function render() {
         .attr("opacity", 0.3),
       exit => exit.transition(exit_transition).attr("opacity", 0).remove()
     )
-    .style("mix-blend-mode", "multiply")
     .on("mouseover", function(e, d) {
       select(this).attr("opacity", 0.7);
-      showTooltip(e, d.target, graph.nodes[0].activity || 0);
+      showTooltip(e, d.target);
     })
     .on("mousemove", moveTooltip)
     .on("mouseout", function() {
@@ -739,15 +750,11 @@ async function render() {
 
 // --- Tooltip Logic ---
 
-function showTooltip(event: MouseEvent, node: any, rootActivity: number) {
+function showTooltip(event: MouseEvent, dataNode: GraphNode) {
   if (!tooltipRef.value) return;
-
-  const isLink = !node.name && node.target;
-  const dataNode = isLink ? node.target : node;
 
   tooltipData.value = {
     name: dataNode.name,
-    path: dataNode.path,
     // IMPORTANT: Use .activity (real data) not .value (visual height)
     value: dataNode.activity,
     commit_per_day: (dataNode.activity / (smoothingWindow.value * 7)).toFixed(2),
@@ -784,6 +791,14 @@ function debouncedRender() {
   }, 50);
 }
 
+function onWindowChange() {
+  const value = smoothingWindow.value === DEFAULT_WINDOW
+    ? undefined
+    : String(smoothingWindow.value);
+  router.replace({ query: { ...route.query, window: value } });
+  debouncedRender();
+}
+
 watch(
   () => route.query,
   (newQuery) => {
@@ -798,6 +813,11 @@ watch(
     const newPath = (Array.isArray(newQuery.path) ? newQuery.path[0] : newQuery.path) || '.';
     if (newPath !== currentRootPath.value) {
       currentRootPath.value = newPath as string;
+      needsRender = true;
+    }
+    const newWindow = Number(newQuery.window) || DEFAULT_WINDOW;
+    if (newWindow !== smoothingWindow.value) {
+      smoothingWindow.value = newWindow;
       needsRender = true;
     }
     if (needsRender) render();
@@ -817,10 +837,9 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.sankey-page {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+.sankey-container {
+  position: relative;
+  min-height: 500px;
 }
 
 .sankey-svg {
@@ -833,9 +852,15 @@ onUnmounted(() => {
   min-width: 150px;
   background: color-mix(in srgb, var(--surface) 98%, transparent);
   box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-  border: 1px solid #f0f0f0;
+  border: 1px solid var(--line);
   border-radius: 6px;
   pointer-events: none;
   transition: opacity 0.1s;
+}
+
+.sankey-svg :deep(rect:focus-visible) {
+  outline: none;
+  stroke: var(--ink);
+  stroke-width: 2px;
 }
 </style>

@@ -310,6 +310,28 @@ const tests = [
     `,
   },
   {
+    name: 'commit rates sankey: open a directory, files lead nowhere',
+    url: 'commit-rates-sankey?repository=chromium&window=100',
+    run: `
+      const dir = await __t.until(() => [...document.querySelectorAll('.sankey-svg rect[role=link]')].find(r => r.getAttribute('aria-label')?.startsWith('Explore chrome,')), 25000);
+      const files = __t.count('.sankey-svg rect:not([role])');
+      const slider = __t.text('.level-right .has-text-weight-bold');
+      dir.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+      const ok = await __t.until(() => location.search.includes('path=chrome') && __t.text('.breadcrumb li:last-child') === 'chrome', 8000);
+      const back = await __t.until(() => document.querySelector('.sankey-svg rect[aria-label="Go back to ."]'), 15000);
+      return { ok: !!(ok && back && files > 0 && /100 weeks/.test(slider)), detail: 'url=' + decodeURIComponent(location.search) + ' files=' + files + ' ' + slider };
+    `,
+  },
+  {
+    name: 'page view: renders, and counts no visit off the deployed site',
+    url: 'page-view',
+    run: `
+      const ok = await __t.until(() => document.querySelector('.page-view svg') || /could not be loaded/.test(document.body.innerText), 20000);
+      const counters = __t.count('img[src*="hitscounter"]');
+      return { ok: !!ok && counters === 0, detail: 'title=' + __t.text('h1') + ' counters=' + counters };
+    `,
+  },
+  {
     name: 'repositories: what/grouping update chart',
     url: 'repositories',
     run: `
