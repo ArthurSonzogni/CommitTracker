@@ -2,9 +2,17 @@ import JSON5 from "json5";
 import fs from "fs/promises";
 import statusLine from '@alt-jero/status-line';
 
-const chromium_repo =
-  "https://raw.githubusercontent.com/chromium/chromium/main";
-const commit_stats = `${chromium_repo}/third_party/blink/tools/commit_stats/`;
+// From Gitiles, as raw.githubusercontent.com rate-limits the CI (429). It
+// serves the files base64-encoded with `?format=TEXT`.
+const commit_stats =
+  "https://chromium.googlesource.com/chromium/src/+/main/third_party/blink/tools/commit_stats";
+const fetchCommitStats = async file => {
+  const response = await fetch(`${commit_stats}/${file}?format=TEXT`);
+  if (!response.ok) {
+    throw new Error(`Fetching ${file}: ${response.status}`);
+  }
+  return Buffer.from(await response.text(), "base64").toString();
+};
 
 // -----------------------------------------------------------------------------
 
@@ -16,8 +24,7 @@ const commit_stats = `${chromium_repo}/third_party/blink/tools/commit_stats/`;
 // org2,host2
 // [...]
 // ```
-const org_list_response = await fetch(`${commit_stats}/org-list.txt`);
-const org_list = await org_list_response.text();
+const org_list = await fetchCommitStats("org-list.txt");
 
 // Import the `org-list.txt` file from the local file system, which might
 // supplement some additional organizations. They should eventually be
@@ -67,8 +74,7 @@ await fs.writeFile(
 //
 //  [...]
 // }
-const affiliation_response = await fetch(`${commit_stats}/affiliations.json5`);
-const affiliation_response_text = await affiliation_response.text();
+const affiliation_response_text = await fetchCommitStats("affiliations.json5");
 console.log(affiliation_response_text);
 const affiliation = JSON5.parse(affiliation_response_text);
 
