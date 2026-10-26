@@ -13,14 +13,20 @@
 //
 // The state is saved, so the next run only replays the new commits.
 //
-// Usage: node accretion.mjs <repo dirname> [--since=<date>] [--no-ignore-revs]
-//                                           [--validate[=<files>]]
-//   --since           Start from this date, instead of the first commit. The
-//                     lines existing before are attributed to "unknown".
-//   --no-ignore-revs  Do not use .git-blame-ignore-revs.
-//   --validate        Compare the state against the repository: the number of
-//                     lines of every file, and `git blame` for a few of them.
-//                     It needs a full clone.
+// Usage: node accretion.mjs <repo dirname> [options]
+//   --since=<date>      Start from this date, instead of the first commit. The
+//                       lines existing before are attributed to "unknown".
+//   --validate[=<n>]    Compare the state against the repository: the number of
+//                       lines of every file, and `git blame` for n of them.
+//                       It needs a full clone.
+//   --output=<dir>      Instead of ../public/accretion, for experiments.
+// The methods, for comparing them. They are kept in the state, for the next
+// runs to use the same:
+//   --no-ignore-revs    Do not use .git-blame-ignore-revs.
+//   --no-renames        Do not follow the renamed files.
+//   --ignore-whitespace Lines only differing by whitespace keep their author.
+//   --commit-date       Date the lines when they landed, instead of authored.
+//   --exclude=<glob>    Do not count these files. Can be repeated.
 
 import fs from "fs/promises";
 import path from "path";
@@ -72,7 +78,38 @@ const BROKEN_COMMITS = {
   chromium: ["5d4451ebf298d9d71f716cc0135f465cec41fcd0"],
 };
 
+const DEFAULT_OPTIONS = {
+  ignore_revs: true,
+  renames: true,
+  whitespace: false,
+  commit_date: false,
+  exclude: [],
+};
+
 const UNKNOWN = 0; // Commit index of the lines existing before --since.
+
+// The directories are tracked up to this depth, with Blink counted as a
+// top-level directory. Their lines are counted per month written in: index 0
+// for UNKNOWN, then one per month since 2000.
+const DIRECTORY_DEPTH = 3;
+const MONTHS = 1 + 12 * 50;
+const Month = time => {
+  const date = new Date(time * 1000);
+  return 1 + Math.max(0, (date.getUTCFullYear() - 2000) * 12 + date.getUTCMonth());
+};
+const Directories = file => {
+  const parts = file.split("/");
+  parts.pop();
+  if (parts[0] === "third_party" && (parts[1] === "blink" || parts[1] === "WebKit")) {
+    // Blink was named third_party/WebKit until 2017.
+    parts.splice(0, 2, "third_party/blink");
+  }
+  const directories = [];
+  for (let i = 1; i <= Math.min(DIRECTORY_DEPTH, parts.length); i++) {
+    directories.push(parts.slice(0, i).join("/"));
+  }
+  return directories;
+};
 
 // --- Git ---------------------------------------------------------------------
 
@@ -90,9 +127,11 @@ const run = (args, cwd, raw = false) => new Promise((resolve, reject) => {
 // The diff of a range of commits, with only the lines we need. The content
 // lines start with +, - or space, so the filter can't confuse them with
 // headers.
-const GitLog = (cwd, chunk, pathspecs) => {
+const GitLog = (cwd, chunk, pathspecs, options) => {
   const format = "--format=%x01%H %at %ct %ae";
-  const diff = ["-p", "-U0", "-M", `-l${CONFIG.rename_limit}`,
+  const diff = ["-p", "-U0",
+    ...(options.renames ? ["-M", `-l${CONFIG.rename_limit}`] : ["--no-renames"]),
+    ...(options.whitespace ? ["-w"] : []),
     "--no-color", "--no-ext-diff", "--no-textconv"];
   const quote = args => args
     .map(arg => `'${arg.replaceAll("'", "'\\''")}'`).join(" ");
@@ -142,7 +181,7 @@ class State {
   constructor() {
     this.head = null;          // Last replayed commit.
     this.base = null;          // Parent of the first replayed commit.
-    this.ignore_revs = true;   // Whether .git-blame-ignore-revs is used.
+    this.options = DEFAULT_OPTIONS; // The method, see the usage.
     this.next_sample = null;   // Unix time of the next sample.
     this.authors = [];         // Author id -> email.
     this.author_ids = new Map();
@@ -150,8 +189,15 @@ class State {
     this.commit_author = [-1]; // Commit index -> author id.
     this.alive = [0];          // Commit index -> lines still alive.
     this.files = new Map();    // Path -> runs, as an Int32Array.
-    this.samples = [];         // [time, {year: lines}].
+    this.samples = [];         // [time, {year: lines}, recent].
     this.author_samples = [];  // [time, [author id, lines, ...]].
+    this.commit_month = [0];   // Commit index -> Month().
+    this.directories = new Map(); // Directory -> lines per month (Int32Array).
+    this.directory_names = []; // Directory id -> name.
+    this.directory_ids = new Map();
+    // Every 13 weeks: [time, [directory id, recent, years count,
+    //                         (year - 2000, lines)...]...].
+    this.directory_samples = [];
   }
 
   addCommit(time, email) {
@@ -163,6 +209,7 @@ class State {
     }
     this.commit_time.push(time);
     this.commit_author.push(author);
+    this.commit_month.push(Month(time));
     this.alive.push(0);
     return this.commit_time.length - 1;
   }
@@ -172,19 +219,36 @@ class State {
     if (runs.length === 0) return;
     if (!(runs instanceof Int32Array)) runs = Int32Array.from(runs);
     this.files.set(file, runs);
-    for (let i = 0; i < runs.length; i += 2) this.alive[runs[i]] += runs[i + 1];
+    this.account(file, runs, 1);
   }
 
   removeFile(file) {
     const runs = this.files.get(file);
     if (!runs) return;
-    for (let i = 0; i < runs.length; i += 2) this.alive[runs[i]] -= runs[i + 1];
+    this.account(file, runs, -1);
     this.files.delete(file);
+  }
+
+  // Count (sign = 1) or uncount (sign = -1) the lines of a file.
+  account(file, runs, sign) {
+    const directories = Directories(file).map(directory => {
+      if (!this.directories.has(directory)) {
+        this.directories.set(directory, new Int32Array(MONTHS));
+      }
+      return this.directories.get(directory);
+    });
+    for (let i = 0; i < runs.length; i += 2) {
+      const lines = sign * runs[i + 1];
+      this.alive[runs[i]] += lines;
+      const month = this.commit_month[runs[i]];
+      for (const months of directories) months[month] += lines;
+    }
   }
 
   sample(time) {
     const years = {};
     const authors = new Map();
+    let recent = 0; // Lines of the last 365 days.
     for (let commit = 0; commit < this.alive.length; commit++) {
       const lines = this.alive[commit];
       if (lines === 0) continue;
@@ -192,32 +256,70 @@ class State {
         ? "unknown"
         : new Date(this.commit_time[commit] * 1000).getUTCFullYear();
       years[year] = (years[year] || 0) + lines;
+      if (commit !== UNKNOWN && this.commit_time[commit] > time - 365 * 86400) {
+        recent += lines;
+      }
       const author = this.commit_author[commit];
       authors.set(author, (authors.get(author) || 0) + lines);
     }
-    this.samples.push([time, years]);
+    this.samples.push([time, years, recent]);
+    if (this.samples.length % 13 === 1) this.sampleDirectories(time);
     // Every 4 weeks for the authors, as there are many of them.
     if (this.samples.length % 4 === 1) {
       this.author_samples.push([time, [...authors].flat()]);
     }
   }
 
+  sampleDirectories(time) {
+    this.directory_samples.push([time, this.directoryValues(time)]);
+  }
+
+  // The directories at `time`, in the format of `directory_samples`.
+  directoryValues(time) {
+    const last_year = Month(time) - 12;
+    const values = [];
+    for (const [directory, months] of this.directories) {
+      const years = new Map();
+      let recent = 0;
+      for (let month = 0; month < MONTHS; month++) {
+        const lines = months[month];
+        if (lines === 0) continue;
+        // UNKNOWN is year -1, stored as 0.
+        const year = month === 0 ? 0 : 1 + Math.floor((month - 1) / 12);
+        years.set(year, (years.get(year) || 0) + lines);
+        if (month > last_year) recent += lines;
+      }
+      if (years.size === 0) continue;
+      let id = this.directory_ids.get(directory);
+      if (id === undefined) {
+        id = this.directory_names.length;
+        this.directory_names.push(directory);
+        this.directory_ids.set(directory, id);
+      }
+      values.push(id, recent, years.size, ...[...years].flat());
+    }
+    return values;
+  }
+
   // Binary layout, gzipped:
   // - JSON header (length prefixed).
   // - commit_time, commit_author as Uint32 arrays.
   // - For each file: path length, path, run count, runs as varints.
+  // - For each directory sample: time, value count, values as varints.
   serialize() {
     const header = Buffer.from(JSON.stringify({
       version: 1,
       head: this.head,
       base: this.base,
-      ignore_revs: this.ignore_revs,
+      options: this.options,
       next_sample: this.next_sample,
       authors: this.authors,
       commits: this.commit_time.length,
       files: this.files.size,
       samples: this.samples,
       author_samples: this.author_samples,
+      directory_names: this.directory_names,
+      directory_samples: this.directory_samples.length,
     }));
     const parts = [];
     const u32 = value => {
@@ -252,6 +354,11 @@ class State {
       varint(runs.length / 2);
       for (const value of runs) varint(value);
     }
+    for (const [time, values] of this.directory_samples) {
+      varint(time);
+      varint(values.length);
+      for (const value of values) varint(value);
+    }
     parts.push(Buffer.from(bytes.buffer, 0, size));
     return zlib.gzipSync(Buffer.concat(parts));
   }
@@ -266,7 +373,7 @@ class State {
     offset += header_length;
     state.head = header.head;
     state.base = header.base;
-    state.ignore_revs = header.ignore_revs;
+    state.options = { ...DEFAULT_OPTIONS, ...header.options };
     state.next_sample = header.next_sample;
     state.authors = header.authors;
     state.authors.forEach((email, id) => state.author_ids.set(email, id));
@@ -282,7 +389,10 @@ class State {
     };
     state.commit_time = u32s();
     state.commit_author = u32s().map(id => id === 0xffffffff ? -1 : id);
+    state.commit_month = state.commit_time.map((time, i) => i === UNKNOWN ? 0 : Month(time));
     state.alive = new Array(header.commits).fill(0);
+    state.directory_names = header.directory_names || [];
+    state.directory_names.forEach((name, id) => state.directory_ids.set(name, id));
 
     const varint = () => {
       let value = 0;
@@ -301,6 +411,12 @@ class State {
       const runs = new Int32Array(varint() * 2);
       for (let j = 0; j < runs.length; j++) runs[j] = varint();
       state.setFile(decoder.decode(name), runs);
+    }
+    for (let i = 0; i < (header.directory_samples || 0); i++) {
+      const time = varint();
+      const values = new Array(varint());
+      for (let j = 0; j < values.length; j++) values[j] = varint();
+      state.directory_samples.push([time, values]);
     }
     return state;
   }
@@ -491,7 +607,8 @@ class Replayer {
         if (this.main && state.next_sample === null) {
           state.next_sample = NextMonday(time);
         }
-        commit = state.addCommit(Number(author_time), email.join(" "));
+        commit = state.addCommit(Number(state.options.commit_date
+          ? commit_time : author_time), email.join(" "));
         ignored = this.ignore_revs.has(hash);
       } else if (line.startsWith("diff --git ")) {
         const file = parseDiffLine(line);
@@ -550,7 +667,11 @@ const WriteOutput = async (state, dir) => {
     dates: state.samples.map(([time]) => Day(time)),
     years,
     lines: state.samples.map(([, values]) => years.map(year => values[year] || 0)),
+    recent: state.samples.map(([, , recent]) => recent),
+    median_age: MedianAge(state),
   }));
+
+  await WriteDirectories(state, dir);
 
   // Usernames: their lines over time, merging their emails like the rest of
   // the site. The state keeps the raw emails, for the mailmap to be updated
@@ -583,6 +704,100 @@ const WriteOutput = async (state, dir) => {
   leaderboard.sort((a, b) => b.lines - a.lines);
   await fs.writeFile(path.join(dir, "leaderboard.json"),
     JSON.stringify(leaderboard.slice(0, 100)));
+};
+
+// The median age of the lines alive, in days, at the last sample.
+const MedianAge = state => {
+  const now = state.samples.at(-1)[0];
+  const commits = [];
+  for (let commit = 1; commit < state.alive.length; commit++) {
+    if (state.alive[commit] > 0) commits.push(commit);
+  }
+  commits.sort((a, b) => state.commit_time[b] - state.commit_time[a]);
+  const total = commits.reduce((sum, commit) => sum + state.alive[commit], 0);
+  let seen = 0;
+  for (const commit of commits) {
+    seen += state.alive[commit];
+    if (2 * seen >= total) {
+      return Math.round((now - state.commit_time[commit]) / 86400);
+    }
+  }
+  return null;
+};
+
+// Directories: for each with at least MIN_LINES lines, its lines per year
+// over time (directories/<path>.json), and a summary (directories.json).
+const WriteDirectories = async (state, dir) => {
+  const MIN_LINES = 1000;
+  // The state is at the last commit, newer than the last sample.
+  const now = Math.floor(Date.now() / 1000);
+  const decode = values => {
+    const result = new Map();
+    for (let i = 0; i < values.length;) {
+      const [id, recent, count] = [values[i], values[i + 1], values[i + 2]];
+      const years = {};
+      for (let j = 0; j < count; j++) {
+        const year = values[i + 3 + 2 * j];
+        years[year === 0 ? "unknown" : String(1999 + year)] = values[i + 4 + 2 * j];
+      }
+      result.set(state.directory_names[id], { recent, years });
+      i += 3 + 2 * count;
+    }
+    return result;
+  };
+  // The samples, plus the current lines.
+  const samples = [...state.directory_samples, [now, state.directoryValues(now)]]
+    .map(([time, values]) => [time, decode(values)]);
+  const current = samples.at(-1)[1];
+  // The last sample at least a year old.
+  const year_ago = samples.findLast(([time]) => time <= now - 365 * 86400)?.[1];
+
+  const output = path.join(dir, "directories");
+  await fs.rm(output, { recursive: true, force: true });
+  const summary = [];
+  for (const [name, { recent, years }] of current) {
+    const lines = Object.values(years).reduce((a, b) => a + b, 0);
+    if (lines < MIN_LINES) continue;
+
+    // The median age, in years, from the lines per month.
+    const months = state.directories.get(name);
+    let seen = 0;
+    let median_age = null;
+    for (let month = MONTHS - 1; month > 0; month--) {
+      seen += months[month];
+      if (2 * seen >= lines) {
+        median_age = Math.round((Month(now) - month) / 1.2) / 10;
+        break;
+      }
+    }
+    const before = year_ago?.get(name);
+    summary.push({
+      path: name,
+      lines,
+      recent,
+      year_ago: before
+        ? Object.values(before.years).reduce((a, b) => a + b, 0)
+        : 0,
+      median_age,
+    });
+
+    const history = samples.filter(([, values]) => values.has(name));
+    const keys = new Set();
+    history.forEach(([, values]) => Object.keys(values.get(name).years)
+      .forEach(key => keys.add(key)));
+    const columns = [...keys].sort();
+    const file = path.join(output, `${name}.json`);
+    await fs.mkdir(path.dirname(file), { recursive: true });
+    await fs.writeFile(file, JSON.stringify({
+      dates: history.map(([time]) => Day(time)),
+      years: columns,
+      lines: history.map(([, values]) => columns.map(year =>
+        values.get(name).years[year] || 0)),
+      recent: history.map(([, values]) => values.get(name).recent),
+    }));
+  }
+  summary.sort((a, b) => b.lines - a.lines || a.path.localeCompare(b.path));
+  await fs.writeFile(path.join(dir, "directories.json"), JSON.stringify(summary));
 };
 
 // --- Validation --------------------------------------------------------------
@@ -618,7 +833,7 @@ const Validate = async (state, cwd, dir, pathspecs, blame_count) => {
   // Its heuristic for the ignored revisions differs a bit from ours.
   const range = state.base ? [state.head, `^${state.base}`] : [state.head];
   const options = [];
-  if (state.ignore_revs) {
+  if (state.options.ignore_revs) {
     const file = path.resolve(dir, "ignore-revs.tmp");
     await fs.writeFile(file, await run(["git", "show",
       `${state.head}:.git-blame-ignore-revs`], cwd));
@@ -672,13 +887,12 @@ const Validate = async (state, cwd, dir, pathspecs, blame_count) => {
 
 const main = async () => {
   const [dirname, ...flags] = process.argv.slice(2);
-  const flag = name => {
-    const arg = flags.find(f => f === `--${name}` || f.startsWith(`--${name}=`));
-    return arg && (arg.includes("=") ? arg.split("=")[1] : true);
-  };
+  const values = name => flags
+    .filter(f => f === `--${name}` || f.startsWith(`--${name}=`))
+    .map(f => f.includes("=") ? f.slice(f.indexOf("=") + 1) : true);
+  const flag = name => values(name)[0];
   const cwd = dirname;
-  const pathspecs = PATHSPECS[dirname] || PATHSPECS.default;
-  const dir = path.join(CONFIG.output_dir, dirname);
+  const dir = path.join(flag("output") || CONFIG.output_dir, dirname);
   const state_file = path.join(dir, "state.bin.gz");
   await fs.mkdir(dir, { recursive: true });
 
@@ -688,7 +902,17 @@ const main = async () => {
     console.log(`Loaded state at ${state.head}: ${state.files.size} files`);
   } catch (error) {
     state = new State();
+    state.options = {
+      ignore_revs: !flag("no-ignore-revs"),
+      renames: !flag("no-renames"),
+      whitespace: !!flag("ignore-whitespace"),
+      commit_date: !!flag("commit-date"),
+      exclude: values("exclude"),
+    };
   }
+  console.log("Options:", JSON.stringify(state.options));
+  const pathspecs = [...(PATHSPECS[dirname] || PATHSPECS.default),
+    ...state.options.exclude.map(glob => `:(exclude,glob)${glob}`)];
 
   // In the CI, there is no checkout, or a shallow one: fetch the history since
   // the last replayed commit. Its commit date is less than a week before the
@@ -715,8 +939,7 @@ const main = async () => {
   }
 
   const ignore_revs = new Set();
-  if (!state.head) state.ignore_revs = !flag("no-ignore-revs");
-  if (state.ignore_revs) {
+  if (state.options.ignore_revs) {
     try {
       const text = await run(["git", "show", "origin/main:.git-blame-ignore-revs"], cwd);
       for (const line of text.split("\n")) {
@@ -781,9 +1004,7 @@ const Replay = async (state, cwd, pathspecs, ignore_revs, commits) => {
     replayer.main = false;
     await ReplayChunks(replayer, side, cwd, pathspecs);
     // Their lines count once the merge adds them to the main history.
-    for (const runs of state.files.values()) {
-      for (let i = 0; i < runs.length; i += 2) state.alive[runs[i]] -= runs[i + 1];
-    }
+    for (const [file, runs] of state.files) state.account(file, runs, -1);
     replayer.imports.set(commit.hash, state.files);
     replayer.main = true;
     state.files = files;
@@ -823,7 +1044,7 @@ const ReplayChunks = async (replayer, commits, cwd, pathspecs) => {
     while (running < CONFIG.concurrency && next < chunks.length &&
       next < replayed + CONFIG.lookahead) {
       running++;
-      pending[next] = GitLog(cwd, chunks[next++], pathspecs)
+      pending[next] = GitLog(cwd, chunks[next++], pathspecs, state.options)
         .finally(() => { running--; schedule(); });
     }
   };

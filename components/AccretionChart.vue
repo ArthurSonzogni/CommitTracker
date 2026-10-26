@@ -105,6 +105,8 @@ const render = () => {
   const milestones = props.milestones
     .map(m => ({ ...m, x: x(new Date(m.date)) }))
     .filter(m => m.x >= 0 && m.x <= width);
+  // On narrow screens, the labels would overlap: only the lines are drawn.
+  const labeled = width > 600;
   select(milestonesGroup.value)
     .selectAll(".milestone")
     .data(milestones, m => m.label)
@@ -134,7 +136,7 @@ const render = () => {
         .attr("text-anchor", m => m.x > width / 2 ? "end" : "start")
         .attr("x", m => m.x > width / 2 ? m.x - 4 : m.x + 4)
         .attr("y", (m, i) => 12 + i * 14)
-        .text(m => m.label);
+        .text(m => labeled ? m.label : "");
     });
 
   // Label the years thick enough at the right edge.
