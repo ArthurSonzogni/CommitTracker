@@ -269,7 +269,12 @@ const tests = [
       const opened = await __t.until(() => new URLSearchParams(location.search).get('dir') === name && __t.text('.breadcrumb').includes(name));
       history.back();
       const back = await __t.until(() => !location.search.includes('dir='));
-      return { ok: !!rendered && !!opened && !!back, detail: 'opened=' + name + ' hexagons=' + __t.count('.hex-reduction polygon') };
+      const charts = __t.count('.chart');
+      __t.byText('.collapsible-toggle', 'Fresh code').click();
+      const folded = await __t.until(() => new URLSearchParams(location.search).get('hide') === 'f' && __t.count('.chart') === charts - 1);
+      __t.byText('.collapsible-toggle', 'Fresh code').click();
+      const unfolded = await __t.until(() => !location.search.includes('hide=') && __t.count('.chart') === charts);
+      return { ok: !!rendered && !!opened && !!back && !!folded && !!unfolded, detail: 'opened=' + name + ' hexagons=' + __t.count('.hex-reduction polygon') + ' folded=' + !!folded + ' unfolded=' + !!unfolded };
     `,
   },
   {

@@ -138,22 +138,25 @@
           </div>
         </div>
 
-        <FilterPanel :summary="share ? 'Share of the total' : 'Number of lines'">
-          <UiField label="Display">
-            <UiSegmented v-model="share" :options="[
-              { value: false, label: 'Lines' },
-              { value: true, label: 'Share' },
-            ]" />
-          </UiField>
-        </FilterPanel>
+        <CollapsibleSection title="Lines per year written" :collapsed="isHidden('c')"
+          @toggle="toggleHidden('c')">
+          <FilterPanel :summary="share ? 'Share of the total' : 'Number of lines'">
+            <UiField label="Display">
+              <UiSegmented v-model="share" :options="[
+                { value: false, label: 'Lines' },
+                { value: true, label: 'Share' },
+              ]" />
+            </UiField>
+          </FilterPanel>
 
-        <div class="chart">
-          <AccretionChart :data="scope" :share="share"
-            :milestones="directory ? [] : repositoryMilestones" />
-        </div>
+          <div class="chart">
+            <AccretionChart :data="scope" :share="share"
+              :milestones="directory ? [] : repositoryMilestones" />
+          </div>
+        </CollapsibleSection>
 
-        <template v-if="children.length">
-          <h2 class="title is-4 mt-6">Directories</h2>
+        <CollapsibleSection v-if="children.length" title="Directories"
+          :collapsed="isHidden('d')" @toggle="toggleHidden('d')">
           <p class="mb-4">
             Click a directory to look into it. <em>Growth</em> is over the
             last year. <em>Fresh</em> is the share of lines written in the
@@ -188,94 +191,102 @@
               {{ props.row[`owned_${i}`] ? ownedShare(props.row[`owned_${i}`]) : "" }}
             </UiTableColumn>
           </UiTable>
-        </template>
+        </CollapsibleSection>
 
-        <h2 class="title is-4 mt-6">Fresh code</h2>
-        <p class="mb-4">
-          The share of the lines written in the last 365 days, among all the
-          lines alive.
-        </p>
-        <div class="chart">
-          <LineChart :data="freshness" :formatter="percent"
-            :milestones="directory ? [] : repositoryMilestones" />
-        </div>
-
-        <h2 class="title is-4 mt-6">Yearly reduction</h2>
-        <p class="mb-4">
-          The share of the lines of a year removed or rewritten during each of
-          the following years, from January to January.
-          <template v-if="halfLife">
-            With the median rates, half of the lines of a year are gone
-            <strong>{{ halfLife.toFixed(1) }} years</strong> after it ends.
-          </template>
-          Negative when lines were added to an old year, like when Blink was
-          merged. Point at a value to see the year its lines were written in,
-          the year they were removed in, and their age.
-        </p>
-        <HexReduction v-model="crossed" :years="reductionYears" />
-        <p v-if="crossed" class="crossed-detail">
-          Lines written in <strong>{{ crossed.written }}</strong>, removed or
-          rewritten during <strong>{{ crossed.removed }}</strong>, at
-          <strong>{{ crossed.age }} year{{ crossed.age > 1 ? "s" : "" }}</strong>
-          old: <strong>{{ percent(crossed.value) }}</strong>.
-        </p>
-
-        <h2 class="title is-4 mt-6">Developers</h2>
-        <p class="mb-4">
-          The lines each developer wrote, still alive over time, in all of
-          {{ name }}. Each selected developer also gets a column in the
-          directories above, with the share of each directory they own.
-        </p>
-        <UiField>
-          <DevelopersInput v-model="developers" />
-        </UiField>
-        <ul v-if="scopeOwnership.length" class="ownership mb-4">
-          <li v-for="entry in scopeOwnership" :key="entry.username">
-            <span class="swatch" :style="{ background: $color(entry.username) }" />
-            <strong>{{ entry.username }}</strong> owns {{ compact(entry.owned) }}
-            lines, {{ ownedShare(entry.share) }} of {{ directory || name }}.
-          </li>
-        </ul>
-        <div v-for="entry in ownershipTrees" :key="entry.username" class="mb-5">
-          <p class="mb-2">
-            <span class="swatch" :style="{ background: $color(entry.username) }" />
-            Where <strong>{{ entry.username }}</strong> owns lines in
-            {{ directory || name }}: sized by their lines, darker where they
-            own a larger share. Click a directory to look into it.
+        <CollapsibleSection title="Fresh code" :collapsed="isHidden('f')"
+          @toggle="toggleHidden('f')">
+          <p class="mb-4">
+            The share of the lines written in the last 365 days, among all the
+            lines alive.
           </p>
-          <OwnershipTreemap :tree="entry.tree" :color="$color(entry.username)"
-            @select="path => directory = path" />
-        </div>
-        <p v-if="developers.length === 0" class="mb-4 hint">
-          Add developers, or pick them in the table below.
-        </p>
-        <div v-else class="chart">
-          <LineChart :data="developerData" :formatter="lines" />
-        </div>
+          <div class="chart">
+            <LineChart :data="freshness" :formatter="percent"
+              :milestones="directory ? [] : repositoryMilestones" />
+          </div>
+        </CollapsibleSection>
 
-        <h2 class="title is-4 mt-6">Most lines alive</h2>
-        <UiTable :data="leaderboard" hoverable striped :paginated="true" :per-page="20">
-          <UiTableColumn field="rank" label="#" v-slot="props" numeric>
-            {{ props.row.rank }}
-          </UiTableColumn>
-          <UiTableColumn field="username" label="Developer" v-slot="props">
-            <NuxtLink :to="`/developers/${props.row.username}`">
-              {{ props.row.username }}
-            </NuxtLink>
-          </UiTableColumn>
-          <UiTableColumn field="lines" label="Lines alive" v-slot="props" numeric sortable>
-            {{ lines(props.row.lines) }}
-          </UiTableColumn>
-          <UiTableColumn field="peak" label="Peak" v-slot="props" numeric sortable>
-            {{ lines(props.row.peak) }}
-          </UiTableColumn>
-          <UiTableColumn label="Chart" v-slot="props">
-            <button type="button" class="button is-small"
-              @click="toggleDeveloper(props.row.username)">
-              {{ developers.includes(props.row.username) ? "Hide" : "Show" }}
-            </button>
-          </UiTableColumn>
-        </UiTable>
+        <CollapsibleSection title="Yearly reduction" :collapsed="isHidden('y')"
+          @toggle="toggleHidden('y')">
+          <p class="mb-4">
+            The share of the lines of a year removed or rewritten during each of
+            the following years, from January to January.
+            <template v-if="halfLife">
+              With the median rates, half of the lines of a year are gone
+              <strong>{{ halfLife.toFixed(1) }} years</strong> after it ends.
+            </template>
+            Negative when lines were added to an old year, like when Blink was
+            merged. Point at a value to see the year its lines were written in,
+            the year they were removed in, and their age.
+          </p>
+          <HexReduction v-model="crossed" :years="reductionYears" />
+          <p v-if="crossed" class="crossed-detail">
+            Lines written in <strong>{{ crossed.written }}</strong>, removed or
+            rewritten during <strong>{{ crossed.removed }}</strong>, at
+            <strong>{{ crossed.age }} year{{ crossed.age > 1 ? "s" : "" }}</strong>
+            old: <strong>{{ percent(crossed.value) }}</strong>.
+          </p>
+        </CollapsibleSection>
+
+        <CollapsibleSection title="Developers" :collapsed="isHidden('v')"
+          @toggle="toggleHidden('v')">
+          <p class="mb-4">
+            The lines each developer wrote, still alive over time, in all of
+            {{ name }}. Each selected developer also gets a column in the
+            directories above, with the share of each directory they own.
+          </p>
+          <UiField>
+            <DevelopersInput v-model="developers" />
+          </UiField>
+          <ul v-if="scopeOwnership.length" class="ownership mb-4">
+            <li v-for="entry in scopeOwnership" :key="entry.username">
+              <span class="swatch" :style="{ background: $color(entry.username) }" />
+              <strong>{{ entry.username }}</strong> owns {{ compact(entry.owned) }}
+              lines, {{ ownedShare(entry.share) }} of {{ directory || name }}.
+            </li>
+          </ul>
+          <div v-for="entry in ownershipTrees" :key="entry.username" class="mb-5">
+            <p class="mb-2">
+              <span class="swatch" :style="{ background: $color(entry.username) }" />
+              Where <strong>{{ entry.username }}</strong> owns lines in
+              {{ directory || name }}: sized by their lines, darker where they
+              own a larger share. Click a directory to look into it.
+            </p>
+            <OwnershipTreemap :tree="entry.tree" :color="$color(entry.username)"
+              @select="path => directory = path" />
+          </div>
+          <p v-if="developers.length === 0" class="mb-4 hint">
+            Add developers, or pick them in the table below.
+          </p>
+          <div v-else class="chart">
+            <LineChart :data="developerData" :formatter="lines" />
+          </div>
+        </CollapsibleSection>
+
+        <CollapsibleSection title="Most lines alive" :collapsed="isHidden('l')"
+          @toggle="toggleHidden('l')">
+          <UiTable :data="leaderboard" hoverable striped :paginated="true" :per-page="20">
+            <UiTableColumn field="rank" label="#" v-slot="props" numeric>
+              {{ props.row.rank }}
+            </UiTableColumn>
+            <UiTableColumn field="username" label="Developer" v-slot="props">
+              <NuxtLink :to="`/developers/${props.row.username}`">
+                {{ props.row.username }}
+              </NuxtLink>
+            </UiTableColumn>
+            <UiTableColumn field="lines" label="Lines alive" v-slot="props" numeric sortable>
+              {{ lines(props.row.lines) }}
+            </UiTableColumn>
+            <UiTableColumn field="peak" label="Peak" v-slot="props" numeric sortable>
+              {{ lines(props.row.peak) }}
+            </UiTableColumn>
+            <UiTableColumn label="Chart" v-slot="props">
+              <button type="button" class="button is-small"
+                @click="toggleDeveloper(props.row.username)">
+                {{ developers.includes(props.row.username) ? "Hide" : "Show" }}
+              </button>
+            </UiTableColumn>
+          </UiTable>
+        </CollapsibleSection>
       </div>
     </section>
   </div>
@@ -305,6 +316,15 @@ const years = value => value === null ? "" : `${value.toFixed(1)} y`;
 const share = ref(route.query.share === "true");
 const repository = ref(route.query.repository || "chromium");
 const directory = ref(route.query.dir || "");
+// The folded sections, one letter each: c(hart), d(irectories), f(resh code),
+// y(early reduction), (de)v(elopers), l(eaderboard).
+const hidden = ref(route.query.hide || "");
+const isHidden = code => hidden.value.includes(code);
+const toggleHidden = code => {
+  hidden.value = (isHidden(code)
+    ? hidden.value.replace(code, "")
+    : hidden.value + code).split("").sort().join("");
+};
 const developers = ref(route.query.developers
   ? route.query.developers.split(",")
   : []);
@@ -668,13 +688,14 @@ const query = () => ({
   share: share.value ? "true" : undefined,
   dir: directory.value || undefined,
   developers: developers.value.join(",") || undefined,
+  hide: hidden.value || undefined,
 });
 const sameQuery = (a, b) => {
   const defined = q => JSON.stringify(Object.entries(q)
     .filter(([, value]) => value !== undefined).sort());
   return defined(a) === defined(b);
 };
-watch([share, repository, directory, developers],
+watch([share, repository, directory, developers, hidden],
   ([, newRepository, newDirectory], [, oldRepository, oldDirectory]) => {
     if (sameQuery(query(), route.query)) return;
     const navigation = newRepository !== oldRepository || newDirectory !== oldDirectory;
@@ -686,6 +707,7 @@ watch(() => route.query, value => {
   share.value = value.share === "true";
   repository.value = value.repository || "chromium";
   directory.value = value.dir || "";
+  hidden.value = value.hide || "";
   const list = value.developers ? value.developers.split(",") : [];
   if (list.join(",") !== developers.value.join(",")) developers.value = list;
 });
