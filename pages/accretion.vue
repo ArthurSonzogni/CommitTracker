@@ -138,7 +138,7 @@
           </div>
         </div>
 
-        <CollapsibleSection title="Lines per year written" :collapsed="isHidden('c')"
+        <CollapsibleSection title="Lines per year written" id="chart" :collapsed="isHidden('c')"
           @toggle="toggleHidden('c')">
           <FilterPanel :summary="share ? 'Share of the total' : 'Number of lines'">
             <UiField label="Display">
@@ -156,7 +156,7 @@
         </CollapsibleSection>
 
         <CollapsibleSection v-if="children.length" title="Directories"
-          :collapsed="isHidden('d')" @toggle="toggleHidden('d')">
+          id="directories" :collapsed="isHidden('d')" @toggle="toggleHidden('d')">
           <p class="mb-4">
             Click a directory to look into it. <em>Growth</em> is over the
             last year. <em>Fresh</em> is the share of lines written in the
@@ -193,7 +193,7 @@
           </UiTable>
         </CollapsibleSection>
 
-        <CollapsibleSection title="Fresh code" :collapsed="isHidden('f')"
+        <CollapsibleSection title="Fresh code" id="fresh-code" :collapsed="isHidden('f')"
           @toggle="toggleHidden('f')">
           <p class="mb-4">
             The share of the lines written in the last 365 days, among all the
@@ -205,7 +205,7 @@
           </div>
         </CollapsibleSection>
 
-        <CollapsibleSection title="Yearly reduction" :collapsed="isHidden('y')"
+        <CollapsibleSection title="Yearly reduction" id="yearly-reduction" :collapsed="isHidden('y')"
           @toggle="toggleHidden('y')">
           <p class="mb-4">
             The share of the lines of a year removed or rewritten during each of
@@ -227,7 +227,7 @@
           </p>
         </CollapsibleSection>
 
-        <CollapsibleSection title="Developers" :collapsed="isHidden('v')"
+        <CollapsibleSection title="Developers" id="developers" :collapsed="isHidden('v')"
           @toggle="toggleHidden('v')">
           <p class="mb-4">
             The lines each developer wrote, still alive over time, in all of
@@ -262,7 +262,7 @@
           </div>
         </CollapsibleSection>
 
-        <CollapsibleSection title="Most lines alive" :collapsed="isHidden('l')"
+        <CollapsibleSection title="Most lines alive" id="leaderboard" :collapsed="isHidden('l')"
           @toggle="toggleHidden('l')">
           <UiTable :data="leaderboard" hoverable striped :paginated="true" :per-page="20">
             <UiTableColumn field="rank" label="#" v-slot="props" numeric>
@@ -417,6 +417,14 @@ watch(repository, async () => {
   directories.value = directoriesJson || [];
   leaderboard.value = (leaderboardJson || []).map((entry, i) => ({ ...entry, rank: i + 1 }));
 }, { immediate: true });
+
+// A link to a section scrolls to it once the data is loaded: the sections
+// aren't all there before.
+watch(cohorts, async () => {
+  if (!location.hash) return;
+  await nextTick();
+  document.getElementById(location.hash.slice(1))?.scrollIntoView();
+}, { once: true });
 
 // Blink is a top-level directory.
 const parentOf = path => path === "third_party/blink" || !path.includes("/")
@@ -699,7 +707,7 @@ watch([share, repository, directory, developers, hidden],
   ([, newRepository, newDirectory], [, oldRepository, oldDirectory]) => {
     if (sameQuery(query(), route.query)) return;
     const navigation = newRepository !== oldRepository || newDirectory !== oldDirectory;
-    router[navigation ? "push" : "replace"]({ query: query() });
+    router[navigation ? "push" : "replace"]({ query: query(), hash: route.hash });
   });
 
 // Back and forward.

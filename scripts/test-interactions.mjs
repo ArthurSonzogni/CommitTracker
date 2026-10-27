@@ -278,6 +278,20 @@ const tests = [
     `,
   },
   {
+    name: 'accretion: a link to a section scrolls to it',
+    url: 'accretion?hide=c#yearly-reduction',
+    run: `
+      const section = await __t.until(() => document.getElementById('yearly-reduction'), 20000);
+      await __t.until(() => __t.count('.hex-reduction polygon') > 10, 20000);
+      await __t.sleep(500);
+      const top = section.getBoundingClientRect().top;
+      const scrolled = top >= 0 && top < 200;
+      const anchor = section.querySelector('a.section-link').getAttribute('href');
+      const folded = __t.count('#chart .chart') === 0;
+      return { ok: scrolled && anchor === '#yearly-reduction' && folded, detail: 'top=' + Math.round(top) + ' anchor=' + anchor + ' folded=' + folded };
+    `,
+  },
+  {
     name: 'accretion: developer ownership of the directories',
     url: 'accretion?dir=third_party/blink&developers=tkent',
     run: `
