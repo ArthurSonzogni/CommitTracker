@@ -7,8 +7,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    # A repository without data is replayed from a full clone. WebKit's is
-    # 13 GB.
+    # The shallow clones of the largest repositories take several GB.
     - name: Free disk space
       shell: bash
       run: |
@@ -33,6 +32,10 @@ runs:
     # Every repository, except the cones: they are directories of their
     # parent. The clones of the other modules have no history, and are
     # replaced. They are removed after use, for the disk space.
+    # A repository without a state is skipped: its initial backfill replays
+    # its whole history, and is done locally:
+    #   cd importer && node --max-old-space-size=8192 accretion.mjs <dirname>
+    # then the state is added to the accretion-state branch.
     - name: Generate accretion data
       shell: bash
       run: |
@@ -43,6 +46,10 @@ runs:
           console.log(repositories.filter(repo => !repo.cone).map(repo => repo.dirname).join(" "));
         ')
         for repository in $repositories; do
+          if [ ! -e "../public/accretion/$repository/state.bin.gz" ]; then
+            echo "::notice::Accretion skipped for $repository: no state, backfill it locally first."
+            continue
+          fi
           echo "::group::$repository"
           rm -rf "$repository"
           node --max-old-space-size=8192 accretion.mjs "$repository" ||
@@ -52,21 +59,18 @@ runs:
         done
 
     # The state is saved weekly, as the samples are: the days in between
-    # replay the week again, in seconds. A new repository is saved at once, to
-    # not replay its whole history every day.
+    # replay the week again, in seconds.
     - name: Separate the replay state
       id: state
       shell: bash
       run: |
         mkdir -p state
-        new=false
         for state in public/accretion/*/state.bin.gz; do
           repository=$(basename $(dirname $state))
-          [ -e accretion-state/$repository/state.bin.gz ] || new=true
           mkdir -p state/$repository
           mv $state state/$repository/
         done
-        if [ "$new" = true ] || [ "$(date +%u)" = 1 ]; then
+        if [ "$(date +%u)" = 1 ]; then
           echo "push=true" >> $GITHUB_OUTPUT
         fi
 
