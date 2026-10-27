@@ -205,13 +205,23 @@
           merged. Point at a value to see the year its lines were written in,
           the year they were removed in, and their age.
         </p>
-        <UiField label="Columns">
-          <UiSegmented v-model="reductionColumns" :options="[
-            { value: 'age', label: 'Age' },
-            { value: 'removed', label: 'Removed in' },
-          ]" />
-        </UiField>
-        <div class="table-container">
+        <div class="reduction-options">
+          <UiField label="Layout">
+            <UiSegmented v-model="reductionLayout" :options="[
+              { value: 'table', label: 'Table' },
+              { value: 'hexagons', label: 'Hexagons' },
+            ]" />
+          </UiField>
+          <UiField v-if="reductionLayout === 'table'" label="Columns">
+            <UiSegmented v-model="reductionColumns" :options="[
+              { value: 'age', label: 'Age' },
+              { value: 'removed', label: 'Removed in' },
+            ]" />
+          </UiField>
+        </div>
+        <HexReduction v-if="reductionLayout === 'hexagons'" v-model="crossed"
+          :years="reductionYears" />
+        <div v-else class="table-container">
           <table class="table is-narrow reduction" @mouseleave="crossed = null">
             <thead>
               <tr>
@@ -493,6 +503,7 @@ const reduction = computed(() => {
 // The table of the reductions, with the age or the year of the removal as
 // columns. A cell crosses three lines: the year written (its row), its age,
 // and the year removed. Hovering or tapping one highlights the other two.
+const reductionLayout = ref("table");
 const reductionColumns = ref("age");
 const crossed = shallowRef(null);
 const isCrossed = cell => {
@@ -507,9 +518,11 @@ const medianOf = values => {
     .sort((a, b) => a - b);
   return sorted.length ? sorted[Math.floor(sorted.length / 2)] : null;
 };
+const reductionYears = computed(() => reduction.value.rows
+  .filter(row => row.label !== "Median")
+  .map(row => ({ written: Number(row.label), values: row.values })));
 const reductionTable = computed(() => {
-  const years = reduction.value.rows.filter(row => row.label !== "Median")
-    .map(row => ({ written: Number(row.label), values: row.values }));
+  const years = reductionYears.value;
   if (years.length === 0) return { columns: [], rows: [] };
   const byAge = reductionColumns.value === "age";
   // Removed during the year `written + age`, from January to January.
@@ -543,7 +556,7 @@ const reductionTable = computed(() => {
   };
   return { columns, rows: [medianRow, ...rows] };
 });
-watch(reductionColumns, () => crossed.value = null);
+watch([reductionLayout, reductionColumns], () => crossed.value = null);
 
 // The years for half of the lines of a year to be gone, with the median
 // reduction of each age.
@@ -734,6 +747,12 @@ watch(() => route.query, value => {
 
 .reduction td.selected {
   box-shadow: inset 0 0 0 2px var(--ink);
+}
+
+.reduction-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.5rem;
 }
 
 .crossed-detail {
