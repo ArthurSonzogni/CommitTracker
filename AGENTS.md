@@ -97,7 +97,8 @@ dirname, color, GitHub owner/repo, optional `cone` subdirectory + `parent`,
   Each module is a composite action in `.github/actions/<module>/` that
   pushes its data branch.
 - `cd.yaml` — on push to `main` or importer completion: pull data, derive,
-  `generate`, run interaction tests, deploy `.output/public` to `gh-pages`.
+  `generate`, run interaction tests, deploy `.output/public` to GitHub Pages
+  as an artifact (the `gh-pages` branch is no longer used).
 
 ### Site structure notes
 

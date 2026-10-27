@@ -17,14 +17,23 @@ on:
       - main
 
 # One deployment at a time: a newer run waits for the current one, instead of
-# racing it to push gh-pages.
+# racing it to deploy.
 concurrency:
   group: cd
   cancel-in-progress: false
 
+# For deploying to GitHub Pages.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   cd:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - name: Checkout main repository
         uses: actions/checkout@v4
@@ -47,10 +56,13 @@ jobs:
       - name: Test website interactions
         run: npm run test:interactions
 
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v4
+      # Deployed as an artifact: much faster than committing the 200k files
+      # of the site to a branch, and building it again.
+      - name: Upload website
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .output/public
-          publish_branch: gh-pages
-          force_orphan: true
+          path: .output/public
+
+      - name: Deploy
+        id: deploy
+        uses: actions/deploy-pages@v4

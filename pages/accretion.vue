@@ -568,15 +568,34 @@ watch(developers, async () => {
     .filter(entry => entry);
 }, { immediate: true });
 
-watch([share, repository, directory, developers], () => {
-  router.replace({
-    query: {
-      repository: repository.value === "chromium" ? undefined : repository.value,
-      share: share.value ? "true" : undefined,
-      dir: directory.value || undefined,
-      developers: developers.value.join(",") || undefined,
-    },
+// The state is in the URL. Selecting a repository or a directory adds an
+// entry to the history, for the back and forward buttons. The other changes
+// replace it.
+const query = () => ({
+  repository: repository.value === "chromium" ? undefined : repository.value,
+  share: share.value ? "true" : undefined,
+  dir: directory.value || undefined,
+  developers: developers.value.join(",") || undefined,
+});
+const sameQuery = (a, b) => {
+  const defined = q => JSON.stringify(Object.entries(q)
+    .filter(([, value]) => value !== undefined).sort());
+  return defined(a) === defined(b);
+};
+watch([share, repository, directory, developers],
+  ([, newRepository, newDirectory], [, oldRepository, oldDirectory]) => {
+    if (sameQuery(query(), route.query)) return;
+    const navigation = newRepository !== oldRepository || newDirectory !== oldDirectory;
+    router[navigation ? "push" : "replace"]({ query: query() });
   });
+
+// Back and forward.
+watch(() => route.query, value => {
+  share.value = value.share === "true";
+  repository.value = value.repository || "chromium";
+  directory.value = value.dir || "";
+  const list = value.developers ? value.developers.split(",") : [];
+  if (list.join(",") !== developers.value.join(",")) developers.value = list;
 });
 </script>
 
