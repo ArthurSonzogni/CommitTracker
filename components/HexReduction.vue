@@ -53,6 +53,7 @@ const hexagon = (x, y) => Array.from({ length: 6 }, (_, i) => {
 // right.
 const layout = computed(() => {
   const years = [...props.years].sort((a, b) => b.written - a.written);
+  if (years.length === 0) return { cells: [], labels: [], titles: [], width: 0, height: 0 };
   const position = (k, a) => ({ x: (a - k / 2) * WIDTH, y: k * ROW });
   const cells = [];
   const labels = [];
@@ -91,6 +92,7 @@ const layout = computed(() => {
     y: (items[0].y + items.at(-1).y) / 2,
   });
   const along = (items, angle, distance) => {
+    if (items.length === 0) return null;
     const { x, y } = middle(items);
     const normal = (angle - 90) * Math.PI / 180;
     return { x: x + distance * Math.cos(normal), y: y + distance * Math.sin(normal), angle };
@@ -99,10 +101,11 @@ const layout = computed(() => {
   const aged = labels.filter(label => label.age !== undefined);
   const removed = labels.filter(label => label.removed !== undefined);
   const titles = [
-    { text: "Added in", ...along(written, -60, 60) },
-    { text: "Lifetime", ...along(aged, 60, 75) },
-    { text: "Removed in", ...along(removed, 0, -22) },
-  ].filter(title => !isNaN(title.x));
+    { text: "Added in", position: along(written, -60, 60) },
+    { text: "Lifetime", position: along(aged, 60, 75) },
+    { text: "Removed in", position: along(removed, 0, -22) },
+  ].filter(title => title.position)
+    .map(({ text, position }) => ({ text, ...position }));
   // Move everything in view.
   const all = [...cells, ...labels, ...titles];
   const minX = Math.min(...all.map(item => item.x));
