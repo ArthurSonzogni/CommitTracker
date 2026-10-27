@@ -826,15 +826,23 @@ const WriteOutput = async (state, dir) => {
     }
   });
 
+  // Grouped by first letter, as one file per developer would make tens of
+  // thousands of files to deploy.
   await fs.rm(path.join(dir, "usernames"), { recursive: true, force: true });
   await fs.mkdir(path.join(dir, "usernames"), { recursive: true });
   const leaderboard = [];
+  const buckets = new Map();
   for (const [username, lines] of usernames) {
     const first = lines.findIndex(value => value > 0);
     if (first === -1) continue;
-    await fs.writeFile(path.join(dir, "usernames", `${username}.json`),
-      JSON.stringify({ dates: dates.slice(first), lines: lines.slice(first) }));
+    const bucket = UsernameBucket(username);
+    if (!buckets.has(bucket)) buckets.set(bucket, { dates, users: {} });
+    buckets.get(bucket).users[username] = { first, lines: lines.slice(first) };
     leaderboard.push({ username, lines: lines.at(-1), peak: Math.max(...lines) });
+  }
+  for (const [bucket, content] of buckets) {
+    await fs.writeFile(path.join(dir, "usernames", `${bucket}.json`),
+      JSON.stringify(content));
   }
   leaderboard.sort((a, b) => b.lines - a.lines);
   await fs.writeFile(path.join(dir, "leaderboard.json"),
@@ -862,6 +870,14 @@ const MedianAge = state => {
 
 // Directories: for each with at least MIN_LINES lines, its lines per year
 // over time (directories/<path>.json), and a summary (directories.json).
+// The files grouping the developers and the directories. The page computes
+// them the same way.
+const UsernameBucket = username =>
+  /^[a-z0-9]/i.test(username) ? username[0].toLowerCase() : "_";
+const DirectoryPack = directory => directory.startsWith("third_party/blink")
+  ? "third_party/blink"
+  : directory.split("/")[0];
+
 const WriteDirectories = async (state, dir) => {
   const MIN_LINES = 1000;
   // The state is at the last commit, newer than the last sample.
@@ -890,6 +906,9 @@ const WriteDirectories = async (state, dir) => {
   const output = path.join(dir, "directories");
   await fs.rm(output, { recursive: true, force: true });
   const summary = [];
+  // Grouped by top-level directory, as one file per directory would make
+  // thousands of files to deploy.
+  const packs = new Map();
   for (const [name, { recent, years }] of current) {
     const lines = Object.values(years).reduce((a, b) => a + b, 0);
     if (lines < MIN_LINES) continue;
@@ -921,15 +940,20 @@ const WriteDirectories = async (state, dir) => {
     history.forEach(([, values]) => Object.keys(values.get(name).years)
       .forEach(key => keys.add(key)));
     const columns = [...keys].sort();
-    const file = path.join(output, `${name}.json`);
-    await fs.mkdir(path.dirname(file), { recursive: true });
-    await fs.writeFile(file, JSON.stringify({
+    const pack = DirectoryPack(name);
+    if (!packs.has(pack)) packs.set(pack, {});
+    packs.get(pack)[name] = {
       dates: history.map(([time]) => Day(time)),
       years: columns,
       lines: history.map(([, values]) => columns.map(year =>
         values.get(name).years[year] || 0)),
       recent: history.map(([, values]) => values.get(name).recent),
-    }));
+    };
+  }
+  for (const [pack, content] of packs) {
+    const file = path.join(output, `${pack}.json`);
+    await fs.mkdir(path.dirname(file), { recursive: true });
+    await fs.writeFile(file, JSON.stringify(content));
   }
   summary.sort((a, b) => b.lines - a.lines || a.path.localeCompare(b.path));
   await fs.writeFile(path.join(dir, "directories.json"), JSON.stringify(summary));

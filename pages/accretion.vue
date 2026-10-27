@@ -390,10 +390,23 @@ const breadcrumb = computed(() => {
   return parts;
 });
 
+// The directories and the developers are grouped in files, like the importer
+// does: per top-level directory, and per first letter.
+const files = new Map();
+const fetchFile = url => {
+  if (!files.has(url)) files.set(url, fetchJson(url));
+  return files.get(url);
+};
+const directoryPack = path => path.startsWith("third_party/blink")
+  ? "third_party/blink"
+  : path.split("/")[0];
+const usernameBucket = username =>
+  /^[a-z0-9]/i.test(username) ? username[0].toLowerCase() : "_";
+
 watch([repository, directory], async () => {
-  directoryData.value = directory.value
-    ? await fetchJson(`/accretion/${repository.value}/directories/${directory.value}.json`)
-    : null;
+  const pack = directory.value && await fetchFile(
+    `/accretion/${repository.value}/directories/${directoryPack(directory.value)}.json`);
+  directoryData.value = pack?.[directory.value] || null;
 }, { immediate: true });
 
 // The data of the selected scope: the repository, or a directory.
@@ -539,15 +552,18 @@ const freshness = computed(() => {
 });
 
 watch(developers, async () => {
-  const jsons = await Promise.all(developers.value.map(username =>
-    fetchJson(`/accretion/${repository.value}/usernames/${username}.json`)));
+  const buckets = await Promise.all(developers.value.map(username => fetchFile(
+    `/accretion/${repository.value}/usernames/${usernameBucket(username)}.json`)));
   developerData.value = developers.value
-    .map((username, i) => jsons[i] && {
-      label: username,
-      values: jsons[i].dates.map((date, j) => ({
-        x: new Date(date),
-        y: jsons[i].lines[j],
-      })),
+    .map((username, i) => {
+      const user = buckets[i]?.users[username];
+      return user && {
+        label: username,
+        values: user.lines.map((lines, j) => ({
+          x: new Date(buckets[i].dates[user.first + j]),
+          y: lines,
+        })),
+      };
     })
     .filter(entry => entry);
 }, { immediate: true });
