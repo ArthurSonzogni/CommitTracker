@@ -1,6 +1,6 @@
 <template>
   <!-- A section whose title folds and unfolds its content, with an anchor
-       and a button copying the link to it. -->
+       copying the link to it when clicked. -->
   <section :id="id" class="collapsible-section">
     <h2 class="title is-4">
       <button type="button" class="collapsible-toggle" :aria-expanded="!collapsed"
@@ -8,14 +8,10 @@
         <UiIcon :name="collapsed ? 'chevron-right' : 'chevron-down'" size="small" />
         <span>{{ title }}</span>
       </button>
-      <a class="section-link" :href="`#${id}`" :title="`Link to ${title}`"
-        :aria-label="`Link to ${title}`">
-        <UiIcon name="link-variant" size="small" />
+      <a class="section-link" :href="`#${id}`" :title="`Copy the link to ${title}`"
+        :aria-label="`Copy the link to ${title}`" @click.prevent="copy">
+        <UiIcon :name="copied ? 'check' : 'link-variant'" size="small" />
       </a>
-      <button type="button" class="section-link" :title="`Copy the link to ${title}`"
-        :aria-label="`Copy the link to ${title}`" @click="copy">
-        <UiIcon :name="copied ? 'check' : 'content-copy'" size="small" />
-      </button>
     </h2>
     <div v-if="!collapsed">
       <slot />
