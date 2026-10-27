@@ -202,28 +202,47 @@
             <strong>{{ halfLife.toFixed(1) }} years</strong> after it ends.
           </template>
           Negative when lines were added to an old year, like when Blink was
-          merged.
+          merged. Point at a value to see the year its lines were written in,
+          the year they were removed in, and their age.
         </p>
+        <UiField label="Columns">
+          <UiSegmented v-model="reductionColumns" :options="[
+            { value: 'age', label: 'Age' },
+            { value: 'removed', label: 'Removed in' },
+          ]" />
+        </UiField>
         <div class="table-container">
-          <table class="table is-narrow is-hoverable reduction">
+          <table class="table is-narrow reduction" @mouseleave="crossed = null">
             <thead>
               <tr>
                 <th>Written in</th>
-                <th v-for="age in reduction.ages" :key="age">Year {{ age }}</th>
+                <th v-for="column in reductionTable.columns" :key="column.key"
+                  :class="{ crossed: isCrossed(column) }">{{ column.label }}</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="row in reduction.rows" :key="row.label"
-                :class="{ median: row.label === 'Median' }">
-                <th>{{ row.label }}</th>
-                <td v-for="(value, i) in row.values" :key="i"
-                  :style="value === null ? null : { '--value': Math.max(0, Math.min(1, value / 0.4)) }">
-                  {{ value === null ? "" : percent(value) }}
+              <tr v-for="row in reductionTable.rows" :key="row.label"
+                :class="{ median: row.median }">
+                <th :class="{ crossed: !row.median && crossed?.written === row.written }">
+                  {{ row.label }}
+                </th>
+                <td v-for="cell in row.cells" :key="cell.key"
+                  :class="{ crossed: isCrossed(cell), selected: cell === crossed }"
+                  :style="cell.value === null ? null : { '--value': Math.max(0, Math.min(1, cell.value / 0.4)) }"
+                  @mouseenter="crossed = cell.value === null ? null : cell"
+                  @click="crossed = cell.value === null ? null : cell">
+                  {{ cell.value === null ? "" : percent(cell.value) }}
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
+        <p v-if="crossed && !crossed.median" class="crossed-detail">
+          Lines written in <strong>{{ crossed.written }}</strong>, removed or
+          rewritten during <strong>{{ crossed.removed }}</strong>, at
+          <strong>{{ crossed.age }} year{{ crossed.age > 1 ? "s" : "" }}</strong>
+          old: <strong>{{ percent(crossed.value) }}</strong>.
+        </p>
 
         <h2 class="title is-4 mt-6">Developers</h2>
         <p class="mb-4">
@@ -471,6 +490,61 @@ const reduction = computed(() => {
   };
 });
 
+// The table of the reductions, with the age or the year of the removal as
+// columns. A cell crosses three lines: the year written (its row), its age,
+// and the year removed. Hovering or tapping one highlights the other two.
+const reductionColumns = ref("age");
+const crossed = shallowRef(null);
+const isCrossed = cell => {
+  const c = crossed.value;
+  if (!c || c === cell || cell.value === null) return false;
+  return (cell.written !== undefined && cell.written === c.written && !c.median) ||
+    (cell.age !== undefined && cell.age === c.age) ||
+    (cell.removed !== undefined && cell.removed === c.removed);
+};
+const medianOf = values => {
+  const sorted = values.filter(value => value !== null && value !== undefined)
+    .sort((a, b) => a - b);
+  return sorted.length ? sorted[Math.floor(sorted.length / 2)] : null;
+};
+const reductionTable = computed(() => {
+  const years = reduction.value.rows.filter(row => row.label !== "Median")
+    .map(row => ({ written: Number(row.label), values: row.values }));
+  if (years.length === 0) return { columns: [], rows: [] };
+  const byAge = reductionColumns.value === "age";
+  // Removed during the year `written + age`, from January to January.
+  const columns = byAge
+    ? reduction.value.ages.map(age => ({ key: age, age, label: `Year ${age}` }))
+    : Array.from(
+      { length: Math.max(...years.map(y => y.written + y.values.length)) -
+        Math.min(...years.map(y => y.written)) },
+      (_, i) => {
+        const removed = Math.min(...years.map(y => y.written)) + 1 + i;
+        return { key: removed, removed, label: String(removed) };
+      }).filter(column => years.some(y => y.values[column.removed - y.written - 1] != null));
+  const rows = years.map(({ written, values }) => ({
+    label: String(written),
+    written,
+    cells: columns.map(column => {
+      const age = byAge ? column.age : column.removed - written;
+      const value = age >= 1 ? values[age - 1] ?? null : null;
+      return { key: column.key, written, age, removed: written + age, value };
+    }),
+  }));
+  const medianRow = {
+    label: "Median",
+    median: true,
+    cells: columns.map((column, i) => ({
+      key: column.key,
+      median: true,
+      ...(byAge ? { age: column.age } : { removed: column.removed }),
+      value: medianOf(rows.map(row => row.cells[i].value)),
+    })),
+  };
+  return { columns, rows: [medianRow, ...rows] };
+});
+watch(reductionColumns, () => crossed.value = null);
+
 // The years for half of the lines of a year to be gone, with the median
 // reduction of each age.
 const halfLife = computed(() => {
@@ -647,5 +721,23 @@ watch(() => route.query, value => {
 
 .reduction tr.median {
   font-weight: bold;
+}
+
+.reduction td {
+  cursor: default;
+}
+
+/* The row, the column and the diagonal crossing the selected value. */
+.reduction .crossed {
+  box-shadow: inset 0 0 0 1px var(--muted);
+}
+
+.reduction td.selected {
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+
+.crossed-detail {
+  color: var(--ink-2);
+  font-size: 0.875rem;
 }
 </style>
