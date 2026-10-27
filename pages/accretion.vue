@@ -185,7 +185,7 @@
             <UiTableColumn v-for="(username, i) in developers" :key="username"
               :field="`owned_${i}`" :label="username" v-slot="props" numeric sortable
               :td-attrs="row => paint(row[`owned_${i}`], username)">
-              {{ props.row[`owned_${i}`] ? percent(props.row[`owned_${i}`]) : "" }}
+              {{ props.row[`owned_${i}`] ? ownedShare(props.row[`owned_${i}`]) : "" }}
             </UiTableColumn>
           </UiTable>
         </template>
@@ -233,7 +233,7 @@
           <li v-for="entry in scopeOwnership" :key="entry.username">
             <span class="swatch" :style="{ background: $color(entry.username) }" />
             <strong>{{ entry.username }}</strong> owns {{ compact(entry.owned) }}
-            lines, {{ percent(entry.share) }} of {{ directory || name }}.
+            lines, {{ ownedShare(entry.share) }} of {{ directory || name }}.
           </li>
         </ul>
         <p v-if="developers.length === 0" class="mb-4 hint">
@@ -287,6 +287,8 @@ const compact = format(".3~s");
 const percent = value => value === null || isNaN(value) ? "" : format(".1%")(value);
 const signedCompact = format("+.2~s");
 const truncate = (text, length) => text.length > length ? `${text.slice(0, length - 1)}…` : text;
+// A share owned, never shown as 0.0% when there is something.
+const ownedShare = value => value > 0 && value < 0.0005 ? "<0.1%" : percent(value);
 const signedPercent = value => value === null || isNaN(value) ? "" : format("+.1%")(value);
 const years = value => value === null ? "" : `${value.toFixed(1)} y`;
 
