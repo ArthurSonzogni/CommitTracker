@@ -13,6 +13,11 @@
           {{ short(cell.value) }}
         </text>
       </g>
+      <text v-for="title in layout.titles" :key="title.text" class="side-title"
+        :transform="`translate(${title.x}, ${title.y}) rotate(${title.angle})`"
+        dominant-baseline="central" text-anchor="middle">
+        {{ title.text }}
+      </text>
       <text v-for="label in layout.labels" :key="label.key" class="axis"
         :class="{ dimmed: crossed && !onCrossedLine(label) }"
         :x="label.x" :y="label.y" dominant-baseline="central" :text-anchor="label.anchor">
@@ -34,7 +39,7 @@ const crossed = defineModel({ default: null });
 const SIZE = 25; // The radius of a hexagon.
 const WIDTH = Math.sqrt(3) * SIZE;
 const ROW = 1.5 * SIZE;
-const MARGIN = { left: 60, top: 30, right: 70, bottom: 30 };
+const MARGIN = { left: 90, top: 30, right: 110, bottom: 55 };
 
 const short = value => format(Math.abs(value) >= 1 ? ".0%" : ".1%")(value);
 
@@ -68,7 +73,7 @@ const layout = computed(() => {
   for (let age = 1; age <= ages; age++) {
     const k = years.findIndex(year => year.values[age - 1] != null);
     if (k === -1) continue;
-    labels.push({ key: `a${age}`, age, text: `Year ${age}`, anchor: "start",
+    labels.push({ key: `a${age}`, age, text: `${age} year${age > 1 ? "s" : ""}`, anchor: "start",
       ...position(k - 1, age - 0.4) });
   }
   // Bottom side: the years removed, where their ↘ diagonal ends.
@@ -79,8 +84,27 @@ const layout = computed(() => {
     labels.push({ key: `r${removed}`, removed, text: String(removed),
       anchor: "middle", ...position(last, i + 2) });
   });
+  // The titles of the three sides, along them, outside of their labels. The
+  // sides are at 60 degrees.
+  const middle = items => ({
+    x: (items[0].x + items.at(-1).x) / 2,
+    y: (items[0].y + items.at(-1).y) / 2,
+  });
+  const along = (items, angle, distance) => {
+    const { x, y } = middle(items);
+    const normal = (angle - 90) * Math.PI / 180;
+    return { x: x + distance * Math.cos(normal), y: y + distance * Math.sin(normal), angle };
+  };
+  const written = labels.filter(label => label.written !== undefined);
+  const aged = labels.filter(label => label.age !== undefined);
+  const removed = labels.filter(label => label.removed !== undefined);
+  const titles = [
+    { text: "Added in", ...along(written, -60, 60) },
+    { text: "Lifetime", ...along(aged, 60, 75) },
+    { text: "Removed in", ...along(removed, 0, -22) },
+  ].filter(title => !isNaN(title.x));
   // Move everything in view.
-  const all = [...cells, ...labels];
+  const all = [...cells, ...labels, ...titles];
   const minX = Math.min(...all.map(item => item.x));
   const minY = Math.min(...all.map(item => item.y));
   all.forEach(item => {
@@ -90,6 +114,7 @@ const layout = computed(() => {
   return {
     cells,
     labels,
+    titles,
     width: Math.max(...all.map(item => item.x)) + MARGIN.right,
     height: Math.max(...all.map(item => item.y)) + MARGIN.bottom,
   };
@@ -124,6 +149,14 @@ text {
   font-size: 10px;
   font-variant-numeric: tabular-nums;
   pointer-events: none;
+}
+
+text.side-title {
+  fill: var(--ink-2);
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
 text.axis {
