@@ -278,7 +278,8 @@ const tests = [
     run: `
       const column = await __t.until(() => [...document.querySelectorAll('table th')].some(th => th.textContent.trim() === 'tkent'), 20000);
       const owned = await __t.until(() => (__t.text('.ownership') || '').includes('tkent owns') && __t.text('.ownership').includes('of third_party/blink'), 20000);
-      return { ok: !!column && !!owned, detail: __t.text('.ownership') };
+      const treemap = await __t.until(() => __t.count('.ownership-treemap rect') > 3, 20000);
+      return { ok: !!column && !!owned && !!treemap, detail: __t.text('.ownership') + ' rectangles=' + __t.count('.ownership-treemap rect') };
     `,
   },
   {

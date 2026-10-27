@@ -236,6 +236,16 @@
             lines, {{ ownedShare(entry.share) }} of {{ directory || name }}.
           </li>
         </ul>
+        <div v-for="entry in ownershipTrees" :key="entry.username" class="mb-5">
+          <p class="mb-2">
+            <span class="swatch" :style="{ background: $color(entry.username) }" />
+            Where <strong>{{ entry.username }}</strong> owns lines in
+            {{ directory || name }}: sized by their lines, darker where they
+            own a larger share. Click a directory to look into it.
+          </p>
+          <OwnershipTreemap :tree="entry.tree" :color="$color(entry.username)"
+            @select="path => directory = path" />
+        </div>
         <p v-if="developers.length === 0" class="mb-4 hint">
           Add developers, or pick them in the table below.
         </p>
@@ -610,6 +620,31 @@ const scopeOwnership = computed(() => {
       ? ownership.value.get(username)?.get(directory.value) || 0
       : user.lines.at(-1);
     return { username, owned, share: owned / scopeLines };
+  });
+});
+
+// Where each selected developer owns lines under the selected directory, as a
+// tree for the treemaps. Each directory also holds the lines owned outside of
+// its listed subdirectories ("…").
+const ownershipTrees = computed(() => {
+  const data = scope.value;
+  if (!data) return [];
+  const scopeLines = total(data.lines.at(-1));
+  return scopeOwnership.value.filter(entry => entry.owned > 0).map(({ username, owned }) => {
+    const owner = ownership.value.get(username) || new Map();
+    const build = (path, name, lines, ownedHere) => {
+      const children = directories.value
+        .filter(entry => entry.path !== path && parentOf(entry.path) === path &&
+          owner.get(entry.path))
+        .map(entry => build(entry.path, entry.path.slice(path.length).replace(/^\//, ""),
+          entry.lines, owner.get(entry.path)));
+      const rest = ownedHere - children.reduce((sum, child) => sum + child.owned, 0);
+      if (children.length && rest > 0) {
+        children.push({ key: `${path}/…`, name: "…", lines, owned: rest });
+      }
+      return { key: path || "/", path, name, lines, owned: ownedHere, children };
+    };
+    return { username, tree: build(directory.value, directory.value || name.value, scopeLines, owned) };
   });
 });
 
