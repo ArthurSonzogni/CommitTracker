@@ -159,6 +159,8 @@
             last year. <em>Fresh</em> is the share of lines written in the
             last 12 months. <em>Old code rewritten</em> is the share of the
             lines older than a year, removed or rewritten during the last year.
+            The developers selected below get a column: the share of each
+            directory they own today.
           </p>
           <UiTable :data="children" hoverable striped :paginated="children.length > 25"
             :per-page="25">
@@ -179,6 +181,11 @@
             </UiTableColumn>
             <UiTableColumn field="rewritten" label="Old code rewritten" v-slot="props" numeric sortable>
               {{ percent(props.row.rewritten) }}
+            </UiTableColumn>
+            <UiTableColumn v-for="(username, i) in developers" :key="username"
+              :field="`owned_${i}`" :label="username" v-slot="props" numeric sortable
+              :td-attrs="row => paint(row[`owned_${i}`], username)">
+              {{ props.row[`owned_${i}`] ? percent(props.row[`owned_${i}`]) : "" }}
             </UiTableColumn>
           </UiTable>
         </template>
@@ -216,12 +223,23 @@
         <h2 class="title is-4 mt-6">Developers</h2>
         <p class="mb-4">
           The lines each developer wrote, still alive over time, in all of
-          {{ name }}.
+          {{ name }}. Each selected developer also gets a column in the
+          directories above, with the share of each directory they own.
         </p>
         <UiField>
           <DevelopersInput v-model="developers" />
         </UiField>
-        <div class="chart">
+        <ul v-if="scopeOwnership.length" class="ownership mb-4">
+          <li v-for="entry in scopeOwnership" :key="entry.username">
+            <span class="swatch" :style="{ background: $color(entry.username) }" />
+            <strong>{{ entry.username }}</strong> owns {{ compact(entry.owned) }}
+            lines, {{ percent(entry.share) }} of {{ directory || name }}.
+          </li>
+        </ul>
+        <p v-if="developers.length === 0" class="mb-4 hint">
+          Add developers, or pick them in the table below.
+        </p>
+        <div v-else class="chart">
           <LineChart :data="developerData" :formatter="lines" />
         </div>
 
@@ -241,6 +259,12 @@
           <UiTableColumn field="peak" label="Peak" v-slot="props" numeric sortable>
             {{ lines(props.row.peak) }}
           </UiTableColumn>
+          <UiTableColumn label="Chart" v-slot="props">
+            <button type="button" class="button is-small"
+              @click="toggleDeveloper(props.row.username)">
+              {{ developers.includes(props.row.username) ? "Hide" : "Show" }}
+            </button>
+          </UiTableColumn>
         </UiTable>
       </div>
     </section>
@@ -254,6 +278,7 @@ import repositories_json from '../public/data/repositories.json'
 import eventLabels from '../utils/accretion-events.json'
 
 const route = useRoute();
+const { $color } = useNuxtApp();
 const router = useRouter();
 
 
@@ -276,7 +301,6 @@ const cohorts = shallowRef(null);       // All of Chromium.
 const directories = shallowRef([]);     // The summary of every directory.
 const directoryData = shallowRef(null); // The selected directory.
 const leaderboard = shallowRef([]);
-const developerData = shallowRef([]);
 
 const missing = ref(false);
 
@@ -360,9 +384,6 @@ watch(repository, async () => {
   events.value = eventsJson || [];
   directories.value = directoriesJson || [];
   leaderboard.value = (leaderboardJson || []).map((entry, i) => ({ ...entry, rank: i + 1 }));
-  if (developers.value.length === 0) {
-    developers.value = leaderboard.value.slice(0, 5).map(entry => entry.username);
-  }
 }, { immediate: true });
 
 // Blink is a top-level directory.
@@ -410,6 +431,8 @@ const children = computed(() => directories.value
     growth: entry.year_ago ? entry.lines / entry.year_ago - 1 : null,
     fresh: entry.recent / entry.lines,
     rewritten: entry.year_ago ? 1 - (entry.lines - entry.recent) / entry.year_ago : null,
+    ...Object.fromEntries(developers.value.map((username, i) => [`owned_${i}`,
+      (ownership.value.get(username)?.get(entry.path) || 0) / entry.lines])),
   })));
 
 // For each year, the share of its lines removed during each following year,
@@ -546,22 +569,59 @@ const freshness = computed(() => {
   ].filter(entry => entry);
 });
 
-watch(developers, async () => {
+// The selected developers: { username, dates, user } where user is
+// { first, lines, directories }.
+const developerUsers = shallowRef([]);
+watch([developers, repository], async () => {
   const buckets = await Promise.all(developers.value.map(username => fetchFile(
     `/accretion/${repository.value}/usernames/${usernameBucket(username)}.json`)));
-  developerData.value = developers.value
-    .map((username, i) => {
-      const user = buckets[i]?.users[username];
-      return user && {
-        label: username,
-        values: user.lines.map((lines, j) => ({
-          x: new Date(buckets[i].dates[user.first + j]),
-          y: lines,
-        })),
-      };
-    })
+  developerUsers.value = developers.value
+    .map((username, i) => buckets[i]?.users[username] &&
+      { username, dates: buckets[i].dates, user: buckets[i].users[username] })
     .filter(entry => entry);
 }, { immediate: true });
+
+const developerData = computed(() => developerUsers.value.map(({ username, dates, user }) => ({
+  label: username,
+  values: user.lines.map((lines, j) => ({ x: new Date(dates[user.first + j]), y: lines })),
+})));
+
+// The lines each selected developer owns today: username -> Map(path -> lines).
+// The directories are referred to by their index in directories.json.
+const ownership = computed(() => new Map(developerUsers.value.map(({ username, user }) => {
+  const owned = new Map();
+  const list = user.directories || [];
+  for (let i = 0; i < list.length; i += 2) {
+    const entry = directories.value[list[i]];
+    if (entry) owned.set(entry.path, list[i + 1]);
+  }
+  return [username, owned];
+})));
+
+// The share of the selected scope each developer owns.
+const scopeOwnership = computed(() => {
+  const data = scope.value;
+  if (!data) return [];
+  const scopeLines = total(data.lines.at(-1));
+  return developerUsers.value.map(({ username, user }) => {
+    const owned = directory.value
+      ? ownership.value.get(username)?.get(directory.value) || 0
+      : user.lines.at(-1);
+    return { username, owned, share: owned / scopeLines };
+  });
+});
+
+const toggleDeveloper = username => {
+  developers.value = developers.value.includes(username)
+    ? developers.value.filter(other => other !== username)
+    : [...developers.value, username];
+};
+
+// The background of a cell, painted with the color of a developer, darker
+// for a larger share.
+const paint = (share, username) => share > 0
+  ? { style: { background: `color-mix(in srgb, ${$color(username)} ${Math.round(Math.min(1, share / 0.25) * 70)}%, transparent)` } }
+  : {};
 
 // The state is in the URL. Selecting a repository or a directory adds an
 // entry to the history, for the back and forward buttons. The other changes
@@ -632,6 +692,23 @@ watch(() => route.query, value => {
 .figure-detail {
   color: var(--muted);
   font-size: 0.8rem;
+}
+
+.ownership {
+  list-style: none;
+  margin-left: 0;
+}
+
+.swatch {
+  border-radius: 2px;
+  display: inline-block;
+  height: 0.7rem;
+  margin-right: 0.4rem;
+  width: 0.7rem;
+}
+
+.hint {
+  color: var(--muted);
 }
 
 .crossed-detail {

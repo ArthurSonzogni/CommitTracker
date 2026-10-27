@@ -259,6 +259,29 @@ const tests = [
     `,
   },
   {
+    name: 'accretion: renders, opens a directory, goes back',
+    url: 'accretion',
+    run: `
+      const rendered = await __t.until(() => __t.count('.figure') >= 4 && __t.count('.hex-reduction polygon') > 10, 20000);
+      const link = await __t.until(() => document.querySelector('table a'));
+      const name = link.textContent.trim();
+      link.click();
+      const opened = await __t.until(() => new URLSearchParams(location.search).get('dir') === name && __t.text('.breadcrumb').includes(name));
+      history.back();
+      const back = await __t.until(() => !location.search.includes('dir='));
+      return { ok: !!rendered && !!opened && !!back, detail: 'opened=' + name + ' hexagons=' + __t.count('.hex-reduction polygon') };
+    `,
+  },
+  {
+    name: 'accretion: developer ownership of the directories',
+    url: 'accretion?dir=third_party/blink&developers=tkent',
+    run: `
+      const column = await __t.until(() => [...document.querySelectorAll('table th')].some(th => th.textContent.trim() === 'tkent'), 20000);
+      const owned = await __t.until(() => (__t.text('.ownership') || '').includes('tkent owns') && __t.text('.ownership').includes('of third_party/blink'), 20000);
+      return { ok: !!column && !!owned, detail: __t.text('.ownership') };
+    `,
+  },
+  {
     name: 'individuals: author/review toggles change counts',
     url: 'individuals?developers=arthursonzogni',
     run: `

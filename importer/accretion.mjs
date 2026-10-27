@@ -806,7 +806,7 @@ const WriteOutput = async (state, dir) => {
     state.events.map(([time, lines, hash, subject, path]) =>
       ({ date: Day(time), lines, hash, subject, path }))));
 
-  await WriteDirectories(state, dir);
+  const summary = await WriteDirectories(state, dir);
 
   // Usernames: their lines over time, merging their emails like the rest of
   // the site. The state keeps the raw emails, for the mailmap to be updated
@@ -826,6 +826,31 @@ const WriteOutput = async (state, dir) => {
     }
   });
 
+  // The lines each developer owns today in the directories of the summary,
+  // as [index in the summary, lines, ...]. The generated files aren't owned.
+  const ownership = new Map(); // Username -> Map(index -> lines).
+  const indices = new Map(summary.map((entry, index) => [entry.path, index]));
+  const usernameOf = state.authors.map(email => IsEmailValid(email)
+    ? mailMap(email).split("@")[0]
+    : null);
+  for (const [file, runs] of state.files) {
+    if (GENERATED_FILE.test(file)) continue;
+    const owned = Directories(file).map(directory => indices.get(directory))
+      .filter(index => index !== undefined);
+    if (owned.length === 0) continue;
+    for (let i = 0; i < runs.length; i += 2) {
+      const author = state.commit_author[runs[i]];
+      const username = author === -1 ? null : usernameOf[author];
+      if (!username) continue;
+      if (!ownership.has(username)) ownership.set(username, new Map());
+      const directories = ownership.get(username);
+      for (const index of owned) {
+        directories.set(index, (directories.get(index) || 0) + runs[i + 1]);
+      }
+    }
+  }
+  const OWNED_MIN = 10; // Lines, below which a directory isn't listed.
+
   // Grouped by first letter, as one file per developer would make tens of
   // thousands of files to deploy.
   await fs.rm(path.join(dir, "usernames"), { recursive: true, force: true });
@@ -837,7 +862,14 @@ const WriteOutput = async (state, dir) => {
     if (first === -1) continue;
     const bucket = UsernameBucket(username);
     if (!buckets.has(bucket)) buckets.set(bucket, { dates, users: {} });
-    buckets.get(bucket).users[username] = { first, lines: lines.slice(first) };
+    const directories = [...(ownership.get(username) || [])]
+      .filter(([, owned]) => owned >= OWNED_MIN)
+      .sort((a, b) => a[0] - b[0]);
+    buckets.get(bucket).users[username] = {
+      first,
+      lines: lines.slice(first),
+      directories: directories.flat(),
+    };
     leaderboard.push({ username, lines: lines.at(-1), peak: Math.max(...lines) });
   }
   for (const [bucket, content] of buckets) {
@@ -957,6 +989,7 @@ const WriteDirectories = async (state, dir) => {
   }
   summary.sort((a, b) => b.lines - a.lines || a.path.localeCompare(b.path));
   await fs.writeFile(path.join(dir, "directories.json"), JSON.stringify(summary));
+  return summary;
 };
 
 // --- Validation --------------------------------------------------------------
