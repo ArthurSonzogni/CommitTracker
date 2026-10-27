@@ -4,19 +4,124 @@
     <section class="section">
       <div class="container">
         <h1 class="title">Code accretion</h1>
+        <FilterPanel :summary="listSummary(repositoryNames(selection), 'repositories')">
+          <RepositorySelector v-model="selection" size="is-medium"
+            :allowMultiple="false" :allowAll="false" />
+        </FilterPanel>
         <p class="mb-4">
-          The lines of code of Chromium alive over time, per year they were
+          The lines of code of {{ name }} alive over time, per year they were
           written in. Each year adds a new layer on top, which slowly erodes as
-          its lines are rewritten. Computed like <code>git blame</code>, along
-          the first-parent history, ignoring the formatting commits listed in
-          <code>.git-blame-ignore-revs</code>, and excluding
-          <code>third_party/</code> except Blink, and the translations.
+          its lines are rewritten.
+        </p>
+
+        <div class="mb-4">
+        <AboutData modal title="How is this computed?">
+          <p>
+            Each line belongs to the commit that last changed it, like
+            <code>git blame</code>, replaying the first-parent history of the
+            main branch. A line is dated by the author date of its commit.
+            The data is updated daily, and sampled every week.
+          </p>
+          <ul>
+            <li>
+              <strong>Scope:</strong> <code>third_party/</code> is excluded,
+              except Blink for Chromium, and so are the translations
+              (<code>*.xtb</code>, <code>locales/</code>) and the binary
+              files.
+            </li>
+            <li>
+              <strong>Moves:</strong> renamed and moved files keep their lines,
+              using the rename detection of git.
+            </li>
+            <li>
+              <strong>Mechanical changes:</strong> the commits listed in
+              <code>.git-blame-ignore-revs</code>, the <em>Ruff: reformat</em>
+              and <em>Update copyright headers</em> commits, and those touching
+              at least 1000 files with at most 3 added lines per file on
+              average, don't take the lines they change. Their lines keep the
+              commits of the lines they replace.
+            </li>
+            <li>
+              <strong>Imported histories:</strong> a repository merged with
+              its own history, like Blink into Chromium in 2015, keeps the
+              dates of its lines. They count from the merge.
+            </li>
+          </ul>
+          <p>
+            The developers have the lines of their commits, merging their
+            identities like the rest of the site. The bots aren't listed, and
+            the lines nobody wrote by hand go to <em>generated</em>, which
+            isn't listed either. They still count in the years:
+          </p>
+          <ul>
+            <li>
+              The generated files: in a <code>gen/</code>,
+              <code>generated/</code> or <code>generated_*/</code> directory,
+              named <code>*autogen*</code>, the
+              <code>WPT_BASE_MANIFEST*.json</code> manifests, and
+              <code>testing/buildbot/*.json</code>.
+            </li>
+            <li>
+              The vendored code: the <code>third_party/</code> directories
+              inside the others, like <code>base/third_party/</code>, the
+              <code>node_modules/</code> directories, and the copies of the
+              Speedometer, MotionMark and Dromaeo benchmarks.
+            </li>
+            <li>
+              The imports of the web-platform-tests and of the WebGPU
+              conformance tests: the commits titled <em>Import …</em>,
+              <em>Manual import …</em>, <em>Sync WPT …</em> or
+              <em>Update CTS …</em> touching <code>web_tests/external/</code>,
+              or <code>tests/wpt/</code> in Servo, even when landed by a
+              developer. The tests written by developers keep their authors.
+            </li>
+          </ul>
+          <p>
+            These rules were checked on Chromium. Other repositories have
+            their own conventions for vendored and generated code, only some
+            of which are known, like Firefox's vendored libraries. Their
+            developer rankings are approximate.
+          </p>
+          <p>The figures:</p>
+          <ul>
+            <li><strong>Fresh code:</strong> the share of the lines written in the last 365 days.</li>
+            <li><strong>Median line age:</strong> half of the lines are older.</li>
+            <li>
+              <strong>Old code rewritten:</strong> the share of the lines older
+              than a year, removed or rewritten during the last year.
+            </li>
+            <li>
+              <strong>Yearly reduction:</strong> the share of the lines of a
+              year gone during each of the following years, from January to
+              January. The <strong>half-life</strong> applies the median rates.
+            </li>
+            <li>
+              <strong>Markers:</strong> the 6 commits adding or removing the
+              most lines at once, skipping the smaller ones close to a larger
+              one. Each is explained in a few words, or by the directory where
+              its lines were added or removed.
+            </li>
+            <li>
+              <strong>Directories:</strong> up to 3 levels deep, with Blink as
+              a top-level directory. Sampled every 4 weeks.
+            </li>
+          </ul>
+          <p>
+            Changing the method moves the shares by a couple of points at
+            most. Not following the renames would change them the most, with
+            2 to 5 more points of fresh code.
+          </p>
+        </AboutData>
+        </div>
+
+        <p v-if="missing" class="mb-4">
+          No data yet for {{ name }}.
         </p>
 
         <nav class="breadcrumb mb-4" aria-label="breadcrumbs">
           <ul>
             <li :class="{ 'is-active': !directory }">
-              <a href="#" @click.prevent="directory = ''">Chromium</a>
+              <a href="#" @click.prevent="directory = ''">{{ name }}</a>
             </li>
             <li v-for="part in breadcrumb" :key="part.path"
               :class="{ 'is-active': part.path === directory }">
@@ -44,7 +149,7 @@
 
         <div class="chart">
           <AccretionChart :data="scope" :share="share"
-            :milestones="directory ? [] : milestones" />
+            :milestones="directory ? [] : repositoryMilestones" />
         </div>
 
         <template v-if="children.length">
@@ -85,7 +190,7 @@
         </p>
         <div class="chart">
           <LineChart :data="freshness" :formatter="percent"
-            :milestones="directory ? [] : milestones" />
+            :milestones="directory ? [] : repositoryMilestones" />
         </div>
 
         <h2 class="title is-4 mt-6">Yearly reduction</h2>
@@ -123,7 +228,7 @@
         <h2 class="title is-4 mt-6">Developers</h2>
         <p class="mb-4">
           The lines each developer wrote, still alive over time, in all of
-          Chromium.
+          {{ name }}.
         </p>
         <UiField>
           <DevelopersInput v-model="developers" />
@@ -156,29 +261,24 @@
 
 <script setup lang="ts">
 import { format } from "d3-format";
+import repositories_json from '../public/data/repositories.json'
+// Short explanations of the largest events, by commit hash prefix.
+import eventLabels from '../utils/accretion-events.json'
 
 const route = useRoute();
 const router = useRouter();
 
-const repository = "chromium";
-
-// The events explaining the largest steps of the chart.
-const milestones = [
-  { date: "2009-08-21", label: "Hunspell moved to DEPS" },
-  { date: "2015-09-23", label: "Blink merged into Chromium" },
-  { date: "2018-10-24", label: "Redundant web test baselines removed" },
-  { date: "2023-11-28", label: "Legacy DOM conformance tests removed" },
-  { date: "2024-05-17", label: "Content extraction test data trimmed" },
-  { date: "2025-06-26", label: "native_client_sdk removed" },
-];
 
 const lines = format(",");
 const compact = format(".3~s");
 const percent = value => value === null || isNaN(value) ? "" : format(".1%")(value);
+const signedCompact = format("+.2~s");
+const truncate = (text, length) => text.length > length ? `${text.slice(0, length - 1)}…` : text;
 const signedPercent = value => value === null || isNaN(value) ? "" : format("+.1%")(value);
 const years = value => value === null ? "" : `${value.toFixed(1)} y`;
 
 const share = ref(route.query.share === "true");
+const repository = ref(route.query.repository || "chromium");
 const directory = ref(route.query.dir || "");
 const developers = ref(route.query.developers
   ? route.query.developers.split(",")
@@ -190,23 +290,92 @@ const directoryData = shallowRef(null); // The selected directory.
 const leaderboard = shallowRef([]);
 const developerData = shallowRef([]);
 
-const fetchJson = url => fetch(url).then(response => response.ok
-  ? response.json()
-  : null);
+const missing = ref(false);
 
-onMounted(async () => {
-  const [cohortsJson, directoriesJson, leaderboardJson] = await Promise.all([
-    fetchJson(`/accretion/${repository}/cohorts.json`),
-    fetchJson(`/accretion/${repository}/directories.json`),
-    fetchJson(`/accretion/${repository}/leaderboard.json`),
+const fetchJson = url => fetch(url)
+  .then(response => response.ok ? response.json() : null)
+  .catch(() => null);
+
+const name = computed(() => repositories_json
+  .find(repo => repo.dirname === repository.value)?.name || repository.value);
+
+// The markers explaining the largest steps of the chart: the commits adding
+// or removing the most lines at once. The smaller ones close to a larger one
+// are skipped, as they are often part of the same story, like a revert and
+// its reland.
+const events = shallowRef([]);
+const repositoryMilestones = computed(() => {
+  const start = cohorts.value?.dates[0];
+  if (!start) return [];
+  const span = new Date(cohorts.value.dates.at(-1)) - new Date(start);
+  const spacing = Math.max(3 * 86400e3, 0.03 * span);
+  const picked = [];
+  const sorted = events.value
+    .filter(event => event.date >= start)
+    .sort((a, b) => Math.abs(b.lines) - Math.abs(a.lines));
+  for (const event of sorted) {
+    if (picked.length === 6) break;
+    if (!picked.some(other => Math.abs(new Date(other.date) - new Date(event.date)) < spacing)) {
+      picked.push(event);
+    }
+  }
+  return picked
+    .map(event => {
+      // Without an explanation: where the lines were added or removed.
+      const label = eventLabels[event.hash.slice(0, 12)] || (event.path
+        ? `${event.lines > 0 ? "Added" : "Removed"} ${event.path}/`
+        : truncate(event.subject, 50));
+      return {
+        date: event.date,
+        lines: event.lines,
+        label: `${label} (${signedCompact(event.lines)})`,
+      };
+    })
+    .sort((a, b) => a.date.localeCompare(b.date));
+});
+
+// The repositories defined as a directory of another one (cone) are shown as
+// this directory.
+const parentDirname = repo => repositories_json.find(parent =>
+  parent.dirname.toLowerCase() === repo.parent.toLowerCase())?.dirname;
+const selection = computed({
+  get: () => {
+    const cone = repositories_json.find(repo => repo.cone &&
+      parentDirname(repo) === repository.value && repo.cone === directory.value);
+    return [cone ? cone.dirname : repository.value];
+  },
+  set: value => {
+    // After a selection, the chips also send it with the previous one: the
+    // current selection is kept.
+    const dirname = value.includes(selection.value[0]) ? selection.value[0] : value[0];
+    const repo = repositories_json.find(repo => repo.dirname === dirname);
+    if (!repo) return;
+    const next = repo.cone ? parentDirname(repo) : repo.dirname;
+    if (next !== repository.value) developers.value = [];
+    repository.value = next;
+    directory.value = repo.cone || "";
+  },
+});
+
+watch(repository, async () => {
+  const repo = repository.value;
+  const [cohortsJson, directoriesJson, leaderboardJson, eventsJson] = await Promise.all([
+    fetchJson(`/accretion/${repo}/cohorts.json`),
+    fetchJson(`/accretion/${repo}/directories.json`),
+    fetchJson(`/accretion/${repo}/leaderboard.json`),
+    fetchJson(`/accretion/${repo}/events.json`),
   ]);
+  // Another repository was selected meanwhile.
+  if (repo !== repository.value) return;
+  missing.value = !cohortsJson;
   cohorts.value = cohortsJson;
+  events.value = eventsJson || [];
   directories.value = directoriesJson || [];
   leaderboard.value = (leaderboardJson || []).map((entry, i) => ({ ...entry, rank: i + 1 }));
   if (developers.value.length === 0) {
     developers.value = leaderboard.value.slice(0, 5).map(entry => entry.username);
   }
-});
+}, { immediate: true });
 
 // Blink is a top-level directory.
 const parentOf = path => path === "third_party/blink" || !path.includes("/")
@@ -221,13 +390,13 @@ const breadcrumb = computed(() => {
   return parts;
 });
 
-watch(directory, async () => {
+watch([repository, directory], async () => {
   directoryData.value = directory.value
-    ? await fetchJson(`/accretion/${repository}/directories/${directory.value}.json`)
+    ? await fetchJson(`/accretion/${repository.value}/directories/${directory.value}.json`)
     : null;
 }, { immediate: true });
 
-// The data of the selected scope: Chromium, or a directory.
+// The data of the selected scope: the repository, or a directory.
 const scope = computed(() => directory.value ? directoryData.value : cohorts.value);
 
 const total = row => row.reduce((a, b) => a + b, 0);
@@ -252,8 +421,8 @@ const reduction = computed(() => {
   const distance = (i, year) => Math.abs(new Date(dates[i]) - new Date(`${year}-01-01`));
   dates.forEach((date, i) => {
     const year = Number(date.slice(0, 4)) + (date.slice(5) > "07" ? 1 : 0);
-    // Within 7 weeks, for the directories sampled every 13 weeks.
-    if (distance(i, year) > 49 * 86400e3) return;
+    // Within 3 weeks, for the directories sampled every 4 weeks.
+    if (distance(i, year) > 21 * 86400e3) return;
     if (january[year] === undefined || distance(i, year) < distance(january[year], year)) {
       january[year] = i;
     }
@@ -365,13 +534,13 @@ const freshness = computed(() => {
   };
   return [
     directory.value ? series(directory.value, directoryData.value) : null,
-    series("Chromium", cohorts.value),
+    series(name.value, cohorts.value),
   ].filter(entry => entry);
 });
 
 watch(developers, async () => {
   const jsons = await Promise.all(developers.value.map(username =>
-    fetchJson(`/accretion/${repository}/usernames/${username}.json`)));
+    fetchJson(`/accretion/${repository.value}/usernames/${username}.json`)));
   developerData.value = developers.value
     .map((username, i) => jsons[i] && {
       label: username,
@@ -381,11 +550,12 @@ watch(developers, async () => {
       })),
     })
     .filter(entry => entry);
-});
+}, { immediate: true });
 
-watch([share, directory, developers], () => {
+watch([share, repository, directory, developers], () => {
   router.replace({
     query: {
+      repository: repository.value === "chromium" ? undefined : repository.value,
       share: share.value ? "true" : undefined,
       dir: directory.value || undefined,
       developers: developers.value.join(",") || undefined,

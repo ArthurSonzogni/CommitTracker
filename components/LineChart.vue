@@ -156,8 +156,8 @@ const render = () => {
     .style("fill", "var(--faint)")
     .text(release => `M${release.milestone}`);
 
-  // The milestones: a dashed line, labeled near the bottom. Labels on the
-  // right half are written leftward, to stay inside the chart.
+  // The milestones: a dashed line, labeled near the bottom, in lanes avoiding
+  // the overlaps.
   const milestones = props.milestones
     .map(m => ({ ...m, x: x(new Date(m.date)) }))
     .filter(m => m.x >= 0 && m.x <= innerWidth);
@@ -181,11 +181,15 @@ const render = () => {
         .attr("x2", m => m.x)
         .attr("y1", 0)
         .attr("y2", innerHeight);
-      group.select("text")
-        .attr("text-anchor", m => m.x > innerWidth / 2 ? "end" : "start")
-        .attr("x", m => m.x > innerWidth / 2 ? m.x - 4 : m.x + 4)
-        .attr("y", (m, i) => innerHeight - 6 - i * 14)
-        .text(m => m.label);
+      const texts = group.select("text").text(m => m.label);
+      const placement = labelLanes(texts.nodes().map((node, i) => ({
+        x: milestones[i].x,
+        width: node.getComputedTextLength(),
+      })), innerWidth);
+      texts
+        .attr("text-anchor", (m, i) => placement[i].anchor)
+        .attr("x", (m, i) => placement[i].anchor === "start" ? m.x + 4 : m.x - 4)
+        .attr("y", (m, i) => innerHeight - 6 - placement[i].lane * 14);
     });
 
   const max_curve_length = props.data.reduce((acc, d) => Math.max(acc, d.values.length), 0);

@@ -7,11 +7,68 @@ inputs:
 runs:
   using: "composite"
   steps:
+    # A repository without data is replayed from a full clone. WebKit's is
+    # 13 GB.
+    - name: Free disk space
+      shell: bash
+      run: |
+        sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /opt/hostedtoolcache/CodeQL
+        df -h /
+
+    # The replay state of each repository lives on its own branch, as only the
+    # importer needs it.
+    - name: Restore the replay state
+      shell: bash
+      run: |
+        git clone --branch accretion-state --single-branch --depth=1 \
+          https://github.com/${{ github.repository }}.git accretion-state ||
+          mkdir accretion-state
+        for state in accretion-state/*/state.bin.gz; do
+          [ -e "$state" ] || continue
+          repository=$(basename $(dirname $state))
+          mkdir -p public/accretion/$repository
+          cp $state public/accretion/$repository/
+        done
+
+    # Every repository, except the cones: they are directories of their
+    # parent. The clones of the other modules have no history, and are
+    # replaced. They are removed after use, for the disk space.
     - name: Generate accretion data
       shell: bash
       run: |
         cd importer
-        npm run accretion
+        repositories=$(node -e '
+          const JSON5 = require("json5");
+          const repositories = JSON5.parse(require("fs").readFileSync("../repositories.json5", "utf8"));
+          console.log(repositories.filter(repo => !repo.cone).map(repo => repo.dirname).join(" "));
+        ')
+        for repository in $repositories; do
+          echo "::group::$repository"
+          rm -rf "$repository"
+          node --max-old-space-size=8192 accretion.mjs "$repository" ||
+            echo "::warning::Accretion failed for $repository"
+          rm -rf "$repository"
+          echo "::endgroup::"
+        done
+
+    # The state is saved weekly, as the samples are: the days in between
+    # replay the week again, in seconds. A new repository is saved at once, to
+    # not replay its whole history every day.
+    - name: Separate the replay state
+      id: state
+      shell: bash
+      run: |
+        mkdir -p state
+        new=false
+        for state in public/accretion/*/state.bin.gz; do
+          repository=$(basename $(dirname $state))
+          [ -e accretion-state/$repository/state.bin.gz ] || new=true
+          mkdir -p state/$repository
+          mv $state state/$repository/
+        done
+        if [ "$new" = true ] || [ "$(date +%u)" = 1 ]; then
+          echo "push=true" >> $GITHUB_OUTPUT
+        fi
 
     - name: Push accretion data
       uses: peaceiris/actions-gh-pages@v4
@@ -19,4 +76,13 @@ runs:
         github_token: ${{ inputs.github_token }}
         publish_dir: ./public/accretion/
         publish_branch: accretion
+        force_orphan: true
+
+    - name: Push the replay state
+      if: steps.state.outputs.push == 'true'
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ inputs.github_token }}
+        publish_dir: ./state/
+        publish_branch: accretion-state
         force_orphan: true

@@ -55,6 +55,45 @@ const color = (year: string, years: string[]) => {
 const lines = format(".3~s");
 const percent = format(".1%");
 
+// Sets the `anchor` and `baseline` of the labels of the milestones, the
+// largest events first: on the side of their line where they sit the lowest,
+// right above the areas under them, and above the labels already placed.
+// Where the areas reach the top, the labels go over them.
+const placeLabels = (milestones, width, topBetween) => {
+  const placed = []; // [from, to, top, bottom]
+  const collision = (from, to, baseline) => placed.find(([a, b, top, bottom]) =>
+    from < b + 6 && to > a - 6 && baseline - 10 < bottom + 2 && baseline + 3 > top - 2);
+  const order = [...milestones]
+    .sort((a, b) => Math.abs(b.lines || 0) - Math.abs(a.lines || 0));
+  for (const m of order) {
+    let best = null;
+    for (const anchor of ["start", "end"]) {
+      const from = anchor === "start" ? m.x + 7 : m.x - 7 - m.width;
+      const to = from + m.width;
+      if (from < 0 || to > width) continue;
+      // Next to the dot, above the areas.
+      let baseline = Math.min(topBetween(from, to) - 6, m.dot + 4);
+      for (let other; (other = collision(from, to, baseline));) {
+        baseline = other[2] - 6;
+      }
+      if (baseline < 11) continue;
+      if (!best || baseline > best.baseline) best = { anchor, from, to, baseline };
+    }
+    if (!best) {
+      const anchor = m.x + 7 + m.width <= width ? "start" : "end";
+      const from = anchor === "start" ? m.x + 7 : m.x - 7 - m.width;
+      const to = from + m.width;
+      let baseline = 11;
+      for (let other; (other = collision(from, to, baseline));) {
+        baseline = other[3] + 13;
+      }
+      best = { anchor, from, to, baseline };
+    }
+    placed.push([best.from, best.to, best.baseline - 10, best.baseline + 3]);
+    Object.assign(m, { anchor: best.anchor, baseline: best.baseline });
+  }
+};
+
 const render = () => {
   if (!props.data || !container.value) return;
   const { years } = props.data;
@@ -79,8 +118,16 @@ const render = () => {
   const x = scaleTime()
     .range([0, width])
     .domain([rows[0].date, rows.at(-1).date]);
+
+  const milestones = props.milestones
+    .map(m => ({ ...m, x: x(new Date(m.date)) }))
+    .filter(m => m.x >= 0 && m.x <= width);
+  // On narrow screens, the labels would overlap: only the markers are drawn.
+  const labeled = width > 600 && milestones.length > 0;
+
+  // Room at the top for the labels, above the areas.
   const y = scaleLinear()
-    .range([height, 0])
+    .range([height, labeled ? 50 : 0])
     .domain([0, props.share ? 1 : max(series.at(-1), d => d[1])]);
 
   select(xAxis.value).call(axisBottom(x).ticks(width / 80));
@@ -100,13 +147,25 @@ const render = () => {
     .transition().duration(500)
     .attr("d", shape);
 
-  // The milestones: a dashed line, labeled near the top. Labels on the right
-  // half are written leftward, to stay inside the chart.
-  const milestones = props.milestones
-    .map(m => ({ ...m, x: x(new Date(m.date)) }))
-    .filter(m => m.x >= 0 && m.x <= width);
-  // On narrow screens, the labels would overlap: only the lines are drawn.
-  const labeled = width > 600;
+  // The milestones: a dashed line from the bottom up to a dot above the
+  // areas, and a label next to the dot. Both move up when the label would
+  // cover the areas or another label. The largest events are placed first.
+  const top = series.at(-1).map(d => y(d[1]));
+  const topBetween = (from, to) => {
+    let lowest = Infinity;
+    rows.forEach((row, i) => {
+      const position = x(row.date);
+      if (position >= from && position <= to) lowest = Math.min(lowest, top[i]);
+    });
+    return lowest;
+  };
+  const bisectDate = bisector(row => row.date).left;
+  for (const m of milestones) {
+    // Slightly above the highest of the areas before and after the event,
+    // within 2 weeks.
+    const i = bisectDate(rows, new Date(m.date));
+    m.dot = Math.min(...top.slice(Math.max(0, i - 3), i + 2)) - 8;
+  }
   select(milestonesGroup.value)
     .selectAll(".milestone")
     .data(milestones, m => m.label)
@@ -116,6 +175,11 @@ const render = () => {
         .style("stroke", "var(--ink)")
         .style("stroke-opacity", 0.6)
         .attr("stroke-dasharray", "3 3");
+      group.append("circle")
+        .attr("r", 3.5)
+        .style("fill", "var(--ink)")
+        .style("stroke", "var(--bg)")
+        .style("stroke-width", 1.5);
       group.append("text")
         .attr("font-size", "11px")
         .attr("font-style", "italic")
@@ -127,16 +191,23 @@ const render = () => {
       return group;
     })
     .call(group => {
+      const texts = group.select("text").text(m => labeled ? m.label : "");
+      texts.each(function (m) { m.width = this.getComputedTextLength(); });
+      placeLabels(milestones, width, topBetween);
+      texts
+        .attr("text-anchor", m => m.anchor)
+        .attr("x", m => m.anchor === "start" ? m.x + 7 : m.x - 7)
+        .attr("y", m => m.baseline);
+      // The dot ends the line, next to the label.
+      const dot = m => labeled ? m.baseline - 4 : m.dot;
+      group.select("circle")
+        .attr("cx", m => m.x)
+        .attr("cy", dot);
       group.select("line")
         .attr("x1", m => m.x)
         .attr("x2", m => m.x)
-        .attr("y1", 0)
-        .attr("y2", height);
-      group.select("text")
-        .attr("text-anchor", m => m.x > width / 2 ? "end" : "start")
-        .attr("x", m => m.x > width / 2 ? m.x - 4 : m.x + 4)
-        .attr("y", (m, i) => 12 + i * 14)
-        .text(m => labeled ? m.label : "");
+        .attr("y1", height)
+        .attr("y2", dot);
     });
 
   // Label the years thick enough at the right edge.

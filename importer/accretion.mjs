@@ -46,7 +46,7 @@ const CONFIG = {
 };
 
 // Only the files matching these pathspecs are counted. The translations
-// (*.xtb) aren't code.
+// (*.xtb, locales/) aren't code.
 const excludeAllBut = (dir, names) => {
   // Exclude every entry of `dir`, except `names`. Git pathspecs can't do it
   // directly, so we exclude every prefix differing from them.
@@ -68,7 +68,8 @@ const PATHSPECS = {
   // Blink was named third_party/WebKit until 2017.
   chromium: [".", ":(exclude,glob)**/*.xtb",
     ...excludeAllBut("third_party", ["blink", "WebKit"])],
-  default: [".", ":(exclude,glob)**/*.xtb", ":(exclude)third_party"],
+  default: [".", ":(exclude,glob)**/*.xtb", ":(exclude,glob)**/locales/**",
+    ":(exclude)third_party"],
 };
 
 // Commits whose tree is broken, and restored by the next one. They are
@@ -87,6 +88,64 @@ const DEFAULT_OPTIONS = {
 };
 
 const UNKNOWN = 0; // Commit index of the lines existing before --since.
+
+// The lines nobody wrote by hand are owned by this pseudo-author, skipped by
+// the developers like the bots, but still counted in the years:
+// - The generated files.
+// - The vendored code: the third_party/ directories inside the others, the
+//   npm packages, and the copies of the upstream benchmarks.
+// - The imports of the web-platform-tests and the WebGPU conformance tests,
+//   sometimes landed by developers. "Import maps" and "import text" are
+//   features, not imports.
+const GENERATED = "generated";
+const GENERATED_FILE = new RegExp([
+  "(^|/)(gen|generated|generated_[^/]*)/",
+  "autogen",
+  "WPT_BASE_MANIFEST[^/]*\\.json$",
+  "^testing/buildbot/(?!trybot_analyze_config\\.json$)[^/]*\\.json$",
+  "./third_party/",
+  "(^|/)node_modules/",
+  "^third_party/(blink|WebKit)/perf_tests/(speedometer[^/]*|MotionMark)/",
+  "^chrome/test/data/dromaeo/",
+  // Firefox: the vendored libraries and test suites outside third_party/.
+  "^intl/icu/",
+  "^js/src/tests/test262/",
+  "^js/src/octane/",
+  "^testing/web-platform/tests/",
+  "^testing/web-platform/mozilla/tests/webgpu/",
+  "^dom/webgpu/tests/cts/",
+  "^security/nss/",
+  "^modules/freetype2/",
+  "^gfx/harfbuzz/",
+  "^media/lib[^/]*/",
+  "^ipc/chromium/src/(base|third_party)/",
+  // Servo: the WebGPU conformance tests and their expectations.
+  "^tests/wpt/webgpu/",
+].join("|"));
+const IMPORT_SUBJECT =
+  /^(manual(ly)? )?import(ing)?\b(?! maps?\b| text\b)|\b(sync|update) (wpt|cts)\b/i;
+const WPT_FILE = new RegExp([
+  "^third_party/(blink/web_tests|WebKit/LayoutTests)/(external|imported)/",
+  "^tests/wpt/", // Servo.
+].join("|"));
+// A commit changing at least this many lines, and this share of the total, is
+// an event.
+const EVENT_LINES = 10000;
+const EVENT_SHARE = 0.005;
+
+// Mechanical changes missing from .git-blame-ignore-revs, ignored like them:
+// - The mass reformattings and copyright updates.
+// - The commits touching many files, with a few lines each.
+const REFORMAT_SUBJECT = new RegExp("^(\\[[^\\]]*\\] *)*(" + [
+  "Ruff: reformat",
+  "Update copyright headers?",
+  "Reformat(ting)?\\b",
+  "(Run |Apply )?clang-format\\b",
+  "(Mass-)?(reformat|autoformat)",
+  "git cl format",
+].join("|") + ")", "i");
+const MECHANICAL_FILES = 1000;
+const MECHANICAL_LINES_PER_FILE = 3;
 
 // The directories are tracked up to this depth, with Blink counted as a
 // top-level directory. Their lines are counted per month written in: index 0
@@ -128,7 +187,7 @@ const run = (args, cwd, raw = false) => new Promise((resolve, reject) => {
 // lines start with +, - or space, so the filter can't confuse them with
 // headers.
 const GitLog = (cwd, chunk, pathspecs, options) => {
-  const format = "--format=%x01%H %at %ct %ae";
+  const format = "--format=%x01%H %at %ct %ae%x02%s";
   const diff = ["-p", "-U0",
     ...(options.renames ? ["-M", `-l${CONFIG.rename_limit}`] : ["--no-renames"]),
     ...(options.whitespace ? ["-w"] : []),
@@ -188,6 +247,11 @@ class State {
     this.commit_time = [0];    // Commit index -> author time.
     this.commit_author = [-1]; // Commit index -> author id.
     this.alive = [0];          // Commit index -> lines still alive.
+    this.total = 0;            // Lines alive.
+    // The commits adding or removing many lines at once, explaining the steps
+    // of the charts: [time, lines, hash, subject, path].
+    this.events = [];
+    this.generated = [0];      // Commit index -> those in GENERATED_FILE.
     this.files = new Map();    // Path -> runs, as an Int32Array.
     this.samples = [];         // [time, {year: lines}, recent].
     this.author_samples = [];  // [time, [author id, lines, ...]].
@@ -195,22 +259,27 @@ class State {
     this.directories = new Map(); // Directory -> lines per month (Int32Array).
     this.directory_names = []; // Directory id -> name.
     this.directory_ids = new Map();
-    // Every 13 weeks: [time, [directory id, recent, years count,
+    // Every 4 weeks: [time, [directory id, recent, years count,
     //                         (year - 2000, lines)...]...].
     this.directory_samples = [];
   }
 
-  addCommit(time, email) {
+  authorId(email) {
     let author = this.author_ids.get(email);
     if (author === undefined) {
       author = this.authors.length;
       this.authors.push(email);
       this.author_ids.set(email, author);
     }
+    return author;
+  }
+
+  addCommit(time, email) {
     this.commit_time.push(time);
-    this.commit_author.push(author);
+    this.commit_author.push(this.authorId(email));
     this.commit_month.push(Month(time));
     this.alive.push(0);
+    this.generated.push(0);
     return this.commit_time.length - 1;
   }
 
@@ -237,9 +306,12 @@ class State {
       }
       return this.directories.get(directory);
     });
+    const generated = GENERATED_FILE.test(file);
     for (let i = 0; i < runs.length; i += 2) {
       const lines = sign * runs[i + 1];
       this.alive[runs[i]] += lines;
+      this.total += lines;
+      if (generated) this.generated[runs[i]] += lines;
       const month = this.commit_month[runs[i]];
       for (const months of directories) months[month] += lines;
     }
@@ -248,6 +320,7 @@ class State {
   sample(time) {
     const years = {};
     const authors = new Map();
+    const generated = this.authorId(GENERATED);
     let recent = 0; // Lines of the last 365 days.
     for (let commit = 0; commit < this.alive.length; commit++) {
       const lines = this.alive[commit];
@@ -260,10 +333,14 @@ class State {
         recent += lines;
       }
       const author = this.commit_author[commit];
-      authors.set(author, (authors.get(author) || 0) + lines);
+      const own = lines - this.generated[commit];
+      if (own) authors.set(author, (authors.get(author) || 0) + own);
+      if (this.generated[commit]) {
+        authors.set(generated, (authors.get(generated) || 0) + this.generated[commit]);
+      }
     }
     this.samples.push([time, years, recent]);
-    if (this.samples.length % 13 === 1) this.sampleDirectories(time);
+    if (this.samples.length % 4 === 1) this.sampleDirectories(time);
     // Every 4 weeks for the authors, as there are many of them.
     if (this.samples.length % 4 === 1) {
       this.author_samples.push([time, [...authors].flat()]);
@@ -318,6 +395,7 @@ class State {
       files: this.files.size,
       samples: this.samples,
       author_samples: this.author_samples,
+      events: this.events,
       directory_names: this.directory_names,
       directory_samples: this.directory_samples.length,
     }));
@@ -379,6 +457,7 @@ class State {
     state.authors.forEach((email, id) => state.author_ids.set(email, id));
     state.samples = header.samples;
     state.author_samples = header.author_samples;
+    state.events = header.events || [];
     const u32s = () => {
       const array = new Uint32Array(header.commits);
       for (let i = 0; i < header.commits; i++) {
@@ -391,6 +470,7 @@ class State {
     state.commit_author = u32s().map(id => id === 0xffffffff ? -1 : id);
     state.commit_month = state.commit_time.map((time, i) => i === UNKNOWN ? 0 : Month(time));
     state.alive = new Array(header.commits).fill(0);
+    state.generated = new Array(header.commits).fill(0);
     state.directory_names = header.directory_names || [];
     state.directory_names.forEach((name, id) => state.directory_ids.set(name, id));
 
@@ -423,6 +503,27 @@ class State {
 }
 
 // --- Replay ------------------------------------------------------------------
+
+// Where an event happened: the deepest directory holding most of its lines
+// added or removed. "" for the root.
+const EventPath = (delta, lines) => {
+  const directories = new Map();
+  for (const [file, change] of delta) {
+    const parts = file.split("/");
+    for (let i = 0; i < parts.length; i++) {
+      const directory = parts.slice(0, i).join("/");
+      directories.set(directory, (directories.get(directory) || 0) + change);
+    }
+  }
+  let path = "";
+  for (const [directory, change] of directories) {
+    if (change * Math.sign(lines) >= 0.75 * Math.abs(lines) &&
+      directory.split("/").length > path.split("/").length) {
+      path = directory;
+    }
+  }
+  return path;
+};
 
 // Paths are quoted by git when they contain special characters.
 const unquote = text => {
@@ -545,6 +646,8 @@ class Replayer {
     let commit = -1;
     let hash = null;
     let ignored = false;
+    let subject = "";
+    let time = 0;
     let block = null;
     let replayed = 0;
 
@@ -552,6 +655,16 @@ class Replayer {
     // a commit can swap files.
     let blocks = [];
     const flush = () => {
+      const before = state.total;
+      // The lines added or removed per file, for the events.
+      const delta = new Map();
+      const track = (file, change) => {
+        const total = state.total;
+        change();
+        if (state.total !== total) {
+          delta.set(file, (delta.get(file) || 0) + state.total - total);
+        }
+      };
       // The files added by a merge importing a history keep their lines.
       const imported = this.imports.get(hash);
       if (imported) {
@@ -561,26 +674,41 @@ class Replayer {
           let added = 0;
           for (let h = 2; h < block.hunks.length; h += 3) added += block.hunks[h];
           if (!block.added || !runs || lineCount(runs) !== added) return true;
-          state.setFile(block.to, runs);
+          track(block.to, () => state.setFile(block.to, runs));
           imported.delete(block.to);
           return false;
         });
       }
+      if (IMPORT_SUBJECT.test(subject) && blocks.some(block => WPT_FILE.test(block.to))) {
+        state.commit_author[commit] = state.authorId(GENERATED);
+      }
+      let added = 0;
+      for (const block of blocks) {
+        for (let h = 2; h < block.hunks.length; h += 3) added += block.hunks[h];
+      }
+      const mechanical = ignored || (state.options.ignore_revs &&
+        blocks.length >= MECHANICAL_FILES &&
+        added <= MECHANICAL_LINES_PER_FILE * blocks.length);
       const renamed = blocks.filter(block => block.from !== block.to);
       const moved = renamed.map(block => state.files.get(block.from));
-      renamed.forEach(block => state.removeFile(block.from));
-      renamed.forEach((block, i) => moved[i] && state.setFile(block.to, moved[i]));
+      renamed.forEach(block => track(block.from, () => state.removeFile(block.from)));
+      renamed.forEach((block, i) => moved[i] &&
+        track(block.to, () => state.setFile(block.to, moved[i])));
       for (const block of blocks) {
         // Binary files, symlinks and submodules have no lines.
         if (block.deleted || block.binary || block.mode === "120000" ||
           block.mode === "160000") {
-          state.removeFile(block.to);
+          track(block.to, () => state.removeFile(block.to));
         } else if (block.hunks.length > 0) {
-          this.applyHunks(block.to, block.hunks, commit, ignored, hash,
-            block.old_blob);
+          track(block.to, () => this.applyHunks(block.to, block.hunks, commit,
+            mechanical, hash, block.old_blob));
         }
       }
       blocks = [];
+      const lines = state.total - before;
+      if (this.main && Math.abs(lines) >= Math.max(EVENT_LINES, EVENT_SHARE * before)) {
+        state.events.push([time, lines, hash, subject, EventPath(delta, lines)]);
+      }
     };
 
     for (let start = 0; start < output.length;) {
@@ -591,7 +719,9 @@ class Replayer {
       if (line.startsWith("\x01")) {
         flush();
         let author_time, commit_time, email;
-        [hash, author_time, commit_time, ...email] = line.slice(1).split(" ");
+        const separator = line.indexOf("\x02");
+        subject = line.slice(separator + 1);
+        [hash, author_time, commit_time, ...email] = line.slice(1, separator).split(" ");
         // Commits not touching the pathspecs are omitted.
         while (replayed < expected.length && expected[replayed].hash !== hash) {
           replayed++;
@@ -599,7 +729,7 @@ class Replayer {
         if (replayed++ === expected.length) {
           throw new Error(`Unexpected commit ${hash}`);
         }
-        const time = Number(commit_time);
+        time = Number(commit_time);
         while (this.main && state.next_sample !== null && time >= state.next_sample) {
           state.sample(state.next_sample);
           state.next_sample += CONFIG.week;
@@ -609,7 +739,8 @@ class Replayer {
         }
         commit = state.addCommit(Number(state.options.commit_date
           ? commit_time : author_time), email.join(" "));
-        ignored = this.ignore_revs.has(hash);
+        ignored = this.ignore_revs.has(hash) ||
+          (state.options.ignore_revs && REFORMAT_SUBJECT.test(subject));
       } else if (line.startsWith("diff --git ")) {
         const file = parseDiffLine(line);
         block = { from: file, to: file, hunks: [], mode: null };
@@ -670,6 +801,10 @@ const WriteOutput = async (state, dir) => {
     recent: state.samples.map(([, , recent]) => recent),
     median_age: MedianAge(state),
   }));
+
+  await fs.writeFile(path.join(dir, "events.json"), JSON.stringify(
+    state.events.map(([time, lines, hash, subject, path]) =>
+      ({ date: Day(time), lines, hash, subject, path }))));
 
   await WriteDirectories(state, dir);
 
@@ -871,7 +1006,7 @@ const Validate = async (state, cwd, dir, pathspecs, blame_count) => {
         const ok = commit === UNKNOWN
           ? expected?.boundary
           : !expected?.boundary &&
-          expected?.email === state.authors[state.commit_author[commit]] &&
+          [expected?.email, GENERATED].includes(state.authors[state.commit_author[commit]]) &&
           expected?.time === state.commit_time[commit];
         if (!ok) file_errors++;
       }
@@ -923,7 +1058,8 @@ const main = async () => {
   const cloned = await fs.access(cwd).then(() => true, () => false);
   if (cloned) {
     if ((await run(["git", "rev-parse", "--is-shallow-repository"], cwd)).trim() === "true") {
-      await run(["git", "fetch", ...since, "origin", "main"], cwd);
+      const branch = (await Branch(cwd)).slice("origin/".length);
+      await run(["git", "fetch", ...since, "origin", branch], cwd);
     }
   } else {
     const repositories = JSON5.parse(await fs.readFile("../repositories.json5", "utf8"));
@@ -931,6 +1067,9 @@ const main = async () => {
     await run(["git", "clone", "--single-branch", "--no-checkout", ...since,
       `https://github.com/${repo.owner}/${repo.repository}`, cwd], ".");
   }
+
+  // The default branch, e.g. origin/main.
+  const branch = await Branch(cwd);
 
   if (flag("validate")) {
     const count = flag("validate") === true ? 50 : Number(flag("validate"));
@@ -941,7 +1080,7 @@ const main = async () => {
   const ignore_revs = new Set();
   if (state.options.ignore_revs) {
     try {
-      const text = await run(["git", "show", "origin/main:.git-blame-ignore-revs"], cwd);
+      const text = await run(["git", "show", `${branch}:.git-blame-ignore-revs`], cwd);
       for (const line of text.split("\n")) {
         const hash = line.trim();
         if (/^[0-9a-f]{40}$/.test(hash)) ignore_revs.add(hash);
@@ -951,7 +1090,7 @@ const main = async () => {
   console.log(`Ignored revisions: ${ignore_revs.size}`);
 
   // The commits to replay, oldest first, with their first parent.
-  const range = state.head ? [`${state.head}..origin/main`] : ["origin/main"];
+  const range = state.head ? [`${state.head}..${branch}`] : [branch];
   if (!state.head && flag("since")) range.push(`--since=${flag("since")}`);
   let commits = await RevList(cwd, range);
   const broken = new Set(BROKEN_COMMITS[dirname] || []);
@@ -992,8 +1131,23 @@ const Replay = async (state, cwd, pathspecs, ignore_revs, commits) => {
   // replayed first, into their own files.
   const shallow = (await run(["git", "rev-parse", "--is-shallow-repository"],
     cwd)).trim() === "true";
+  // Their merges are the first commits descending from a root other than the
+  // main one. Checking every merge would be slow for the repositories having
+  // many.
+  const candidates = new Set();
+  if (!shallow) {
+    const head = commits.at(-1).hash;
+    const roots = (await run(["git", "rev-list", "--max-parents=0", head], cwd))
+      .split("\n").filter(Boolean);
+    for (const root of roots) {
+      const descendants = new Set((await run(["git", "rev-list",
+        "--ancestry-path", `${root}..${head}`], cwd)).split("\n"));
+      const merge = commits.find(commit => descendants.has(commit.hash));
+      if (merge) candidates.add(merge.hash);
+    }
+  }
   for (const commit of commits) {
-    if (!commit.second || shallow) continue;
+    if (!commit.second || !candidates.has(commit.hash)) continue;
     const related = await run(["git", "merge-base", commit.parent, commit.second],
       cwd).then(() => true, () => false);
     if (related) continue;
@@ -1015,6 +1169,9 @@ const Replay = async (state, cwd, pathspecs, ignore_revs, commits) => {
 };
 
 // The commits of the first-parent history, oldest first.
+const Branch = cwd => run(["git", "symbolic-ref", "--short",
+  "refs/remotes/origin/HEAD"], cwd).then(ref => ref.trim(), () => "origin/main");
+
 const RevList = async (cwd, range) => (await run(["git", "rev-list",
   "--first-parent", "--reverse", "--parents", ...range], cwd))
   .split("\n").filter(line => line).map(line => {
