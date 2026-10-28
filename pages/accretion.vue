@@ -138,17 +138,30 @@
           No data yet for {{ name }}.
         </p>
 
-        <nav class="breadcrumb mb-4" aria-label="breadcrumbs">
-          <ul>
-            <li :class="{ 'is-active': !directory }">
-              <a href="#" @click.prevent="directory = ''">{{ name }}</a>
-            </li>
-            <li v-for="part in breadcrumb" :key="part.path"
-              :class="{ 'is-active': part.path === directory }">
-              <a href="#" @click.prevent="directory = part.path">{{ part.name }}</a>
-            </li>
-          </ul>
-        </nav>
+        <!-- The selected directory and developers, staying in view: at their
+             place, or at the top once scrolled past. -->
+        <div ref="scopeSentinel" />
+        <div class="scope-bar mb-4" :class="{ 'is-stuck': scopeStuck }">
+          <nav class="breadcrumb mb-0" aria-label="breadcrumbs">
+            <ul>
+              <li :class="{ 'is-active': !directory }">
+                <a href="#" @click.prevent="directory = ''">{{ name }}</a>
+              </li>
+              <li v-for="part in breadcrumb" :key="part.path"
+                :class="{ 'is-active': part.path === directory }">
+                <a href="#" @click.prevent="directory = part.path">{{ part.name }}</a>
+              </li>
+            </ul>
+          </nav>
+          <div v-if="developers.length" class="scope-developers">
+            <span v-for="username in developers" :key="username" class="developer-chip"
+              :style="{ '--chip': $color(username) }">
+              {{ username }}
+              <button type="button" :aria-label="`Remove ${username}`"
+                @click="toggleDeveloper(username)">×</button>
+            </span>
+          </div>
+        </div>
 
         <div class="figures mb-5">
           <div v-for="figure in figures" :key="figure.label" class="figure">
@@ -868,6 +881,17 @@ const ownershipTrees = computed(() => {
   });
 });
 
+// Whether the scope bar is stuck at the top: its sentinel, just above it, is
+// out of view.
+const scopeSentinel = ref<HTMLElement | null>(null);
+const scopeStuck = ref(false);
+onMounted(() => {
+  const observer = new IntersectionObserver(([entry]) =>
+    scopeStuck.value = !entry.isIntersecting && entry.boundingClientRect.top < 0);
+  observer.observe(scopeSentinel.value);
+  onBeforeUnmount(() => observer.disconnect());
+});
+
 const toggleDeveloper = username => {
   developers.value = developers.value.includes(username)
     ? developers.value.filter(other => other !== username)
@@ -951,6 +975,52 @@ watch(() => route.query, value => {
 .figure-detail {
   color: var(--muted);
   font-size: 0.8rem;
+}
+
+.scope-bar {
+  align-items: center;
+  background: var(--bg);
+  border-bottom: 1px solid transparent;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  padding: 0.5rem 0;
+  position: sticky;
+  top: 0;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  z-index: 30;
+}
+
+.scope-bar.is-stuck {
+  border-bottom-color: var(--line);
+  box-shadow: 0 6px 8px -8px rgb(0 0 0 / 30%);
+}
+
+.scope-developers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.developer-chip {
+  align-items: center;
+  background: color-mix(in srgb, var(--chip) 18%, var(--bg));
+  border: 1px solid var(--chip);
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 0.85rem;
+  gap: 0.25rem;
+  padding: 0 0.2rem 0 0.6rem;
+}
+
+.developer-chip button {
+  background: none;
+  border: none;
+  color: var(--ink-2);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0.1rem 0.3rem;
 }
 
 .ownership {
