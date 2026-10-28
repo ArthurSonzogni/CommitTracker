@@ -63,9 +63,9 @@ const nodes = computed(() => {
     .descendants();
 });
 
-// Darker for a larger share of the directory owned.
+// Darker for a larger share of the directory, on a logarithmic scale.
 const fill = node => {
-  const amount = Math.round(Math.min(1, share(node) / 0.15) * 75) + 10;
+  const amount = Math.round(shareIntensity(share(node)) * 75) + 10;
   return `color-mix(in srgb, ${props.color} ${amount}%, var(--surface))`;
 };
 

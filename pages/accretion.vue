@@ -921,9 +921,9 @@ const toggleDeveloper = username => {
 };
 
 // The background of a cell, painted with the color of a developer, darker
-// for a larger share.
+// for a larger share, on a logarithmic scale.
 const paint = (share, username) => share > 0
-  ? { style: { background: `color-mix(in srgb, ${$color(username)} ${Math.round(Math.min(1, share / 0.25) * 70)}%, transparent)` } }
+  ? { style: { background: `color-mix(in srgb, ${$color(username)} ${Math.round(shareIntensity(share) * 70)}%, transparent)` } }
   : {};
 
 // The state is in the URL. Selecting a repository or a directory adds an
