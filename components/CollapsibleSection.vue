@@ -8,6 +8,7 @@
         <UiIcon :name="collapsed ? 'chevron-right' : 'chevron-down'" size="small" />
         <span>{{ title }}</span>
       </button>
+      <span v-if="note" class="section-note">{{ note }}</span>
       <a class="section-link" :href="`#${id}`" :title="`Copy the link to ${title}`"
         :aria-label="`Copy the link to ${title}`" @click.prevent="copy">
         <UiIcon :name="copied ? 'check' : 'link-variant'" size="small" />
@@ -24,6 +25,8 @@ const props = defineProps<{
   id: string;
   title: string;
   collapsed: boolean;
+  // A short precision next to the title, e.g. what the section covers.
+  note?: string;
 }>();
 const emit = defineEmits(["toggle"]);
 
@@ -76,6 +79,16 @@ h2 {
   align-items: center;
   display: flex;
   gap: 0.25rem;
+}
+
+.section-note {
+  background: var(--surface-sunken);
+  border-radius: 999px;
+  color: var(--ink-2);
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: 0.5rem;
+  padding: 0.15rem 0.6rem;
 }
 
 .section-link {

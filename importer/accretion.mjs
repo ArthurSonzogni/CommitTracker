@@ -1116,6 +1116,12 @@ const WriteOutput = async (state, dir) => {
   const years = [...keys].sort();
   const lines = state.samples.map(([, values]) => years.map(year => values[year] || 0));
   const total = lines.at(-1)?.reduce((a, b) => a + b, 0) || 0;
+  // The last sample at least a year before the last one.
+  const last_time = state.samples.at(-1)?.[0] ?? now;
+  const year_ago_index = state.samples.findLastIndex(([time]) => time <= last_time - 365 * 86400);
+  const total_year_ago = year_ago_index === -1
+    ? 0
+    : lines[year_ago_index].reduce((a, b) => a + b, 0);
   const activity = DirectoryActivity(state, "", usernameOf, now);
   await fs.writeFile(path.join(dir, "cohorts.json"), JSON.stringify({
     dates: state.samples.map(([time]) => Day(time)),
@@ -1125,7 +1131,7 @@ const WriteOutput = async (state, dir) => {
     median_age: MedianAge(state),
     ...activity,
     label: activity.activity
-      ? ActivityLabel(activity.activity, total, YEAR0 + Year(now) - 1)
+      ? ActivityLabel(activity.activity, total, total_year_ago, now)
       : undefined,
     bus_factor: BusFactor([...usernames.values()].map(series => series.at(-1))),
   }));
@@ -1201,16 +1207,33 @@ const DirectoryActivity = (state, directory, usernameOf, now) => {
   return result;
 };
 
-// What happened to a directory during the last complete year.
-const ActivityLabel = (activity, lines, year) => {
-  const i = activity?.years.indexOf(year) ?? -1;
-  if (i === -1) return "Dormant";
-  const [added, iteration, rework, mechanical, removed] =
-    KINDS.map(kind => activity[kind][i]);
-  if (added + iteration + rework + mechanical < 0.02 * lines) return "Dormant";
-  if (added - removed < -0.05 * lines) return "Shrinking";
-  if (rework + mechanical > added + iteration) return "Refactored";
-  if (added - removed > 0.05 * lines) return "Growing";
+// The activity of the last 365 days, estimated from the yearly counts: the
+// current year, and the part of the previous one still in the window, as if
+// spread evenly over that year.
+const RecentActivity = (activity, now) => {
+  const year = YEAR0 + Year(now);
+  const elapsed = now - Date.UTC(year, 0, 1) / 1000;
+  const weight = Math.max(0, 1 - elapsed / (365 * 86400));
+  const value = (kind, year) => {
+    const i = activity.years.indexOf(year);
+    return i === -1 ? 0 : activity[kind][i];
+  };
+  return Object.fromEntries(KINDS.map(kind =>
+    [kind, value(kind, year) + weight * value(kind, year - 1)]));
+};
+
+// What happened to a directory during the last 365 days. Growing and
+// Shrinking come from its lines alive, like its growth. Otherwise, from the
+// lines changed.
+const ActivityLabel = (activity, lines, year_ago, now) => {
+  const growth = year_ago ? lines / year_ago - 1 : 0;
+  if (growth > 0.05) return "Growing";
+  if (growth < -0.05) return "Shrinking";
+  const recent = RecentActivity(activity, now);
+  const development = recent.new + recent.iteration;
+  const refactoring = recent.rework + recent.mechanical;
+  if (development + refactoring < 0.02 * lines) return "Dormant";
+  if (refactoring > development) return "Refactored";
   return "Maintained";
 };
 
@@ -1281,6 +1304,9 @@ const WriteDirectories = async (state, dir, usernameOf) => {
       }
     }
     const before = year_ago?.get(name);
+    const lines_year_ago = before
+      ? Object.values(before.years).reduce((a, b) => a + b, 0)
+      : 0;
     const activity = DirectoryActivity(state, name, usernameOf, now);
     const last = YEAR0 + Year(now) - 1;
     const lastContributors = activity.contributors?.years.indexOf(last) ?? -1;
@@ -1288,11 +1314,11 @@ const WriteDirectories = async (state, dir, usernameOf) => {
       path: name,
       lines,
       recent,
-      year_ago: before
-        ? Object.values(before.years).reduce((a, b) => a + b, 0)
-        : 0,
+      year_ago: lines_year_ago,
       median_age,
-      label: activity.activity ? ActivityLabel(activity.activity, lines, last) : undefined,
+      label: activity.activity
+        ? ActivityLabel(activity.activity, lines, lines_year_ago, now)
+        : undefined,
       authors: lastContributors === -1 ? undefined : ["core", "regular", "driveby"]
         .reduce((sum, key) => sum + activity.contributors[key][lastContributors], 0),
       core: lastContributors === -1 ? undefined : activity.contributors.core[lastContributors],

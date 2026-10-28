@@ -100,7 +100,10 @@
               per year. New code and lines under a year old rewritten or
               removed are development; older lines rewritten or removed, and
               the mechanical commits, are refactoring. The label of a
-              directory describes its last complete year.
+              directory describes its last 12 months: Growing or Shrinking
+              when its lines alive changed by more than 5%, like its growth,
+              and otherwise from its lines changed, estimated from the yearly
+              counts. The contributors are counted per complete year.
             </li>
             <li>
               <strong>Contributors:</strong> the authors committing each year.
@@ -169,6 +172,11 @@
           </div>
         </div>
 
+        <p v-if="untrackedBelow" class="hint mb-4">
+          The directories are tracked 3 levels deep: the subdirectories of
+          {{ directory }} have no data of their own.
+        </p>
+
         <div class="figures mb-5">
           <div v-for="figure in figures" :key="figure.label" class="figure">
             <div class="figure-label">
@@ -234,7 +242,7 @@
               hint="Of the lines a year ago, the share removed or rewritten since. Negative when lines were moved in.">
               {{ percent(props.row.rewritten) }}
             </UiTableColumn>
-            <UiTableColumn field="label" label="In last year" v-slot="props" sortable
+            <UiTableColumn field="label" label="Last 12 months" v-slot="props" sortable
               :hint="labelHint"
               :visible="children.some(row => row.label)">
               {{ props.row.label }}
@@ -368,10 +376,13 @@
             isn't always the one who designed it.
           </p>
           <p class="mb-4">
-            The lines each developer wrote, still alive over time, in all of
-            {{ name }}. Each selected developer also gets a column in the
-            directories above, with the share of each directory's lines they
-            authored.
+            The lines each developer wrote, still alive over time. Their share
+            of {{ directory || name }} and the treemaps follow the selected
+            directory, like their columns in the directories above.
+            <template v-if="directory">
+              Their history, their breadth and the lines they removed cover
+              all of {{ name }}.
+            </template>
           </p>
           <UiField>
             <DevelopersInput v-model="developers" />
@@ -385,6 +396,7 @@
           </ul>
           <div v-for="entry in developerDetails" :key="entry.username" class="mb-4 developer-details">
             <p v-if="entry.breadth">
+              <span v-if="wholeRepository" class="scope-tag">{{ wholeRepository }}</span>
               <span class="swatch" :style="{ background: $color(entry.username) }" />
               <strong>{{ entry.username }}</strong> made {{ lines(entry.commits || 0) }}
               commits since {{ lastYear - 1 }}, across about
@@ -417,12 +429,19 @@
           <p v-if="developers.length === 0" class="mb-4 hint">
             Add developers, or pick them in the table below.
           </p>
-          <div v-else class="chart">
-            <LineChart :data="developerData" :formatter="lines" />
-          </div>
+          <template v-else>
+            <p class="mb-2">
+              <span v-if="wholeRepository" class="scope-tag">{{ wholeRepository }}</span>
+              Their lines alive over time.
+            </p>
+            <div class="chart">
+              <LineChart :data="developerData" :formatter="lines" />
+            </div>
+          </template>
           <template v-if="leaderboard.some(entry => entry.breadth)">
             <h3 class="title is-6 mt-5">Specialists and generalists</h3>
             <p class="mb-2">
+              <span v-if="wholeRepository" class="scope-tag">{{ wholeRepository }}</span>
               The 100 developers with the most lines alive, by the number of components
               they committed to since {{ lastYear - 1 }}, and their commits.
               Click one to select it.
@@ -432,7 +451,8 @@
           </template>
         </CollapsibleSection>
 
-        <CollapsibleSection title="Most lines alive" id="lines-alive" :collapsed="isHidden('l')"
+        <CollapsibleSection title="Most lines alive" id="lines-alive" :note="wholeRepository"
+          :collapsed="isHidden('l')"
           @toggle="toggleHidden('l')">
           <p class="disclaimer">
             <UiIcon name="information-outline" size="small" />
@@ -646,12 +666,21 @@ const scopeSummary = computed(() => directory.value
   : cohorts.value);
 
 // The explanations of the labels and the bus factor, shown on hover.
-const labelHint = "What happened during the last complete year. Growing: the lines grew by more than 5%. " +
-  "Shrinking: they shrank by more than 5%. Refactored: rewriting older lines and mechanical changes " +
-  "outweighed new code. Dormant: under 2% of the lines changed. Maintained: otherwise.";
+const labelHint = "What happened during the last 12 months. Growing: the lines alive grew by more than 5%. " +
+  "Shrinking: they shrank by more than 5%. Otherwise, Refactored: rewriting older lines and mechanical " +
+  "changes outweighed new code and recent iterations. Dormant: under 2% of the lines changed. " +
+  "Maintained: the rest.";
 const busFactorHint = "The fewest authors who together wrote half of the lines alive, adding the authors " +
   "from the one who wrote the most. 1 means a single person wrote half of the code, which then depends on " +
   "very few people. Writing isn't the only way to know code: reviewers and owners know it too.";
+
+// Shown next to what covers the whole repository, when a directory is
+// selected.
+const wholeRepository = computed(() => directory.value ? `All of ${name.value}` : undefined);
+// The selected directory is as deep as the directories are tracked.
+const untrackedBelow = computed(() => directory.value &&
+  directory.value.split("/").length -
+    (directory.value.startsWith("third_party/blink") ? 1 : 0) >= 3);
 
 // The last complete year, for the activity and the contributors.
 const lastYear = new Date().getUTCFullYear() - 1;
@@ -669,18 +698,35 @@ const activitySeries = computed(() => {
     { key: "removed", label: "Removed (net)", color: "var(--series-8)", values: activity.removed, negative: true },
   ];
 });
+// The activity of the last 365 days, estimated from the yearly counts: the
+// current year, and the part of the previous one still in the window, as if
+// spread evenly over that year. Like the importer does for the labels.
+const recentActivity = activity => {
+  const now = new Date();
+  const year = now.getUTCFullYear();
+  const weight = Math.max(0, 1 - (now - Date.UTC(year, 0, 1)) / (365 * 86400e3));
+  const value = (kind, year) => {
+    const i = activity.years.indexOf(year);
+    return i === -1 ? 0 : activity[kind][i];
+  };
+  return Object.fromEntries(["new", "iteration", "rework", "mechanical", "removed"]
+    .map(kind => [kind, value(kind, year) + weight * value(kind, year - 1)]));
+};
+
 const activityFigures = computed(() => {
   const activity = scope.value?.activity;
-  const i = yearIndex(activity, lastYear);
-  if (i === -1) return [];
-  const [added, iteration, rework, mechanical, removed] =
-    ["new", "iteration", "rework", "mechanical", "removed"].map(kind => activity[kind][i]);
-  const changed = added + iteration + rework + mechanical;
+  if (!activity) return [];
+  const recent = recentActivity(activity);
+  const development = recent.new + recent.iteration;
+  const refactoring = recent.rework + recent.mechanical;
+  const changed = development + refactoring;
+  // The growth of the lines alive, like in the top figures.
+  const growth = figures.value[0]?.detail || "";
   return [
-    { label: `In ${lastYear}`, hint: labelHint, value: scopeSummary.value?.label || "", detail: "development or refactoring" },
-    { label: "Development", hint: "New lines, and lines under a year old rewritten or removed: work on recent code.", value: percent((added + iteration) / changed), detail: "new code, and lines under a year old rewritten" },
-    { label: "Refactoring", hint: "Lines a year old or more rewritten or removed, and mechanical changes like reformattings and renames across the codebase.", value: percent((rework + mechanical) / changed), detail: "older lines rewritten, and mechanical changes" },
-    { label: "Growth", hint: "The lines added minus the lines removed during the year. Files moved in or out don't count.", value: `${added - removed >= 0 ? "+" : ""}${compact(added - removed)}`, detail: "lines added, minus lines removed" },
+    { label: "Last 12 months", hint: labelHint, value: scopeSummary.value?.label || "", detail: growth },
+    { label: "Development", hint: "New lines, and lines under a year old rewritten or removed: work on recent code. Over the last 12 months, estimated from the yearly counts.", value: percent(development / changed), detail: "new code, and lines under a year old rewritten" },
+    { label: "Refactoring", hint: "Lines a year old or more rewritten or removed, and mechanical changes like reformattings and renames across the codebase. Over the last 12 months, estimated from the yearly counts.", value: percent(refactoring / changed), detail: "older lines rewritten, and mechanical changes" },
+    { label: "Lines changed", hint: "The lines added, rewritten or removed over the last 12 months, generated files aside. Estimated from the yearly counts.", value: compact(changed), detail: `${compact(recent.new)} new, ${compact(recent.removed)} removed (net)` },
   ];
 });
 
@@ -1093,6 +1139,16 @@ watch(() => route.query, value => {
   gap: 0.4rem;
   margin-bottom: 1rem;
   padding: 0.6rem 0.8rem;
+}
+
+.scope-tag {
+  background: var(--surface-sunken);
+  border-radius: 999px;
+  color: var(--ink-2);
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-right: 0.4rem;
+  padding: 0.1rem 0.55rem;
 }
 
 .ownership {
