@@ -16,6 +16,8 @@ export default defineComponent({
     tdAttrs: Function,
     cellClass: String,
     headerClass: String,
+    // Explains the column, in a tooltip over its label.
+    hint: String,
   },
   render: () => null,
 });

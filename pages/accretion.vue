@@ -105,8 +105,8 @@
             <li>
               <strong>Contributors:</strong> the authors committing each year.
               Core authors made 12 commits or more in the year, drive-by ones 1
-              or 2. The <strong>bus factor</strong> is the number of authors
-              who wrote half of the lines alive.
+              or 2. The <strong>bus factor</strong> is the fewest authors who
+              together wrote half of the lines alive.
             </li>
             <li>
               <strong>The lines alive don't measure anyone's work:</strong>
@@ -171,7 +171,12 @@
 
         <div class="figures mb-5">
           <div v-for="figure in figures" :key="figure.label" class="figure">
-            <div class="figure-label">{{ figure.label }}</div>
+            <div class="figure-label">
+                <UiTooltip v-if="figure.hint" :text="figure.hint" multiline dashed position="bottom">
+                  {{ figure.label }}
+                </UiTooltip>
+                <template v-else>{{ figure.label }}</template>
+              </div>
             <div class="figure-value">{{ figure.value }}</div>
             <div class="figure-detail">{{ figure.detail }}</div>
           </div>
@@ -209,39 +214,49 @@
             <UiTableColumn field="name" label="Directory" v-slot="props" sortable>
               <a href="#" @click.prevent="directory = props.row.path">{{ props.row.name }}</a>
             </UiTableColumn>
-            <UiTableColumn field="lines" label="Lines" v-slot="props" numeric sortable>
+            <UiTableColumn field="lines" label="Lines" v-slot="props" numeric sortable
+              hint="The lines alive in the directory today.">
               {{ compact(props.row.lines) }}
             </UiTableColumn>
-            <UiTableColumn field="growth" label="Growth" v-slot="props" numeric sortable>
+            <UiTableColumn field="growth" label="Growth" v-slot="props" numeric sortable
+              hint="The change of the lines alive over the last 12 months, files moved in or out included.">
               {{ signedPercent(props.row.growth) }}
             </UiTableColumn>
-            <UiTableColumn field="fresh" label="Fresh" v-slot="props" numeric sortable>
+            <UiTableColumn field="fresh" label="Fresh" v-slot="props" numeric sortable
+              hint="The share of the lines alive written in the last 12 months.">
               {{ percent(props.row.fresh) }}
             </UiTableColumn>
-            <UiTableColumn field="median_age" label="Median age" v-slot="props" numeric sortable>
+            <UiTableColumn field="median_age" label="Median age" v-slot="props" numeric sortable
+              hint="Half of the lines alive are older than this.">
               {{ years(props.row.median_age) }}
             </UiTableColumn>
-            <UiTableColumn field="rewritten" label="Old code rewritten" v-slot="props" numeric sortable>
+            <UiTableColumn field="rewritten" label="Old code rewritten" v-slot="props" numeric sortable
+              hint="Of the lines a year ago, the share removed or rewritten since. Negative when lines were moved in.">
               {{ percent(props.row.rewritten) }}
             </UiTableColumn>
             <UiTableColumn field="label" label="In last year" v-slot="props" sortable
+              :hint="labelHint"
               :visible="children.some(row => row.label)">
               {{ props.row.label }}
             </UiTableColumn>
             <UiTableColumn field="authors" label="Authors" v-slot="props" numeric sortable
+              :hint="`The developers with at least one commit in the directory in ${lastYear}, bots aside.`"
               :visible="children.some(row => row.authors !== undefined)">
               {{ props.row.authors ?? "" }}
             </UiTableColumn>
             <UiTableColumn field="core" label="Core" v-slot="props" numeric sortable
+              :hint="`The authors with 12 commits or more in the directory in ${lastYear}.`"
               :visible="children.some(row => row.core !== undefined)">
               {{ props.row.core ?? "" }}
             </UiTableColumn>
             <UiTableColumn field="bus_factor" label="Bus factor" v-slot="props" numeric sortable
+              :hint="busFactorHint"
               :visible="children.some(row => row.bus_factor !== undefined)">
               {{ props.row.bus_factor ?? "" }}
             </UiTableColumn>
             <UiTableColumn v-for="(username, i) in developers" :key="username"
               :field="`owned_${i}`" :label="username" v-slot="props" numeric sortable
+              :hint="`The share of the directory's lines alive that ${username} authored.`"
               :td-attrs="row => paint(row[`owned_${i}`], username)">
               {{ props.row[`owned_${i}`] ? ownedShare(props.row[`owned_${i}`]) : "" }}
             </UiTableColumn>
@@ -293,7 +308,12 @@
           </p>
           <div class="figures mb-4">
             <div v-for="figure in activityFigures" :key="figure.label" class="figure">
-              <div class="figure-label">{{ figure.label }}</div>
+              <div class="figure-label">
+                <UiTooltip v-if="figure.hint" :text="figure.hint" multiline dashed position="bottom">
+                  {{ figure.label }}
+                </UiTooltip>
+                <template v-else>{{ figure.label }}</template>
+              </div>
               <div class="figure-value">{{ figure.value }}</div>
               <div class="figure-detail">{{ figure.detail }}</div>
             </div>
@@ -310,7 +330,12 @@
           </p>
           <div class="figures mb-4">
             <div v-for="figure in contributorFigures" :key="figure.label" class="figure">
-              <div class="figure-label">{{ figure.label }}</div>
+              <div class="figure-label">
+                <UiTooltip v-if="figure.hint" :text="figure.hint" multiline dashed position="bottom">
+                  {{ figure.label }}
+                </UiTooltip>
+                <template v-else>{{ figure.label }}</template>
+              </div>
               <div class="figure-value">{{ figure.value }}</div>
               <div class="figure-detail">{{ figure.detail }}</div>
             </div>
@@ -620,6 +645,14 @@ const scopeSummary = computed(() => directory.value
   ? directories.value.find(entry => entry.path === directory.value)
   : cohorts.value);
 
+// The explanations of the labels and the bus factor, shown on hover.
+const labelHint = "What happened during the last complete year. Growing: the lines grew by more than 5%. " +
+  "Shrinking: they shrank by more than 5%. Refactored: rewriting older lines and mechanical changes " +
+  "outweighed new code. Dormant: under 2% of the lines changed. Maintained: otherwise.";
+const busFactorHint = "The fewest authors who together wrote half of the lines alive, adding the authors " +
+  "from the one who wrote the most. 1 means a single person wrote half of the code, which then depends on " +
+  "very few people. Writing isn't the only way to know code: reviewers and owners know it too.";
+
 // The last complete year, for the activity and the contributors.
 const lastYear = new Date().getUTCFullYear() - 1;
 const yearIndex = (data, year) => data ? data.years.indexOf(year) : -1;
@@ -644,10 +677,10 @@ const activityFigures = computed(() => {
     ["new", "iteration", "rework", "mechanical", "removed"].map(kind => activity[kind][i]);
   const changed = added + iteration + rework + mechanical;
   return [
-    { label: `In ${lastYear}`, value: scopeSummary.value?.label || "", detail: "development or refactoring" },
-    { label: "Development", value: percent((added + iteration) / changed), detail: "new code, and lines under a year old rewritten" },
-    { label: "Refactoring", value: percent((rework + mechanical) / changed), detail: "older lines rewritten, and mechanical changes" },
-    { label: "Growth", value: `${added - removed >= 0 ? "+" : ""}${compact(added - removed)}`, detail: "lines added, minus lines removed" },
+    { label: `In ${lastYear}`, hint: labelHint, value: scopeSummary.value?.label || "", detail: "development or refactoring" },
+    { label: "Development", hint: "New lines, and lines under a year old rewritten or removed: work on recent code.", value: percent((added + iteration) / changed), detail: "new code, and lines under a year old rewritten" },
+    { label: "Refactoring", hint: "Lines a year old or more rewritten or removed, and mechanical changes like reformattings and renames across the codebase.", value: percent((rework + mechanical) / changed), detail: "older lines rewritten, and mechanical changes" },
+    { label: "Growth", hint: "The lines added minus the lines removed during the year. Files moved in or out don't count.", value: `${added - removed >= 0 ? "+" : ""}${compact(added - removed)}`, detail: "lines added, minus lines removed" },
   ];
 });
 
@@ -667,11 +700,11 @@ const contributorFigures = computed(() => {
   if (i === -1) return [];
   const authors = contributors.core[i] + contributors.regular[i] + contributors.driveby[i];
   return [
-    { label: `Authors in ${lastYear}`, value: lines(authors), detail: `${lines(contributors.commits[i])} commits` },
-    { label: "Core team", value: lines(contributors.core[i]), detail: "authors with 12 commits or more" },
-    { label: "Depth", value: (contributors.commits[i] / authors).toFixed(1), detail: "commits per author" },
-    { label: "Drive-by", value: percent(contributors.driveby[i] / authors), detail: "of the authors, with 1 or 2 commits" },
-    { label: "Bus factor", value: scopeSummary.value?.bus_factor ?? "", detail: "authors who wrote half of the lines alive" },
+    { label: `Authors in ${lastYear}`, hint: "The developers with at least one commit here during the year, bots aside.", value: lines(authors), detail: `${lines(contributors.commits[i])} commits` },
+    { label: "Core team", hint: "The authors with 12 commits or more here during the year, about one a month or more.", value: lines(contributors.core[i]), detail: "authors with 12 commits or more" },
+    { label: "Depth", hint: "The commits per author. High means a few people working here a lot; low means many occasional contributions.", value: (contributors.commits[i] / authors).toFixed(1), detail: "commits per author" },
+    { label: "Drive-by", hint: "The share of the authors with only 1 or 2 commits here during the year, often for changes across the codebase.", value: percent(contributors.driveby[i] / authors), detail: "of the authors, with 1 or 2 commits" },
+    { label: "Bus factor", hint: busFactorHint, value: scopeSummary.value?.bus_factor ?? "", detail: "the fewest authors who together wrote half of the lines alive" },
   ];
 });
 const topAuthors = computed(() => (scope.value?.top || [])
@@ -788,21 +821,25 @@ const figures = computed(() => {
   const figures = [
     {
       label: "Lines alive",
+      hint: "The lines in the repository or the directory today, without the third-party code and the translations. See \"How is this computed?\".",
       value: compact(current),
       detail: year_ago ? `${signedPercent(current / year_ago - 1)} in a year` : "",
     },
     {
       label: "Fresh code",
+      hint: "The share of the lines alive written in the last 365 days. High means a young or fast-changing codebase.",
       value: percent(recent / current),
       detail: "written in the last 365 days",
     },
     {
       label: "Median line age",
+      hint: "Half of the lines alive are older than this. It grows by one year per year when nothing is rewritten.",
       value: median_age === null || isNaN(median_age) ? "" : `${median_age.toFixed(1)} years`,
       detail: "half of the lines are older",
     },
     {
       label: "Old code rewritten",
+      hint: "Of the lines a year ago, the share removed or rewritten since. How fast the existing code is renewed.",
       value: year_ago ? percent(1 - (current - recent) / year_ago) : "",
       detail: "of the lines older than a year, during the last year",
     },
@@ -810,6 +847,7 @@ const figures = computed(() => {
   if (halfLife.value) {
     figures.push({
       label: "Half-life",
+      hint: "With the median yearly reductions, the time for half of the lines written in a year to be removed or rewritten.",
       value: `${halfLife.value.toFixed(1)} years`,
       detail: "for half of a year's lines to be gone",
     });

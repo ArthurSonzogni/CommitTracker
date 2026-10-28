@@ -60,11 +60,14 @@ watch(hovered, (value) => {
   color: var(--tooltip-ink);
   font-size: 0.75rem;
   font-weight: 500;
+  /* Not inherited from an uppercase label or header. */
+  letter-spacing: normal;
   line-height: 1.4;
   padding: 0.3rem 0.55rem;
   pointer-events: none;
   position: absolute;
   text-align: center;
+  text-transform: none;
   white-space: nowrap;
   z-index: 38;
 }

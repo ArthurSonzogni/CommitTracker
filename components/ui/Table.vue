@@ -5,6 +5,7 @@
 import { Comment, Fragment, defineComponent, h, ref, computed, watch, type PropType, type VNode } from 'vue'
 import UiTableColumn from './TableColumn.vue'
 import UiIcon from './Icon.vue'
+import UiTooltip from './Tooltip.vue'
 
 type Column = {
   field?: string;
@@ -16,6 +17,8 @@ type Column = {
   tdAttrs?: (row: any, column: Column) => Record<string, any>;
   cellClass?: string;
   headerClass?: string;
+  // Explains the column, in a tooltip over its label.
+  hint?: string;
   // From <UiTableColumn>: renders a cell.
   cell?: (props: { row: any, index: number, column: Column }) => VNode[];
 };
@@ -141,7 +144,10 @@ export default defineComponent({
           onClick: () => sortBy(column),
         }, [
           h('span', { class: 'th-wrap' }, [
-            column.label,
+            column.hint
+              ? h(UiTooltip, { text: column.hint, multiline: true, dashed: true, position: 'bottom' },
+                () => column.label)
+              : column.label,
             sortField.value === column.field
               ? h(UiIcon, { name: sortAscending.value ? 'arrow-up' : 'arrow-down', size: 'small' })
               : null,
