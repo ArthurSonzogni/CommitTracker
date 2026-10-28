@@ -20,6 +20,11 @@
 //                       lines of every file, and `git blame` for n of them.
 //                       It needs a full clone.
 //   --output=<dir>      Instead of ../public/accretion, for experiments.
+//   --rebuild-recent    Fill the commits of the last year, for the
+//                       contributors of the last 365 days, from the history
+//                       instead of replaying it. For a state from before they
+//                       were kept. It needs a year of history, cloned if
+//                       missing.
 // The methods, for comparing them. They are kept in the state, for the next
 // runs to use the same:
 //   --no-ignore-revs    Do not use .git-blame-ignore-revs.
@@ -279,6 +284,11 @@ class State {
     this.contributors = new Map();
     // Author id -> Map(author id -> lines): whose lines were removed by whom.
     this.removals = new Map();
+    // Directory -> [time, author id, ...]: the commits of the last
+    // RECENT_WINDOW, and the time since which they are all there (0 when
+    // replayed from the first commit, null when missing).
+    this.recent = new Map();
+    this.recent_since = 0;
     // Every 4 weeks: [time, [directory id, recent, years count,
     //                         (year - 2000, lines)...]...].
     this.directory_samples = [];
@@ -376,20 +386,35 @@ class State {
 
   // A commit touching these files, for the contributors of their directories.
   recordCommit(commit, files) {
-    const year = Year(this.commit_time[commit]);
+    const time = this.commit_time[commit];
+    const year = Year(time);
     const author = this.commit_author[commit];
-    const directories = new Set([""]);
-    for (const file of files) {
-      if (GENERATED_FILE.test(file)) continue;
-      Directories(file).forEach(directory => directories.add(directory));
-    }
-    if (directories.size === 1 && files.every(file => GENERATED_FILE.test(file))) return;
+    const directories = CommitDirectories(files);
+    if (!directories) return;
+    this.recordRecent(time, author, directories);
     for (const directory of directories) {
       if (!this.contributors.has(directory)) this.contributors.set(directory, new Map());
       const years = this.contributors.get(directory);
       if (!years.has(year)) years.set(year, new Map());
       const authors = years.get(year);
       authors.set(author, (authors.get(author) || 0) + 1);
+    }
+  }
+
+  recordRecent(time, author, directories) {
+    for (const directory of directories) {
+      if (!this.recent.has(directory)) this.recent.set(directory, []);
+      this.recent.get(directory).push(time, author);
+    }
+  }
+
+  // Forget the recent commits older than the window.
+  pruneRecent(time) {
+    for (const [directory, commits] of this.recent) {
+      let i = 0;
+      while (i < commits.length && commits[i] < time - RECENT_WINDOW) i += 2;
+      if (i === commits.length) this.recent.delete(directory);
+      else if (i > 0) this.recent.set(directory, commits.slice(i));
     }
   }
 
@@ -417,6 +442,7 @@ class State {
     }
     this.samples.push([time, years, recent]);
     if (this.samples.length % 4 === 1) this.sampleDirectories(time);
+    this.pruneRecent(time);
     // Every 4 weeks for the authors, as there are many of them.
     if (this.samples.length % 4 === 1) {
       this.author_samples.push([time, [...authors].flat()]);
@@ -464,7 +490,8 @@ class State {
   // - For each file: path length, path, run count, runs as varints.
   // - For each directory sample: time, value count, values as varints.
   serialize() {
-    for (const directory of [...this.activity.keys(), ...this.contributors.keys()]) {
+    for (const directory of [...this.activity.keys(), ...this.contributors.keys(),
+      ...this.recent.keys()]) {
       this.directoryId(directory);
     }
     const header = Buffer.from(JSON.stringify({
@@ -485,6 +512,8 @@ class State {
       contributors: this.contributors.size,
       removals: this.removals.size,
       activity_complete: this.activity_complete,
+      recent: this.recent.size,
+      recent_since: this.recent_since,
     }));
     const parts = [];
     const u32 = value => {
@@ -544,6 +573,11 @@ class State {
         }
       }
     }
+    for (const [directory, commits] of this.recent) {
+      varint(this.directoryId(directory));
+      varint(commits.length / 2);
+      for (const value of commits) varint(value);
+    }
     for (const [written, by] of this.removals) {
       varint(written);
       varint(by.size);
@@ -574,6 +608,7 @@ class State {
     state.author_samples = header.author_samples;
     state.events = header.events || [];
     state.activity_complete = header.activity_complete === true;
+    state.recent_since = header.recent_since ?? null;
     const u32s = () => {
       const array = new Uint32Array(header.commits);
       for (let i = 0; i < header.commits; i++) {
@@ -634,6 +669,12 @@ class State {
           authors.set(author, varint());
         }
       }
+    }
+    for (let i = 0; i < (header.recent || 0); i++) {
+      const directory = state.directory_names[varint()];
+      const commits = new Array(varint() * 2);
+      for (let j = 0; j < commits.length; j++) commits[j] = varint();
+      state.recent.set(directory, commits);
     }
     for (let i = 0; i < (header.removals || 0); i++) {
       const by = new Map();
@@ -1004,27 +1045,39 @@ const WriteOutput = async (state, dir) => {
   summary.forEach((entry, index) => entry.bus_factor = BusFactor(authored[index]));
   await fs.writeFile(path.join(dir, "directories.json"), JSON.stringify(summary));
 
-  // The breadth of each developer during the last years: their commits per
-  // component, a directory two levels deep (Blink counting as one).
+  // The breadth of each developer during the last 365 days, or else the last
+  // calendar years: their commits per component, a directory two levels deep
+  // (Blink counting as one).
   const recent = Year(now) - RECENT_YEARS + 1;
   const level = directory => directory.split("/").length -
     (directory.startsWith("third_party/blink") ? 1 : 0);
   const components = new Map(); // Username -> Map(component -> commits).
   const commits = new Map(); // Username -> commits.
-  for (const [directory, years] of state.activity_complete ? state.contributors : []) {
+  const add_commits = (username, directory, count) => {
+    if (directory === "") {
+      commits.set(username, (commits.get(username) || 0) + count);
+      return;
+    }
+    if (!components.has(username)) components.set(username, new Map());
+    const counts = components.get(username);
+    counts.set(directory, (counts.get(directory) || 0) + count);
+  };
+  // Of the last 365 days, or else of the last calendar years.
+  const recent_complete = state.activity_complete && RecentComplete(state, now);
+  for (const directory of recent_complete ? state.recent.keys() : []) {
+    if (directory !== "" && level(directory) !== 2) continue;
+    for (const [username, count] of RecentCommits(state, directory, usernameOf, now)) {
+      add_commits(username, directory, count);
+    }
+  }
+  const yearly = state.activity_complete && !recent_complete ? state.contributors : [];
+  for (const [directory, years] of yearly) {
     if (directory !== "" && level(directory) !== 2) continue;
     for (const [year, authors] of years) {
       if (year < recent) continue;
       for (const [author, count] of authors) {
         const username = usernameOf[author];
-        if (!username) continue;
-        if (directory === "") {
-          commits.set(username, (commits.get(username) || 0) + count);
-          continue;
-        }
-        if (!components.has(username)) components.set(username, new Map());
-        const counts = components.get(username);
-        counts.set(directory, (counts.get(directory) || 0) + count);
+        if (username) add_commits(username, directory, count);
       }
     }
   }
@@ -1158,9 +1211,41 @@ const MedianAge = state => {
 
 // Directories: for each with at least MIN_LINES lines, its lines per year
 // over time (directories/<path>.json), and a summary (directories.json).
+// Whether the recent commits of a state cover the last 365 days.
+const RecentComplete = (state, now) =>
+  state.recent_since !== null && state.recent_since <= now - 365 * 86400;
+
+// The commits per username in a directory during the last 365 days.
+const RecentCommits = (state, directory, usernameOf, now) => {
+  const users = new Map();
+  const commits = state.recent.get(directory) || [];
+  for (let i = 0; i < commits.length; i += 2) {
+    if (commits[i] < now - 365 * 86400) continue;
+    const username = usernameOf[commits[i + 1]];
+    if (username) users.set(username, (users.get(username) || 0) + 1);
+  }
+  return users;
+};
+
+// The directories ("" for the root) of a commit touching these files, for its
+// contributors. Null when it only touched generated files.
+const CommitDirectories = files => {
+  const directories = new Set([""]);
+  let counted = false;
+  for (const file of files) {
+    if (GENERATED_FILE.test(file)) continue;
+    counted = true;
+    Directories(file).forEach(directory => directories.add(directory));
+  }
+  return counted ? directories : null;
+};
+
 // The activity and the contributors of a directory ("" for the root), with
 // the authors merged into usernames, and the bots left out.
-const RECENT_YEARS = 3; // For the top authors and the breadth of developers.
+const RECENT_YEARS = 3; // For the top authors, without the recent commits.
+// The recent commits are kept this long, for the contributors of the last 365
+// days.
+const RECENT_WINDOW = 400 * 86400;
 const DirectoryActivity = (state, directory, usernameOf, now) => {
   const result = {};
   if (!state.activity_complete) return result;
@@ -1203,6 +1288,18 @@ const DirectoryActivity = (state, directory, usernameOf, now) => {
       }
     }
     result.top = [...top].sort((a, b) => b[1] - a[1]).slice(0, 10);
+  }
+  // With the recent commits: the contributors and the top authors of exactly
+  // the last 365 days.
+  if (RecentComplete(state, now)) {
+    const users = RecentCommits(state, directory, usernameOf, now);
+    const recent = { commits: 0, authors: users.size, core: 0, regular: 0, driveby: 0 };
+    for (const commits of users.values()) {
+      recent.commits += commits;
+      recent[commits >= 12 ? "core" : commits >= 3 ? "regular" : "driveby"]++;
+    }
+    result.recent_contributors = recent;
+    result.top = [...users].sort((a, b) => b[1] - a[1]).slice(0, 10);
   }
   return result;
 };
@@ -1324,9 +1421,11 @@ const WriteDirectories = async (state, dir, usernameOf) => {
       reworked: activity.activity
         ? Math.round(RecentActivity(activity.activity, now).rework)
         : undefined,
-      authors: lastContributors === -1 ? undefined : ["core", "regular", "driveby"]
-        .reduce((sum, key) => sum + activity.contributors[key][lastContributors], 0),
-      core: lastContributors === -1 ? undefined : activity.contributors.core[lastContributors],
+      authors: activity.recent_contributors?.authors ??
+        (lastContributors === -1 ? undefined : ["core", "regular", "driveby"]
+          .reduce((sum, key) => sum + activity.contributors[key][lastContributors], 0)),
+      core: activity.recent_contributors?.core ??
+        (lastContributors === -1 ? undefined : activity.contributors.core[lastContributors]),
     });
 
     const history = samples.filter(([, values]) => values.has(name));
@@ -1471,8 +1570,10 @@ const main = async () => {
   // In the CI, there is no checkout, or a shallow one: fetch the history since
   // the last replayed commit. Its commit date is less than a week before the
   // next sample.
+  // Or the year before, to rebuild the recent commits.
+  const depth = 2 * CONFIG.week + (flag("rebuild-recent") ? RECENT_WINDOW : 0);
   const since = state.next_sample
-    ? [`--shallow-since=${new Date((state.next_sample - 2 * CONFIG.week) * 1000).toISOString()}`]
+    ? [`--shallow-since=${new Date((state.next_sample - depth) * 1000).toISOString()}`]
     : [];
   const cloned = await fs.access(cwd).then(() => true, () => false);
   if (cloned) {
@@ -1508,6 +1609,8 @@ const main = async () => {
   }
   console.log(`Ignored revisions: ${ignore_revs.size}`);
 
+  if (flag("rebuild-recent")) await RebuildRecent(state, cwd, pathspecs);
+
   // The commits to replay, oldest first, with their first parent.
   const range = state.head ? [`${state.head}..${branch}`] : [branch];
   if (!state.head && flag("since")) range.push(`--since=${flag("since")}`);
@@ -1519,8 +1622,8 @@ const main = async () => {
     return false;
   });
   console.log(`Commits to replay: ${commits.length}`);
-  if (commits.length > 0) {
-    await Replay(state, cwd, pathspecs, ignore_revs, commits);
+  if (commits.length > 0 || flag("rebuild-recent")) {
+    if (commits.length > 0) await Replay(state, cwd, pathspecs, ignore_revs, commits);
     await fs.writeFile(state_file, state.serialize());
     const size = (await fs.stat(state_file)).size;
     console.log(`State: ${(size / 1e6).toFixed(1)} MB`);
@@ -1590,6 +1693,37 @@ const Replay = async (state, cwd, pathspecs, ignore_revs, commits) => {
 // The commits of the first-parent history, oldest first.
 const Branch = cwd => run(["git", "symbolic-ref", "--short",
   "refs/remotes/origin/HEAD"], cwd).then(ref => ref.trim(), () => "origin/main");
+
+// Fills the recent commits of a state from the history, like the replay
+// would: the first-parent commits touching the pathspecs until the last one
+// replayed, without the generated files, the WPT imports being generated.
+const RebuildRecent = async (state, cwd, pathspecs) => {
+  const time = state.options.commit_date ? "%ct" : "%at";
+  const head = Number((await run(["git", "log", "-1", `--format=${time}`, state.head], cwd)).trim());
+  const start = head - RECENT_WINDOW;
+  const output = await run(["git", "-c", "core.quotePath=false", "log",
+    "--first-parent", `--format=%x01${time} %ae%x02%s`, "--name-only",
+    `--since=${new Date(start * 1000).toISOString()}`, state.head,
+    "--", ...pathspecs], cwd);
+  const commits = [];
+  for (const block of output.split("\x01").slice(1)) {
+    const [header, ...lines] = block.split("\n");
+    const separator = header.indexOf("\x02");
+    const [when, ...email] = header.slice(0, separator).split(" ");
+    const subject = header.slice(separator + 1);
+    const files = lines.filter(Boolean).map(unquote);
+    const imported = IMPORT_SUBJECT.test(subject) && files.some(file => WPT_FILE.test(file));
+    commits.push([Number(when), state.authorId(imported ? GENERATED : email.join(" ")), files]);
+  }
+  state.recent = new Map();
+  // Oldest first, like the replay.
+  for (const [when, author, files] of commits.reverse()) {
+    const directories = CommitDirectories(files);
+    if (directories && when >= start) state.recordRecent(when, author, directories);
+  }
+  state.recent_since = start;
+  console.log(`Recent commits rebuilt since ${Day(start)}: ${commits.length} commits`);
+};
 
 const RevList = async (cwd, range) => (await run(["git", "rev-list",
   "--first-parent", "--reverse", "--parents", ...range], cwd))

@@ -105,7 +105,9 @@
               directory describes its last 12 months: Growing or Shrinking
               when its lines alive changed by more than 5%, like its growth,
               and otherwise from its lines changed, estimated from the yearly
-              counts. The contributors are counted per complete year.
+              counts. The contributors, the top authors and the breadth of
+              developers cover the last 365 days. The chart of contributors
+              counts them per calendar year.
             </li>
             <li>
               <strong>Contributors:</strong> the authors committing each year.
@@ -121,7 +123,7 @@
             </li>
             <li>
               <strong>Breadth of a developer:</strong> the effective number of
-              components they committed to over the last 3 calendar years. A
+              components they committed to over the last 12 months. A
               component is a directory two levels deep, like
               <code>chrome/browser</code> or
               <code>third_party/blink/renderer</code>. The number is weighted
@@ -259,12 +261,12 @@
               {{ props.row.label }}
             </UiTableColumn>
             <UiTableColumn field="authors" label="Authors" v-slot="props" numeric sortable
-              :hint="`The developers with at least one commit in the directory in ${lastYear}, bots aside.`"
+              :hint="`The developers with at least one commit in the directory ${contributorsPeriod}, bots aside.`"
               :visible="children.some(row => row.authors !== undefined)">
               {{ props.row.authors ?? "" }}
             </UiTableColumn>
             <UiTableColumn field="core" label="Core" v-slot="props" numeric sortable
-              :hint="`The authors with 12 commits or more in the directory in ${lastYear}.`"
+              :hint="`The authors with 12 commits or more in the directory ${contributorsPeriod}.`"
               :visible="children.some(row => row.core !== undefined)">
               {{ props.row.core ?? "" }}
             </UiTableColumn>
@@ -360,7 +362,7 @@
             </div>
           </div>
           <StackedBars :years="scope.contributors.years" :series="contributorSeries" />
-          <h3 class="title is-6 mt-5">Most commits since {{ lastYear - 1 }}</h3>
+          <h3 class="title is-6 mt-5">Most commits {{ breadthPeriod }}</h3>
           <UiTable :data="topAuthors" hoverable striped>
             <UiTableColumn field="username" label="Developer" v-slot="props">
               <NuxtLink :to="`/developers/${props.row.username}`">{{ props.row.username }}</NuxtLink>
@@ -410,7 +412,7 @@
               <span v-if="wholeRepository" class="scope-tag">{{ wholeRepository }}</span>
               <span class="swatch" :style="{ background: $color(entry.username) }" />
               <strong>{{ entry.username }}</strong> made {{ lines(entry.commits || 0) }}
-              commits since {{ lastYear - 1 }}, across about
+              commits {{ breadthPeriod }}, across about
               {{ entry.breadth.effective >= 10 ? Math.round(entry.breadth.effective) : entry.breadth.effective }}
               <UiTooltip :text="componentsHint" multiline dashed>components</UiTooltip>;
               {{ percent(entry.breadth.share) }} in <code>{{ entry.breadth.components[0][0] }}</code>.
@@ -454,7 +456,7 @@
             <p class="mb-2">
               <span v-if="wholeRepository" class="scope-tag">{{ wholeRepository }}</span>
               The 100 developers with the most lines alive, by their commits
-              since {{ lastYear - 1 }}, and how many
+              {{ breadthPeriod }}, and how many
               <UiTooltip :text="componentsHint" multiline dashed>components</UiTooltip>
               they spread over: specialists on the left, generalists on the
               right. A component is a directory two levels deep, like
@@ -690,7 +692,7 @@ const busFactorHint = "The fewest authors who together wrote half of the lines a
 
 const componentsHint = "A component is a directory two levels deep, like chrome/browser. " +
   "The number is weighted by where the commits went: 100 commits spread evenly over 4 components " +
-  "make 4, while 97 in one and 1 in each of 3 others make about 1.2. Over the last 3 calendar years.";
+  "make 4, while 97 in one and 1 in each of 3 others make about 1.2.";
 
 // Of the lines a year ago, the share rewritten or removed in place since: the
 // rework of the last 12 months. Without the activity, from the lines older
@@ -708,6 +710,15 @@ const wholeRepository = computed(() => directory.value ? `All of ${name.value}` 
 const untrackedBelow = computed(() => directory.value &&
   directory.value.split("/").length -
     (directory.value.startsWith("third_party/blink") ? 1 : 0) >= 3);
+
+// The contributors cover the last 365 days when the data has them, or else
+// the last complete year, and the last 3 calendar years for the top authors
+// and the breadth of developers.
+const recentContributors = computed(() => !!cohorts.value?.recent_contributors);
+const contributorsPeriod = computed(() =>
+  recentContributors.value ? "in the last 12 months" : `in ${lastYear}`);
+const breadthPeriod = computed(() =>
+  recentContributors.value ? "in the last 12 months" : `since ${lastYear - 1}`);
 
 // The last complete year, for the activity and the contributors.
 const lastYear = new Date().getUTCFullYear() - 1;
@@ -768,15 +779,22 @@ const contributorSeries = computed(() => {
   ];
 });
 const contributorFigures = computed(() => {
-  const contributors = scope.value?.contributors;
-  const i = yearIndex(contributors, lastYear);
-  if (i === -1) return [];
-  const authors = contributors.core[i] + contributors.regular[i] + contributors.driveby[i];
+  // Of the last 365 days, or else of the last complete year.
+  let counts = scope.value?.recent_contributors;
+  if (!counts) {
+    const contributors = scope.value?.contributors;
+    const i = yearIndex(contributors, lastYear);
+    if (i === -1) return [];
+    counts = Object.fromEntries(["commits", "core", "regular", "driveby"]
+      .map(key => [key, contributors[key][i]]));
+    counts.authors = counts.core + counts.regular + counts.driveby;
+  }
+  const period = contributorsPeriod.value;
   return [
-    { label: `Authors in ${lastYear}`, hint: "The developers with at least one commit here during the year, bots aside.", value: lines(authors), detail: `${lines(contributors.commits[i])} commits` },
-    { label: "Core team", hint: "The authors with 12 commits or more here during the year, about one a month or more.", value: lines(contributors.core[i]), detail: "authors with 12 commits or more" },
-    { label: "Depth", hint: "The commits per author. High means a few people working here a lot; low means many occasional contributions.", value: (contributors.commits[i] / authors).toFixed(1), detail: "commits per author" },
-    { label: "Drive-by", hint: "The share of the authors with only 1 or 2 commits here during the year, often for changes across the codebase.", value: percent(contributors.driveby[i] / authors), detail: "of the authors, with 1 or 2 commits" },
+    { label: "Authors", hint: `The developers with at least one commit here ${period}, bots aside.`, value: lines(counts.authors), detail: `${period}, ${lines(counts.commits)} commits` },
+    { label: "Core team", hint: `The authors with 12 commits or more here ${period}, about one a month or more.`, value: lines(counts.core), detail: "authors with 12 commits or more" },
+    { label: "Depth", hint: "The commits per author. High means a few people working here a lot; low means many occasional contributions.", value: counts.authors ? (counts.commits / counts.authors).toFixed(1) : "", detail: "commits per author" },
+    { label: "Drive-by", hint: `The share of the authors with only 1 or 2 commits here ${period}, often for changes across the codebase.`, value: percent(counts.driveby / counts.authors), detail: "of the authors, with 1 or 2 commits" },
     { label: "Bus factor", hint: busFactorHint, value: scopeSummary.value?.bus_factor ?? "", detail: "the fewest authors who together wrote half of the lines alive" },
   ];
 });
