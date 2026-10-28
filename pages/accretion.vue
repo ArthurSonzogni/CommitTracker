@@ -96,6 +96,26 @@
               January. The <strong>half-life</strong> applies the median rates.
             </li>
             <li>
+              <strong>Development vs refactoring:</strong> the lines changed
+              per year. New code and lines under a year old rewritten or
+              removed are development; older lines rewritten or removed, and
+              the mechanical commits, are refactoring. The label of a
+              directory describes its last complete year.
+            </li>
+            <li>
+              <strong>Contributors:</strong> the authors committing each year.
+              Core authors made 12 commits or more in the year, drive-by ones 1
+              or 2. The <strong>bus factor</strong> is the number of authors
+              who wrote half of the lines alive.
+            </li>
+            <li>
+              <strong>Breadth of a developer:</strong> the effective number of
+              components (directories two levels deep) they committed to over
+              the last 3 years, e<sup>entropy</sup> of their commits.
+              <strong>Removed lines:</strong> who removed or rewrote the lines
+              of whom, mechanical commits aside.
+            </li>
+            <li>
               <strong>Markers:</strong> the 6 commits adding or removing the
               most lines at once, skipping the smaller ones close to a larger
               one. Each is explained in a few words, or by the directory where
@@ -185,6 +205,22 @@
             <UiTableColumn field="rewritten" label="Old code rewritten" v-slot="props" numeric sortable>
               {{ percent(props.row.rewritten) }}
             </UiTableColumn>
+            <UiTableColumn field="label" label="In last year" v-slot="props" sortable
+              :visible="children.some(row => row.label)">
+              {{ props.row.label }}
+            </UiTableColumn>
+            <UiTableColumn field="authors" label="Authors" v-slot="props" numeric sortable
+              :visible="children.some(row => row.authors !== undefined)">
+              {{ props.row.authors ?? "" }}
+            </UiTableColumn>
+            <UiTableColumn field="core" label="Core" v-slot="props" numeric sortable
+              :visible="children.some(row => row.core !== undefined)">
+              {{ props.row.core ?? "" }}
+            </UiTableColumn>
+            <UiTableColumn field="bus_factor" label="Bus factor" v-slot="props" numeric sortable
+              :visible="children.some(row => row.bus_factor !== undefined)">
+              {{ props.row.bus_factor ?? "" }}
+            </UiTableColumn>
             <UiTableColumn v-for="(username, i) in developers" :key="username"
               :field="`owned_${i}`" :label="username" v-slot="props" numeric sortable
               :td-attrs="row => paint(row[`owned_${i}`], username)">
@@ -227,6 +263,57 @@
           </p>
         </CollapsibleSection>
 
+        <CollapsibleSection v-if="activitySeries.length" title="Development vs refactoring"
+          id="activity" :collapsed="isHidden('a')" @toggle="toggleHidden('a')">
+          <p class="mb-4">
+            The lines changed each year in {{ directory || name }}, generated
+            files aside. <em>Development</em> is new code, and lines under a
+            year old rewritten or removed: work on recent code.
+            <em>Refactoring</em> is older lines rewritten or removed, and
+            mechanical changes like reformattings.
+          </p>
+          <div class="figures mb-4">
+            <div v-for="figure in activityFigures" :key="figure.label" class="figure">
+              <div class="figure-label">{{ figure.label }}</div>
+              <div class="figure-value">{{ figure.value }}</div>
+              <div class="figure-detail">{{ figure.detail }}</div>
+            </div>
+          </div>
+          <StackedBars :years="scope.activity.years" :series="activitySeries" />
+        </CollapsibleSection>
+
+        <CollapsibleSection v-if="contributorSeries.length" title="Contributors"
+          id="contributors" :collapsed="isHidden('o')" @toggle="toggleHidden('o')">
+          <p class="mb-4">
+            The developers committing each year in {{ directory || name }}:
+            the core team commits about once a month or more, the drive-by
+            authors once or twice, often for changes across the codebase.
+          </p>
+          <div class="figures mb-4">
+            <div v-for="figure in contributorFigures" :key="figure.label" class="figure">
+              <div class="figure-label">{{ figure.label }}</div>
+              <div class="figure-value">{{ figure.value }}</div>
+              <div class="figure-detail">{{ figure.detail }}</div>
+            </div>
+          </div>
+          <StackedBars :years="scope.contributors.years" :series="contributorSeries" />
+          <h3 class="title is-6 mt-5">Most commits since {{ lastYear - 1 }}</h3>
+          <UiTable :data="topAuthors" hoverable striped>
+            <UiTableColumn field="username" label="Developer" v-slot="props">
+              <NuxtLink :to="`/developers/${props.row.username}`">{{ props.row.username }}</NuxtLink>
+            </UiTableColumn>
+            <UiTableColumn field="commits" label="Commits" v-slot="props" numeric>
+              {{ lines(props.row.commits) }}
+            </UiTableColumn>
+            <UiTableColumn label="Chart" v-slot="props">
+              <button type="button" class="button is-small"
+                @click="toggleDeveloper(props.row.username)">
+                {{ developers.includes(props.row.username) ? "Hide" : "Show" }}
+              </button>
+            </UiTableColumn>
+          </UiTable>
+        </CollapsibleSection>
+
         <CollapsibleSection title="Developers" id="developers" :collapsed="isHidden('v')"
           @toggle="toggleHidden('v')">
           <p class="mb-4">
@@ -245,6 +332,27 @@
               lines alive, {{ ownedShare(entry.share) }} of {{ directory || name }}.
             </li>
           </ul>
+          <div v-for="entry in developerDetails" :key="entry.username" class="mb-4 developer-details">
+            <p v-if="entry.breadth">
+              <span class="swatch" :style="{ background: $color(entry.username) }" />
+              <strong>{{ entry.username }}</strong> made {{ lines(entry.commits || 0) }}
+              commits since {{ lastYear - 1 }}, across about
+              {{ entry.breadth.effective >= 10 ? Math.round(entry.breadth.effective) : entry.breadth.effective }}
+              components;
+              {{ percent(entry.breadth.share) }} in <code>{{ entry.breadth.components[0][0] }}</code>.
+            </p>
+            <p v-if="entry.removals">
+              Of their lines removed or rewritten, {{ percent(entry.removals.self / entry.removals.total) }}
+              were by themselves.
+              <template v-if="entry.removals.by?.length">
+                By others: {{ listOf(entry.removals.by.filter(([name]) => name !== entry.username)) }}.
+              </template>
+              <template v-if="entry.removals.of?.length">
+                They removed or rewrote lines of
+                {{ listOf(entry.removals.of.filter(([name]) => name !== entry.username)) }}.
+              </template>
+            </p>
+          </div>
           <div v-for="entry in ownershipTrees" :key="entry.username" class="mb-5">
             <p class="mb-2">
               <span class="swatch" :style="{ background: $color(entry.username) }" />
@@ -261,6 +369,16 @@
           <div v-else class="chart">
             <LineChart :data="developerData" :formatter="lines" />
           </div>
+          <template v-if="leaderboard.some(entry => entry.breadth)">
+            <h3 class="title is-6 mt-5">Specialists and generalists</h3>
+            <p class="mb-2">
+              The developers of the leaderboard, by the number of components
+              they committed to since {{ lastYear - 1 }}, and their commits.
+              Click one to select it.
+            </p>
+            <BreadthScatter :developers="leaderboard" :selected="developers"
+              @select="toggleDeveloper" />
+          </template>
         </CollapsibleSection>
 
         <CollapsibleSection title="Most lines alive" id="leaderboard" :collapsed="isHidden('l')"
@@ -318,7 +436,8 @@ const share = ref(route.query.share === "true");
 const repository = ref(route.query.repository || "chromium");
 const directory = ref(route.query.dir || "");
 // The folded sections, one letter each: c(hart), d(irectories), f(resh code),
-// y(early reduction), (de)v(elopers), l(eaderboard).
+// y(early reduction), a(ctivity), (c)o(ntributors), (de)v(elopers),
+// l(eaderboard).
 const hidden = ref(route.query.hide || "");
 const isHidden = code => hidden.value.includes(code);
 const toggleHidden = code => {
@@ -461,6 +580,77 @@ watch([repository, directory], async () => {
 
 // The data of the selected scope: the repository, or a directory.
 const scope = computed(() => directory.value ? directoryData.value : cohorts.value);
+// The summary of the selected scope: its label and bus factor.
+const scopeSummary = computed(() => directory.value
+  ? directories.value.find(entry => entry.path === directory.value)
+  : cohorts.value);
+
+// The last complete year, for the activity and the contributors.
+const lastYear = new Date().getUTCFullYear() - 1;
+const yearIndex = (data, year) => data ? data.years.indexOf(year) : -1;
+
+// The lines changed per year, by kind.
+const activitySeries = computed(() => {
+  const activity = scope.value?.activity;
+  if (!activity) return [];
+  return [
+    { key: "new", label: "New code", color: "var(--series-3)", values: activity.new },
+    { key: "iteration", label: "Iteration (lines < 1 year old)", color: "var(--series-1)", values: activity.iteration },
+    { key: "rework", label: "Rework (lines ≥ 1 year old)", color: "var(--series-2)", values: activity.rework },
+    { key: "mechanical", label: "Mechanical", color: "var(--faint)", values: activity.mechanical },
+    { key: "removed", label: "Removed (net)", color: "var(--series-8)", values: activity.removed, negative: true },
+  ];
+});
+const activityFigures = computed(() => {
+  const activity = scope.value?.activity;
+  const i = yearIndex(activity, lastYear);
+  if (i === -1) return [];
+  const [added, iteration, rework, mechanical, removed] =
+    ["new", "iteration", "rework", "mechanical", "removed"].map(kind => activity[kind][i]);
+  const changed = added + iteration + rework + mechanical;
+  return [
+    { label: `In ${lastYear}`, value: scopeSummary.value?.label || "", detail: "development or refactoring" },
+    { label: "Development", value: percent((added + iteration) / changed), detail: "new code, and lines under a year old rewritten" },
+    { label: "Refactoring", value: percent((rework + mechanical) / changed), detail: "older lines rewritten, and mechanical changes" },
+    { label: "Growth", value: `${added - removed >= 0 ? "+" : ""}${compact(added - removed)}`, detail: "lines added, minus lines removed" },
+  ];
+});
+
+// The authors per year, by number of commits.
+const contributorSeries = computed(() => {
+  const contributors = scope.value?.contributors;
+  if (!contributors) return [];
+  return [
+    { key: "core", label: "Core (≥ 12 commits)", color: "var(--series-7)", values: contributors.core },
+    { key: "regular", label: "Regular (3 to 11)", color: "var(--series-1)", values: contributors.regular },
+    { key: "driveby", label: "Drive-by (1 or 2)", color: "var(--series-4)", values: contributors.driveby },
+  ];
+});
+const contributorFigures = computed(() => {
+  const contributors = scope.value?.contributors;
+  const i = yearIndex(contributors, lastYear);
+  if (i === -1) return [];
+  const authors = contributors.core[i] + contributors.regular[i] + contributors.driveby[i];
+  return [
+    { label: `Authors in ${lastYear}`, value: lines(authors), detail: `${lines(contributors.commits[i])} commits` },
+    { label: "Core team", value: lines(contributors.core[i]), detail: "authors with 12 commits or more" },
+    { label: "Depth", value: (contributors.commits[i] / authors).toFixed(1), detail: "commits per author" },
+    { label: "Drive-by", value: percent(contributors.driveby[i] / authors), detail: "of the authors, with 1 or 2 commits" },
+    { label: "Bus factor", value: scopeSummary.value?.bus_factor ?? "", detail: "authors who wrote half of the lines alive" },
+  ];
+});
+const topAuthors = computed(() => (scope.value?.top || [])
+  .map(([username, commits]) => ({ username, commits })));
+
+// The breadth and the removed lines of the selected developers.
+const developerDetails = computed(() => developerUsers.value.map(({ username, user }) => ({
+  username,
+  commits: user.commits,
+  breadth: user.breadth,
+  removals: user.removals,
+})));
+const listOf = pairs => (pairs || []).slice(0, 5)
+  .map(([username, count]) => `${username} (${compact(count)})`).join(", ");
 
 const total = row => row.reduce((a, b) => a + b, 0);
 

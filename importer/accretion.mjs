@@ -147,6 +147,15 @@ const REFORMAT_SUBJECT = new RegExp("^(\\[[^\\]]*\\] *)*(" + [
 const MECHANICAL_FILES = 1000;
 const MECHANICAL_LINES_PER_FILE = 3;
 
+// The activity: the lines changed per directory and year, by kind. A line
+// rewritten or removed is an iteration when it is less than a year old, and a
+// rework otherwise. The mechanical commits are counted apart.
+const KINDS = ["new", "iteration", "rework", "mechanical", "removed"];
+const YEAR0 = 1970;
+const YEARS = 81;
+const Year = time => Math.max(0, Math.min(YEARS - 1,
+  new Date(time * 1000).getUTCFullYear() - YEAR0));
+
 // The directories are tracked up to this depth, with Blink counted as a
 // top-level directory. Their lines are counted per month written in: index 0
 // for UNKNOWN, then one per month since 2000.
@@ -259,6 +268,17 @@ class State {
     this.directories = new Map(); // Directory -> lines per month (Int32Array).
     this.directory_names = []; // Directory id -> name.
     this.directory_ids = new Map();
+    // Whether the activity, the contributors and the removals were recorded
+    // since the first commit. A state from before they existed is missing
+    // them, and they aren't written until it is replayed again.
+    this.activity_complete = true;
+    // Directory ("" for the root) -> Int32Array(KINDS x YEARS), the lines
+    // changed.
+    this.activity = new Map();
+    // Directory -> Map(year -> Map(author id -> commits)).
+    this.contributors = new Map();
+    // Author id -> Map(author id -> lines): whose lines were removed by whom.
+    this.removals = new Map();
     // Every 4 weeks: [time, [directory id, recent, years count,
     //                         (year - 2000, lines)...]...].
     this.directory_samples = [];
@@ -317,6 +337,62 @@ class State {
     }
   }
 
+  // The lines changed in `file` by `commit`: [removed runs, lines removed,
+  // lines added] per hunk.
+  recordActivity(file, commit, changes, mechanical) {
+    if (GENERATED_FILE.test(file)) return;
+    const time = this.commit_time[commit];
+    const year = Year(time);
+    const author = this.commit_author[commit];
+    const counters = ["", ...Directories(file)].map(directory => {
+      if (!this.activity.has(directory)) {
+        this.activity.set(directory, new Int32Array(KINDS.length * YEARS));
+      }
+      return this.activity.get(directory);
+    });
+    const add = (kind, lines) => {
+      if (lines <= 0) return;
+      for (const counter of counters) counter[kind * YEARS + year] += lines;
+    };
+    for (const [removed, b, d] of changes) {
+      add(4, b - d);
+      if (mechanical) {
+        add(3, Math.max(b, d));
+        continue;
+      }
+      add(0, d - b);
+      for (let i = 0; i < removed.length; i += 2) {
+        const [origin, lines] = [removed[i], removed[i + 1]];
+        const young = origin !== UNKNOWN && time - this.commit_time[origin] < 365 * 86400;
+        add(young ? 1 : 2, lines);
+        if (origin === UNKNOWN) continue;
+        const written = this.commit_author[origin];
+        if (!this.removals.has(written)) this.removals.set(written, new Map());
+        const by = this.removals.get(written);
+        by.set(author, (by.get(author) || 0) + lines);
+      }
+    }
+  }
+
+  // A commit touching these files, for the contributors of their directories.
+  recordCommit(commit, files) {
+    const year = Year(this.commit_time[commit]);
+    const author = this.commit_author[commit];
+    const directories = new Set([""]);
+    for (const file of files) {
+      if (GENERATED_FILE.test(file)) continue;
+      Directories(file).forEach(directory => directories.add(directory));
+    }
+    if (directories.size === 1 && files.every(file => GENERATED_FILE.test(file))) return;
+    for (const directory of directories) {
+      if (!this.contributors.has(directory)) this.contributors.set(directory, new Map());
+      const years = this.contributors.get(directory);
+      if (!years.has(year)) years.set(year, new Map());
+      const authors = years.get(year);
+      authors.set(author, (authors.get(author) || 0) + 1);
+    }
+  }
+
   sample(time) {
     const years = {};
     const authors = new Map();
@@ -351,6 +427,16 @@ class State {
     this.directory_samples.push([time, this.directoryValues(time)]);
   }
 
+  directoryId(directory) {
+    let id = this.directory_ids.get(directory);
+    if (id === undefined) {
+      id = this.directory_names.length;
+      this.directory_names.push(directory);
+      this.directory_ids.set(directory, id);
+    }
+    return id;
+  }
+
   // The directories at `time`, in the format of `directory_samples`.
   directoryValues(time) {
     const last_year = Month(time) - 12;
@@ -367,13 +453,7 @@ class State {
         if (month > last_year) recent += lines;
       }
       if (years.size === 0) continue;
-      let id = this.directory_ids.get(directory);
-      if (id === undefined) {
-        id = this.directory_names.length;
-        this.directory_names.push(directory);
-        this.directory_ids.set(directory, id);
-      }
-      values.push(id, recent, years.size, ...[...years].flat());
+      values.push(this.directoryId(directory), recent, years.size, ...[...years].flat());
     }
     return values;
   }
@@ -384,6 +464,9 @@ class State {
   // - For each file: path length, path, run count, runs as varints.
   // - For each directory sample: time, value count, values as varints.
   serialize() {
+    for (const directory of [...this.activity.keys(), ...this.contributors.keys()]) {
+      this.directoryId(directory);
+    }
     const header = Buffer.from(JSON.stringify({
       version: 1,
       head: this.head,
@@ -398,6 +481,10 @@ class State {
       events: this.events,
       directory_names: this.directory_names,
       directory_samples: this.directory_samples.length,
+      activity: this.activity.size,
+      contributors: this.contributors.size,
+      removals: this.removals.size,
+      activity_complete: this.activity_complete,
     }));
     const parts = [];
     const u32 = value => {
@@ -437,6 +524,34 @@ class State {
       varint(values.length);
       for (const value of values) varint(value);
     }
+    // The activity, sparse: directory, then (index, lines) pairs.
+    for (const [directory, counters] of this.activity) {
+      varint(this.directoryId(directory));
+      const nonzero = [];
+      counters.forEach((lines, index) => lines && nonzero.push(index, lines));
+      varint(nonzero.length / 2);
+      for (const value of nonzero) varint(value);
+    }
+    for (const [directory, years] of this.contributors) {
+      varint(this.directoryId(directory));
+      varint(years.size);
+      for (const [year, authors] of years) {
+        varint(year);
+        varint(authors.size);
+        for (const [author, commits] of authors) {
+          varint(author);
+          varint(commits);
+        }
+      }
+    }
+    for (const [written, by] of this.removals) {
+      varint(written);
+      varint(by.size);
+      for (const [author, lines] of by) {
+        varint(author);
+        varint(lines);
+      }
+    }
     parts.push(Buffer.from(bytes.buffer, 0, size));
     return zlib.gzipSync(Buffer.concat(parts));
   }
@@ -458,6 +573,7 @@ class State {
     state.samples = header.samples;
     state.author_samples = header.author_samples;
     state.events = header.events || [];
+    state.activity_complete = header.activity_complete === true;
     const u32s = () => {
       const array = new Uint32Array(header.commits);
       for (let i = 0; i < header.commits; i++) {
@@ -497,6 +613,35 @@ class State {
       const values = new Array(varint());
       for (let j = 0; j < values.length; j++) values[j] = varint();
       state.directory_samples.push([time, values]);
+    }
+    for (let i = 0; i < (header.activity || 0); i++) {
+      const directory = state.directory_names[varint()];
+      const counters = new Int32Array(KINDS.length * YEARS);
+      for (let j = varint(); j > 0; j--) {
+        const index = varint();
+        counters[index] = varint();
+      }
+      state.activity.set(directory, counters);
+    }
+    for (let i = 0; i < (header.contributors || 0); i++) {
+      const years = new Map();
+      state.contributors.set(state.directory_names[varint()], years);
+      for (let j = varint(); j > 0; j--) {
+        const authors = new Map();
+        years.set(varint(), authors);
+        for (let k = varint(); k > 0; k--) {
+          const author = varint();
+          authors.set(author, varint());
+        }
+      }
+    }
+    for (let i = 0; i < (header.removals || 0); i++) {
+      const by = new Map();
+      state.removals.set(varint(), by);
+      for (let j = varint(); j > 0; j--) {
+        const author = varint();
+        by.set(author, varint());
+      }
     }
     return state;
   }
@@ -573,6 +718,8 @@ class Replayer {
   applyHunks(file, hunks, commit, ignored, hash, old_blob) {
     const old = this.state.files.get(file) || [];
     const out = [];
+    // [removed runs, lines removed, lines added] per hunk, for the activity.
+    const changes = [];
     let run = 0;     // Index in `old`.
     let offset = 0;  // Lines of old[run] already consumed.
     let position = 0;
@@ -601,15 +748,15 @@ class Replayer {
         const [a, b, d] = [hunks[h], hunks[h + 1], hunks[h + 2]];
         const start = b === 0 ? a : a - 1;
         take(start - position, out);
+        const removed = [];
+        take(b, removed);
+        changes.push([removed, b, d]);
         if (!ignored || b === 0) {
-          take(b, null);
           push(out, commit, d);
           continue;
         }
         // Ignored revision: the new lines keep the authors of the lines they
         // replace, spread proportionally.
-        const removed = [];
-        take(b, removed);
         const lines = [];
         for (let i = 0; i < removed.length; i += 2) {
           for (let j = 0; j < removed[i + 1]; j++) lines.push(removed[i]);
@@ -638,6 +785,7 @@ class Replayer {
       return;
     }
     this.state.setFile(file, out);
+    if (this.main) this.state.recordActivity(file, commit, changes, ignored);
   }
 
   // Replay the filtered output of `GitLog`.
@@ -698,11 +846,18 @@ class Replayer {
         // Binary files, symlinks and submodules have no lines.
         if (block.deleted || block.binary || block.mode === "120000" ||
           block.mode === "160000") {
+          const runs = state.files.get(block.to);
+          if (this.main && runs) {
+            state.recordActivity(block.to, commit, [[runs, lineCount(runs), 0]], mechanical);
+          }
           track(block.to, () => state.removeFile(block.to));
         } else if (block.hunks.length > 0) {
           track(block.to, () => this.applyHunks(block.to, block.hunks, commit,
             mechanical, hash, block.old_blob));
         }
+      }
+      if (this.main && commit > 0 && blocks.length) {
+        state.recordCommit(commit, blocks.map(block => block.to));
       }
       blocks = [];
       const lines = state.total - before;
@@ -788,25 +943,17 @@ const NextMonday = time => {
 const Day = time => new Date(time * 1000).toISOString().slice(0, 10);
 
 const WriteOutput = async (state, dir) => {
-  // Cohorts: one row per sample, one column per year.
-  const keys = new Set();
-  for (const [, years] of state.samples) {
-    Object.keys(years).forEach(key => keys.add(key));
-  }
-  const years = [...keys].sort();
-  await fs.writeFile(path.join(dir, "cohorts.json"), JSON.stringify({
-    dates: state.samples.map(([time]) => Day(time)),
-    years,
-    lines: state.samples.map(([, values]) => years.map(year => values[year] || 0)),
-    recent: state.samples.map(([, , recent]) => recent),
-    median_age: MedianAge(state),
-  }));
+  const now = Math.floor(Date.now() / 1000);
+  // The username of each author, or null for the bots.
+  const usernameOf = state.authors.map(email => IsEmailValid(email)
+    ? mailMap(email).split("@")[0]
+    : null);
 
   await fs.writeFile(path.join(dir, "events.json"), JSON.stringify(
     state.events.map(([time, lines, hash, subject, path]) =>
       ({ date: Day(time), lines, hash, subject, path }))));
 
-  const summary = await WriteDirectories(state, dir);
+  const summary = await WriteDirectories(state, dir, usernameOf);
 
   // Usernames: their lines over time, merging their emails like the rest of
   // the site. The state keeps the raw emails, for the mailmap to be updated
@@ -831,9 +978,6 @@ const WriteOutput = async (state, dir) => {
   // no author.
   const ownership = new Map(); // Username -> Map(index -> lines).
   const indices = new Map(summary.map((entry, index) => [entry.path, index]));
-  const usernameOf = state.authors.map(email => IsEmailValid(email)
-    ? mailMap(email).split("@")[0]
-    : null);
   for (const [file, runs] of state.files) {
     if (GENERATED_FILE.test(file)) continue;
     const owned = Directories(file).map(directory => indices.get(directory))
@@ -852,6 +996,73 @@ const WriteOutput = async (state, dir) => {
   }
   const OWNED_MIN = 10; // Lines, below which a directory isn't listed.
 
+  // The bus factor of each directory, from the lines authored alive.
+  const authored = summary.map(() => []);
+  for (const directories of ownership.values()) {
+    for (const [index, lines] of directories) authored[index].push(lines);
+  }
+  summary.forEach((entry, index) => entry.bus_factor = BusFactor(authored[index]));
+  await fs.writeFile(path.join(dir, "directories.json"), JSON.stringify(summary));
+
+  // The breadth of each developer during the last years: their commits per
+  // component, a directory two levels deep (Blink counting as one).
+  const recent = Year(now) - RECENT_YEARS + 1;
+  const level = directory => directory.split("/").length -
+    (directory.startsWith("third_party/blink") ? 1 : 0);
+  const components = new Map(); // Username -> Map(component -> commits).
+  const commits = new Map(); // Username -> commits.
+  for (const [directory, years] of state.activity_complete ? state.contributors : []) {
+    if (directory !== "" && level(directory) !== 2) continue;
+    for (const [year, authors] of years) {
+      if (year < recent) continue;
+      for (const [author, count] of authors) {
+        const username = usernameOf[author];
+        if (!username) continue;
+        if (directory === "") {
+          commits.set(username, (commits.get(username) || 0) + count);
+          continue;
+        }
+        if (!components.has(username)) components.set(username, new Map());
+        const counts = components.get(username);
+        counts.set(directory, (counts.get(directory) || 0) + count);
+      }
+    }
+  }
+  const Breadth = username => {
+    const counts = [...(components.get(username) || [])].sort((a, b) => b[1] - a[1]);
+    const total = counts.reduce((sum, [, count]) => sum + count, 0);
+    if (!total) return undefined;
+    // The effective number of components: e^entropy.
+    const entropy = -counts.reduce((sum, [, count]) =>
+      sum + count / total * Math.log(count / total), 0);
+    return {
+      effective: Math.round(Math.exp(entropy) * 10) / 10,
+      components: counts.slice(0, 5),
+      share: counts[0][1] / total,
+    };
+  };
+
+  // Whose lines were removed by whom, mechanical commits aside.
+  const removedBy = new Map(); // Username -> Map(username -> lines).
+  const removedOf = new Map(); // Username -> Map(username -> lines).
+  const removedTotal = new Map(); // Username -> lines, by anyone.
+  const add = (map, key, other, lines) => {
+    if (!map.has(key)) map.set(key, new Map());
+    map.get(key).set(other, (map.get(key).get(other) || 0) + lines);
+  };
+  for (const [written, by] of state.activity_complete ? state.removals : []) {
+    const writer = usernameOf[written];
+    for (const [author, lines] of by) {
+      const remover = usernameOf[author];
+      if (writer) removedTotal.set(writer, (removedTotal.get(writer) || 0) + lines);
+      if (writer && remover) {
+        add(removedBy, writer, remover, lines);
+        add(removedOf, remover, writer, lines);
+      }
+    }
+  }
+  const top = map => map && [...map].sort((a, b) => b[1] - a[1]).slice(0, 10);
+
   // Grouped by first letter, as one file per developer would make tens of
   // thousands of files to deploy.
   await fs.rm(path.join(dir, "usernames"), { recursive: true, force: true });
@@ -866,12 +1077,27 @@ const WriteOutput = async (state, dir) => {
     const directories = [...(ownership.get(username) || [])]
       .filter(([, owned]) => owned >= OWNED_MIN)
       .sort((a, b) => a[0] - b[0]);
+    const breadth = Breadth(username);
     buckets.get(bucket).users[username] = {
       first,
       lines: lines.slice(first),
       directories: directories.flat(),
+      commits: commits.get(username),
+      breadth,
+      removals: removedTotal.has(username) || removedOf.has(username) ? {
+        total: removedTotal.get(username) || 0,
+        self: removedBy.get(username)?.get(username) || 0,
+        by: top(removedBy.get(username)),
+        of: top(removedOf.get(username)),
+      } : undefined,
     };
-    leaderboard.push({ username, lines: lines.at(-1), peak: Math.max(...lines) });
+    leaderboard.push({
+      username,
+      lines: lines.at(-1),
+      peak: Math.max(...lines),
+      commits: commits.get(username),
+      breadth: breadth?.effective,
+    });
   }
   for (const [bucket, content] of buckets) {
     await fs.writeFile(path.join(dir, "usernames", `${bucket}.json`),
@@ -880,6 +1106,29 @@ const WriteOutput = async (state, dir) => {
   leaderboard.sort((a, b) => b.lines - a.lines);
   await fs.writeFile(path.join(dir, "leaderboard.json"),
     JSON.stringify(leaderboard.slice(0, 100)));
+
+  // Cohorts: one row per sample, one column per year. With the activity and
+  // the contributors of the whole repository.
+  const keys = new Set();
+  for (const [, years] of state.samples) {
+    Object.keys(years).forEach(key => keys.add(key));
+  }
+  const years = [...keys].sort();
+  const lines = state.samples.map(([, values]) => years.map(year => values[year] || 0));
+  const total = lines.at(-1)?.reduce((a, b) => a + b, 0) || 0;
+  const activity = DirectoryActivity(state, "", usernameOf, now);
+  await fs.writeFile(path.join(dir, "cohorts.json"), JSON.stringify({
+    dates: state.samples.map(([time]) => Day(time)),
+    years,
+    lines,
+    recent: state.samples.map(([, , recent]) => recent),
+    median_age: MedianAge(state),
+    ...activity,
+    label: activity.activity
+      ? ActivityLabel(activity.activity, total, YEAR0 + Year(now) - 1)
+      : undefined,
+    bus_factor: BusFactor([...usernames.values()].map(series => series.at(-1))),
+  }));
 };
 
 // The median age of the lines alive, in days, at the last sample.
@@ -903,6 +1152,80 @@ const MedianAge = state => {
 
 // Directories: for each with at least MIN_LINES lines, its lines per year
 // over time (directories/<path>.json), and a summary (directories.json).
+// The activity and the contributors of a directory ("" for the root), with
+// the authors merged into usernames, and the bots left out.
+const RECENT_YEARS = 3; // For the top authors and the breadth of developers.
+const DirectoryActivity = (state, directory, usernameOf, now) => {
+  const result = {};
+  if (!state.activity_complete) return result;
+  const counters = state.activity.get(directory);
+  if (counters) {
+    const years = [];
+    for (let year = 0; year < YEARS; year++) {
+      if (KINDS.some((_, kind) => counters[kind * YEARS + year])) years.push(year);
+    }
+    result.activity = {
+      years: years.map(year => YEAR0 + year),
+      ...Object.fromEntries(KINDS.map((kind, k) =>
+        [kind, years.map(year => counters[k * YEARS + year])])),
+    };
+  }
+  const byYear = state.contributors.get(directory);
+  if (byYear) {
+    const rows = [...byYear.keys()].sort((a, b) => a - b).map(year => {
+      const users = new Map();
+      for (const [author, commits] of byYear.get(year)) {
+        const username = usernameOf[author];
+        if (username) users.set(username, (users.get(username) || 0) + commits);
+      }
+      // Core: about a commit a month. Drive-by: one or two in the year.
+      const row = { year: YEAR0 + year, commits: 0, core: 0, regular: 0, driveby: 0, users };
+      for (const commits of users.values()) {
+        row.commits += commits;
+        row[commits >= 12 ? "core" : commits >= 3 ? "regular" : "driveby"]++;
+      }
+      return row;
+    });
+    result.contributors = Object.fromEntries(
+      ["year", "commits", "core", "regular", "driveby"].map(key =>
+        [key === "year" ? "years" : key, rows.map(row => row[key])]));
+    const top = new Map();
+    for (const row of rows) {
+      if (row.year < YEAR0 + Year(now) - RECENT_YEARS + 1) continue;
+      for (const [username, commits] of row.users) {
+        top.set(username, (top.get(username) || 0) + commits);
+      }
+    }
+    result.top = [...top].sort((a, b) => b[1] - a[1]).slice(0, 10);
+  }
+  return result;
+};
+
+// What happened to a directory during the last complete year.
+const ActivityLabel = (activity, lines, year) => {
+  const i = activity?.years.indexOf(year) ?? -1;
+  if (i === -1) return "Dormant";
+  const [added, iteration, rework, mechanical, removed] =
+    KINDS.map(kind => activity[kind][i]);
+  if (added + iteration + rework + mechanical < 0.02 * lines) return "Dormant";
+  if (added - removed < -0.05 * lines) return "Shrinking";
+  if (rework + mechanical > added + iteration) return "Refactored";
+  if (added - removed > 0.05 * lines) return "Growing";
+  return "Maintained";
+};
+
+// The number of authors having written half of the lines.
+const BusFactor = lines => {
+  const sorted = [...lines].sort((a, b) => b - a);
+  const half = sorted.reduce((a, b) => a + b, 0) / 2;
+  let sum = 0;
+  for (let i = 0; i < sorted.length; i++) {
+    sum += sorted[i];
+    if (sum >= half) return i + 1;
+  }
+  return sorted.length;
+};
+
 // The files grouping the developers and the directories. The page computes
 // them the same way.
 const UsernameBucket = username =>
@@ -911,7 +1234,7 @@ const DirectoryPack = directory => directory.startsWith("third_party/blink")
   ? "third_party/blink"
   : directory.split("/")[0];
 
-const WriteDirectories = async (state, dir) => {
+const WriteDirectories = async (state, dir, usernameOf) => {
   const MIN_LINES = 1000;
   // The state is at the last commit, newer than the last sample.
   const now = Math.floor(Date.now() / 1000);
@@ -958,6 +1281,9 @@ const WriteDirectories = async (state, dir) => {
       }
     }
     const before = year_ago?.get(name);
+    const activity = DirectoryActivity(state, name, usernameOf, now);
+    const last = YEAR0 + Year(now) - 1;
+    const lastContributors = activity.contributors?.years.indexOf(last) ?? -1;
     summary.push({
       path: name,
       lines,
@@ -966,6 +1292,10 @@ const WriteDirectories = async (state, dir) => {
         ? Object.values(before.years).reduce((a, b) => a + b, 0)
         : 0,
       median_age,
+      label: activity.activity ? ActivityLabel(activity.activity, lines, last) : undefined,
+      authors: lastContributors === -1 ? undefined : ["core", "regular", "driveby"]
+        .reduce((sum, key) => sum + activity.contributors[key][lastContributors], 0),
+      core: lastContributors === -1 ? undefined : activity.contributors.core[lastContributors],
     });
 
     const history = samples.filter(([, values]) => values.has(name));
@@ -981,6 +1311,7 @@ const WriteDirectories = async (state, dir) => {
       lines: history.map(([, values]) => columns.map(year =>
         values.get(name).years[year] || 0)),
       recent: history.map(([, values]) => values.get(name).recent),
+      ...activity,
     };
   }
   for (const [pack, content] of packs) {
@@ -989,7 +1320,6 @@ const WriteDirectories = async (state, dir) => {
     await fs.writeFile(file, JSON.stringify(content));
   }
   summary.sort((a, b) => b.lines - a.lines || a.path.localeCompare(b.path));
-  await fs.writeFile(path.join(dir, "directories.json"), JSON.stringify(summary));
   return summary;
 };
 
