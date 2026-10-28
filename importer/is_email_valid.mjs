@@ -18,6 +18,7 @@ const g_bot_patterns = [
   'servo-ops',
   'blink-reformat',
   'infra@',
+  'initial.commit@',
   'none@none',
   'css21testsuite',
   'dependabot',
