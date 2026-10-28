@@ -1319,6 +1319,11 @@ const WriteDirectories = async (state, dir, usernameOf) => {
       label: activity.activity
         ? ActivityLabel(activity.activity, lines, lines_year_ago, now)
         : undefined,
+      // The lines a year old or more, rewritten or removed in place during
+      // the last 12 months: the moves aside, unlike the lines alive.
+      reworked: activity.activity
+        ? Math.round(RecentActivity(activity.activity, now).rework)
+        : undefined,
       authors: lastContributors === -1 ? undefined : ["core", "regular", "driveby"]
         .reduce((sum, key) => sum + activity.contributors[key][lastContributors], 0),
       core: lastContributors === -1 ? undefined : activity.contributors.core[lastContributors],

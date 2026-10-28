@@ -87,8 +87,10 @@
             <li><strong>Fresh code:</strong> the share of the lines written in the last 365 days.</li>
             <li><strong>Median line age:</strong> half of the lines are older.</li>
             <li>
-              <strong>Old code rewritten:</strong> the share of the lines older
-              than a year, removed or rewritten during the last year.
+              <strong>Old code rewritten:</strong> of the lines a year ago, the
+              share of those a year old or more removed or rewritten in place
+              during the last 12 months, estimated from the yearly counts.
+              Moved files and mechanical changes don't count.
             </li>
             <li>
               <strong>Yearly reduction:</strong> the share of the lines of a
@@ -221,7 +223,8 @@
             Click a directory to look into it. <em>Growth</em> is over the
             last year. <em>Fresh</em> is the share of lines written in the
             last 12 months. <em>Old code rewritten</em> is the share of the
-            lines older than a year, removed or rewritten during the last year.
+            lines a year ago, removed or rewritten in place during the last 12
+            months.
             The developers selected below get a column: the share of each
             directory's lines they authored, still alive today.
           </p>
@@ -247,7 +250,7 @@
               {{ years(props.row.median_age) }}
             </UiTableColumn>
             <UiTableColumn field="rewritten" label="Old code rewritten" v-slot="props" numeric sortable
-              hint="Of the lines a year ago, the share removed or rewritten since. Negative when lines were moved in.">
+              hint="Of the lines a year ago, the share of those a year old or more removed or rewritten in place since. Moved files and mechanical changes don't count.">
               {{ percent(props.row.rewritten) }}
             </UiTableColumn>
             <UiTableColumn field="label" label="Last 12 months" v-slot="props" sortable
@@ -689,6 +692,15 @@ const componentsHint = "A component is a directory two levels deep, like chrome/
   "The number is weighted by where the commits went: 100 commits spread evenly over 4 components " +
   "make 4, while 97 in one and 1 in each of 3 others make about 1.2. Over the last 3 calendar years.";
 
+// Of the lines a year ago, the share rewritten or removed in place since: the
+// rework of the last 12 months. Without the activity, from the lines older
+// than a year, which is wrong when old code was moved in: then unknown.
+const oldCodeRewritten = (reworked, old, year_ago) => {
+  if (!year_ago) return null;
+  if (reworked !== undefined) return reworked / year_ago;
+  return old <= year_ago ? 1 - old / year_ago : null;
+};
+
 // Shown next to what covers the whole repository, when a directory is
 // selected.
 const wholeRepository = computed(() => directory.value ? `All of ${name.value}` : undefined);
@@ -790,7 +802,7 @@ const children = computed(() => directories.value
     name: entry.path.slice(directory.value.length).replace(/^\//, ""),
     growth: entry.year_ago ? entry.lines / entry.year_ago - 1 : null,
     fresh: entry.recent / entry.lines,
-    rewritten: entry.year_ago ? 1 - (entry.lines - entry.recent) / entry.year_ago : null,
+    rewritten: oldCodeRewritten(entry.reworked, entry.lines - entry.recent, entry.year_ago),
     ...Object.fromEntries(developers.value.map((username, i) => [`owned_${i}`,
       (ownership.value.get(username)?.get(entry.path) || 0) / entry.lines])),
   })));
@@ -900,9 +912,11 @@ const figures = computed(() => {
     },
     {
       label: "Old code rewritten",
-      hint: "Of the lines a year ago, the share removed or rewritten since. How fast the existing code is renewed.",
-      value: year_ago ? percent(1 - (current - recent) / year_ago) : "",
-      detail: "of the lines older than a year, during the last year",
+      hint: "Of the lines a year ago, the share of those a year old or more removed or rewritten in place since. How fast the existing code is renewed. Moved files and mechanical changes don't count. Estimated from the yearly counts.",
+      value: percent(oldCodeRewritten(
+        data.activity ? recentActivity(data.activity).rework : undefined,
+        current - recent, year_ago)),
+      detail: "of the lines a year ago, during the last 12 months",
     },
   ];
   if (halfLife.value) {
