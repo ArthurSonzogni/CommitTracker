@@ -826,8 +826,9 @@ const WriteOutput = async (state, dir) => {
     }
   });
 
-  // The lines each developer owns today in the directories of the summary,
-  // as [index in the summary, lines, ...]. The generated files aren't owned.
+  // The lines each developer authored, alive today, in the directories of the
+  // summary, as [index in the summary, lines, ...]. The generated files have
+  // no author.
   const ownership = new Map(); // Username -> Map(index -> lines).
   const indices = new Map(summary.map((entry, index) => [entry.path, index]));
   const usernameOf = state.authors.map(email => IsEmailValid(email)

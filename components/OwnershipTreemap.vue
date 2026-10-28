@@ -1,6 +1,6 @@
 <template>
-  <!-- Where a developer owns lines: one rectangle per directory, sized by the
-       lines they own, and painted by the share of the directory they own. -->
+  <!-- Where the lines a developer authored are: one rectangle per directory,
+       sized by their lines, and painted by their share of the directory. -->
   <div ref="container" class="ownership-treemap">
     <svg :width="width" :height="height">
       <g v-for="node in nodes" :key="node.data.key"
@@ -25,9 +25,9 @@ import { format } from "d3-format";
 import { hierarchy, treemap } from "d3-hierarchy";
 
 const props = defineProps({
-  // { name, path, lines, owned, children: [...] }: the lines owned in each
-  // directory. A child without a path holds the lines owned elsewhere in its
-  // parent.
+  // { name, path, lines, owned, children: [...] }: the lines authored in each
+  // directory. A child without a path holds the lines authored elsewhere in
+  // its parent.
   tree: { type: Object, required: true },
   color: { type: String, required: true },
   height: { type: Number, default: 360 },
@@ -73,7 +73,7 @@ const label = node => node.depth === 0
 
 const describe = node => node.data.path === undefined
   ? `${compact(node.data.owned)} lines elsewhere in this directory`
-  : `${node.data.path || "Everything"}: ${compact(node.data.owned)} lines owned, ` +
+  : `${node.data.path || "Everything"}: ${compact(node.data.owned)} lines authored, ` +
     `${percent(share(node))} of its ${compact(node.data.lines)} lines`;
 </script>
 

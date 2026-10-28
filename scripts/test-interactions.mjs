@@ -292,11 +292,11 @@ const tests = [
     `,
   },
   {
-    name: 'accretion: developer ownership of the directories',
+    name: 'accretion: the lines developers authored in the directories',
     url: 'accretion?dir=third_party/blink&developers=tkent',
     run: `
       const column = await __t.until(() => [...document.querySelectorAll('table th')].some(th => th.textContent.trim() === 'tkent'), 20000);
-      const owned = await __t.until(() => (__t.text('.ownership') || '').includes('tkent owns') && __t.text('.ownership').includes('of third_party/blink'), 20000);
+      const owned = await __t.until(() => (__t.text('.ownership') || '').includes('tkent authored') && __t.text('.ownership').includes('of third_party/blink'), 20000);
       const treemap = await __t.until(() => __t.count('.ownership-treemap rect') > 3, 20000);
       return { ok: !!column && !!owned && !!treemap, detail: __t.text('.ownership') + ' rectangles=' + __t.count('.ownership-treemap rect') };
     `,

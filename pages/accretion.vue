@@ -163,7 +163,7 @@
             last 12 months. <em>Old code rewritten</em> is the share of the
             lines older than a year, removed or rewritten during the last year.
             The developers selected below get a column: the share of each
-            directory they own today.
+            directory's lines they authored, still alive today.
           </p>
           <UiTable :data="children" hoverable striped :paginated="children.length > 25"
             :per-page="25">
@@ -232,7 +232,8 @@
           <p class="mb-4">
             The lines each developer wrote, still alive over time, in all of
             {{ name }}. Each selected developer also gets a column in the
-            directories above, with the share of each directory they own.
+            directories above, with the share of each directory's lines they
+            authored.
           </p>
           <UiField>
             <DevelopersInput v-model="developers" />
@@ -240,16 +241,16 @@
           <ul v-if="scopeOwnership.length" class="ownership mb-4">
             <li v-for="entry in scopeOwnership" :key="entry.username">
               <span class="swatch" :style="{ background: $color(entry.username) }" />
-              <strong>{{ entry.username }}</strong> owns {{ compact(entry.owned) }}
-              lines, {{ ownedShare(entry.share) }} of {{ directory || name }}.
+              <strong>{{ entry.username }}</strong> authored {{ compact(entry.owned) }}
+              lines alive, {{ ownedShare(entry.share) }} of {{ directory || name }}.
             </li>
           </ul>
           <div v-for="entry in ownershipTrees" :key="entry.username" class="mb-5">
             <p class="mb-2">
               <span class="swatch" :style="{ background: $color(entry.username) }" />
-              Where <strong>{{ entry.username }}</strong> owns lines in
-              {{ directory || name }}: sized by their lines, darker where they
-              own a larger share. Click a directory to look into it.
+              Where the lines <strong>{{ entry.username }}</strong> authored
+              are in {{ directory || name }}: sized by their lines, darker where
+              they authored a larger share. Click a directory to look into it.
             </p>
             <OwnershipTreemap :tree="entry.tree" :color="$color(entry.username)"
               @select="path => directory = path" />
@@ -308,7 +309,7 @@ const compact = format(".3~s");
 const percent = value => value === null || isNaN(value) ? "" : format(".1%")(value);
 const signedCompact = format("+.2~s");
 const truncate = (text, length) => text.length > length ? `${text.slice(0, length - 1)}…` : text;
-// A share owned, never shown as 0.0% when there is something.
+// A share authored, never shown as 0.0% when there is something.
 const ownedShare = value => value > 0 && value < 0.0005 ? "<0.1%" : percent(value);
 const signedPercent = value => value === null || isNaN(value) ? "" : format("+.1%")(value);
 const years = value => value === null ? "" : `${value.toFixed(1)} y`;
@@ -626,7 +627,8 @@ const developerData = computed(() => developerUsers.value.map(({ username, dates
   values: user.lines.map((lines, j) => ({ x: new Date(dates[user.first + j]), y: lines })),
 })));
 
-// The lines each selected developer owns today: username -> Map(path -> lines).
+// The lines each selected developer authored, alive today:
+// username -> Map(path -> lines).
 // The directories are referred to by their index in directories.json.
 const ownership = computed(() => new Map(developerUsers.value.map(({ username, user }) => {
   const owned = new Map();
@@ -638,7 +640,7 @@ const ownership = computed(() => new Map(developerUsers.value.map(({ username, u
   return [username, owned];
 })));
 
-// The share of the selected scope each developer owns.
+// The share of the selected scope each developer authored.
 const scopeOwnership = computed(() => {
   const data = scope.value;
   if (!data) return [];
@@ -651,9 +653,9 @@ const scopeOwnership = computed(() => {
   });
 });
 
-// Where each selected developer owns lines under the selected directory, as a
-// tree for the treemaps. Each directory also holds the lines owned outside of
-// its listed subdirectories ("…").
+// Where the lines each selected developer authored are, under the selected
+// directory, as a tree for the treemaps. Each directory also holds the lines
+// authored outside of its listed subdirectories ("…").
 const ownershipTrees = computed(() => {
   const data = scope.value;
   if (!data) return [];
