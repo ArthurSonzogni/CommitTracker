@@ -119,8 +119,16 @@
             </li>
             <li>
               <strong>Breadth of a developer:</strong> the effective number of
-              components (directories two levels deep) they committed to over
-              the last 3 years, e<sup>entropy</sup> of their commits.
+              components they committed to over the last 3 calendar years. A
+              component is a directory two levels deep, like
+              <code>chrome/browser</code> or
+              <code>third_party/blink/renderer</code>. The number is weighted
+              by where the commits went (e<sup>entropy</sup>): 100 commits
+              spread evenly over 4 components make 4, while 97 in one and 1 in
+              each of 3 others make about 1.2. Low means a specialist, high a
+              generalist. Directories two levels deep vary a lot in size, so
+              someone covering many features of <code>chrome/browser</code>
+              still looks specialized.
               <strong>Removed lines:</strong> who removed or rewrote the lines
               of whom, mechanical commits aside.
             </li>
@@ -401,7 +409,7 @@
               <strong>{{ entry.username }}</strong> made {{ lines(entry.commits || 0) }}
               commits since {{ lastYear - 1 }}, across about
               {{ entry.breadth.effective >= 10 ? Math.round(entry.breadth.effective) : entry.breadth.effective }}
-              components;
+              <UiTooltip :text="componentsHint" multiline dashed>components</UiTooltip>;
               {{ percent(entry.breadth.share) }} in <code>{{ entry.breadth.components[0][0] }}</code>.
             </p>
             <p v-if="entry.removals">
@@ -442,9 +450,12 @@
             <h3 class="title is-6 mt-5">Specialists and generalists</h3>
             <p class="mb-2">
               <span v-if="wholeRepository" class="scope-tag">{{ wholeRepository }}</span>
-              The 100 developers with the most lines alive, by the number of components
-              they committed to since {{ lastYear - 1 }}, and their commits.
-              Click one to select it.
+              The 100 developers with the most lines alive, by their commits
+              since {{ lastYear - 1 }}, and how many
+              <UiTooltip :text="componentsHint" multiline dashed>components</UiTooltip>
+              they spread over: specialists on the left, generalists on the
+              right. A component is a directory two levels deep, like
+              <code>chrome/browser</code>. Click one to select it.
             </p>
             <BreadthScatter :developers="leaderboard" :selected="developers"
               @select="toggleDeveloper" />
@@ -673,6 +684,10 @@ const labelHint = "What happened during the last 12 months. Growing: the lines a
 const busFactorHint = "The fewest authors who together wrote half of the lines alive, adding the authors " +
   "from the one who wrote the most. 1 means a single person wrote half of the code, which then depends on " +
   "very few people. Writing isn't the only way to know code: reviewers and owners know it too.";
+
+const componentsHint = "A component is a directory two levels deep, like chrome/browser. " +
+  "The number is weighted by where the commits went: 100 commits spread evenly over 4 components " +
+  "make 4, while 97 in one and 1 in each of 3 others make about 1.2. Over the last 3 calendar years.";
 
 // Shown next to what covers the whole repository, when a directory is
 // selected.
