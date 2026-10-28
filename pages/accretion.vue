@@ -109,6 +109,12 @@
               who wrote half of the lines alive.
             </li>
             <li>
+              <strong>The lines alive don't measure anyone's work:</strong>
+              removing code, reviewing, refactoring, or iterating on a
+              directory are meaningful work leaving few lines behind, and the
+              last one to touch a line isn't always the one who designed it.
+            </li>
+            <li>
               <strong>Breadth of a developer:</strong> the effective number of
               components (directories two levels deep) they committed to over
               the last 3 years, e<sup>entropy</sup> of their commits.
@@ -329,6 +335,13 @@
 
         <CollapsibleSection title="Developers" id="developers" :collapsed="isHidden('v')"
           @toggle="toggleHidden('v')">
+          <p class="disclaimer">
+            <UiIcon name="information-outline" size="small" />
+            The lines still alive don't measure anyone's work. Removing code,
+            reviewing, refactoring, or iterating on a directory are meaningful
+            work leaving few lines behind, and the last one to touch a line
+            isn't always the one who designed it.
+          </p>
           <p class="mb-4">
             The lines each developer wrote, still alive over time, in all of
             {{ name }}. Each selected developer also gets a column in the
@@ -385,7 +398,7 @@
           <template v-if="leaderboard.some(entry => entry.breadth)">
             <h3 class="title is-6 mt-5">Specialists and generalists</h3>
             <p class="mb-2">
-              The developers of the leaderboard, by the number of components
+              The 100 developers with the most lines alive, by the number of components
               they committed to since {{ lastYear - 1 }}, and their commits.
               Click one to select it.
             </p>
@@ -394,8 +407,15 @@
           </template>
         </CollapsibleSection>
 
-        <CollapsibleSection title="Most lines alive" id="leaderboard" :collapsed="isHidden('l')"
+        <CollapsibleSection title="Most lines alive" id="lines-alive" :collapsed="isHidden('l')"
           @toggle="toggleHidden('l')">
+          <p class="disclaimer">
+            <UiIcon name="information-outline" size="small" />
+            The lines still alive don't measure anyone's work. Removing code,
+            reviewing, refactoring, or iterating on a directory are meaningful
+            work leaving few lines behind, and the last one to touch a line
+            isn't always the one who designed it.
+          </p>
           <UiTable :data="leaderboard" hoverable striped :paginated="true" :per-page="20">
             <UiTableColumn field="rank" label="#" v-slot="props" numeric>
               {{ props.row.rank }}
@@ -450,7 +470,7 @@ const repository = ref(route.query.repository || "chromium");
 const directory = ref(route.query.dir || "");
 // The folded sections, one letter each: c(hart), d(irectories), f(resh code),
 // y(early reduction), a(ctivity), (c)o(ntributors), (de)v(elopers),
-// l(eaderboard).
+// l(ines alive).
 const hidden = ref(route.query.hide || "");
 const isHidden = code => hidden.value.includes(code);
 const toggleHidden = code => {
@@ -1021,6 +1041,18 @@ watch(() => route.query, value => {
   font-size: 1rem;
   line-height: 1;
   padding: 0.1rem 0.3rem;
+}
+
+.disclaimer {
+  align-items: flex-start;
+  background: var(--surface-sunken);
+  border-radius: var(--radius);
+  color: var(--ink-2);
+  display: flex;
+  font-size: 0.875rem;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+  padding: 0.6rem 0.8rem;
 }
 
 .ownership {
