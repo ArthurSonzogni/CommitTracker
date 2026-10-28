@@ -43,7 +43,9 @@ onMounted(() => {
 });
 
 const compact = format(".3~s");
-const percent = value => value > 0 && value < 0.0005 ? "<0.1%" : format(".1%")(value);
+// Two decimals under 1%, where most developers are.
+const percent = value => value > 0 && value < 0.00005 ? "<0.01%"
+  : format(value < 0.01 ? ".2%" : ".1%")(value);
 const share = node => node.data.lines ? node.data.owned / node.data.lines : 0;
 
 const nodes = computed(() => {

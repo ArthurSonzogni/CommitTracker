@@ -460,8 +460,10 @@ const compact = format(".3~s");
 const percent = value => value === null || isNaN(value) ? "" : format(".1%")(value);
 const signedCompact = format("+.2~s");
 const truncate = (text, length) => text.length > length ? `${text.slice(0, length - 1)}…` : text;
-// A share authored, never shown as 0.0% when there is something.
-const ownedShare = value => value > 0 && value < 0.0005 ? "<0.1%" : percent(value);
+// A share authored: most developers write less than 1% of a directory, shown
+// with two decimals, and never as 0.00% when there is something.
+const ownedShare = value => !value ? "" : value < 0.00005 ? "<0.01%"
+  : format(value < 0.01 ? ".2%" : ".1%")(value);
 const signedPercent = value => value === null || isNaN(value) ? "" : format("+.1%")(value);
 const years = value => value === null ? "" : `${value.toFixed(1)} y`;
 
