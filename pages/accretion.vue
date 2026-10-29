@@ -49,38 +49,49 @@
           </ul>
           <p>
             The developers have the lines of their commits, merging their
-            identities like the rest of the site. The bots aren't listed, and
-            the lines nobody wrote by hand go to <em>generated</em>, which
-            isn't listed either. They still count in the years:
+            identities like the rest of the site. The bots aren't listed. The
+            lines nobody wrote by hand count nowhere: not in the lines, the
+            years, the directories or the developers.
           </p>
           <ul>
             <li>
-              The generated files: in a <code>gen/</code>,
-              <code>generated/</code> or <code>generated_*/</code> directory,
-              named <code>*autogen*</code>, the
-              <code>WPT_BASE_MANIFEST*.json</code> manifests, and
-              <code>testing/buildbot/*.json</code>.
+              The generated files: those saying so in their first 40 lines
+              (<code>@generated</code>, <em>DO NOT EDIT</em>, <em>This file
+              is generated</em>…), the templates generating them aside; those
+              in a <code>gen/</code> or <code>generated/</code> directory or named
+              <code>*autogen*</code>, the lock files, the minified scripts and
+              the protocol buffers.
             </li>
             <li>
-              The vendored code: the <code>third_party/</code> directories
-              inside the others, like <code>base/third_party/</code>, the
-              <code>node_modules/</code> directories, and the copies of the
-              Speedometer, MotionMark and Dromaeo benchmarks.
+              The baselines produced by the tools: the
+              <code>-expected.txt</code> files of the layout tests, and the
+              expectations of the compilers. The tests of LLVM whose
+              assertions are generated count as generated as a whole.
             </li>
             <li>
-              The imports of the web-platform-tests and of the WebGPU
-              conformance tests: the commits titled <em>Import …</em>,
+              The vendored code: the <code>third_party/</code>,
+              <code>ThirdParty/</code>, <code>vendor/</code> and
+              <code>node_modules/</code> directories, those declared vendored
+              by a <code>moz.yaml</code> in Firefox, and the copies of upstream
+              test suites and benchmarks: the web-platform-tests in Servo,
+              Firefox and Ladybird, WebKit's imported tests, test262 and
+              browserbench.org, the Khronos headers…
+            </li>
+            <li>
+              The imports: the commits titled <em>Import …</em>,
               <em>Manual import …</em>, <em>Sync WPT …</em> or
               <em>Update CTS …</em> touching <code>web_tests/external/</code>,
               or <code>tests/wpt/</code> in Servo, even when landed by a
-              developer. The tests written by developers keep their authors.
+              developer, and the commits of the bots syncing tests, rolling
+              dependencies or importing translations. The tests written by
+              developers keep their authors.
             </li>
           </ul>
           <p>
-            These rules were checked on Chromium. Other repositories have
-            their own conventions for vendored and generated code, only some
-            of which are known, like Firefox's vendored libraries. Their
-            developer rankings are approximate.
+            Each repository has its own conventions, checked on what they
+            contain today. The commit queues landing the commits of
+            developers, like WebKit's or Servo's, aren't import bots, and the
+            reformatting bots' commits are mechanical changes.
           </p>
           <p>The figures:</p>
           <ul>
@@ -114,6 +125,17 @@
               Core authors made 12 commits or more in the year, drive-by ones 1
               or 2. The <strong>bus factor</strong> is the fewest authors who
               together wrote half of the lines alive.
+            </li>
+            <li>
+              <strong>Reviewers:</strong> where the commits record them, with
+              the <em>Reviewed-by</em> lines of Gerrit, a line is also known by
+              the reviewers of its commit. The bus factor <em>with
+              reviewers</em> is how many people must leave for half of the
+              lines alive to be known by nobody, and each developer's reviewed
+              lines are those written by others they reviewed. Both only count
+              the lines written since the reviewers are recorded, like 2017 for
+              Chromium, and the figure is left out where the older lines are
+              most of the code.
             </li>
             <li>
               <strong>The lines alive don't measure anyone's work:</strong>
@@ -228,7 +250,7 @@
             lines a year ago, removed or rewritten in place during the last 12
             months.
             The developers selected below get a column: the share of each
-            directory's lines they authored, still alive today.
+            directory's lines they {{ knowledgeVerb }}, still alive today.
           </p>
           <UiTable :data="children" hoverable striped :paginated="children.length > 25"
             :per-page="25">
@@ -275,9 +297,14 @@
               :visible="children.some(row => row.bus_factor !== undefined)">
               {{ props.row.bus_factor ?? "" }}
             </UiTableColumn>
+            <UiTableColumn field="bus_factor_reviewed" label="With reviewers" v-slot="props" numeric sortable
+              :hint="reviewedBusFactorHint"
+              :visible="children.some(row => row.bus_factor_reviewed !== undefined)">
+              {{ props.row.bus_factor_reviewed ?? "" }}
+            </UiTableColumn>
             <UiTableColumn v-for="(username, i) in developers" :key="username"
               :field="`owned_${i}`" :label="username" v-slot="props" numeric sortable
-              :hint="`The share of the directory's lines alive that ${username} authored.`"
+              :hint="`The share of the directory's lines alive that ${username} ${knowledgeVerb}.`"
               :td-attrs="row => paint(row[`owned_${i}`], username)">
               {{ props.row[`owned_${i}`] ? ownedShare(props.row[`owned_${i}`]) : "" }}
             </UiTableColumn>
@@ -400,11 +427,18 @@
           <UiField>
             <DevelopersInput v-model="developers" />
           </UiField>
+          <UiField v-if="hasReviewers">
+            <UiSegmented v-model="knowledge" aria-label="Lines" :options="[
+              { value: 'authored', label: 'Authored', title: 'The lines they wrote' },
+              { value: 'reviewed', label: 'Reviewed', title: `The lines others wrote since ${reviewedSince}, that they reviewed` },
+            ]" />
+          </UiField>
           <ul v-if="scopeOwnership.length" class="ownership mb-4">
             <li v-for="entry in scopeOwnership" :key="entry.username">
               <span class="swatch" :style="{ background: $color(entry.username) }" />
-              <strong>{{ entry.username }}</strong> authored {{ compact(entry.owned) }}
-              lines alive, {{ ownedShare(entry.share) }} of {{ directory || name }}.
+              <strong>{{ entry.username }}</strong> {{ knowledgeVerb }} {{ compact(entry.owned) }}
+              lines alive<template v-if="reviewed"> written by others since {{ reviewedSince }}</template>,
+              {{ ownedShare(entry.share) }} of {{ directory || name }}.
             </li>
           </ul>
           <div v-for="entry in developerDetails" :key="entry.username" class="mb-4 developer-details">
@@ -432,9 +466,9 @@
           <div v-for="entry in ownershipTrees" :key="entry.username" class="mb-5">
             <p class="mb-2">
               <span class="swatch" :style="{ background: $color(entry.username) }" />
-              Where the lines <strong>{{ entry.username }}</strong> authored
+              Where the lines <strong>{{ entry.username }}</strong> {{ knowledgeVerb }}
               are in {{ directory || name }}: sized by their lines, darker where
-              they authored a larger share. Click a directory to look into it.
+              they {{ knowledgeVerb }} a larger share. Click a directory to look into it.
             </p>
             <OwnershipTreemap :tree="entry.tree" :color="$color(entry.username)"
               @select="path => directory = path" />
@@ -544,6 +578,8 @@ const toggleHidden = code => {
 const developers = ref(route.query.developers
   ? route.query.developers.split(",")
   : []);
+// The lines of the developers shown: those they authored, or reviewed.
+const knowledge = ref(route.query.lines === "reviewed" ? "reviewed" : "authored");
 
 const cohorts = shallowRef(null);       // All of Chromium.
 const directories = shallowRef([]);     // The summary of every directory.
@@ -689,6 +725,15 @@ const labelHint = "What happened during the last 12 months. Growing: the lines a
 const busFactorHint = "The fewest authors who together wrote half of the lines alive, adding the authors " +
   "from the one who wrote the most. 1 means a single person wrote half of the code, which then depends on " +
   "very few people. Writing isn't the only way to know code: reviewers and owners know it too.";
+// The month since which the reviewers are known, like "July 2017".
+const reviewedSince = computed(() => cohorts.value?.reviewed_since
+  ? new Date(cohorts.value.reviewed_since).toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" })
+  : "");
+const reviewedBusFactorHint = computed(() => "How many people must leave for half of the lines alive to " +
+  "be known by nobody, a line being known by its author and the reviewers of its commit. They leave from " +
+  "the one knowing the most lines. Higher than the bus factor when the code was reviewed by others than its " +
+  "authors. From the Reviewed-by lines of the commits, recorded since " + reviewedSince.value + ": the older " +
+  "lines aren't counted, and the figure is left out when they are more than half of the lines alive.");
 
 const componentsHint = "A component is a directory two levels deep, like chrome/browser. " +
   "The number is weighted by where the commits went: 100 commits spread evenly over 4 components " +
@@ -796,6 +841,14 @@ const contributorFigures = computed(() => {
     { label: "Depth", hint: "The commits per author. High means a few people working here a lot; low means many occasional contributions.", value: counts.authors ? (counts.commits / counts.authors).toFixed(1) : "", detail: "commits per author" },
     { label: "Drive-by", hint: `The share of the authors with only 1 or 2 commits here ${period}, often for changes across the codebase.`, value: percent(counts.driveby / counts.authors), detail: "of the authors, with 1 or 2 commits" },
     { label: "Bus factor", hint: busFactorHint, value: scopeSummary.value?.bus_factor ?? "", detail: "the fewest authors who together wrote half of the lines alive" },
+    ...(scopeSummary.value?.reviewed_coverage === undefined ? [] : [{
+      label: "With reviewers",
+      hint: reviewedBusFactorHint.value,
+      value: scopeSummary.value.bus_factor_reviewed ?? "",
+      detail: scopeSummary.value.bus_factor_reviewed === undefined
+        ? `unknown: only ${percent(scopeSummary.value.reviewed_coverage)} of the lines alive are from ${reviewedSince.value} or later`
+        : `on the ${percent(scopeSummary.value.reviewed_coverage)} of the lines alive written since ${reviewedSince.value}`,
+    }]),
   ];
 });
 const topAuthors = computed(() => (scope.value?.top || [])
@@ -983,12 +1036,15 @@ const developerData = computed(() => developerUsers.value.map(({ username, dates
   values: user.lines.map((lines, j) => ({ x: new Date(dates[user.first + j]), y: lines })),
 })));
 
-// The lines each selected developer authored, alive today:
+// The lines each selected developer authored, or reviewed, alive today:
 // username -> Map(path -> lines).
 // The directories are referred to by their index in directories.json.
+const hasReviewers = computed(() => !!cohorts.value?.reviewed_since);
+const reviewed = computed(() => hasReviewers.value && knowledge.value === "reviewed");
+const knowledgeVerb = computed(() => reviewed.value ? "reviewed" : "authored");
 const ownership = computed(() => new Map(developerUsers.value.map(({ username, user }) => {
   const owned = new Map();
-  const list = user.directories || [];
+  const list = (reviewed.value ? user.reviewed : user.directories) || [];
   for (let i = 0; i < list.length; i += 2) {
     const entry = directories.value[list[i]];
     if (entry) owned.set(entry.path, list[i + 1]);
@@ -1004,7 +1060,7 @@ const scopeOwnership = computed(() => {
   return developerUsers.value.map(({ username, user }) => {
     const owned = directory.value
       ? ownership.value.get(username)?.get(directory.value) || 0
-      : user.lines.at(-1);
+      : reviewed.value ? user.reviewed_total || 0 : user.lines.at(-1);
     return { username, owned, share: owned / scopeLines };
   });
 });
@@ -1066,13 +1122,14 @@ const query = () => ({
   dir: directory.value || undefined,
   developers: developers.value.join(",") || undefined,
   hide: hidden.value || undefined,
+  lines: knowledge.value === "reviewed" ? "reviewed" : undefined,
 });
 const sameQuery = (a, b) => {
   const defined = q => JSON.stringify(Object.entries(q)
     .filter(([, value]) => value !== undefined).sort());
   return defined(a) === defined(b);
 };
-watch([share, repository, directory, developers, hidden],
+watch([share, repository, directory, developers, hidden, knowledge],
   ([, newRepository, newDirectory], [, oldRepository, oldDirectory]) => {
     if (sameQuery(query(), route.query)) return;
     const navigation = newRepository !== oldRepository || newDirectory !== oldDirectory;
@@ -1085,6 +1142,7 @@ watch(() => route.query, value => {
   repository.value = value.repository || "chromium";
   directory.value = value.dir || "";
   hidden.value = value.hide || "";
+  knowledge.value = value.lines === "reviewed" ? "reviewed" : "authored";
   const list = value.developers ? value.developers.split(",") : [];
   if (list.join(",") !== developers.value.join(",")) developers.value = list;
 });

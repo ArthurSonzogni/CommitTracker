@@ -94,39 +94,91 @@ const DEFAULT_OPTIONS = {
 
 const UNKNOWN = 0; // Commit index of the lines existing before --since.
 
-// The lines nobody wrote by hand are owned by this pseudo-author, skipped by
-// the developers like the bots, but still counted in the years:
-// - The generated files.
-// - The vendored code: the third_party/ directories inside the others, the
-//   npm packages, and the copies of the upstream benchmarks.
+// The lines nobody wrote by hand count nowhere: not in the lines alive, the
+// years, the directories or the developers. They are still replayed, for the
+// lines moved from or to them to keep their authors:
+// - The generated files: by their path, or by a header saying so (see
+//   GENERATED_HEADER).
+// - The vendored code: the third_party/-like directories, the npm packages,
+//   the directories with vendoring metadata (Firefox's moz.yaml), and the
+//   copies of the upstream test suites and benchmarks.
+// - The baselines produced by the tools: the -expected.txt files, the
+//   expectations of the compilers.
 // - The imports of the web-platform-tests and the WebGPU conformance tests,
-//   sometimes landed by developers. "Import maps" and "import text" are
-//   features, not imports.
+//   sometimes landed by developers, and the commits of the import bots.
 const GENERATED = "generated";
-const GENERATED_FILE = new RegExp([
+const GENERATED_PATHS = [
   "(^|/)(gen|generated|generated_[^/]*)/",
   "autogen",
-  "WPT_BASE_MANIFEST[^/]*\\.json$",
-  "^testing/buildbot/(?!trybot_analyze_config\\.json$)[^/]*\\.json$",
-  "./third_party/",
-  "(^|/)node_modules/",
-  "^third_party/(blink|WebKit)/perf_tests/(speedometer[^/]*|MotionMark)/",
-  "^chrome/test/data/dromaeo/",
-  // Firefox: the vendored libraries and test suites outside third_party/.
-  "^intl/icu/",
-  "^js/src/tests/test262/",
-  "^js/src/octane/",
-  "^testing/web-platform/tests/",
-  "^testing/web-platform/mozilla/tests/webgpu/",
-  "^dom/webgpu/tests/cts/",
-  "^security/nss/",
-  "^modules/freetype2/",
-  "^gfx/harfbuzz/",
-  "^media/lib[^/]*/",
-  "^ipc/chromium/src/(base|third_party)/",
-  // Servo: the WebGPU conformance tests and their expectations.
-  "^tests/wpt/webgpu/",
-].join("|"));
+  // Vendored, at any depth, but Chromium's own Blink.
+  "(?!^third_party/(blink|WebKit)/)(^|/)(third_party|ThirdParty|third-party|thirdparty|vendor|vendored|node_modules)/",
+  "(^|/)(package-lock\\.json|yarn\\.lock|pnpm-lock\\.yaml|Cargo\\.lock|go\\.sum|poetry\\.lock|Gemfile\\.lock)$",
+  "\\.min\\.(js|css)$|\\.js\\.map$|\\.pb\\.(go|h|cc)$|_pb2(_grpc)?\\.pyi?$",
+  // The baselines. The -expected.html of the reftests are written by hand.
+  "-expected\\.(txt|png|wav|pdf)$|\\.expected\\.[a-z0-9]+$|\\.expected/|(^|/)bytecode_expectations/",
+];
+const GENERATED_PATHS_OF = {
+  chromium: [
+    "WPT_BASE_MANIFEST[^/]*\\.json$",
+    "^testing/buildbot/(?!trybot_analyze_config\\.json$)[^/]*\\.json$",
+    "^third_party/(blink|WebKit)/perf_tests/(speedometer[^/]*|MotionMark)/",
+    "^chrome/test/data/dromaeo/",
+  ],
+  firefox: [
+    "^intl/icu/",
+    "^js/src/tests/test262/",
+    "^js/src/octane/",
+    "^testing/web-platform/tests/",
+    "^testing/web-platform/mozilla/tests/webgpu/",
+    "^dom/webgpu/tests/cts/",
+    "^security/nss/",
+    "^modules/freetype2/",
+    "^gfx/harfbuzz/",
+    "^media/lib[^/]*/",
+    "^ipc/chromium/src/(base|third_party)/",
+  ],
+  webkit: [
+    "^LayoutTests/(imported|webgl)/",
+    "^LayoutTests/platform/",
+    "^JSTests/(test262|ChakraCore|wasm/spec-tests|es6|mozilla)/",
+    "^PerformanceTests/(JetStream[^/]*|JSBench|Speedometer[^/]*|MotionMark[^/]*|ARES-6|SunSpider|Octane|Kraken|Dromaeo)/",
+    "^Websites/browserbench\\.org/",
+  ],
+  // The WPT copy, but Servo's own tests in tests/wpt/mozilla/.
+  servo: ["^tests/wpt/(tests|webgl|webgpu|meta|meta-legacy)/", "^tests/blink_perf_tests/"],
+  ladybird: ["(^|/)wpt-import/"],
+  v8: ["^test/webkit/", "^test/unittests/gay-[^/]*\\.cc$"],
+  skia: ["^modules/canvaskit/npm_build/", "^resources/skottie/"],
+  // The Khronos headers, and the test lists of the regres bot.
+  swiftshader: ["^include/(vulkan|vk_video|KHR|EGL|GLES[^/]*|Wayland|xcb)/", "^tests/regres/testlists/"],
+  angle: ["^include/(GLES[^/]*|EGL|KHR|CL|vulkan|vk_video)/", "^src/tests/gl_tests/media/"],
+  webrtc: ["^rtc_tools/rtc_event_log_visualizer/conversational_speech_en\\.h$"],
+  llvm: ["^libc/test/src/math/exhaustive/.*\\.wc$"],
+  // The TPM specification, from which trunks is generated.
+  chromeos: ["^trunks/generator/raw_"],
+};
+let GENERATED_FILE = new RegExp(GENERATED_PATHS.join("|"));
+// The rules of a repository, before replaying or writing it.
+const UseRepository = dirname => {
+  GENERATED_FILE = new RegExp(
+    [...GENERATED_PATHS, ...(GENERATED_PATHS_OF[dirname] || [])].join("|"));
+};
+// A file whose first lines say it is generated (POSIX ERE, for awk), like the
+// tests of LLVM whose assertions are generated. The templates generating them
+// say so too, but are written by hand.
+const GENERATED_HEADER = "@generated|DO NOT EDIT|" +
+  "[Tt]his (file|code|header) (is|was|has been) (auto(matically)?[- ]?)?generated|" +
+  "AUTO-?GENERATED|[Aa]uto-?generated (file|code|by|from|with|using)|" +
+  "[Aa]utomatically generated";
+const GENERATED_HEADER_LINES = 40;
+const TEMPLATE_FILE = /\.(tmpl|template|in|j2|jinja2?|hbs|mako)$|(^|\/)templates?\//;
+// The metadata of a vendored directory.
+const VENDORED_METADATA = /(^|\/)moz\.yaml$/;
+// The bots importing code: the syncs of the web-platform-tests, the rolls,
+// the translations. Not the commit queues, landing the code of developers.
+const IMPORT_BOT = /^(\d+\+github-actions\[bot\]|wptsync|release\+treescript|\d+\+servo-wpt-sync|servo-ops|infra@servo\.org|swiftshader\.regress|devtools-ci-autoroll-builder)(@|$)/;
+// The bots reformatting code, whose commits are mechanical.
+const REFORMAT_BOT = /^blink-reformat@/;
 const IMPORT_SUBJECT =
   /^(manual(ly)? )?import(ing)?\b(?! maps?\b| text\b)|\b(sync|update) (wpt|cts)\b/i;
 const WPT_FILE = new RegExp([
@@ -197,11 +249,13 @@ const run = (args, cwd, raw = false) => new Promise((resolve, reject) => {
     : reject(new Error(`${args.join(" ")} failed: ${code}`)));
 });
 
-// The diff of a range of commits, with only the lines we need. The content
-// lines start with +, - or space, so the filter can't confuse them with
-// headers.
+// The diff of a range of commits, with only the lines we need: the headers,
+// and the added lines saying the file is generated, within its first lines.
+// The content lines start with +, - or space, so the filter can't confuse them
+// with headers.
 const GitLog = (cwd, chunk, pathspecs, options) => {
-  const format = "--format=%x01%H %at %ct %ae%x02%s";
+  const format = "--format=%x01%H %at %ct %ae%x02%s%x02" +
+    "%(trailers:key=Reviewed-by,valueonly,separator=%x03)";
   const diff = ["-p", "-U0",
     ...(options.renames ? ["-M", `-l${CONFIG.rename_limit}`] : ["--no-renames"]),
     ...(options.whitespace ? ["-w"] : []),
@@ -221,13 +275,15 @@ const GitLog = (cwd, chunk, pathspecs, options) => {
       "--first-parent", "--diff-merges=first-parent", "--reverse",
       ...diff, format, ...range, "--", ...pathspecs]);
   }
-  const filter = "LC_ALL=C grep -a -E " +
-    "'^(\x01|diff --git |rename (from|to) |(new|deleted) file mode |index |new mode |Binary files |@@ )'";
+  const filter = `LC_ALL=C awk '
+    /^(\x01|diff --git |rename (from|to) |(new|deleted) file mode |index |new mode |Binary files )/ {
+      print; line = ${GENERATED_HEADER_LINES} + 1; next }
+    /^@@ / { print; split($3, start, ","); line = substr(start[1], 2) + 0; next }
+    /^[+]/ { if (line <= ${GENERATED_HEADER_LINES} && /${GENERATED_HEADER}/) print; line++ }'`;
   // Kept as a Buffer, outside of the JavaScript heap: large refactorings have
   // millions of hunks.
   // bash, as the dash of the CI has no pipefail.
-  return run(["bash", "-c", `set -o pipefail; ${git} | ${filter} || [ $? = 1 ]`],
-    cwd, true);
+  return run(["bash", "-c", `set -o pipefail; ${git} | ${filter}`], cwd, true);
 };
 
 // --- Runs --------------------------------------------------------------------
@@ -265,7 +321,14 @@ class State {
     // The commits adding or removing many lines at once, explaining the steps
     // of the charts: [time, lines, hash, subject, path].
     this.events = [];
-    this.generated = [0];      // Commit index -> those in GENERATED_FILE.
+    // The files with a generated header, and the vendored directories: their
+    // lines count nowhere, like those of GENERATED_FILE.
+    this.marked = new Set();
+    this.vendored = new Set();
+    this.excluded_authors = []; // Author id -> whose lines count nowhere.
+    // Commit index -> author ids of its reviewers, from the Reviewed-by
+    // trailers of Gerrit.
+    this.reviewers = new Map();
     this.files = new Map();    // Path -> runs, as an Int32Array.
     this.samples = [];         // [time, {year: lines}, recent].
     this.author_samples = [];  // [time, [author id, lines, ...]].
@@ -304,12 +367,61 @@ class State {
     return author;
   }
 
+  // "Name <email>", separated by \x03.
+  setReviewers(commit, trailers) {
+    const ids = [];
+    for (const trailer of trailers.split("\x03")) {
+      const email = /<([^<>]+)>/.exec(trailer)?.[1];
+      if (!email || email === this.authors[this.commit_author[commit]]) continue;
+      const id = this.authorId(email);
+      if (!ids.includes(id)) ids.push(id);
+    }
+    if (ids.length) this.reviewers.set(commit, ids);
+  }
+
+  // Whether the lines of this author count nowhere: the imports.
+  excludedAuthor(author) {
+    if (author < 0) return false;
+    let excluded = this.excluded_authors[author];
+    if (excluded === undefined) {
+      const email = this.authors[author];
+      excluded = this.excluded_authors[author] = email === GENERATED || IMPORT_BOT.test(email);
+    }
+    return excluded;
+  }
+
+  // Whether the lines of this file count nowhere.
+  excludedFile(file) {
+    if (GENERATED_FILE.test(file) || this.marked.has(file)) return true;
+    if (this.vendored.size === 0) return false;
+    return Directories(file).some(directory => this.vendored.has(directory));
+  }
+
+  // Changes whether a file has a generated header, or a directory is vendored,
+  // recounting their lines.
+  setMarked(file, marked) {
+    if (this.marked.has(file) === marked) return;
+    const runs = this.files.get(file);
+    if (runs) this.account(file, runs, -1);
+    if (marked) this.marked.add(file);
+    else this.marked.delete(file);
+    if (runs) this.account(file, runs, 1);
+  }
+
+  setVendored(directory, vendored) {
+    if (this.vendored.has(directory) === vendored) return;
+    const files = [...this.files].filter(([file]) => file.startsWith(directory + "/"));
+    for (const [file, runs] of files) this.account(file, runs, -1);
+    if (vendored) this.vendored.add(directory);
+    else this.vendored.delete(directory);
+    for (const [file, runs] of files) this.account(file, runs, 1);
+  }
+
   addCommit(time, email) {
     this.commit_time.push(time);
     this.commit_author.push(this.authorId(email));
     this.commit_month.push(Month(time));
     this.alive.push(0);
-    this.generated.push(0);
     return this.commit_time.length - 1;
   }
 
@@ -336,12 +448,12 @@ class State {
       }
       return this.directories.get(directory);
     });
-    const generated = GENERATED_FILE.test(file);
+    if (this.excludedFile(file)) return;
     for (let i = 0; i < runs.length; i += 2) {
+      if (this.excludedAuthor(this.commit_author[runs[i]])) continue;
       const lines = sign * runs[i + 1];
       this.alive[runs[i]] += lines;
       this.total += lines;
-      if (generated) this.generated[runs[i]] += lines;
       const month = this.commit_month[runs[i]];
       for (const months of directories) months[month] += lines;
     }
@@ -350,7 +462,7 @@ class State {
   // The lines changed in `file` by `commit`: [removed runs, lines removed,
   // lines added] per hunk.
   recordActivity(file, commit, changes, mechanical) {
-    if (GENERATED_FILE.test(file)) return;
+    if (this.excludedFile(file) || this.excludedAuthor(this.commit_author[commit])) return;
     const time = this.commit_time[commit];
     const year = Year(time);
     const author = this.commit_author[commit];
@@ -389,7 +501,7 @@ class State {
     const time = this.commit_time[commit];
     const year = Year(time);
     const author = this.commit_author[commit];
-    const directories = CommitDirectories(files);
+    const directories = CommitDirectories(this, files);
     if (!directories) return;
     this.recordRecent(time, author, directories);
     for (const directory of directories) {
@@ -421,7 +533,6 @@ class State {
   sample(time) {
     const years = {};
     const authors = new Map();
-    const generated = this.authorId(GENERATED);
     let recent = 0; // Lines of the last 365 days.
     for (let commit = 0; commit < this.alive.length; commit++) {
       const lines = this.alive[commit];
@@ -434,11 +545,7 @@ class State {
         recent += lines;
       }
       const author = this.commit_author[commit];
-      const own = lines - this.generated[commit];
-      if (own) authors.set(author, (authors.get(author) || 0) + own);
-      if (this.generated[commit]) {
-        authors.set(generated, (authors.get(generated) || 0) + this.generated[commit]);
-      }
+      authors.set(author, (authors.get(author) || 0) + lines);
     }
     this.samples.push([time, years, recent]);
     if (this.samples.length % 4 === 1) this.sampleDirectories(time);
@@ -514,6 +621,9 @@ class State {
       activity_complete: this.activity_complete,
       recent: this.recent.size,
       recent_since: this.recent_since,
+      reviewed: this.reviewers.size,
+      marked: [...this.marked],
+      vendored: [...this.vendored],
     }));
     const parts = [];
     const u32 = value => {
@@ -586,6 +696,11 @@ class State {
         varint(lines);
       }
     }
+    for (const [commit, ids] of this.reviewers) {
+      varint(commit);
+      varint(ids.length);
+      ids.forEach(varint);
+    }
     parts.push(Buffer.from(bytes.buffer, 0, size));
     return zlib.gzipSync(Buffer.concat(parts));
   }
@@ -621,7 +736,8 @@ class State {
     state.commit_author = u32s().map(id => id === 0xffffffff ? -1 : id);
     state.commit_month = state.commit_time.map((time, i) => i === UNKNOWN ? 0 : Month(time));
     state.alive = new Array(header.commits).fill(0);
-    state.generated = new Array(header.commits).fill(0);
+    state.marked = new Set(header.marked || []);
+    state.vendored = new Set(header.vendored || []);
     state.directory_names = header.directory_names || [];
     state.directory_names.forEach((name, id) => state.directory_ids.set(name, id));
 
@@ -683,6 +799,12 @@ class State {
         const author = varint();
         by.set(author, varint());
       }
+    }
+    for (let i = 0; i < (header.reviewed || 0); i++) {
+      const commit = varint();
+      const ids = new Array(varint());
+      for (let j = 0; j < ids.length; j++) ids[j] = varint();
+      state.reviewers.set(commit, ids);
     }
     return state;
   }
@@ -880,9 +1002,16 @@ class Replayer {
         added <= MECHANICAL_LINES_PER_FILE * blocks.length);
       const renamed = blocks.filter(block => block.from !== block.to);
       const moved = renamed.map(block => state.files.get(block.from));
-      renamed.forEach(block => track(block.from, () => state.removeFile(block.from)));
-      renamed.forEach((block, i) => moved[i] &&
-        track(block.to, () => state.setFile(block.to, moved[i])));
+      // A generated header follows its file.
+      const marked = renamed.map(block => state.marked.has(block.from));
+      renamed.forEach(block => track(block.from, () => {
+        state.removeFile(block.from);
+        state.setMarked(block.from, false);
+      }));
+      renamed.forEach((block, i) => moved[i] && track(block.to, () => {
+        state.setMarked(block.to, marked[i]);
+        state.setFile(block.to, moved[i]);
+      }));
       for (const block of blocks) {
         // Binary files, symlinks and submodules have no lines.
         if (block.deleted || block.binary || block.mode === "120000" ||
@@ -891,10 +1020,20 @@ class Replayer {
           if (this.main && runs) {
             state.recordActivity(block.to, commit, [[runs, lineCount(runs), 0]], mechanical);
           }
-          track(block.to, () => state.removeFile(block.to));
+          track(block.to, () => {
+            state.removeFile(block.to);
+            state.setMarked(block.to, false);
+          });
         } else if (block.hunks.length > 0) {
           track(block.to, () => this.applyHunks(block.to, block.hunks, commit,
             mechanical, hash, block.old_blob));
+        }
+        if (block.generated_header && !TEMPLATE_FILE.test(block.to)) {
+          track(block.to, () => state.setMarked(block.to, true));
+        }
+        if (VENDORED_METADATA.test(block.to) && (block.added || block.deleted)) {
+          const directory = block.to.split("/").slice(0, -1).join("/");
+          if (directory) track(directory, () => state.setVendored(directory, !block.deleted));
         }
       }
       if (this.main && commit > 0 && blocks.length) {
@@ -916,7 +1055,9 @@ class Replayer {
         flush();
         let author_time, commit_time, email;
         const separator = line.indexOf("\x02");
-        subject = line.slice(separator + 1);
+        // The subject, then the reviewers.
+        const reviewers = line.indexOf("\x02", separator + 1);
+        subject = line.slice(separator + 1, reviewers === -1 ? undefined : reviewers);
         [hash, author_time, commit_time, ...email] = line.slice(1, separator).split(" ");
         // Commits not touching the pathspecs are omitted.
         while (replayed < expected.length && expected[replayed].hash !== hash) {
@@ -935,8 +1076,9 @@ class Replayer {
         }
         commit = state.addCommit(Number(state.options.commit_date
           ? commit_time : author_time), email.join(" "));
-        ignored = this.ignore_revs.has(hash) ||
-          (state.options.ignore_revs && REFORMAT_SUBJECT.test(subject));
+        if (reviewers !== -1) state.setReviewers(commit, line.slice(reviewers + 1));
+        ignored = this.ignore_revs.has(hash) || (state.options.ignore_revs &&
+          (REFORMAT_SUBJECT.test(subject) || REFORMAT_BOT.test(email.join(" "))));
       } else if (line.startsWith("diff --git ")) {
         const file = parseDiffLine(line);
         block = { from: file, to: file, hunks: [], mode: null };
@@ -965,6 +1107,9 @@ class Replayer {
         if (mode) block.mode = mode;
       } else if (line.startsWith("Binary files ")) {
         block.binary = true;
+      } else if (line.startsWith("+")) {
+        // A line of the GENERATED_HEADER, from the filter.
+        block.generated_header = true;
       }
     }
     flush();
@@ -986,7 +1131,7 @@ const Day = time => new Date(time * 1000).toISOString().slice(0, 10);
 const WriteOutput = async (state, dir) => {
   const now = Math.floor(Date.now() / 1000);
   // The username of each author, or null for the bots.
-  const usernameOf = state.authors.map(email => IsEmailValid(email)
+  const usernameOf = state.authors.map(email => IsEmailValid(email) && !IMPORT_BOT.test(email)
     ? mailMap(email).split("@")[0]
     : null);
 
@@ -1015,35 +1160,86 @@ const WriteOutput = async (state, dir) => {
   });
 
   // The lines each developer authored, alive today, in the directories of the
-  // summary, as [index in the summary, lines, ...]. The generated files have
-  // no author.
+  // summary, as [index in the summary, lines, ...], and those they reviewed,
+  // written by others. The generated files have no author.
   const ownership = new Map(); // Username -> Map(index -> lines).
+  const reviewership = new Map(); // Username -> Map(index -> lines).
+  const review_start = ReviewStart(state);
+  const reviewersOf = commit => review_start !== null && state.commit_time[commit] >= review_start
+    ? state.reviewers.get(commit) || []
+    : null;
+  // The people who know each commit: its author and its reviewers.
+  const people = commit => {
+    const author = state.commit_author[commit];
+    const known = author === -1 ? [] : [usernameOf[author]];
+    for (const id of reviewersOf(commit) || []) known.push(usernameOf[id]);
+    return [...new Set(known.filter(Boolean))];
+  };
+  // Index -> Map(commit -> lines), for the bus factor counting the reviewers:
+  // the lines of the review era. The whole repository is the index -1.
+  const knownLines = new Map();
+  const allLines = new Map(); // Index -> lines with an author, for the coverage.
+  const credit = (map, username, owned, lines) => {
+    if (!map.has(username)) map.set(username, new Map());
+    const directories = map.get(username);
+    for (const index of owned) directories.set(index, (directories.get(index) || 0) + lines);
+  };
   const indices = new Map(summary.map((entry, index) => [entry.path, index]));
   for (const [file, runs] of state.files) {
-    if (GENERATED_FILE.test(file)) continue;
+    if (state.excludedFile(file)) continue;
     const owned = Directories(file).map(directory => indices.get(directory))
       .filter(index => index !== undefined);
-    if (owned.length === 0) continue;
+    owned.push(-1);
     for (let i = 0; i < runs.length; i += 2) {
-      const author = state.commit_author[runs[i]];
+      const [commit, lines] = [runs[i], runs[i + 1]];
+      const author = state.commit_author[commit];
+      if (author !== -1 && state.excludedAuthor(author)) continue;
       const username = author === -1 ? null : usernameOf[author];
-      if (!username) continue;
-      if (!ownership.has(username)) ownership.set(username, new Map());
-      const directories = ownership.get(username);
+      if (username) credit(ownership, username, owned, lines);
+      const reviewers = reviewersOf(commit);
+      for (const id of reviewers || []) {
+        const reviewer = usernameOf[id];
+        if (reviewer && reviewer !== username) credit(reviewership, reviewer, owned, lines);
+      }
+      if (!username && !reviewers?.length) continue;
+      for (const index of owned) allLines.set(index, (allLines.get(index) || 0) + lines);
+      if (!reviewers) continue;
       for (const index of owned) {
-        directories.set(index, (directories.get(index) || 0) + runs[i + 1]);
+        if (!knownLines.has(index)) knownLines.set(index, new Map());
+        const commits = knownLines.get(index);
+        commits.set(commit, (commits.get(commit) || 0) + lines);
       }
     }
   }
   const OWNED_MIN = 10; // Lines, below which a directory isn't listed.
 
-  // The bus factor of each directory, from the lines authored alive.
+  // The bus factor of each directory, from the lines authored alive, and
+  // counting the reviewers too.
   const authored = summary.map(() => []);
   for (const directories of ownership.values()) {
-    for (const [index, lines] of directories) authored[index].push(lines);
+    for (const [index, lines] of directories) if (index >= 0) authored[index].push(lines);
   }
-  summary.forEach((entry, index) => entry.bus_factor = BusFactor(authored[index]));
+  // With the reviewers, on the lines of the review era, when most of them are.
+  const reviewedFigures = index => {
+    if (review_start === null) return {};
+    const era = [...(knownLines.get(index)?.values() || [])].reduce((a, b) => a + b, 0);
+    const coverage = era / (allLines.get(index) || 1);
+    return {
+      bus_factor_reviewed: coverage >= REVIEWED_COVERAGE_MIN
+        ? KnowledgeFactor(knownLines.get(index), people)
+        : undefined,
+      reviewed_coverage: Math.round(coverage * 1000) / 1000,
+    };
+  };
+  summary.forEach((entry, index) => {
+    entry.bus_factor = BusFactor(authored[index]);
+    Object.assign(entry, reviewedFigures(index));
+  });
   await fs.writeFile(path.join(dir, "directories.json"), JSON.stringify(summary));
+  const reviewed = {
+    ...reviewedFigures(-1),
+    reviewed_since: review_start === null ? undefined : Day(review_start),
+  };
 
   // The breadth of each developer during the last 365 days, or else the last
   // calendar years: their commits per component, a directory two levels deep
@@ -1128,13 +1324,18 @@ const WriteOutput = async (state, dir) => {
     const bucket = UsernameBucket(username);
     if (!buckets.has(bucket)) buckets.set(bucket, { dates, users: {} });
     const directories = [...(ownership.get(username) || [])]
-      .filter(([, owned]) => owned >= OWNED_MIN)
+      .filter(([index, owned]) => index >= 0 && owned >= OWNED_MIN)
+      .sort((a, b) => a[0] - b[0]);
+    const reviewed = [...(reviewership.get(username) || [])]
+      .filter(([index, lines]) => index >= 0 && lines >= OWNED_MIN)
       .sort((a, b) => a[0] - b[0]);
     const breadth = Breadth(username);
     buckets.get(bucket).users[username] = {
       first,
       lines: lines.slice(first),
       directories: directories.flat(),
+      reviewed: reviewed.length ? reviewed.flat() : undefined,
+      reviewed_total: reviewership.get(username)?.get(-1),
       commits: commits.get(username),
       breadth,
       removals: removedTotal.has(username) || removedOf.has(username) ? {
@@ -1187,6 +1388,7 @@ const WriteOutput = async (state, dir) => {
       ? ActivityLabel(activity.activity, total, total_year_ago, now)
       : undefined,
     bus_factor: BusFactor([...usernames.values()].map(series => series.at(-1))),
+    ...reviewed,
   }));
 };
 
@@ -1228,12 +1430,12 @@ const RecentCommits = (state, directory, usernameOf, now) => {
 };
 
 // The directories ("" for the root) of a commit touching these files, for its
-// contributors. Null when it only touched generated files.
-const CommitDirectories = files => {
+// contributors. Null when it only touched excluded files.
+const CommitDirectories = (state, files) => {
   const directories = new Set([""]);
   let counted = false;
   for (const file of files) {
-    if (GENERATED_FILE.test(file)) continue;
+    if (state.excludedFile(file)) continue;
     counted = true;
     Directories(file).forEach(directory => directories.add(directory));
   }
@@ -1344,6 +1546,60 @@ const BusFactor = lines => {
     if (sum >= half) return i + 1;
   }
   return sorted.length;
+};
+
+// The time since which the reviewers are recorded: the first month when at
+// least half of the commits have some. Before, they are unknown rather than
+// missing: Chromium moved to Gerrit in 2017. Null without reviewers.
+const ReviewStart = state => {
+  if (state.reviewers.size === 0) return null;
+  const commits = new Map(); // Month -> [commits, reviewed].
+  for (let commit = 1; commit < state.commit_time.length; commit++) {
+    const month = state.commit_month[commit];
+    if (!commits.has(month)) commits.set(month, [0, 0]);
+    const counts = commits.get(month);
+    counts[0]++;
+    if (state.reviewers.has(commit)) counts[1]++;
+  }
+  const month = [...commits].sort((a, b) => a[0] - b[0])
+    .find(([, [all, reviewed]]) => all >= 10 && reviewed >= all / 2)?.[0];
+  if (month === undefined) return null;
+  let start = Infinity;
+  for (let commit = 1; commit < state.commit_time.length; commit++) {
+    if (state.commit_month[commit] === month) start = Math.min(start, state.commit_time[commit]);
+  }
+  return start;
+};
+// The figures counting the reviewers need this share of the lines alive to
+// be written since the start of the review era.
+const REVIEWED_COVERAGE_MIN = 0.5;
+
+// How many people must leave for half of the lines to be known by nobody: a
+// line is known by the author and the reviewers of its commit. The people
+// leave from the one knowing the most lines, like the truck factor of
+// Avelino et al. With the authors only, it is BusFactor.
+const KnowledgeFactor = (commitLines, people) => {
+  const groups = [...commitLines].map(([commit, lines]) => [people(commit), lines])
+    .filter(([persons]) => persons.length);
+  const total = groups.reduce((sum, [, lines]) => sum + lines, 0);
+  if (!total) return undefined;
+  const known = new Map(); // Person -> lines known.
+  const groupsOf = new Map(); // Person -> group indices.
+  groups.forEach(([persons, lines], i) => persons.forEach(person => {
+    known.set(person, (known.get(person) || 0) + lines);
+    if (!groupsOf.has(person)) groupsOf.set(person, []);
+    groupsOf.get(person).push(i);
+  }));
+  const remaining = Int32Array.from(groups, ([persons]) => persons.length);
+  const order = [...known].sort((a, b) => b[1] - a[1]).map(([person]) => person);
+  let orphaned = 0;
+  for (let count = 1; count <= order.length; count++) {
+    for (const i of groupsOf.get(order[count - 1])) {
+      if (--remaining[i] === 0) orphaned += groups[i][1];
+    }
+    if (orphaned >= total / 2) return count;
+  }
+  return order.length;
 };
 
 // The files grouping the developers and the directories. The page computes
@@ -1540,6 +1796,7 @@ const Validate = async (state, cwd, dir, pathspecs, blame_count) => {
 
 const main = async () => {
   const [dirname, ...flags] = process.argv.slice(2);
+  UseRepository(dirname);
   const values = name => flags
     .filter(f => f === `--${name}` || f.startsWith(`--${name}=`))
     .map(f => f.includes("=") ? f.slice(f.indexOf("=") + 1) : true);
@@ -1718,7 +1975,7 @@ const RebuildRecent = async (state, cwd, pathspecs) => {
   state.recent = new Map();
   // Oldest first, like the replay.
   for (const [when, author, files] of commits.reverse()) {
-    const directories = CommitDirectories(files);
+    const directories = CommitDirectories(state, files);
     if (directories && when >= start) state.recordRecent(when, author, directories);
   }
   state.recent_since = start;
