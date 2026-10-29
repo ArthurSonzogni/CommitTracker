@@ -88,43 +88,56 @@ const delta = computed(() => Math.round(
   padding: 0 1.25rem 4rem;
 }
 
+@media (min-width: 769px) {
+  .highlights-section {
+    padding: 0 1.5rem 4rem;
+  }
+}
+
 .highlights-title {
   color: var(--ink);
-  font-size: 1.25rem;
-  font-weight: 650;
+  font-size: 1.15rem;
+  font-weight: 640;
   letter-spacing: -0.02em;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.2rem;
 }
 
 .highlights-lede {
   color: var(--muted);
-  margin-bottom: 1.25rem;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
 }
 
 .is-up,
 .is-down {
   color: var(--ink-2);
-  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  font-weight: 560;
 }
 
 .highlights {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
   display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  overflow: hidden;
 }
 
 .highlight {
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  padding: 1rem 1.25rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  margin: 0 -1px -1px 0;
+  padding: 1.1rem 1.35rem;
 }
 
 .highlight h3 {
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 560;
   letter-spacing: 0.04em;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.55rem;
   text-transform: uppercase;
 }
 
@@ -140,14 +153,16 @@ const delta = computed(() => Math.round(
   counter-increment: rank;
   display: flex;
   gap: 0.5rem;
-  padding: 0.3rem 0;
+  padding: 0.28rem 0;
 }
 
 .highlight li::before {
   color: var(--faint);
   content: counter(rank);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
   font-variant-numeric: tabular-nums;
-  width: 1rem;
+  width: 1.1rem;
 }
 
 .highlight li a {
@@ -160,7 +175,8 @@ const delta = computed(() => Math.round(
 
 .highlight li span {
   color: var(--muted);
-  font-size: 0.85rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
   font-variant-numeric: tabular-nums;
 }
 </style>

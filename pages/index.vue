@@ -3,11 +3,6 @@
     <Navbar/>
     <section class="home-hero">
       <div class="container">
-        <p class="eyebrow">
-          <span class="live-dot"></span>
-          Updated {{ lastUpdate }} · {{ repositoryCount }} repositories
-        </p>
-
         <!-- A transition for the {repository}CommitTracker-->
         <h1 class="display" key="repository" ref="title">
           <span class="repository">{{repository}}</span><span class="caret non-selectable">|</span><wbr>CommitTracker
@@ -19,10 +14,15 @@
         </p>
 
         <HomeSearch class="hero-search" />
+
+        <p class="hero-meta">
+          <NuxtLink to="/repo-info">{{ repositoryCount }} repositories</NuxtLink>
+          <span aria-hidden="true">·</span>
+          <span>Updated {{ lastUpdate }}</span>
+        </p>
       </div>
     </section>
     <HomeBento/>
-    <div class="container commit-rule" aria-hidden="true"><span /><span /><span /></div>
     <HomeHighlights/>
   </div>
 </template>
@@ -32,12 +32,11 @@ import repositories_json from '../public/data/repositories.json'
 import repositories_stats from '../public/data/repositories_stats.json'
 
 const repository = ref("Chromium");
-const repositories = ref(repositories_json);
 
 const all_stats = Object.values(repositories_stats);
 const repositoryCount = all_stats.length;
 const lastUpdate = new Date(
-  Math.max(...all_stats.map(stat => new Date(stat.last_commit)))
+  Math.max(...all_stats.map(stat => new Date(stat.last_commit).getTime()))
 ).toLocaleDateString("en", { month: "short", day: "numeric", year: "numeric" });
 
 const title = ref<HTMLElement | null>(null);
@@ -83,153 +82,78 @@ const main = async() => {
     await sleep(200);
 
     // Set the repository name, one letter at a time
-    const random_repository = next_repository.shift();
+    const random_repository = next_repository.shift()!;
     for(let j = 0; j < random_repository.length; j++) {
       repository.value += random_repository[j];
       await sleep(50);
     }
   }
-
-  await sleep(500);
-  title.value?.classList.add("flash");
-  await sleep(500);
-  title.value?.classList.remove("flash");
 }
 
 main().catch(() => {})
 </script>
 
 <style scoped>
-/* A divider drawn like the commits of a git history, as in the logo. */
-.commit-rule {
-  align-items: center;
-  display: flex;
-  justify-content: space-between;
-  margin-block: 3rem;
-  padding-inline: 1.5rem;
-  position: relative;
-}
-
-.commit-rule::before {
-  background: var(--line-strong);
-  content: "";
-  height: 2px;
-  inset-inline: 1.5rem;
-  position: absolute;
-}
-
-.commit-rule span {
-  background: var(--bg);
-  border: 2px solid var(--accent);
-  border-radius: 999px;
-  height: 12px;
-  position: relative;
-  width: 12px;
-}
-
 .home-hero {
-  background:
-    radial-gradient(60rem 28rem at 85% -10%, rgba(110, 86, 207, 0.16), transparent 70%),
-    radial-gradient(40rem 22rem at -10% 10%, rgba(56, 189, 248, 0.10), transparent 70%),
-    var(--bg);
-  padding: 3.5rem 1.25rem 2.5rem;
-  position: relative;
-}
-
-/* Faint grid, fading out towards the bottom. */
-.home-hero::before {
-  background-image:
-    linear-gradient(var(--line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--line) 1px, transparent 1px);
-  background-size: 44px 44px;
-  content: "";
-  inset: 0;
-  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.55), transparent 75%);
-  position: absolute;
-  pointer-events: none;
-}
-
-.home-hero .container {
-  position: relative;
-  z-index: 2;
+  padding: 2.75rem 1.25rem 2rem;
 }
 
 @media (min-width: 769px) {
   .home-hero {
-    padding: 5.5rem 1.5rem 3.5rem;
+    padding: 4rem 1.5rem 2.5rem;
   }
-}
-
-.eyebrow {
-  align-items: center;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  box-shadow: var(--shadow-xs);
-  color: var(--muted);
-  display: inline-flex;
-  font-size: 0.8rem;
-  font-weight: 520;
-  gap: 0.5rem;
-  padding: 0.3rem 0.8rem 0.3rem 0.65rem;
-}
-
-.live-dot {
-  background: #22a06b;
-  border-radius: 50%;
-  box-shadow: 0 0 0 3px rgba(34, 160, 107, 0.18);
-  height: 0.45rem;
-  width: 0.45rem;
 }
 
 .display {
   color: var(--ink);
-  font-size: clamp(2.4rem, 1.2rem + 6vw, 5rem);
-  font-weight: 680;
-  letter-spacing: -0.045em;
-  line-height: 1;
-  margin: 1.5rem 0 1.25rem;
-  transition: all 0.3s;
+  font-size: clamp(2.1rem, 1.2rem + 4.2vw, 3.75rem);
+  font-weight: 660;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  margin: 0 0 0.85rem;
 }
 
 .repository {
-  background: linear-gradient(100deg, var(--accent) 10%, #3b82f6 90%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--accent);
 }
 
 .caret {
-  color: var(--accent);
+  color: var(--faint);
   font-weight: 300;
-  margin: 0 0.05em;
-}
-
-.flash {
-  text-shadow: 0 0 24px rgba(110, 86, 207, 0.45);
-}
-
-.hero-search {
-  margin-top: 2rem;
+  margin: 0 0.04em;
 }
 
 .lede {
-  color: var(--ink-2);
-  font-size: clamp(1.05rem, 0.95rem + 0.4vw, 1.25rem);
+  color: var(--muted);
+  font-size: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
   line-height: 1.55;
-  max-width: 40rem;
+  max-width: 38rem;
 }
 
+.hero-search {
+  margin-top: 1.5rem;
+}
 
+.hero-meta {
+  align-items: center;
+  color: var(--faint);
+  display: flex;
+  flex-wrap: wrap;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+}
 
+.hero-meta a {
+  color: var(--muted);
+}
 
-
-
-
-
+.hero-meta a:hover {
+  color: var(--ink);
+}
 
 .non-selectable {
   user-select: none;
 }
-
 </style>

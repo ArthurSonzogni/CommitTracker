@@ -5,18 +5,23 @@
 
         <NuxtLink to="/communities" class="bento-card is-community">
           <div class="bento-text">
-            <h2>Community graph</h2>
+            <div class="bento-head">
+              <h2>Community graph</h2>
+              <UiIcon name="arrow-right" size="small" class="bento-arrow" />
+            </div>
             <p>Who reviews whom: the communities of developers, and how they evolved over the years.</p>
           </div>
           <div class="bento-preview is-image">
             <img src="/community-map/illustration.jpg" alt="" loading="lazy" />
           </div>
-          <span class="bento-link">Explore communities <UiIcon name="arrow-right" size="small"></UiIcon></span>
         </NuxtLink>
 
         <NuxtLink to="/individuals" class="bento-card is-individuals">
           <div class="bento-text">
-            <h2>Individuals</h2>
+            <div class="bento-head">
+              <h2>Individuals</h2>
+              <UiIcon name="arrow-right" size="small" class="bento-arrow" />
+            </div>
             <p>Commits and reviews of any developer, over time, by hour, and with their peers.</p>
           </div>
           <div class="bento-preview">
@@ -40,12 +45,14 @@
             </ul>
             <p class="bento-caption">Commits per year of the top authors of {{ latestYear }}</p>
           </div>
-          <span class="bento-link">Explore developers <UiIcon name="arrow-right" size="small"></UiIcon></span>
         </NuxtLink>
 
         <NuxtLink to="/repositories" class="bento-card is-repositories">
           <div class="bento-text">
-            <h2>Repositories</h2>
+            <div class="bento-head">
+              <h2>Repositories</h2>
+              <UiIcon name="arrow-right" size="small" class="bento-arrow" />
+            </div>
             <p>Commits, contributors and newcomers of {{ repositoryCount }} repositories.</p>
           </div>
           <div class="bento-preview">
@@ -57,18 +64,22 @@
                 :y="120 - bar.height"
                 :width="300 / yearlyCommits.length - 2"
                 :height="bar.height"
-                rx="2"
+                rx="1.5"
                 class="bar"
               />
             </svg>
-            <p class="bento-caption">Chromium commits per year</p>
+            <p class="bento-caption">
+              Chromium commits per year<span v-if="firstYear"> · {{ firstYear }}–{{ latestYear }}</span>
+            </p>
           </div>
-          <span class="bento-link">Explore repositories <UiIcon name="arrow-right" size="small"></UiIcon></span>
         </NuxtLink>
 
         <NuxtLink to="/treemap" class="bento-card is-treemap">
           <div class="bento-text">
-            <h2>Treemap</h2>
+            <div class="bento-head">
+              <h2>Treemap</h2>
+              <UiIcon name="arrow-right" size="small" class="bento-arrow" />
+            </div>
             <p>Codebase metrics over space and time: memory safety, TODOs, and more.</p>
           </div>
           <div class="bento-preview">
@@ -80,13 +91,13 @@
                 :y="tile.y0 + 1"
                 :width="Math.max(tile.x1 - tile.x0 - 2, 0)"
                 :height="Math.max(tile.y1 - tile.y0 - 2, 0)"
-                rx="3"
+                rx="2"
+                :fill="tile.color"
                 :fill-opacity="tile.opacity"
-                class="tile"
               />
             </svg>
+            <p class="bento-caption">Codebase size and metrics by directory</p>
           </div>
-          <span class="bento-link">Explore the treemap <UiIcon name="arrow-right" size="small"></UiIcon></span>
         </NuxtLink>
 
       </div>
@@ -103,17 +114,32 @@ const repositoryCount = Object.keys(repositories_stats).length;
 
 const yearlyCommits = shallowRef<{ year: string, height: number }[]>([]);
 const topDevelopers = shallowRef<{ name: string, path: string }[]>([]);
+const firstYear = ref("");
 const latestYear = ref("");
 
-// Decorative only: a squarified treemap of fixed weights.
-const treemapTiles = treemap()
+// Decorative only: a squarified treemap grouped into 3 subsystems.
+const treemapColors = [
+  categoricalPalette[0],
+  categoricalPalette[2],
+  categoricalPalette[1],
+];
+const treemapTiles = treemap<{ children?: unknown[], value?: number, group?: number }>()
   .size([300, 120])
-  .padding(0)(
-    hierarchy({ children: [34, 21, 13, 9, 8, 5, 4, 3, 2, 2, 1, 1].map(value => ({ value })) })
-      .sum(d => d.value ?? 0)
+  .paddingInner(1)(
+    hierarchy({
+      children: [
+        { group: 0, children: [34, 21, 13, 8].map(value => ({ value, group: 0 })) },
+        { group: 1, children: [16, 11, 7, 4].map(value => ({ value, group: 1 })) },
+        { group: 2, children: [9, 6, 4, 2].map(value => ({ value, group: 2 })) },
+      ],
+    }).sum(d => d.value ?? 0)
   )
   .leaves()
-  .map((tile, index) => ({ ...tile, opacity: 0.85 - index * 0.06 }));
+  .map((tile, index) => ({
+    ...tile,
+    color: treemapColors[tile.data.group ?? 0],
+    opacity: 0.85 - (index % 4) * 0.12,
+  }));
 
 onMounted(async () => {
   // {developer: {year: commits}}
@@ -131,6 +157,7 @@ onMounted(async () => {
   yearlyCommits.value = years.map(year => ({ year, height: 4 + 116 * totals[year] / max }));
 
   // The top 3 authors of the latest year, over the last 10 years.
+  firstYear.value = years[0];
   const latest = years[years.length - 1];
   latestYear.value = latest;
   const recent = years.slice(-10);
@@ -151,13 +178,21 @@ onMounted(async () => {
 
 <style scoped>
 .bento-section {
-  padding: 1rem 1.25rem 4rem;
+  padding: 0.5rem 1.25rem 3rem;
+}
+
+@media (min-width: 769px) {
+  .bento-section {
+    padding: 0.5rem 1.5rem 3.5rem;
+  }
 }
 
 .bento {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
   display: grid;
-  gap: 1rem;
   grid-template-columns: minmax(0, 1fr);
+  overflow: hidden;
 }
 
 @media (min-width: 769px) {
@@ -184,80 +219,88 @@ onMounted(async () => {
 
 .bento-card {
   background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  box-shadow: var(--shadow-xs);
+  border-bottom: 1px solid var(--line);
+  border-right: 1px solid var(--line);
   color: var(--ink-2);
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  margin: 0 -1px -1px 0;
   overflow: hidden;
-  padding: 1.4rem 1.4rem 1.2rem;
-  transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s, border-color 0.2s;
+  padding: 1.35rem 1.5rem;
+  transition: background 0.15s;
 }
 
 .bento-card:hover {
-  border-color: var(--line-strong);
-  box-shadow: var(--shadow-lg);
+  background: color-mix(in srgb, var(--surface-sunken) 45%, var(--surface));
   color: var(--ink-2);
-  transform: translateY(-2px);
+}
+
+.bento-head {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
 }
 
 .bento-text h2 {
   color: var(--ink);
-  font-size: 1.25rem;
-  font-weight: 650;
+  font-size: 1.1rem;
+  font-weight: 640;
   letter-spacing: -0.02em;
-  margin-bottom: 0.3rem;
+}
+
+.bento-arrow {
+  color: var(--faint);
+  transition: color 0.15s, transform 0.15s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.bento-card:hover .bento-arrow {
+  color: var(--ink);
+  transform: translateX(2px);
 }
 
 .bento-text p {
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   line-height: 1.5;
 }
 
 .bento-preview {
+  display: flex;
   flex: 1;
+  flex-direction: column;
+  justify-content: flex-end;
   min-height: 7rem;
 }
 
 .bento-preview svg {
   display: block;
-  height: 7.5rem;
+  height: 7rem;
   width: 100%;
-}
-
-.is-individuals .bento-preview {
-  display: flex;
-  flex-direction: column;
 }
 
 .is-individuals .bento-preview svg {
   flex: 1;
-  min-height: 10rem;
+  min-height: 11rem;
 }
 
 .bento-preview.is-image {
   align-items: center;
-  display: flex;
   justify-content: center;
 }
 
 .bento-preview.is-image img {
   filter: var(--illustration-filter);
-  max-height: 16rem;
+  max-height: 15.5rem;
   object-fit: contain;
   width: 100%;
 }
 
 .bar {
-  fill: var(--accent);
-  opacity: 0.85;
-}
-
-.tile {
-  fill: var(--accent);
+  fill: var(--series-1);
+  opacity: 0.82;
 }
 
 .bento-legend {
@@ -272,7 +315,8 @@ onMounted(async () => {
   align-items: center;
   color: var(--ink-2);
   display: flex;
-  font-size: 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
   gap: 0.35rem;
 }
 
@@ -284,28 +328,8 @@ onMounted(async () => {
 
 .bento-caption {
   color: var(--faint);
-  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
   margin-top: 0.5rem;
-}
-
-.bento-link {
-  align-items: center;
-  color: var(--accent);
-  display: flex;
-  font-size: 1rem;
-  font-weight: 600;
-  gap: 0.3rem;
-}
-
-.bento-card:hover .bento-link {
-  color: var(--accent-ink);
-}
-
-.bento-link .icon {
-  transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1);
-}
-
-.bento-card:hover .bento-link .icon {
-  transform: translateX(3px);
 }
 </style>

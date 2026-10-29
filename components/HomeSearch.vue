@@ -63,7 +63,7 @@ const onSearchKeydown = (event: KeyboardEvent) => {
 
 <style scoped>
 .home-search {
-  max-width: 40rem;
+  max-width: 36rem;
   position: relative;
 }
 
@@ -71,17 +71,21 @@ const onSearchKeydown = (event: KeyboardEvent) => {
   align-items: center;
   background: var(--surface);
   border: 1px solid var(--line-strong);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 8px 24px -12px rgba(18, 18, 22, 0.18), var(--shadow-xs);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-xs);
   display: flex;
   gap: 0.5rem;
-  padding: 0 1rem;
+  padding: 0 0.85rem;
   transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.home-search-field:hover {
+  border-color: #c4c4ce;
 }
 
 .is-open .home-search-field {
   border-color: var(--accent);
-  box-shadow: var(--ring), 0 8px 24px -12px rgba(18, 18, 22, 0.18);
+  box-shadow: var(--ring);
 }
 
 .home-search-icon {
@@ -93,8 +97,8 @@ const onSearchKeydown = (event: KeyboardEvent) => {
   border: none;
   color: var(--ink);
   flex: 1;
-  font-size: 1.05rem;
-  height: 3.4rem;
+  font-size: 0.95rem;
+  height: 2.85rem;
   min-width: 0;
   outline: none;
 }
