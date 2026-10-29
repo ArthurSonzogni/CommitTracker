@@ -76,11 +76,12 @@ const props = defineProps({
   data: { type: Array },
   formatter: {
     type: Function,
-    default: d => "" + d,
+    default: null,
   },
   // Hand-picked events explaining the inflection points: { date, label }.
   milestones: { type: Array, default: () => [] },
 });
+const formatValue = d => props.formatter ? props.formatter(d) : "" + d;
 
 const dateExtent = computed(() => {
   if (!props.data || props.data.length === 0) return [new Date(), new Date()];
@@ -127,10 +128,12 @@ const render = () => {
     .duration(500)
     .call(axisBottom(x).ticks(7));
 
+  const leftAxis = axisLeft(y);
+  if (props.formatter) leftAxis.tickFormat(props.formatter);
   select(yAxis.value)
     .transition()
     .duration(500)
-    .call(axisLeft(y));
+    .call(leftAxis);
 
   // Chrome releases, every 10 milestones, under the years. Labels without
   // room are skipped.
@@ -248,7 +251,7 @@ const render = () => {
               .attr("alignment-baseline", "bottom")
               .attr("filter", "url(#highlightText)")
               .attr("fill", d => d.color || $color(d.label))
-              .text(d =>  d.label + ":  " + props.formatter(d.y))
+              .text(d =>  d.label + ":  " + formatValue(d.y))
 
             group.append("circle")
               .attr("r", 3)
@@ -260,7 +263,7 @@ const render = () => {
             update
               .attr("transform", d => `translate(${x(d.x)}, ${y(d.y)})`)
               .select("text")
-              .text(d =>  d.label + ":  " + props.formatter(d.y))
+              .text(d =>  d.label + ":  " + formatValue(d.y))
           },
           exit => exit
           .attr("opacity", 1)
@@ -370,7 +373,7 @@ onMounted(() => {
   (new ResizeObserver(render)).observe(container.value);
 });
 
-watch(() => [props.data, props.milestones], render);
+watch(() => [props.data, props.milestones, props.formatter], render);
 
 const loaded = ref(false);
 watchEffect(() => {

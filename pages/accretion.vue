@@ -15,165 +15,183 @@
         </p>
 
         <div class="mb-4">
-        <AboutData modal title="How is this computed?">
+        <AboutData modal :title="`How is this computed for ${directory || name}?`">
           <p>
             Each line belongs to the commit that last changed it, like
-            <code>git blame</code>, replaying the first-parent history of the
-            main branch. A line is dated by the author date of its commit.
-            The data is updated daily, and sampled every week.
+            <code>git blame --first-parent</code>, replaying the first-parent
+            history of the default branch of
+            <a v-if="repoMeta" :href="`https://github.com/${repoMeta.owner}/${repoMeta.repository}`"
+              target="_blank" rel="noopener"><code>{{ repoMeta.owner }}/{{ repoMeta.repository }}</code></a>
+            <code v-else>{{ name }}</code><template v-if="directory">
+              (scoped to <code>{{ directory }}/</code>)</template>.
+            A line is dated by the author timestamp (<code>%at</code>) of its
+            commit. Repository cohorts are sampled every Monday (weekly);
+            directories and developer series are sampled every 4 weeks.
           </p>
           <ul>
             <li>
-              <strong>Scope:</strong> <code>third_party/</code> is excluded,
-              except Blink for Chromium, and so are the translations
-              (<code>*.xtb</code>, <code>locales/</code>) and the binary
-              files.
+              <strong>Moves &amp; renames:</strong> renamed and moved files keep
+              their line ownership using git rename detection
+              (<code>git log -M -l5000</code>).
             </li>
             <li>
-              <strong>Moves:</strong> renamed and moved files keep their lines,
-              using the rename detection of git.
+              <strong>Mechanical changes:</strong> commits listed in
+              <code>.git-blame-ignore-revs</code>, commits whose subject starts
+              with <em>Ruff: reformat</em>, <em>Update copyright header(s)</em>,
+              <em>Reformat(ting)</em>, <em>(Run|Apply) clang-format</em>,
+              <em>(Mass-)(reformat|autoformat)</em> or <em>git cl format</em><template v-if="repository === 'chromium'">,
+              commits by <code>blink-reformat@</code>,</template> and commits
+              touching at least 1,000 files with at most 3 added lines per file
+              on average do not take ownership of the lines they touch—their
+              added lines keep the commits of the lines they replace
+              proportionally.
             </li>
             <li>
-              <strong>Mechanical changes:</strong> the commits listed in
-              <code>.git-blame-ignore-revs</code>, the <em>Ruff: reformat</em>
-              and <em>Update copyright headers</em> commits, and those touching
-              at least 1000 files with at most 3 added lines per file on
-              average, don't take the lines they change. Their lines keep the
-              commits of the lines they replace.
-            </li>
-            <li>
-              <strong>Imported histories:</strong> a repository merged with
-              its own history, like Blink into Chromium in 2015, keeps the
-              dates of its lines. They count from the merge.
+              <strong>Imported histories:</strong> merges bringing in an
+              unrelated root commit<template v-if="repository === 'chromium'">
+              (such as Blink merged into Chromium in 2015, or
+              <code>third_party/WebKit</code> renamed to
+              <code>third_party/blink</code>)</template> are replayed on their
+              own first so their files keep their original line dates once
+              merged.
             </li>
           </ul>
           <p>
-            The developers have the lines of their commits, merging their
-            identities like the rest of the site. The bots aren't listed. The
-            lines nobody wrote by hand count nowhere: not in the lines, the
-            years, the directories or the developers.
+            <strong>Excluded files and commits ({{ name }}):</strong> lines not
+            written by hand count nowhere—not in the total lines, years,
+            directories, activity, or developers:
           </p>
           <ul>
             <li>
-              The generated files: those saying so in their first 40 lines
-              (<code>@generated</code>, <em>DO NOT EDIT</em>, <em>This file
-              is generated</em>…), the templates generating them aside; those
-              in a <code>gen/</code> or <code>generated/</code> directory or named
-              <code>*autogen*</code>, the lock files, the minified scripts and
-              the protocol buffers.
+              <strong>Pathspecs &amp; non-text entries:</strong> binary files,
+              symlinks, submodules, and translations (<code>**/*.xtb</code><template v-if="repository !== 'chromium'">,
+              <code>**/locales/**</code></template>) are excluded at git-log
+              time.
+              <template v-if="repository === 'chromium'">
+                In Chromium, all of <code>third_party/</code> is excluded except
+                <code>third_party/blink</code> (and formerly
+                <code>third_party/WebKit</code>). The broken git-svn commit
+                <code>5d4451ebf298</code> (<em>Roll ANGLE r704:r705</em>) is
+                skipped.
+              </template>
+              <template v-else>
+                All of <code>third_party/</code> is excluded.
+              </template>
             </li>
             <li>
-              The baselines produced by the tools: the
-              <code>-expected.txt</code> files of the layout tests, and the
-              expectations of the compilers. The tests of LLVM whose
-              assertions are generated count as generated as a whole.
+              <strong>Generated files &amp; baselines:</strong> files whose
+              first 40 lines match <code>@generated</code>,
+              <em>DO NOT EDIT</em>, or <em>This file/code/header is
+              (automatically) generated</em> (hand-written templates
+              <code>*.tmpl</code>, <code>*.in</code>, <code>*.j2</code>,
+              <code>*.jinja*</code>, <code>*.hbs</code>, <code>*.mako</code>,
+              <code>templates/</code> aside); paths in <code>gen/</code>,
+              <code>generated/</code>, <code>generated_*/</code> or matching
+              <code>*autogen*</code>; lockfiles (<code>package-lock.json</code>,
+              <code>yarn.lock</code>, <code>pnpm-lock.yaml</code>,
+              <code>Cargo.lock</code>, <code>go.sum</code>,
+              <code>poetry.lock</code>, <code>Gemfile.lock</code>); minified
+              assets and protobuf outputs (<code>*.min.js</code>,
+              <code>*.min.css</code>, <code>*.js.map</code>,
+              <code>*.pb.{go,h,cc}</code>, <code>*_pb2*.py*</code>); and test
+              baselines (<code>*-expected.{txt,png,wav,pdf}</code>,
+              <code>*.expected.*</code>, <code>bytecode_expectations/</code>;
+              hand-written <code>-expected.html</code> reftests are kept).
             </li>
             <li>
-              The vendored code: the <code>third_party/</code>,
-              <code>ThirdParty/</code>, <code>vendor/</code> and
-              <code>node_modules/</code> directories, those declared vendored
-              by a <code>moz.yaml</code> in Firefox, and the copies of upstream
-              test suites and benchmarks: the web-platform-tests in Servo,
-              Firefox and Ladybird, WebKit's imported tests, test262 and
-              browserbench.org, the Khronos headers…
+              <strong>Vendored directories:</strong>
+              <code>third_party/</code>, <code>ThirdParty/</code>,
+              <code>third-party/</code>, <code>vendor/</code>,
+              <code>vendored/</code>, and <code>node_modules/</code> at any
+              depth<template v-if="repository === 'chromium'"> (except
+              <code>third_party/blink</code>)</template><template v-if="repository === 'firefox'">,
+              plus any directory containing a <code>moz.yaml</code> file</template>.
+            </li>
+            <li v-if="repoSpecificExclusions">
+              <strong>{{ name }}-specific exclusions:</strong>
+              {{ repoSpecificExclusions }}
             </li>
             <li>
-              The imports: the commits titled <em>Import …</em>,
-              <em>Manual import …</em>, <em>Sync WPT …</em> or
-              <em>Update CTS …</em> touching <code>web_tests/external/</code>,
-              or <code>tests/wpt/</code> in Servo, even when landed by a
-              developer, and the commits of the bots syncing tests, rolling
-              dependencies or importing translations. The tests written by
-              developers keep their authors.
+              <strong>Import bots &amp; test syncs:</strong> commits by automated
+              import bots (<code>github-actions[bot]</code>,
+              <code>wptsync</code>, <code>release+treescript</code>,
+              <code>servo-wpt-sync</code>, <code>servo-ops</code>,
+              <code>swiftshader.regress</code>,
+              <code>devtools-ci-autoroll-builder</code>)<template v-if="repository === 'chromium' || repository === 'servo'">,
+              as well as commits titled <em>Import …</em>,
+              <em>Manual import …</em>, or <em>Sync/Update WPT/CTS …</em>
+              touching
+              <code v-if="repository === 'chromium'">third_party/blink/web_tests/external/</code>
+              <code v-else>tests/wpt/</code> even when landed by a developer</template>.
             </li>
           </ul>
-          <p>
-            Each repository has its own conventions, checked on what they
-            contain today. The commit queues landing the commits of
-            developers, like WebKit's or Servo's, aren't import bots, and the
-            reformatting bots' commits are mechanical changes.
-          </p>
-          <p>The figures:</p>
+          <p><strong>Metrics &amp; definitions:</strong></p>
           <ul>
-            <li><strong>Fresh code:</strong> the share of the lines written in the last 365 days.</li>
-            <li><strong>Median line age:</strong> half of the lines are older.</li>
             <li>
-              <strong>Old code rewritten:</strong> of the lines a year ago, the
-              share of those a year old or more removed or rewritten in place
-              during the last 12 months, estimated from the yearly counts.
-              Moved files and mechanical changes don't count.
+              <strong>Fresh code &amp; Median line age:</strong> fresh code is
+              the share of lines alive written within the last 365 days. Median
+              line age is computed in days at repository level (and from monthly
+              buckets at directory level).
             </li>
             <li>
-              <strong>Yearly reduction:</strong> the share of the lines of a
-              year gone during each of the following years, from January to
-              January. The <strong>half-life</strong> applies the median rates.
+              <strong>Yearly reduction &amp; Half-life:</strong> for each cohort
+              year, the share of its lines removed or rewritten between the
+              samples closest to consecutive January 1sts (within 21 days). The
+              <strong>half-life</strong> compounds the median reduction rate at
+              each age until 50% of a cohort remains.
             </li>
             <li>
-              <strong>Development vs refactoring:</strong> the lines changed
-              per year. New code and lines under a year old rewritten or
-              removed are development; older lines rewritten or removed, and
-              the mechanical commits, are refactoring. The label of a
-              directory describes its last 12 months: Growing or Shrinking
-              when its lines alive changed by more than 5%, like its growth,
-              and otherwise from its lines changed, estimated from the yearly
-              counts. The contributors, the top authors and the breadth of
-              developers cover the last 365 days. The chart of contributors
-              counts them per calendar year.
+              <strong>Development vs refactoring:</strong> lines changed per
+              year. <em>New code</em> (net additions in a hunk) and
+              <em>Iteration</em> (rewriting or removing lines &lt; 365 days old)
+              count as development; <em>Rework</em> (rewriting or removing lines
+              ≥ 365 days old) and <em>Mechanical</em> commits count as
+              refactoring. A scope's 12-month status label is
+              <strong>Growing</strong> (&gt; +5% lines alive),
+              <strong>Shrinking</strong> (&lt; −5%),
+              <strong>Dormant</strong> (&lt; 2% of lines changed),
+              <strong>Refactored</strong> (refactoring &gt; development), or
+              <strong>Maintained</strong> otherwise.
             </li>
             <li>
-              <strong>Contributors:</strong> the authors committing each year.
-              Core authors made 12 commits or more in the year, drive-by ones 1
-              or 2. The <strong>bus factor</strong> is the fewest authors who
-              together wrote half of the lines alive.
+              <strong>Contributors &amp; Bus factor:</strong> developer emails
+              are canonicalized via <code>mailmap.json5</code> (bots excluded).
+              <strong>Core</strong> authors have ≥ 12 commits in the period,
+              <strong>Regular</strong> 3–11, and <strong>Drive-by</strong> 1–2.
+              The <strong>bus factor</strong> is the fewest authors whose
+              currently alive lines sum to at least 50% of the scope.
             </li>
             <li>
-              <strong>Reviewers:</strong> where the commits record them, with
-              the <em>Reviewed-by</em> lines of Gerrit, a line is also known by
-              the reviewers of its commit. The bus factor <em>with
-              reviewers</em> is how many people must leave for half of the
-              lines alive to be known by nobody, and each developer's reviewed
-              lines are those written by others they reviewed. Both only count
-              the lines written since the reviewers are recorded, like 2017 for
-              Chromium, and the figure is left out where the older lines are
-              most of the code.
+              <strong>Reviewers ({{ name }}):</strong>
+              <template v-if="hasReviewers">
+                <code>Reviewed-by</code> commit trailers are recorded in
+                {{ name }} starting <strong>{{ reviewedSince }}</strong> (the
+                first month with ≥ 10 commits where at least half have
+                reviewers). A line from that era is considered known by its
+                author and its reviewers; the <em>with reviewers</em> bus factor
+                (greedy truck-factor removal) is reported when at least 50% of
+                the scope's lines alive were written since {{ reviewedSince }}.
+              </template>
+              <template v-else>
+                {{ name }} does not record Gerrit <code>Reviewed-by</code>
+                trailers on at least half of its commits, so reviewer ownership
+                and the <em>with reviewers</em> bus factor are not computed for
+                this repository.
+              </template>
             </li>
             <li>
-              <strong>The lines alive don't measure anyone's work:</strong>
-              removing code, reviewing, refactoring, or iterating on a
-              directory are meaningful work leaving few lines behind, and the
-              last one to touch a line isn't always the one who designed it.
-            </li>
-            <li>
-              <strong>Breadth of a developer:</strong> the effective number of
-              components they committed to over the last 12 months. A
-              component is a directory two levels deep, like
-              <code>chrome/browser</code> or
-              <code>third_party/blink/renderer</code>. The number is weighted
-              by where the commits went (e<sup>entropy</sup>): 100 commits
-              spread evenly over 4 components make 4, while 97 in one and 1 in
-              each of 3 others make about 1.2. Low means a specialist, high a
-              generalist. Directories two levels deep vary a lot in size, so
-              someone covering many features of <code>chrome/browser</code>
-              still looks specialized.
-              <strong>Removed lines:</strong> who removed or rewrote the lines
-              of whom, mechanical commits aside.
-            </li>
-            <li>
-              <strong>Markers:</strong> the 6 commits adding or removing the
-              most lines at once, skipping the smaller ones close to a larger
-              one. Each is explained in a few words, or by the directory where
-              its lines were added or removed.
-            </li>
-            <li>
-              <strong>Directories:</strong> up to 3 levels deep, with Blink as
-              a top-level directory. Sampled every 4 weeks.
+              <strong>Directories, Breadth &amp; Markers:</strong> directories
+              are tracked up to 3 levels deep<template v-if="repository === 'chromium'">
+              (with <code>third_party/blink</code> counted as level 1)</template>
+              and listed when they have at least 1,000 lines alive today (and at
+              least 10 lines for a developer's treemap). Developer
+              <strong>breadth</strong> is the effective number of depth-2
+              components (e<sup>Shannon entropy</sup> of their commits
+              {{ breadthPeriod }}). Chart <strong>markers</strong> highlight up
+              to 6 commits changing at least 10,000 lines and 0.5% of the
+              repository at once.
             </li>
           </ul>
-          <p>
-            Changing the method moves the shares by a couple of points at
-            most. Not following the renames would change them the most, with
-            2 to 5 more points of fresh code.
-          </p>
         </AboutData>
         </div>
 
@@ -226,33 +244,29 @@
 
         <CollapsibleSection title="Lines per year written" id="chart" :collapsed="isHidden('c')"
           @toggle="toggleHidden('c')">
-          <FilterPanel :summary="share ? 'Share of the total' : 'Number of lines'">
-            <UiField label="Display">
-              <UiSegmented v-model="share" :options="[
-                { value: false, label: 'Lines' },
-                { value: true, label: 'Share' },
-              ]" />
-            </UiField>
-          </FilterPanel>
+          <div class="chart-toolbar mb-3">
+            <UiSegmented v-model="chartView" :options="[
+              { value: 'lines', label: 'Lines' },
+              { value: 'share', label: 'Share' },
+              { value: 'fresh', label: 'Fresh (< 1 year)', title: 'The share of the lines written in the last 365 days' },
+            ]" />
+          </div>
 
           <div class="chart">
-            <AccretionChart :data="scope" :share="share"
+            <LineChart v-if="chartView === 'fresh'" :data="freshness" :formatter="percent"
+              :milestones="directory ? [] : repositoryMilestones" />
+            <AccretionChart v-else :data="scope" :share="chartView === 'share'"
               :milestones="directory ? [] : repositoryMilestones" />
           </div>
         </CollapsibleSection>
 
         <CollapsibleSection v-if="children.length" title="Directories"
           id="directories" :collapsed="isHidden('d')" @toggle="toggleHidden('d')">
-          <p class="mb-4">
-            Click a directory to look into it. <em>Growth</em> is over the
-            last year. <em>Fresh</em> is the share of lines written in the
-            last 12 months. <em>Old code rewritten</em> is the share of the
-            lines a year ago, removed or rewritten in place during the last 12
-            months.
-            The developers selected below get a column: the share of each
-            directory's lines they {{ knowledgeVerb }}, still alive today.
-          </p>
-          <UiTable :data="children" hoverable striped :paginated="children.length > 25"
+          <div v-if="children.length > 10" class="directory-toolbar mb-3">
+            <input v-model="directoryFilter" type="search" class="input is-small directory-filter"
+              placeholder="Filter directories…" aria-label="Filter directories" />
+          </div>
+          <UiTable :data="filteredChildren" hoverable striped :paginated="filteredChildren.length > 25"
             :per-page="25">
             <UiTableColumn field="name" label="Directory" v-slot="props" sortable>
               <a href="#" @click.prevent="directory = props.row.path">{{ props.row.name }}</a>
@@ -273,34 +287,36 @@
               hint="Half of the lines alive are older than this.">
               {{ years(props.row.median_age) }}
             </UiTableColumn>
-            <UiTableColumn field="rewritten" label="Old code rewritten" v-slot="props" numeric sortable
+            <UiTableColumn field="rewritten" label="Rewritten" v-slot="props" numeric sortable
               hint="Of the lines a year ago, the share of those a year old or more removed or rewritten in place since. Moved files and mechanical changes don't count.">
               {{ percent(props.row.rewritten) }}
             </UiTableColumn>
             <UiTableColumn field="label" label="Last 12 months" v-slot="props" sortable
               :hint="labelHint"
               :visible="children.some(row => row.label)">
-              {{ props.row.label }}
+              <span v-if="props.row.label" class="status-pill"
+                :class="`is-${props.row.label.toLowerCase()}`">
+                {{ props.row.label }}
+              </span>
             </UiTableColumn>
-            <UiTableColumn field="authors" label="Authors" v-slot="props" numeric sortable
-              :hint="`The developers with at least one commit in the directory ${contributorsPeriod}, bots aside.`"
+            <UiTableColumn field="authors" label="Authors (core)" v-slot="props" numeric sortable
+              :hint="`The developers with at least one commit in the directory ${contributorsPeriod} (and in parentheses, the core authors with 12 commits or more), bots aside.`"
               :visible="children.some(row => row.authors !== undefined)">
-              {{ props.row.authors ?? "" }}
-            </UiTableColumn>
-            <UiTableColumn field="core" label="Core" v-slot="props" numeric sortable
-              :hint="`The authors with 12 commits or more in the directory ${contributorsPeriod}.`"
-              :visible="children.some(row => row.core !== undefined)">
-              {{ props.row.core ?? "" }}
+              <template v-if="props.row.authors !== undefined">
+                {{ props.row.authors }}
+                <span v-if="props.row.core !== undefined" class="muted-cell">({{ props.row.core }})</span>
+              </template>
             </UiTableColumn>
             <UiTableColumn field="bus_factor" label="Bus factor" v-slot="props" numeric sortable
               :hint="busFactorHint"
               :visible="children.some(row => row.bus_factor !== undefined)">
-              {{ props.row.bus_factor ?? "" }}
-            </UiTableColumn>
-            <UiTableColumn field="bus_factor_reviewed" label="With reviewers" v-slot="props" numeric sortable
-              :hint="reviewedBusFactorHint"
-              :visible="children.some(row => row.bus_factor_reviewed !== undefined)">
-              {{ props.row.bus_factor_reviewed ?? "" }}
+              <template v-if="props.row.bus_factor !== undefined">
+                {{ props.row.bus_factor }}
+                <span v-if="props.row.bus_factor_reviewed !== undefined" class="muted-cell"
+                  :title="`With reviewers: ${props.row.bus_factor_reviewed}`">
+                  ({{ props.row.bus_factor_reviewed }})
+                </span>
+              </template>
             </UiTableColumn>
             <UiTableColumn v-for="(username, i) in developers" :key="username"
               :field="`owned_${i}`" :label="username" v-slot="props" numeric sortable
@@ -309,18 +325,6 @@
               {{ props.row[`owned_${i}`] ? ownedShare(props.row[`owned_${i}`]) : "" }}
             </UiTableColumn>
           </UiTable>
-        </CollapsibleSection>
-
-        <CollapsibleSection title="Fresh code" id="fresh-code" :collapsed="isHidden('f')"
-          @toggle="toggleHidden('f')">
-          <p class="mb-4">
-            The share of the lines written in the last 365 days, among all the
-            lines alive.
-          </p>
-          <div class="chart">
-            <LineChart :data="freshness" :formatter="percent"
-              :milestones="directory ? [] : repositoryMilestones" />
-          </div>
         </CollapsibleSection>
 
         <CollapsibleSection title="Yearly reduction" id="yearly-reduction" :collapsed="isHidden('y')"
@@ -333,64 +337,150 @@
               <strong>{{ halfLife.toFixed(1) }} years</strong> after it ends.
             </template>
             Negative when lines were added to an old year, like when Blink was
-            merged. Point at a value to see the year its lines were written in,
-            the year they were removed in, and their age.
+            merged.
           </p>
           <HexReduction v-model="crossed" :years="reductionYears" />
-          <p v-if="crossed" class="crossed-detail">
-            Lines written in <strong>{{ crossed.written }}</strong>, removed or
-            rewritten during <strong>{{ crossed.removed }}</strong>, at
-            <strong>{{ crossed.age }} year{{ crossed.age > 1 ? "s" : "" }}</strong>
-            old: <strong>{{ percent(crossed.value) }}</strong>.
+          <p class="crossed-detail">
+            <template v-if="crossed">
+              Lines written in <strong>{{ crossed.written }}</strong>, removed or
+              rewritten during <strong>{{ crossed.removed }}</strong>, at
+              <strong>{{ crossed.age }} year{{ crossed.age > 1 ? "s" : "" }}</strong>
+              old: <strong>{{ percent(crossed.value) }}</strong><template
+                v-if="medianForAge(crossed.age) !== null">
+                (median at {{ crossed.age }}y: {{ percent(medianForAge(crossed.age)) }})</template>.
+            </template>
+            <span v-else class="hint">
+              Point at a hexagon to see the year its lines were written in, the
+              year they were removed in, and their age.
+            </span>
           </p>
         </CollapsibleSection>
 
-        <CollapsibleSection v-if="activitySeries.length" title="Development vs refactoring"
-          id="activity" :collapsed="isHidden('a')" @toggle="toggleHidden('a')">
-          <p class="mb-4">
-            The lines changed each year in {{ directory || name }}, generated
-            files aside. <em>Development</em> is new code, and lines under a
-            year old rewritten or removed: work on recent code.
-            <em>Refactoring</em> is older lines rewritten or removed, and
-            mechanical changes like reformattings.
-          </p>
-          <div class="figures mb-4">
-            <div v-for="figure in activityFigures" :key="figure.label" class="figure">
-              <div class="figure-label">
-                <UiTooltip v-if="figure.hint" :text="figure.hint" multiline dashed position="bottom">
-                  {{ figure.label }}
-                </UiTooltip>
-                <template v-else>{{ figure.label }}</template>
-              </div>
-              <div class="figure-value">{{ figure.value }}</div>
-              <div class="figure-detail">{{ figure.detail }}</div>
-            </div>
-          </div>
-          <StackedBars :years="scope.activity.years" :series="activitySeries" />
-        </CollapsibleSection>
+        <div v-if="activitySeries.length || contributorSeries.length" class="yearly-bars-grid">
+          <CollapsibleSection v-if="activitySeries.length" title="Development vs refactoring"
+            id="activity" :collapsed="isHidden('a')" @toggle="toggleHidden('a')">
+            <p class="mb-3">
+              Lines changed per year in {{ directory || name }}<template v-if="activitySummary">
+                ({{ activitySummary }})</template>.
+            </p>
+            <StackedBars :years="scope.activity.years" :series="activitySeries" />
+          </CollapsibleSection>
 
-        <CollapsibleSection v-if="contributorSeries.length" title="Contributors"
-          id="contributors" :collapsed="isHidden('o')" @toggle="toggleHidden('o')">
-          <p class="mb-4">
-            The developers committing each year in {{ directory || name }}:
-            the core team commits about once a month or more, the drive-by
-            authors once or twice, often for changes across the codebase.
+          <CollapsibleSection v-if="contributorSeries.length" title="Contributors"
+            id="contributors" :collapsed="isHidden('o')" @toggle="toggleHidden('o')">
+            <p class="mb-3">
+              Developers committing each year in {{ directory || name }}, by
+              commit frequency.
+            </p>
+            <StackedBars :years="scope.contributors.years" :series="contributorSeries" />
+          </CollapsibleSection>
+        </div>
+
+        <CollapsibleSection title="Developers" id="developers" :collapsed="isHidden('v')"
+          @toggle="toggleHidden('v')">
+          <p class="disclaimer">
+            <UiIcon name="information-outline" size="small" />
+            The lines still alive don't measure anyone's work. Removing code,
+            reviewing, refactoring, or iterating on a directory are meaningful
+            work leaving few lines behind, and the last one to touch a line
+            isn't always the one who designed it.
           </p>
-          <div class="figures mb-4">
-            <div v-for="figure in contributorFigures" :key="figure.label" class="figure">
-              <div class="figure-label">
-                <UiTooltip v-if="figure.hint" :text="figure.hint" multiline dashed position="bottom">
-                  {{ figure.label }}
-                </UiTooltip>
-                <template v-else>{{ figure.label }}</template>
-              </div>
-              <div class="figure-value">{{ figure.value }}</div>
-              <div class="figure-detail">{{ figure.detail }}</div>
+          <div class="developer-controls mb-4">
+            <div class="developer-input">
+              <DevelopersInput v-model="developers" />
+            </div>
+            <UiSegmented v-if="hasReviewers" v-model="knowledge" aria-label="Lines" :options="[
+              { value: 'authored', label: 'Authored', title: 'The lines they wrote' },
+              { value: 'reviewed', label: 'Reviewed', title: `The lines others wrote since ${reviewedSince}, that they reviewed` },
+            ]" />
+          </div>
+
+          <div v-if="developerCards.length" class="ownership mb-4">
+            <div v-for="entry in developerCards" :key="entry.username" class="developer-card">
+              <p>
+                <span class="swatch" :style="{ background: $color(entry.username) }" />
+                <NuxtLink :to="`/developers/${entry.username}`"><strong>{{ entry.username }}</strong></NuxtLink>
+                {{ knowledgeVerb }} {{ compact(entry.owned) }}
+                lines alive<template v-if="reviewed"> written by others since {{ reviewedSince }}</template>,
+                {{ ownedShare(entry.share) }} of {{ directory || name }}.
+              </p>
+              <p v-if="entry.breadth" class="developer-card-meta">
+                <span v-if="wholeRepository" class="scope-tag">{{ wholeRepository }}</span>
+                {{ lines(entry.commits || 0) }} commits {{ breadthPeriod }}, across about
+                {{ entry.breadth.effective >= 10 ? Math.round(entry.breadth.effective) : entry.breadth.effective }}
+                <UiTooltip :text="componentsHint" multiline dashed>components</UiTooltip>
+                ({{ percent(entry.breadth.share) }} in <code>{{ entry.breadth.components[0][0] }}</code>).
+              </p>
+              <p v-if="entry.removals" class="developer-card-meta">
+                {{ percent(entry.removals.self / entry.removals.total) }} of their rewritten lines were by themselves<template
+                  v-if="peersOf(entry.removals.by, entry.username).length">;
+                  by others:
+                  <template v-for="([peer, count], idx) in peersOf(entry.removals.by, entry.username)" :key="`by-${peer}`">
+                    <template v-if="idx > 0">, </template>
+                    <button type="button" class="peer-link" @click="toggleDeveloper(peer)">{{ peer }}</button>
+                    ({{ compact(count) }})</template></template>.
+                <template v-if="peersOf(entry.removals.of, entry.username).length">
+                  Rewrote lines of:
+                  <template v-for="([peer, count], idx) in peersOf(entry.removals.of, entry.username)" :key="`of-${peer}`">
+                    <template v-if="idx > 0">, </template>
+                    <button type="button" class="peer-link" @click="toggleDeveloper(peer)">{{ peer }}</button>
+                    ({{ compact(count) }})</template>.
+                </template>
+              </p>
             </div>
           </div>
-          <StackedBars :years="scope.contributors.years" :series="contributorSeries" />
-          <h3 class="title is-6 mt-5">Most commits {{ breadthPeriod }}</h3>
-          <UiTable :data="topAuthors" hoverable striped>
+
+          <div v-if="ownershipTrees.length" class="ownership-treemaps mb-5">
+            <div v-for="entry in ownershipTrees" :key="entry.username">
+              <p class="mb-2">
+                <span class="swatch" :style="{ background: $color(entry.username) }" />
+                Where <strong>{{ entry.username }}</strong>'s {{ knowledgeVerb }} lines
+                are in {{ directory || name }} (click to open):
+              </p>
+              <OwnershipTreemap :tree="entry.tree" :color="$color(entry.username)"
+                :verb="knowledgeVerb" @select="path => directory = path" />
+            </div>
+          </div>
+
+          <div v-if="developers.length" class="mb-5">
+            <p class="mb-2">
+              <span v-if="wholeRepository" class="scope-tag">{{ wholeRepository }}</span>
+              Lines alive over time:
+            </p>
+            <div class="chart">
+              <LineChart :data="developerData" :formatter="lines" />
+            </div>
+          </div>
+
+          <div class="leaderboard-header mt-4 mb-3">
+            <h3 class="title is-6 mb-0">
+              <span v-if="wholeRepository && leaderboardView !== 'commits'" class="scope-tag">{{ wholeRepository }}</span>
+              <template v-if="leaderboardView === 'commits'">
+                Most commits {{ breadthPeriod }} in {{ directory || name }}
+              </template>
+              <template v-else-if="leaderboardView === 'scatter'">
+                Specialists vs generalists
+              </template>
+              <template v-else>
+                Most lines alive
+              </template>
+            </h3>
+            <UiSegmented v-model="leaderboardView" :options="leaderboardOptions" />
+          </div>
+
+          <template v-if="leaderboardView === 'scatter' && leaderboard.some(entry => entry.breadth)">
+            <p class="mb-2">
+              The 100 developers with the most lines alive, by their commits
+              {{ breadthPeriod }}, and how many
+              <UiTooltip :text="componentsHint" multiline dashed>components</UiTooltip>
+              they spread over: specialists on the left, generalists on the
+              right. Click one to select it.
+            </p>
+            <BreadthScatter :developers="leaderboard" :selected="developers"
+              @select="toggleDeveloper" />
+          </template>
+          <UiTable v-else-if="leaderboardView === 'commits' && topAuthors.length"
+            :data="topAuthors" hoverable striped>
             <UiTableColumn field="username" label="Developer" v-slot="props">
               <NuxtLink :to="`/developers/${props.row.username}`">{{ props.row.username }}</NuxtLink>
             </UiTableColumn>
@@ -404,114 +494,7 @@
               </button>
             </UiTableColumn>
           </UiTable>
-        </CollapsibleSection>
-
-        <CollapsibleSection title="Developers" id="developers" :collapsed="isHidden('v')"
-          @toggle="toggleHidden('v')">
-          <p class="disclaimer">
-            <UiIcon name="information-outline" size="small" />
-            The lines still alive don't measure anyone's work. Removing code,
-            reviewing, refactoring, or iterating on a directory are meaningful
-            work leaving few lines behind, and the last one to touch a line
-            isn't always the one who designed it.
-          </p>
-          <p class="mb-4">
-            The lines each developer wrote, still alive over time. Their share
-            of {{ directory || name }} and the treemaps follow the selected
-            directory, like their columns in the directories above.
-            <template v-if="directory">
-              Their history, their breadth and the lines they removed cover
-              all of {{ name }}.
-            </template>
-          </p>
-          <UiField>
-            <DevelopersInput v-model="developers" />
-          </UiField>
-          <UiField v-if="hasReviewers">
-            <UiSegmented v-model="knowledge" aria-label="Lines" :options="[
-              { value: 'authored', label: 'Authored', title: 'The lines they wrote' },
-              { value: 'reviewed', label: 'Reviewed', title: `The lines others wrote since ${reviewedSince}, that they reviewed` },
-            ]" />
-          </UiField>
-          <ul v-if="scopeOwnership.length" class="ownership mb-4">
-            <li v-for="entry in scopeOwnership" :key="entry.username">
-              <span class="swatch" :style="{ background: $color(entry.username) }" />
-              <strong>{{ entry.username }}</strong> {{ knowledgeVerb }} {{ compact(entry.owned) }}
-              lines alive<template v-if="reviewed"> written by others since {{ reviewedSince }}</template>,
-              {{ ownedShare(entry.share) }} of {{ directory || name }}.
-            </li>
-          </ul>
-          <div v-for="entry in developerDetails" :key="entry.username" class="mb-4 developer-details">
-            <p v-if="entry.breadth">
-              <span v-if="wholeRepository" class="scope-tag">{{ wholeRepository }}</span>
-              <span class="swatch" :style="{ background: $color(entry.username) }" />
-              <strong>{{ entry.username }}</strong> made {{ lines(entry.commits || 0) }}
-              commits {{ breadthPeriod }}, across about
-              {{ entry.breadth.effective >= 10 ? Math.round(entry.breadth.effective) : entry.breadth.effective }}
-              <UiTooltip :text="componentsHint" multiline dashed>components</UiTooltip>;
-              {{ percent(entry.breadth.share) }} in <code>{{ entry.breadth.components[0][0] }}</code>.
-            </p>
-            <p v-if="entry.removals">
-              Of their lines removed or rewritten, {{ percent(entry.removals.self / entry.removals.total) }}
-              were by themselves.
-              <template v-if="entry.removals.by?.length">
-                By others: {{ listOf(entry.removals.by.filter(([name]) => name !== entry.username)) }}.
-              </template>
-              <template v-if="entry.removals.of?.length">
-                They removed or rewrote lines of
-                {{ listOf(entry.removals.of.filter(([name]) => name !== entry.username)) }}.
-              </template>
-            </p>
-          </div>
-          <div v-for="entry in ownershipTrees" :key="entry.username" class="mb-5">
-            <p class="mb-2">
-              <span class="swatch" :style="{ background: $color(entry.username) }" />
-              Where the lines <strong>{{ entry.username }}</strong> {{ knowledgeVerb }}
-              are in {{ directory || name }}: sized by their lines, darker where
-              they {{ knowledgeVerb }} a larger share. Click a directory to look into it.
-            </p>
-            <OwnershipTreemap :tree="entry.tree" :color="$color(entry.username)"
-              @select="path => directory = path" />
-          </div>
-          <p v-if="developers.length === 0" class="mb-4 hint">
-            Add developers, or pick them in the table below.
-          </p>
-          <template v-else>
-            <p class="mb-2">
-              <span v-if="wholeRepository" class="scope-tag">{{ wholeRepository }}</span>
-              Their lines alive over time.
-            </p>
-            <div class="chart">
-              <LineChart :data="developerData" :formatter="lines" />
-            </div>
-          </template>
-          <template v-if="leaderboard.some(entry => entry.breadth)">
-            <h3 class="title is-6 mt-5">Specialists and generalists</h3>
-            <p class="mb-2">
-              <span v-if="wholeRepository" class="scope-tag">{{ wholeRepository }}</span>
-              The 100 developers with the most lines alive, by their commits
-              {{ breadthPeriod }}, and how many
-              <UiTooltip :text="componentsHint" multiline dashed>components</UiTooltip>
-              they spread over: specialists on the left, generalists on the
-              right. A component is a directory two levels deep, like
-              <code>chrome/browser</code>. Click one to select it.
-            </p>
-            <BreadthScatter :developers="leaderboard" :selected="developers"
-              @select="toggleDeveloper" />
-          </template>
-        </CollapsibleSection>
-
-        <CollapsibleSection title="Most lines alive" id="lines-alive" :note="wholeRepository"
-          :collapsed="isHidden('l')"
-          @toggle="toggleHidden('l')">
-          <p class="disclaimer">
-            <UiIcon name="information-outline" size="small" />
-            The lines still alive don't measure anyone's work. Removing code,
-            reviewing, refactoring, or iterating on a directory are meaningful
-            work leaving few lines behind, and the last one to touch a line
-            isn't always the one who designed it.
-          </p>
-          <UiTable :data="leaderboard" hoverable striped :paginated="true" :per-page="20">
+          <UiTable v-else :data="leaderboard" hoverable striped :paginated="true" :per-page="20">
             <UiTableColumn field="rank" label="#" v-slot="props" numeric>
               {{ props.row.rank }}
             </UiTableColumn>
@@ -562,12 +545,14 @@ const ownedShare = value => !value ? "" : value < 0.00005 ? "<0.01%"
 const signedPercent = value => value === null || isNaN(value) ? "" : format("+.1%")(value);
 const years = value => value === null ? "" : `${value.toFixed(1)} y`;
 
-const share = ref(route.query.share === "true");
+const chartView = ref(route.query.share === "fresh"
+  ? "fresh"
+  : route.query.share === "true" ? "share" : "lines");
+const leaderboardView = ref("table");
 const repository = ref(route.query.repository || "chromium");
 const directory = ref(route.query.dir || "");
-// The folded sections, one letter each: c(hart), d(irectories), f(resh code),
-// y(early reduction), a(ctivity), (c)o(ntributors), (de)v(elopers),
-// l(ines alive).
+// The folded sections, one letter each: c(hart), d(irectories),
+// y(early reduction), a(ctivity), (c)o(ntributors), (de)v(elopers).
 const hidden = ref(route.query.hide || "");
 const isHidden = code => hidden.value.includes(code);
 const toggleHidden = code => {
@@ -592,8 +577,25 @@ const fetchJson = url => fetch(url)
   .then(response => response.ok ? response.json() : null)
   .catch(() => null);
 
-const name = computed(() => repositories_json
-  .find(repo => repo.dirname === repository.value)?.name || repository.value);
+const repoMeta = computed(() => repositories_json
+  .find(repo => repo.dirname === repository.value));
+const name = computed(() => repoMeta.value?.name || repository.value);
+
+const REPO_EXCLUSIONS: Record<string, string> = {
+  chromium: "WPT_BASE_MANIFEST*.json, testing/buildbot/*.json (except trybot_analyze_config.json), third_party/blink/perf_tests/{speedometer*,MotionMark}/, and chrome/test/data/dromaeo/.",
+  firefox: "intl/icu/, js/src/tests/test262/, js/src/octane/, testing/web-platform/tests/, testing/web-platform/mozilla/tests/webgpu/, dom/webgpu/tests/cts/, security/nss/, modules/freetype2/, gfx/harfbuzz/, media/lib*/, and ipc/chromium/src/{base,third_party}/.",
+  webkit: "LayoutTests/{imported,webgl,platform}/, JSTests/{test262,ChakraCore,wasm/spec-tests,es6,mozilla}/, PerformanceTests/{JetStream*,JSBench,Speedometer*,MotionMark*,ARES-6,SunSpider,Octane,Kraken,Dromaeo}/, and Websites/browserbench.org/.",
+  servo: "tests/wpt/{tests,webgl,webgpu,meta,meta-legacy}/ (while Servo's own tests in tests/wpt/mozilla/ are kept) and tests/blink_perf_tests/.",
+  ladybird: "wpt-import/ directories.",
+  v8: "test/webkit/ and test/unittests/gay-*.cc.",
+  skia: "modules/canvaskit/npm_build/ and resources/skottie/.",
+  swiftshader: "Khronos and system headers in include/{vulkan,vk_video,KHR,EGL,GLES*,Wayland,xcb}/ and tests/regres/testlists/.",
+  angle: "Khronos headers in include/{GLES*,EGL,KHR,CL,vulkan,vk_video}/ and src/tests/gl_tests/media/.",
+  webrtc: "rtc_tools/rtc_event_log_visualizer/conversational_speech_en.h.",
+  llvm: "libc/test/src/math/exhaustive/*.wc (plus LLVM test files whose assertions are auto-generated in their first 40 lines).",
+  chromeos: "TPM specification files in trunks/generator/raw_*.",
+};
+const repoSpecificExclusions = computed(() => REPO_EXCLUSIONS[repository.value] || "");
 
 // The markers explaining the largest steps of the chart: the commits adding
 // or removing the most lines at once. The smaller ones close to a larger one
@@ -796,21 +798,15 @@ const recentActivity = activity => {
     .map(kind => [kind, value(kind, year) + weight * value(kind, year - 1)]));
 };
 
-const activityFigures = computed(() => {
+const activitySummary = computed(() => {
   const activity = scope.value?.activity;
-  if (!activity) return [];
+  if (!activity) return "";
   const recent = recentActivity(activity);
   const development = recent.new + recent.iteration;
   const refactoring = recent.rework + recent.mechanical;
   const changed = development + refactoring;
-  // The growth of the lines alive, like in the top figures.
-  const growth = figures.value[0]?.detail || "";
-  return [
-    { label: "Last 12 months", hint: labelHint, value: scopeSummary.value?.label || "", detail: growth },
-    { label: "Development", hint: "New lines, and lines under a year old rewritten or removed: work on recent code. Over the last 12 months, estimated from the yearly counts.", value: percent(development / changed), detail: "new code, and lines under a year old rewritten" },
-    { label: "Refactoring", hint: "Lines a year old or more rewritten or removed, and mechanical changes like reformattings and renames across the codebase. Over the last 12 months, estimated from the yearly counts.", value: percent(refactoring / changed), detail: "older lines rewritten, and mechanical changes" },
-    { label: "Lines changed", hint: "The lines added, rewritten or removed over the last 12 months, generated files aside. Estimated from the yearly counts.", value: compact(changed), detail: `${compact(recent.new)} new, ${compact(recent.removed)} removed (net)` },
-  ];
+  if (!changed) return "";
+  return `${percent(development / changed)} development, ${percent(refactoring / changed)} refactoring over the last 12 months`;
 });
 
 // The authors per year, by number of commits.
@@ -823,48 +819,23 @@ const contributorSeries = computed(() => {
     { key: "driveby", label: "Drive-by (1 or 2)", color: "var(--series-4)", values: contributors.driveby },
   ];
 });
-const contributorFigures = computed(() => {
-  // Of the last 365 days, or else of the last complete year.
-  let counts = scope.value?.recent_contributors;
-  if (!counts) {
-    const contributors = scope.value?.contributors;
-    const i = yearIndex(contributors, lastYear);
-    if (i === -1) return [];
-    counts = Object.fromEntries(["commits", "core", "regular", "driveby"]
-      .map(key => [key, contributors[key][i]]));
-    counts.authors = counts.core + counts.regular + counts.driveby;
-  }
-  const period = contributorsPeriod.value;
-  return [
-    { label: "Authors", hint: `The developers with at least one commit here ${period}, bots aside.`, value: lines(counts.authors), detail: `${period}, ${lines(counts.commits)} commits` },
-    { label: "Core team", hint: `The authors with 12 commits or more here ${period}, about one a month or more.`, value: lines(counts.core), detail: "authors with 12 commits or more" },
-    { label: "Depth", hint: "The commits per author. High means a few people working here a lot; low means many occasional contributions.", value: counts.authors ? (counts.commits / counts.authors).toFixed(1) : "", detail: "commits per author" },
-    { label: "Drive-by", hint: `The share of the authors with only 1 or 2 commits here ${period}, often for changes across the codebase.`, value: percent(counts.driveby / counts.authors), detail: "of the authors, with 1 or 2 commits" },
-    { label: "Bus factor", hint: busFactorHint, value: scopeSummary.value?.bus_factor ?? "", detail: "the fewest authors who together wrote half of the lines alive" },
-    ...(scopeSummary.value?.reviewed_coverage === undefined ? [] : [{
-      label: "With reviewers",
-      hint: reviewedBusFactorHint.value,
-      value: scopeSummary.value.bus_factor_reviewed ?? "",
-      detail: scopeSummary.value.bus_factor_reviewed === undefined
-        ? `unknown: only ${percent(scopeSummary.value.reviewed_coverage)} of the lines alive are from ${reviewedSince.value} or later`
-        : `on the ${percent(scopeSummary.value.reviewed_coverage)} of the lines alive written since ${reviewedSince.value}`,
-    }]),
-  ];
-});
 const topAuthors = computed(() => (scope.value?.top || [])
-  .map(([username, commits]) => ({ username, commits })));
+  .map(([username, commits], i) => ({ rank: i + 1, username, commits })));
 
-// The breadth and the removed lines of the selected developers.
-const developerDetails = computed(() => developerUsers.value.map(({ username, user }) => ({
-  username,
-  commits: user.commits,
-  breadth: user.breadth,
-  removals: user.removals,
-})));
-const listOf = pairs => (pairs || []).slice(0, 5)
-  .map(([username, count]) => `${username} (${compact(count)})`).join(", ");
+const leaderboardOptions = computed(() => [
+  { value: "table", label: "Most lines alive" },
+  ...(topAuthors.value.length ? [{ value: "commits", label: "Most commits (12m)" }] : []),
+  ...(leaderboard.value.some(entry => entry.breadth) ? [{ value: "scatter", label: "Specialists vs generalists" }] : []),
+]);
+
+const peersOf = (pairs, self) => (pairs || [])
+  .filter(([username]) => username !== self)
+  .slice(0, 5);
 
 const total = row => row.reduce((a, b) => a + b, 0);
+
+const directoryFilter = ref("");
+watch([repository, directory], () => directoryFilter.value = "");
 
 const children = computed(() => directories.value
   .filter(entry => entry.path !== directory.value && parentOf(entry.path) === directory.value)
@@ -877,6 +848,11 @@ const children = computed(() => directories.value
     ...Object.fromEntries(developers.value.map((username, i) => [`owned_${i}`,
       (ownership.value.get(username)?.get(entry.path) || 0) / entry.lines])),
   })));
+
+const filteredChildren = computed(() => {
+  const q = directoryFilter.value.trim().toLowerCase();
+  return q ? children.value.filter(row => row.name.toLowerCase().includes(q)) : children.value;
+});
 
 // For each year, the share of its lines removed during each following year,
 // measured at the sample closest to each January 1st.
@@ -931,6 +907,7 @@ watch(scope, () => crossed.value = null);
 const reductionYears = computed(() => reduction.value.rows
   .filter(row => row.label !== "Median")
   .map(row => ({ written: Number(row.label), values: row.values })));
+const medianForAge = age => reduction.value.rows[0]?.values?.[age - 1] ?? null;
 
 // The years for half of the lines of a year to be gone, with the median
 // reduction of each age.
@@ -962,12 +939,14 @@ const figures = computed(() => {
   const median_age = directory.value
     ? entry?.median_age ?? null
     : data.median_age / 365.25;
+  const growthText = year_ago ? `${signedPercent(current / year_ago - 1)} in a year` : "";
+  const statusLabel = scopeSummary.value?.label;
   const figures = [
     {
       label: "Lines alive",
       hint: "The lines in the repository or the directory today, without the third-party code and the translations. See \"How is this computed?\".",
       value: compact(current),
-      detail: year_ago ? `${signedPercent(current / year_ago - 1)} in a year` : "",
+      detail: [growthText, statusLabel].filter(Boolean).join(" · "),
     },
     {
       label: "Fresh code",
@@ -979,7 +958,7 @@ const figures = computed(() => {
       label: "Median line age",
       hint: "Half of the lines alive are older than this. It grows by one year per year when nothing is rewritten.",
       value: median_age === null || isNaN(median_age) ? "" : `${median_age.toFixed(1)} years`,
-      detail: "half of the lines are older",
+      detail: halfLife.value ? `${halfLife.value.toFixed(1)} y half-life` : "half of the lines are older",
     },
     {
       label: "Old code rewritten",
@@ -987,15 +966,35 @@ const figures = computed(() => {
       value: percent(oldCodeRewritten(
         data.activity ? recentActivity(data.activity).rework : undefined,
         current - recent, year_ago)),
-      detail: "of the lines a year ago, during the last 12 months",
+      detail: "of the lines a year ago, in 12 months",
     },
   ];
-  if (halfLife.value) {
+  let counts = data.recent_contributors;
+  if (!counts && data.contributors) {
+    const i = yearIndex(data.contributors, lastYear);
+    if (i !== -1) {
+      counts = Object.fromEntries(["commits", "core", "regular", "driveby"]
+        .map(key => [key, data.contributors[key][i]]));
+      counts.authors = counts.core + counts.regular + counts.driveby;
+    }
+  }
+  if (counts) {
     figures.push({
-      label: "Half-life",
-      hint: "With the median yearly reductions, the time for half of the lines written in a year to be removed or rewritten.",
-      value: `${halfLife.value.toFixed(1)} years`,
-      detail: "for half of a year's lines to be gone",
+      label: "Authors (12m)",
+      hint: `The developers with at least one commit here ${contributorsPeriod.value} (and core authors with 12+ commits), bots aside.`,
+      value: lines(counts.authors),
+      detail: `${lines(counts.core)} core · ${lines(counts.commits)} commits`,
+    });
+  }
+  if (scopeSummary.value?.bus_factor !== undefined) {
+    const reviewedBus = scopeSummary.value.bus_factor_reviewed;
+    figures.push({
+      label: "Bus factor",
+      hint: busFactorHint,
+      value: String(scopeSummary.value.bus_factor),
+      detail: reviewedBus !== undefined
+        ? `${reviewedBus} with reviewers`
+        : "fewest authors for 50% of lines",
     });
   }
   return figures;
@@ -1052,7 +1051,8 @@ const ownership = computed(() => new Map(developerUsers.value.map(({ username, u
   return [username, owned];
 })));
 
-// The share of the selected scope each developer authored.
+// The share of the selected scope each developer authored, combined with
+// their repo-wide breadth and removals.
 const scopeOwnership = computed(() => {
   const data = scope.value;
   if (!data) return [];
@@ -1061,9 +1061,17 @@ const scopeOwnership = computed(() => {
     const owned = directory.value
       ? ownership.value.get(username)?.get(directory.value) || 0
       : reviewed.value ? user.reviewed_total || 0 : user.lines.at(-1);
-    return { username, owned, share: owned / scopeLines };
+    return {
+      username,
+      owned,
+      share: owned / scopeLines,
+      commits: user.commits,
+      breadth: user.breadth,
+      removals: user.removals,
+    };
   });
 });
+const developerCards = scopeOwnership;
 
 // Where the lines each selected developer authored are, under the selected
 // directory, as a tree for the treemaps. Each directory also holds the lines
@@ -1118,7 +1126,7 @@ const paint = (share, username) => share > 0
 // replace it.
 const query = () => ({
   repository: repository.value === "chromium" ? undefined : repository.value,
-  share: share.value ? "true" : undefined,
+  share: chartView.value === "share" ? "true" : chartView.value === "fresh" ? "fresh" : undefined,
   dir: directory.value || undefined,
   developers: developers.value.join(",") || undefined,
   hide: hidden.value || undefined,
@@ -1129,7 +1137,7 @@ const sameQuery = (a, b) => {
     .filter(([, value]) => value !== undefined).sort());
   return defined(a) === defined(b);
 };
-watch([share, repository, directory, developers, hidden, knowledge],
+watch([chartView, repository, directory, developers, hidden, knowledge],
   ([, newRepository, newDirectory], [, oldRepository, oldDirectory]) => {
     if (sameQuery(query(), route.query)) return;
     const navigation = newRepository !== oldRepository || newDirectory !== oldDirectory;
@@ -1138,7 +1146,7 @@ watch([share, repository, directory, developers, hidden, knowledge],
 
 // Back and forward.
 watch(() => route.query, value => {
-  share.value = value.share === "true";
+  chartView.value = value.share === "fresh" ? "fresh" : value.share === "true" ? "share" : "lines";
   repository.value = value.repository || "chromium";
   directory.value = value.dir || "";
   hidden.value = value.hide || "";
@@ -1151,6 +1159,70 @@ watch(() => route.query, value => {
 <style scoped>
 .chart {
   height: 500px;
+}
+
+.chart-toolbar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.muted-cell {
+  color: var(--muted);
+  font-size: 0.82em;
+  margin-left: 0.15rem;
+}
+
+.directory-toolbar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.directory-filter {
+  max-width: 240px;
+}
+
+.status-pill {
+  background: var(--surface-sunken);
+  border-radius: 999px;
+  color: var(--ink-2);
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.1rem 0.55rem;
+}
+
+.status-pill.is-growing {
+  background: color-mix(in srgb, var(--series-3) 18%, var(--surface));
+  color: var(--ink);
+}
+
+.status-pill.is-shrinking {
+  background: color-mix(in srgb, var(--series-8) 18%, var(--surface));
+  color: var(--ink);
+}
+
+.status-pill.is-refactored {
+  background: color-mix(in srgb, var(--series-2) 18%, var(--surface));
+  color: var(--ink);
+}
+
+.status-pill.is-dormant {
+  color: var(--muted);
+}
+
+.peer-link {
+  background: none;
+  border: none;
+  color: var(--link, var(--series-1));
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+
+.peer-link:hover {
+  text-decoration-style: solid;
 }
 
 .figures {
@@ -1256,9 +1328,48 @@ watch(() => route.query, value => {
   padding: 0.1rem 0.55rem;
 }
 
+.developer-controls {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.developer-input {
+  flex: 1 1 280px;
+}
+
 .ownership {
-  list-style: none;
-  margin-left: 0;
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.developer-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.65rem 0.85rem;
+}
+
+.developer-card-meta {
+  color: var(--ink-2);
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+.ownership-treemaps {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+}
+
+.leaderboard-header {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  justify-content: space-between;
 }
 
 .swatch {
@@ -1273,8 +1384,15 @@ watch(() => route.query, value => {
   color: var(--muted);
 }
 
+.yearly-bars-grid {
+  display: grid;
+  gap: 0 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+}
+
 .crossed-detail {
   color: var(--ink-2);
   font-size: 0.875rem;
+  min-height: 1.5rem;
 }
 </style>

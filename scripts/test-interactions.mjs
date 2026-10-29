@@ -270,9 +270,9 @@ const tests = [
       history.back();
       const back = await __t.until(() => !location.search.includes('dir='));
       const charts = __t.count('.chart');
-      __t.byText('.collapsible-toggle', 'Fresh code').click();
-      const folded = await __t.until(() => new URLSearchParams(location.search).get('hide') === 'f' && __t.count('.chart') === charts - 1);
-      __t.byText('.collapsible-toggle', 'Fresh code').click();
+      __t.byText('.collapsible-toggle', 'Lines per year written').click();
+      const folded = await __t.until(() => new URLSearchParams(location.search).get('hide') === 'c' && __t.count('.chart') === charts - 1);
+      __t.byText('.collapsible-toggle', 'Lines per year written').click();
       const unfolded = await __t.until(() => !location.search.includes('hide=') && __t.count('.chart') === charts);
       return { ok: !!rendered && !!opened && !!back && !!folded && !!unfolded, detail: 'opened=' + name + ' hexagons=' + __t.count('.hex-reduction polygon') + ' folded=' + !!folded + ' unfolded=' + !!unfolded };
     `,

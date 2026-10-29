@@ -2,7 +2,7 @@
   <!-- One bar per year, stacking series. The negative series go below the
        axis. -->
   <div ref="container" class="stacked-bars">
-    <svg :width="width" :height="height">
+    <svg :width="width" :height="height" @mouseleave="hoveredIndex = null">
       <g :transform="`translate(${margin.left}, ${margin.top})`">
         <g v-for="tick in ticks" :key="tick" class="tick">
           <line :x1="0" :x2="inner.width" :y1="y(tick)" :y2="y(tick)" />
@@ -10,20 +10,29 @@
             {{ format(tick) }}
           </text>
         </g>
-        <g v-for="bar in bars" :key="bar.year">
+        <g v-for="(bar, i) in bars" :key="bar.year"
+          class="bar-group"
+          :class="{ dimmed: hoveredIndex !== null && hoveredIndex !== i }"
+          @mouseenter="hoveredIndex = i" @click="hoveredIndex = i">
+          <rect class="hit-area" :x="bar.stepX" :width="bar.stepWidth"
+            :y="0" :height="inner.height" />
           <rect v-for="part in bar.parts" :key="part.key"
             :x="bar.x" :width="bar.width" :y="Math.min(y(part.from), y(part.to))"
             :height="Math.abs(y(part.from) - y(part.to))" :style="{ fill: part.color }">
             <title>{{ bar.year }}: {{ part.label }} {{ format(Math.abs(part.to - part.from)) }}</title>
           </rect>
-          <text v-if="bar.labeled" class="year" :x="bar.x + bar.width / 2" :y="inner.height + 14"
+          <text v-if="bar.labeled || hoveredIndex === i" class="year"
+            :class="{ active: hoveredIndex === i }"
+            :x="bar.x + bar.width / 2" :y="inner.height + 14"
             text-anchor="middle">{{ bar.year }}</text>
         </g>
       </g>
     </svg>
     <div class="legend">
-      <span v-for="serie in series" :key="serie.key">
-        <span class="swatch" :style="{ background: serie.color }" />{{ serie.label }}
+      <strong v-if="hoveredIndex !== null" class="legend-year">{{ years[hoveredIndex] }}:</strong>
+      <span v-for="serie in series" :key="serie.key" class="legend-item">
+        <span class="swatch" :style="{ background: serie.color }" />{{ serie.label }}<strong
+          v-if="hoveredIndex !== null" class="legend-value">{{ format(serie.values[hoveredIndex] || 0) }}</strong>
       </span>
     </div>
   </div>
@@ -42,6 +51,7 @@ const props = defineProps({
 
 const container = ref<HTMLElement | null>(null);
 const width = ref(0);
+const hoveredIndex = ref<number | null>(null);
 onMounted(() => {
   const observer = new ResizeObserver(() => width.value = container.value?.clientWidth || 0);
   observer.observe(container.value);
@@ -89,6 +99,8 @@ const bars = computed(() => {
     }).filter(part => part.from !== part.to);
     return {
       year,
+      stepX: i * step,
+      stepWidth: step,
       x: i * step + step * 0.1,
       width: step * 0.8,
       parts,
@@ -107,18 +119,46 @@ svg {
   stroke: var(--line);
 }
 
+.hit-area {
+  fill: transparent;
+}
+
+.bar-group {
+  transition: opacity 0.12s;
+}
+
+.bar-group.dimmed {
+  opacity: 0.35;
+}
+
 text {
   fill: var(--muted);
   font-size: 11px;
 }
 
+text.year.active {
+  fill: var(--ink);
+  font-weight: 650;
+}
+
 .legend {
+  align-items: baseline;
   color: var(--ink-2);
   display: flex;
   flex-wrap: wrap;
   font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
   gap: 0.3rem 1rem;
   margin-top: 0.3rem;
+}
+
+.legend-year {
+  color: var(--ink);
+}
+
+.legend-value {
+  color: var(--ink);
+  margin-left: 0.3rem;
 }
 
 .swatch {

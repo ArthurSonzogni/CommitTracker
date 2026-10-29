@@ -2,7 +2,7 @@
   <!-- The developers by breadth (the effective number of components they
        committed to) and commits. Clicking one selects it. -->
   <div ref="container" class="breadth-scatter">
-    <svg :width="width" :height="height">
+    <svg :width="width" :height="height" @mouseleave="hovered = null">
       <g :transform="`translate(${margin.left}, ${margin.top})`">
         <g v-for="tick in xTicks" :key="`x${tick}`" class="tick">
           <line :x1="x(tick)" :x2="x(tick)" :y1="0" :y2="inner.height" />
@@ -18,14 +18,18 @@
         <text class="axis" :x="-margin.left + 4" :y="-12">Commits ↑</text>
         <g v-for="point in points" :key="point.username" class="point"
           :class="{ selected: selected.includes(point.username) }"
+          @mouseenter="hovered = point.username"
           @click="emit('select', point.username)">
-          <circle :cx="x(point.breadth)" :cy="y(point.commits)" :r="selected.includes(point.username) ? 6 : 4"
-            :style="{ fill: selected.includes(point.username) ? $color(point.username) : null }">
+          <circle :cx="x(point.breadth)" :cy="y(point.commits)"
+            :r="selected.includes(point.username) || hovered === point.username ? 6 : 4"
+            :style="{ fill: selected.includes(point.username) || hovered === point.username ? $color(point.username) : null }">
             <title>{{ point.username }}: {{ point.commits }} commits in {{ point.breadth }} components</title>
           </circle>
-          <text v-if="selected.includes(point.username)" :x="x(point.breadth) + 8"
+          <text v-if="selected.includes(point.username) || hovered === point.username"
+            :x="x(point.breadth) > inner.width - 140 ? x(point.breadth) - 8 : x(point.breadth) + 8"
+            :text-anchor="x(point.breadth) > inner.width - 140 ? 'end' : 'start'"
             :y="y(point.commits)" dominant-baseline="central" class="name">
-            {{ point.username }}
+            {{ hovered === point.username ? `${point.username} (${point.commits} commits · ${point.breadth} comp.)` : point.username }}
           </text>
         </g>
       </g>
@@ -47,6 +51,7 @@ const { $color } = useNuxtApp();
 
 const container = ref<HTMLElement | null>(null);
 const width = ref(0);
+const hovered = ref<string | null>(null);
 onMounted(() => {
   const observer = new ResizeObserver(() => width.value = container.value?.clientWidth || 0);
   observer.observe(container.value);
@@ -59,10 +64,11 @@ const inner = computed(() => ({
   height: props.height - margin.top - margin.bottom,
 }));
 
-// The selected developers last, drawn above the others.
+// The selected and hovered developers last, drawn above the others.
 const points = computed(() => props.developers
   .filter(d => d.breadth && d.commits)
-  .sort((a, b) => props.selected.includes(a.username) - props.selected.includes(b.username)));
+  .sort((a, b) => (props.selected.includes(a.username) + (hovered.value === a.username ? 2 : 0)) -
+    (props.selected.includes(b.username) + (hovered.value === b.username ? 2 : 0))));
 // Both logarithmic: a few developers spread over hundreds of components.
 const x = computed(() => scaleLog()
   .domain([1, Math.max(2, ...points.value.map(p => p.breadth))]).nice()
@@ -98,6 +104,10 @@ text.axis {
 text.name {
   fill: var(--ink);
   font-weight: 600;
+  paint-order: stroke;
+  pointer-events: none;
+  stroke: var(--bg);
+  stroke-width: 3;
 }
 
 circle {
