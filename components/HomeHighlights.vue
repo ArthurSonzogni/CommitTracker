@@ -10,30 +10,39 @@
       </p>
 
       <div class="highlights">
-        <div class="highlight">
+        <div class="highlight is-authors">
           <h3>Top authors</h3>
           <ol>
-            <li v-for="[name, count] in highlights.top_authors" :key="name">
+            <li
+              v-for="[name, count] in highlights.top_authors"
+              :key="name"
+              :style="{ '--bar': barWidth(count, highlights.top_authors) }">
               <NuxtLink :to="`/developers/${encodeURIComponent(name)}`">{{ name }}</NuxtLink>
               <span>{{ number(count) }}</span>
             </li>
           </ol>
         </div>
 
-        <div class="highlight">
+        <div class="highlight is-reviewers">
           <h3>Top reviewers</h3>
           <ol>
-            <li v-for="[name, count] in highlights.top_reviewers" :key="name">
+            <li
+              v-for="[name, count] in highlights.top_reviewers"
+              :key="name"
+              :style="{ '--bar': barWidth(count, highlights.top_reviewers) }">
               <NuxtLink :to="`/developers/${encodeURIComponent(name)}`">{{ name }}</NuxtLink>
               <span>{{ number(count) }}</span>
             </li>
           </ol>
         </div>
 
-        <div class="highlight">
+        <div class="highlight is-organizations">
           <h3>Top organizations, {{ quarterName }}</h3>
           <ol>
-            <li v-for="[name, count] in highlights.top_organizations" :key="name">
+            <li
+              v-for="[name, count] in highlights.top_organizations"
+              :key="name"
+              :style="{ '--bar': barWidth(count, highlights.top_organizations) }">
               <NuxtLink :to="`/organizations/commits?organizations=${encodeURIComponent(name)}&grouping=quarterly`">{{ name }}</NuxtLink>
               <span>{{ number(count) }}</span>
             </li>
@@ -81,6 +90,11 @@ const quarterName = computed(() => highlights.value!.quarter.replace("Q", " Q"))
 
 const delta = computed(() => Math.round(
   100 * (highlights.value!.commits / highlights.value!.previous_commits - 1)));
+
+const barWidth = (count: number, ranking: Ranking) => {
+  const max = ranking[0]?.[1] || 1;
+  return `${Math.max(2, (count / max) * 100).toFixed(1)}%`;
+};
 </script>
 
 <style scoped>
@@ -125,11 +139,20 @@ const delta = computed(() => Math.round(
 }
 
 .highlight {
+  --bar-color: color-mix(in srgb, var(--series-1) 13%, transparent);
   background: var(--surface);
   border-bottom: 1px solid var(--line);
   border-right: 1px solid var(--line);
   margin: 0 -1px -1px 0;
   padding: 1.1rem 1.35rem;
+}
+
+.highlight.is-reviewers {
+  --bar-color: color-mix(in srgb, var(--series-3) 14%, transparent);
+}
+
+.highlight.is-organizations {
+  --bar-color: color-mix(in srgb, var(--accent) 13%, transparent);
 }
 
 .highlight h3 {
@@ -143,6 +166,9 @@ const delta = computed(() => Math.round(
 
 .highlight ol {
   counter-reset: rank;
+   display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -150,10 +176,12 @@ const delta = computed(() => Math.round(
 
 .highlight li {
   align-items: baseline;
+  background: linear-gradient(90deg, var(--bar-color) var(--bar, 0%), transparent var(--bar, 0%));
+  border-radius: var(--radius-sm);
   counter-increment: rank;
   display: flex;
   gap: 0.5rem;
-  padding: 0.28rem 0;
+  padding: 0.25rem 0.45rem;
 }
 
 .highlight li::before {

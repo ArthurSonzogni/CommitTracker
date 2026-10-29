@@ -83,23 +83,55 @@
             <p>Codebase metrics over space and time: memory safety, TODOs, and more.</p>
           </div>
           <div class="bento-preview">
-            <svg viewBox="0 0 300 120" preserveAspectRatio="none" aria-hidden="true">
-              <rect
+            <div class="treemap-stage" aria-hidden="true">
+              <svg viewBox="0 0 300 120" preserveAspectRatio="none">
+                <rect
+                  v-for="(tile, index) in treemapTiles"
+                  :key="index"
+                  :x="tile.x0 + 1"
+                  :y="tile.y0 + 1"
+                  :width="Math.max(tile.x1 - tile.x0 - 2, 0)"
+                  :height="Math.max(tile.y1 - tile.y0 - 2, 0)"
+                  rx="2"
+                  :fill="tile.color"
+                  :fill-opacity="tile.opacity"
+                />
+              </svg>
+              <span
                 v-for="(tile, index) in treemapTiles"
                 :key="index"
-                :x="tile.x0 + 1"
-                :y="tile.y0 + 1"
-                :width="Math.max(tile.x1 - tile.x0 - 2, 0)"
-                :height="Math.max(tile.y1 - tile.y0 - 2, 0)"
-                rx="2"
-                :fill="tile.color"
-                :fill-opacity="tile.opacity"
-              />
-            </svg>
-            <p class="bento-caption">Codebase size and metrics by directory</p>
+                v-show="tile.x1 - tile.x0 >= 38 && tile.y1 - tile.y0 >= 22"
+                class="treemap-label"
+                :style="{
+                  left: `${(tile.x0 / 300) * 100}%`,
+                  top: `${(tile.y0 / 120) * 100}%`,
+                  width: `${((tile.x1 - tile.x0) / 300) * 100}%`,
+                  height: `${((tile.y1 - tile.y0) / 120) * 100}%`,
+                }">
+                {{ tile.data.name }}
+              </span>
+            </div>
+            <p class="bento-caption">Chromium directories by size and metric</p>
           </div>
         </NuxtLink>
 
+      </div>
+
+      <div class="bento-more">
+        <NuxtLink
+          v-for="item in moreLinks"
+          :key="item.to"
+          :to="item.to"
+          class="bento-more-item">
+          <UiIcon :name="item.icon" size="small" class="bento-more-icon" />
+          <div class="bento-more-body">
+            <h3>
+              {{ item.label }}
+              <UiIcon name="arrow-right" size="small" class="bento-arrow" />
+            </h3>
+            <p>{{ item.description }}</p>
+          </div>
+        </NuxtLink>
       </div>
     </div>
   </section>
@@ -117,20 +149,84 @@ const topDevelopers = shallowRef<{ name: string, path: string }[]>([]);
 const firstYear = ref("");
 const latestYear = ref("");
 
-// Decorative only: a squarified treemap grouped into 3 subsystems.
+const moreLinks = [
+  {
+    to: "/accretion",
+    label: "Code accretion",
+    icon: "layers",
+    description: "Lines of code alive over time, per year written and author.",
+  },
+  {
+    to: "/organizations/commits",
+    label: "Organizations",
+    icon: "domain",
+    description: "Contributions and email domains of companies across repositories.",
+  },
+  {
+    to: "/cve/overview",
+    label: "CVEs & bug bounties",
+    icon: "shield-bug",
+    description: "Security vulnerabilities, severities, components, and rewards.",
+  },
+  {
+    to: "/commit-rates-sankey",
+    label: "Commit rates",
+    icon: "chart-sankey",
+    description: "Directory commit velocity explored as an interactive Sankey diagram.",
+  },
+  {
+    to: "/leaderboard",
+    label: "Leaderboard",
+    icon: "trophy",
+    description: "Most active authors and reviewers by month, quarter, or year.",
+  },
+  {
+    to: "/badges/list",
+    label: "Badges",
+    icon: "certificate",
+    description: "Achievements awarded to contributors from their commit history.",
+  },
+];
+
+// Representative Chromium top-level directories, grouped into 3 subsystems.
 const treemapColors = [
   categoricalPalette[0],
   categoricalPalette[2],
   categoricalPalette[1],
 ];
-const treemapTiles = treemap<{ children?: unknown[], value?: number, group?: number }>()
+type TreemapDatum = { name?: string, value?: number, group?: number, children?: TreemapDatum[] };
+const treemapTiles = treemap<TreemapDatum>()
   .size([300, 120])
   .paddingInner(1)(
-    hierarchy({
+    hierarchy<TreemapDatum>({
       children: [
-        { group: 0, children: [34, 21, 13, 8].map(value => ({ value, group: 0 })) },
-        { group: 1, children: [16, 11, 7, 4].map(value => ({ value, group: 1 })) },
-        { group: 2, children: [9, 6, 4, 2].map(value => ({ value, group: 2 })) },
+        {
+          group: 0,
+          children: [
+            { name: "blink/", value: 32, group: 0 },
+            { name: "content/", value: 18, group: 0 },
+            { name: "v8/", value: 13, group: 0 },
+            { name: "net/", value: 7, group: 0 },
+          ],
+        },
+        {
+          group: 1,
+          children: [
+            { name: "chrome/", value: 26, group: 1 },
+            { name: "components/", value: 15, group: 1 },
+            { name: "ios/", value: 8, group: 1 },
+            { name: "ash/", value: 7, group: 1 },
+          ],
+        },
+        {
+          group: 2,
+          children: [
+            { name: "services/", value: 8, group: 2 },
+            { name: "gpu/", value: 6, group: 2 },
+            { name: "media/", value: 5, group: 2 },
+            { name: "base/", value: 4, group: 2 },
+          ],
+        },
       ],
     }).sum(d => d.value ?? 0)
   )
@@ -138,7 +234,7 @@ const treemapTiles = treemap<{ children?: unknown[], value?: number, group?: num
   .map((tile, index) => ({
     ...tile,
     color: treemapColors[tile.data.group ?? 0],
-    opacity: 0.85 - (index % 4) * 0.12,
+    opacity: 0.85 - (index % 4) * 0.11,
   }));
 
 onMounted(async () => {
@@ -298,6 +394,26 @@ onMounted(async () => {
   width: 100%;
 }
 
+.treemap-stage {
+  position: relative;
+}
+
+.treemap-label {
+  box-sizing: border-box;
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 550;
+  line-height: 1.15;
+  overflow: hidden;
+  padding: 0.25rem 0.35rem;
+  pointer-events: none;
+  position: absolute;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  white-space: nowrap;
+}
+
 .bar {
   fill: var(--series-1);
   opacity: 0.82;
@@ -331,5 +447,78 @@ onMounted(async () => {
   font-family: var(--font-mono);
   font-size: 0.72rem;
   margin-top: 0.5rem;
+}
+
+.bento-more {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  margin-top: 0.75rem;
+  overflow: hidden;
+}
+
+@media (min-width: 769px) {
+  .bento-more {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .bento-more {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.bento-more-item {
+  align-items: flex-start;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  color: var(--ink-2);
+  display: flex;
+  gap: 0.8rem;
+  margin: 0 -1px -1px 0;
+  padding: 1rem 1.25rem;
+  transition: background 0.15s;
+}
+
+.bento-more-item:hover {
+  background: color-mix(in srgb, var(--surface-sunken) 45%, var(--surface));
+  color: var(--ink-2);
+}
+
+.bento-more-icon {
+  color: var(--muted);
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}
+
+.bento-more-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.bento-more-body h3 {
+  align-items: center;
+  color: var(--ink);
+  display: flex;
+  font-size: 0.95rem;
+  font-weight: 620;
+  gap: 0.4rem;
+  justify-content: space-between;
+  letter-spacing: -0.015em;
+  margin-bottom: 0.15rem;
+}
+
+.bento-more-item:hover .bento-arrow {
+  color: var(--ink);
+  transform: translateX(2px);
+}
+
+.bento-more-body p {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
 }
 </style>

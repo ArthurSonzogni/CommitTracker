@@ -3,9 +3,13 @@
     <Navbar/>
     <section class="home-hero">
       <div class="container">
-        <!-- A transition for the {repository}CommitTracker-->
+        <!-- A transition for CommitTracker / {repository} -->
         <h1 class="display" key="repository" ref="title">
-          <span class="repository">{{repository}}</span><span class="caret non-selectable">|</span><wbr>CommitTracker
+          CommitTracker
+          <span class="display-repo">
+            <span class="display-sep" aria-hidden="true">/</span>
+            <span class="repository">{{repository}}</span><span class="caret non-selectable">|</span>
+          </span>
         </h1>
 
         <p class="lede">
@@ -111,6 +115,17 @@ main().catch(() => {})
   letter-spacing: -0.04em;
   line-height: 1.05;
   margin: 0 0 0.85rem;
+}
+
+.display-repo {
+  font-weight: 520;
+  white-space: nowrap;
+}
+
+.display-sep {
+  color: var(--line-strong);
+  font-weight: 350;
+  margin-inline: 0.15em 0.2em;
 }
 
 .repository {

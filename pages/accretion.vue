@@ -1226,33 +1226,41 @@ watch(() => route.query, value => {
 }
 
 .figures {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
   display: grid;
-  gap: 0.75rem;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  overflow: hidden;
+}
+
+@media (min-width: 769px) {
+  .figures {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 .figure {
   background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xs);
-  padding: 0.9rem 1.1rem;
+  border-bottom: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  margin: 0 -1px -1px 0;
+  padding: 1rem 1.25rem;
 }
 
 .figure-label {
   color: var(--muted);
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  font-size: 0.75rem;
+  font-weight: 540;
 }
 
 .figure-value {
   color: var(--ink);
-  font-size: 1.7rem;
+  font-family: var(--font-mono);
+  font-size: 1.6rem;
   font-variant-numeric: tabular-nums;
-  font-weight: 650;
-  letter-spacing: -0.02em;
+  font-weight: 560;
+  letter-spacing: -0.03em;
+  margin-top: 0.1rem;
 }
 
 .figure-detail {
@@ -1340,16 +1348,19 @@ watch(() => route.query, value => {
 }
 
 .ownership {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
   display: grid;
-  gap: 0.6rem;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  overflow: hidden;
 }
 
 .developer-card {
   background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 0.65rem 0.85rem;
+  border-bottom: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  margin: 0 -1px -1px 0;
+  padding: 0.75rem 1rem;
 }
 
 .developer-card-meta {

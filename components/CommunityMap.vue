@@ -605,7 +605,7 @@ onUnmounted(() => {
 
 .map-frame {
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: var(--radius-lg);
   flex: 1;
   min-height: 60vh;
   overflow: hidden;

@@ -8,9 +8,10 @@
       <section v-for="category in categories" :key="category.name" class="bento-tile">
         <h2>{{ category.name }}</h2>
         <p class="description">{{ category.description }}</p>
-        <ul>
-          <li v-for="preset in category.presets" :key="preset.name">
+        <ul class="preset-list">
+          <li v-for="preset in category.presets" :key="preset.name" class="preset-item">
             <a :href="url(preset)" :title="formula(preset)" @click.prevent="emit('select', preset)">{{ preset.name }}</a>
+            <span class="preset-formula" aria-hidden="true">{{ shortFormula(preset) }}</span>
           </li>
         </ul>
       </section>
@@ -110,6 +111,9 @@ const metricName = (file: string) =>
 const formula = (preset: Preset) =>
   `${preset.color.map(metricName).join(" + ")} ÷ ${preset.size.map(metricName).join(" + ")}`;
 
+const shortFormula = (preset: Preset) =>
+  `per ${preset.size.length > 1 ? preset.size.join("+") : metricName(preset.size[0]).toLowerCase()}`;
+
 // The metrics of the repository. Presets using other metrics are hidden.
 const available = ref<Set<string> | null>(null);
 watch(() => props.repository, async (repository) => {
@@ -131,20 +135,23 @@ const categories = computed(() => CATEGORIES
 </script>
 
 <style scoped>
-/* Aligned with the controls above. Tiles like the home page bento. */
+/* Aligned with the controls above. Shared-hairline grid like the home page. */
 .treemap-presets {
   padding: 0 1.5rem 2rem;
 }
 
 .intro {
   color: var(--muted);
-  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  margin-bottom: 0.85rem;
 }
 
 .bento {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
   display: grid;
-  gap: 1rem;
   grid-template-columns: minmax(0, 1fr);
+  overflow: hidden;
 }
 
 @media (min-width: 769px) {
@@ -161,27 +168,69 @@ const categories = computed(() => CATEGORIES
 
 .bento-tile {
   background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  box-shadow: var(--shadow-xs);
-  padding: 1.2rem 1.4rem;
+  border-bottom: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  margin: 0 -1px -1px 0;
+  padding: 1.25rem 1.4rem;
 }
 
 h2 {
   color: var(--ink);
-  font-size: 1.1rem;
-  font-weight: 650;
+  font-size: 1.05rem;
+  font-weight: 640;
   letter-spacing: -0.02em;
 }
 
 .description {
   color: var(--muted);
-  font-size: 0.875rem;
-  margin: 0.2rem 0 0.6rem;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  margin: 0.2rem 0 0.75rem;
 }
 
-ul {
-  list-style: disc;
-  margin-left: 1.25rem;
+.preset-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  list-style: none;
+  margin: 0 -0.5rem;
+  padding: 0;
+}
+
+.preset-item {
+  align-items: baseline;
+  border-radius: var(--radius-sm);
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
+  padding: 0.3rem 0.5rem;
+  position: relative;
+  transition: background 0.12s;
+}
+
+.preset-item:hover {
+  background: var(--surface-sunken);
+}
+
+.preset-item a {
+  font-size: 0.9rem;
+  font-weight: 520;
+}
+
+.preset-item a::after {
+  content: "";
+  inset: 0;
+  position: absolute;
+}
+
+.preset-formula {
+  color: var(--faint);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>
