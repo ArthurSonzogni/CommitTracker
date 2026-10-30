@@ -20,6 +20,8 @@
 //                       lines of every file, and `git blame` for n of them.
 //                       It needs a full clone.
 //   --output=<dir>      Instead of ../public/accretion, for experiments.
+//   --state=<file>      Read and write the state here instead of <output>/<repo>/state.bin.gz.
+//   --write-only        Write the JSON output from the state without fetching git.
 //   --rebuild-recent    Fill the commits of the last year, for the
 //                       contributors of the last 365 days, from the history
 //                       instead of replaying it. For a state from before they
@@ -40,6 +42,7 @@ import { execFileSync, spawn } from "child_process";
 import JSON5 from "json5";
 import { IsEmailValid } from "./is_email_valid.mjs";
 import { mailMap } from "./mailmap.mjs";
+import { loadOrganizations } from "./organizations.mjs";
 
 const CONFIG = {
   output_dir: "../public/accretion",
@@ -188,6 +191,7 @@ const WPT_FILE = new RegExp([
 // A commit changing at least this many lines, and this share of the total, is
 // an event.
 const EVENT_LINES = 10000;
+const LANG_EVENT_LINES = 2000;
 const EVENT_SHARE = 0.005;
 
 // Mechanical changes missing from .git-blame-ignore-revs, ignored like them:
@@ -235,6 +239,56 @@ const Directories = file => {
   }
   return directories;
 };
+
+const LANGUAGES = [
+  {
+    id: "cpp",
+    label: "C/C++",
+    hint: "C, C++ & Objective-C/C++ (.c, .cc, .cpp, .h, .m, .mm, …)",
+    ext: /^(c|cc|cpp|cxx|c\+\+|h|hh|hpp|hxx|inc|inl|ipp|tpp|m|mm)$/i,
+  },
+  {
+    id: "web",
+    label: "HTML/JS/TS",
+    hint: "HTML, CSS, JavaScript & TypeScript (.html, .css, .js, .ts, …)",
+    ext: /^(html|htm|xhtml|xht|css|scss|js|mjs|cjs|jsx|ts|mts|cts|tsx)$/i,
+  },
+  {
+    id: "java",
+    label: "Java",
+    hint: "Java & Kotlin (.java, .kt)",
+    ext: /^(java|kt)$/i,
+  },
+  {
+    id: "python",
+    label: "Python",
+    hint: "Python (.py, .pyi)",
+    ext: /^(py|pyi|pyw)$/i,
+  },
+  {
+    id: "rust",
+    label: "Rust",
+    hint: "Rust (.rs)",
+    ext: /^rs$/i,
+  },
+];
+const LANG_COUNT = LANGUAGES.length;
+const LanguageIndex = file => {
+  const slash = file.lastIndexOf("/");
+  const base = slash === -1 ? file : file.slice(slash + 1);
+  const dot = base.lastIndexOf(".");
+  if (dot <= 0) return -1;
+  const ext = base.slice(dot + 1);
+  for (let i = 0; i < LANG_COUNT; i++) {
+    if (LANGUAGES[i].ext.test(ext)) return i;
+  }
+  return -1;
+};
+// Language-scoped directory keys in `directories`, `activity`, `contributors`,
+// and `recent` use a leading colon, which never begins a tracked repository
+// path (`:cpp` for the root, `:cpp/chrome` for a subdirectory).
+const LangScopeKey = (langIndex, directory) =>
+  directory ? `:${LANGUAGES[langIndex].id}/${directory}` : `:${LANGUAGES[langIndex].id}`;
 
 // --- Git ---------------------------------------------------------------------
 
@@ -318,9 +372,13 @@ class State {
     this.commit_author = [-1]; // Commit index -> author id.
     this.alive = [0];          // Commit index -> lines still alive.
     this.total = 0;            // Lines alive.
+    this.lang_alive = LANGUAGES.map(() => [0]); // Language -> commit -> lines.
+    this.lang_total = new Array(LANG_COUNT).fill(0);
+    this.has_lang_history = true;
     // The commits adding or removing many lines at once, explaining the steps
     // of the charts: [time, lines, hash, subject, path].
     this.events = [];
+    this.lang_events = LANGUAGES.map(() => []);
     // The files with a generated header, and the vendored directories: their
     // lines count nowhere, like those of GENERATED_FILE.
     this.marked = new Set();
@@ -332,6 +390,8 @@ class State {
     this.files = new Map();    // Path -> runs, as an Int32Array.
     this.samples = [];         // [time, {year: lines}, recent].
     this.author_samples = [];  // [time, [author id, lines, ...]].
+    this.lang_samples = LANGUAGES.map(() => []);
+    this.lang_author_samples = LANGUAGES.map(() => []);
     this.commit_month = [0];   // Commit index -> Month().
     this.directories = new Map(); // Directory -> lines per month (Int32Array).
     this.directory_names = []; // Directory id -> name.
@@ -347,6 +407,7 @@ class State {
     this.contributors = new Map();
     // Author id -> Map(author id -> lines): whose lines were removed by whom.
     this.removals = new Map();
+    this.lang_removals = LANGUAGES.map(() => new Map());
     // Directory -> [time, author id, ...]: the commits of the last
     // RECENT_WINDOW, and the time since which they are all there (0 when
     // replayed from the first commit, null when missing).
@@ -422,6 +483,7 @@ class State {
     this.commit_author.push(this.authorId(email));
     this.commit_month.push(Month(time));
     this.alive.push(0);
+    for (let l = 0; l < LANG_COUNT; l++) this.lang_alive[l].push(0);
     return this.commit_time.length - 1;
   }
 
@@ -442,19 +504,32 @@ class State {
 
   // Count (sign = 1) or uncount (sign = -1) the lines of a file.
   account(file, runs, sign) {
-    const directories = Directories(file).map(directory => {
-      if (!this.directories.has(directory)) {
-        this.directories.set(directory, new Int32Array(MONTHS));
-      }
-      return this.directories.get(directory);
-    });
     if (this.excludedFile(file)) return;
+    const rawDirs = Directories(file);
+    const lang = LanguageIndex(file);
+    const keys = lang === -1
+      ? rawDirs
+      : [...rawDirs, ...rawDirs.map(d => LangScopeKey(lang, d))];
+    const directories = keys.map(directory => {
+      let arr = this.directories.get(directory);
+      if (!arr) {
+        arr = new Int32Array(MONTHS);
+        this.directories.set(directory, arr);
+      }
+      return arr;
+    });
+    const langAlive = lang === -1 ? null : this.lang_alive[lang];
     for (let i = 0; i < runs.length; i += 2) {
-      if (this.excludedAuthor(this.commit_author[runs[i]])) continue;
+      const commit = runs[i];
+      if (this.excludedAuthor(this.commit_author[commit])) continue;
       const lines = sign * runs[i + 1];
-      this.alive[runs[i]] += lines;
+      this.alive[commit] += lines;
       this.total += lines;
-      const month = this.commit_month[runs[i]];
+      if (langAlive) {
+        langAlive[commit] += lines;
+        this.lang_total[lang] += lines;
+      }
+      const month = this.commit_month[commit];
       for (const months of directories) months[month] += lines;
     }
   }
@@ -466,16 +541,25 @@ class State {
     const time = this.commit_time[commit];
     const year = Year(time);
     const author = this.commit_author[commit];
-    const counters = ["", ...Directories(file)].map(directory => {
-      if (!this.activity.has(directory)) {
-        this.activity.set(directory, new Int32Array(KINDS.length * YEARS));
+    const rawDirs = ["", ...Directories(file)];
+    const lang = LanguageIndex(file);
+    const keys = lang === -1
+      ? rawDirs
+      : [...rawDirs, ...rawDirs.map(d => LangScopeKey(lang, d))];
+    const counters = keys.map(directory => {
+      let arr = this.activity.get(directory);
+      if (!arr) {
+        arr = new Int32Array(KINDS.length * YEARS);
+        this.activity.set(directory, arr);
       }
-      return this.activity.get(directory);
+      return arr;
     });
     const add = (kind, lines) => {
       if (lines <= 0) return;
-      for (const counter of counters) counter[kind * YEARS + year] += lines;
+      const idx = kind * YEARS + year;
+      for (const counter of counters) counter[idx] += lines;
     };
+    const langRemovals = lang === -1 ? null : this.lang_removals[lang];
     for (const [removed, b, d] of changes) {
       add(4, b - d);
       if (mechanical) {
@@ -489,9 +573,15 @@ class State {
         add(young ? 1 : 2, lines);
         if (origin === UNKNOWN) continue;
         const written = this.commit_author[origin];
+        if (written < 0 || author < 0) continue;
         if (!this.removals.has(written)) this.removals.set(written, new Map());
         const by = this.removals.get(written);
         by.set(author, (by.get(author) || 0) + lines);
+        if (langRemovals) {
+          if (!langRemovals.has(written)) langRemovals.set(written, new Map());
+          const langBy = langRemovals.get(written);
+          langBy.set(author, (langBy.get(author) || 0) + lines);
+        }
       }
     }
   }
@@ -534,26 +624,50 @@ class State {
     const years = {};
     const authors = new Map();
     let recent = 0; // Lines of the last 365 days.
+    const langYears = LANGUAGES.map(() => ({}));
+    const langAuthors = LANGUAGES.map(() => new Map());
+    const langRecent = new Array(LANG_COUNT).fill(0);
+    // Every 4 weeks for the directories and the authors, as there are many of them.
+    const quadWeekly = this.samples.length % 4 === 0;
+    const cutoff = time - 365 * 86400;
     for (let commit = 0; commit < this.alive.length; commit++) {
       const lines = this.alive[commit];
       if (lines === 0) continue;
       const year = commit === UNKNOWN
         ? "unknown"
         : new Date(this.commit_time[commit] * 1000).getUTCFullYear();
-      years[year] = (years[year] || 0) + lines;
-      if (commit !== UNKNOWN && this.commit_time[commit] > time - 365 * 86400) {
-        recent += lines;
-      }
+      const isRecent = commit !== UNKNOWN && this.commit_time[commit] > cutoff;
       const author = this.commit_author[commit];
-      authors.set(author, (authors.get(author) || 0) + lines);
+      years[year] = (years[year] || 0) + lines;
+      if (isRecent) recent += lines;
+      if (quadWeekly) authors.set(author, (authors.get(author) || 0) + lines);
+      for (let l = 0; l < LANG_COUNT; l++) {
+        const lLines = this.lang_alive[l][commit];
+        if (lLines === 0) continue;
+        langYears[l][year] = (langYears[l][year] || 0) + lLines;
+        if (isRecent) langRecent[l] += lLines;
+        if (quadWeekly && author >= 0) {
+          const map = langAuthors[l];
+          map.set(author, (map.get(author) || 0) + lLines);
+        }
+      }
     }
     this.samples.push([time, years, recent]);
-    if (this.samples.length % 4 === 1) this.sampleDirectories(time);
-    this.pruneRecent(time);
-    // Every 4 weeks for the authors, as there are many of them.
-    if (this.samples.length % 4 === 1) {
-      this.author_samples.push([time, [...authors].flat()]);
+    for (let l = 0; l < LANG_COUNT; l++) {
+      if (this.lang_samples[l].length > 0 || Object.keys(langYears[l]).length > 0) {
+        this.lang_samples[l].push([time, langYears[l], langRecent[l]]);
+      }
     }
+    if (quadWeekly) {
+      this.sampleDirectories(time);
+      this.author_samples.push([time, [...authors].flat()]);
+      for (let l = 0; l < LANG_COUNT; l++) {
+        if (this.lang_author_samples[l].length > 0 || langAuthors[l].size > 0) {
+          this.lang_author_samples[l].push([time, [...langAuthors[l]].flat()]);
+        }
+      }
+    }
+    this.pruneRecent(time);
   }
 
   sampleDirectories(time) {
@@ -602,7 +716,7 @@ class State {
       this.directoryId(directory);
     }
     const header = Buffer.from(JSON.stringify({
-      version: 1,
+      version: this.has_lang_history ? 2 : 1,
       head: this.head,
       base: this.base,
       options: this.options,
@@ -624,6 +738,12 @@ class State {
       reviewed: this.reviewers.size,
       marked: [...this.marked],
       vendored: [...this.vendored],
+      ...(this.has_lang_history ? {
+        lang_samples: this.lang_samples,
+        lang_events: this.lang_events,
+        lang_author_samples: this.lang_author_samples.map(s => s.length),
+        lang_removals: this.lang_removals.map(m => m.size),
+      } : {}),
     }));
     const parts = [];
     const u32 = value => {
@@ -701,6 +821,25 @@ class State {
       varint(ids.length);
       ids.forEach(varint);
     }
+    if (this.has_lang_history) {
+      for (let l = 0; l < LANG_COUNT; l++) {
+        for (const [time, values] of this.lang_author_samples[l]) {
+          varint(Math.floor(time));
+          varint(values.length / 2);
+          for (const value of values) varint(value);
+        }
+      }
+      for (let l = 0; l < LANG_COUNT; l++) {
+        for (const [written, by] of this.lang_removals[l]) {
+          varint(written);
+          varint(by.size);
+          for (const [author, lines] of by) {
+            varint(author);
+            varint(lines);
+          }
+        }
+      }
+    }
     parts.push(Buffer.from(bytes.buffer, 0, size));
     return zlib.gzipSync(Buffer.concat(parts));
   }
@@ -713,6 +852,7 @@ class State {
     offset += 4;
     const header = JSON.parse(buffer.subarray(offset, offset + header_length));
     offset += header_length;
+    state.has_lang_history = (header.version || 1) >= 2;
     state.head = header.head;
     state.base = header.base;
     state.options = { ...DEFAULT_OPTIONS, ...header.options };
@@ -722,6 +862,8 @@ class State {
     state.samples = header.samples;
     state.author_samples = header.author_samples;
     state.events = header.events || [];
+    if (header.lang_samples) state.lang_samples = header.lang_samples;
+    if (header.lang_events) state.lang_events = header.lang_events;
     state.activity_complete = header.activity_complete === true;
     state.recent_since = header.recent_since ?? null;
     const u32s = () => {
@@ -736,6 +878,7 @@ class State {
     state.commit_author = u32s().map(id => id === 0xffffffff ? -1 : id);
     state.commit_month = state.commit_time.map((time, i) => i === UNKNOWN ? 0 : Month(time));
     state.alive = new Array(header.commits).fill(0);
+    state.lang_alive = LANGUAGES.map(() => new Array(header.commits).fill(0));
     state.marked = new Set(header.marked || []);
     state.vendored = new Set(header.vendored || []);
     state.directory_names = header.directory_names || [];
@@ -805,6 +948,31 @@ class State {
       const ids = new Array(varint());
       for (let j = 0; j < ids.length; j++) ids[j] = varint();
       state.reviewers.set(commit, ids);
+    }
+    if (header.lang_author_samples) {
+      for (let l = 0; l < header.lang_author_samples.length; l++) {
+        const list = state.lang_author_samples[l];
+        for (let i = 0; i < header.lang_author_samples[l]; i++) {
+          const time = varint();
+          const values = new Array(varint() * 2);
+          for (let j = 0; j < values.length; j++) values[j] = varint();
+          if (list) list.push([time, values]);
+        }
+      }
+    }
+    if (header.lang_removals) {
+      for (let l = 0; l < header.lang_removals.length; l++) {
+        const map = state.lang_removals[l];
+        for (let i = 0; i < header.lang_removals[l]; i++) {
+          const by = new Map();
+          const written = varint();
+          for (let j = varint(); j > 0; j--) {
+            const author = varint();
+            by.set(author, varint());
+          }
+          if (map) map.set(written, by);
+        }
+      }
     }
     return state;
   }
@@ -967,13 +1135,22 @@ class Replayer {
     let blocks = [];
     const flush = () => {
       const before = state.total;
+      const langBefore = state.lang_total.slice();
       // The lines added or removed per file, for the events.
       const delta = new Map();
+      const langDelta = LANGUAGES.map(() => new Map());
       const track = (file, change) => {
         const total = state.total;
+        const lTotals = state.lang_total.slice();
         change();
         if (state.total !== total) {
           delta.set(file, (delta.get(file) || 0) + state.total - total);
+        }
+        for (let l = 0; l < LANG_COUNT; l++) {
+          const diff = state.lang_total[l] - lTotals[l];
+          if (diff !== 0) {
+            langDelta[l].set(file, (langDelta[l].get(file) || 0) + diff);
+          }
         }
       };
       // The files added by a merge importing a history keep their lines.
@@ -1043,6 +1220,14 @@ class Replayer {
       const lines = state.total - before;
       if (this.main && Math.abs(lines) >= Math.max(EVENT_LINES, EVENT_SHARE * before)) {
         state.events.push([time, lines, hash, subject, EventPath(delta, lines)]);
+      }
+      if (this.main) {
+        for (let l = 0; l < LANG_COUNT; l++) {
+          const lLines = state.lang_total[l] - langBefore[l];
+          if (Math.abs(lLines) >= Math.max(LANG_EVENT_LINES, EVENT_SHARE * langBefore[l])) {
+            state.lang_events[l].push([time, lLines, hash, subject, EventPath(langDelta[l], lLines)]);
+          }
+        }
       }
     };
 
@@ -1130,40 +1315,22 @@ const Day = time => new Date(time * 1000).toISOString().slice(0, 10);
 
 const WriteOutput = async (state, dir) => {
   const now = Math.floor(Date.now() / 1000);
-  // The username of each author, or null for the bots.
-  const usernameOf = state.authors.map(email => IsEmailValid(email) && !IMPORT_BOT.test(email)
-    ? mailMap(email).split("@")[0]
+  const sampleNow = state.samples.at(-1)?.[0] ?? now;
+  const { getOrganization, hasDynamicAffiliation } = await loadOrganizations();
+  // The canonical email and username of each author, or null for the bots.
+  const emailOf = state.authors.map(email => IsEmailValid(email) && !IMPORT_BOT.test(email)
+    ? mailMap(email)
     : null);
+  const usernameOf = emailOf.map(email => email ? email.split("@")[0] : null);
+  const staticOrgOf = emailOf.map(email => email && !hasDynamicAffiliation(email)
+    ? getOrganization(email, "")
+    : null);
+  const organizationOf = (author, time) => author < 0 || !emailOf[author]
+    ? null
+    : staticOrgOf[author] ?? getOrganization(emailOf[author], Day(time));
+  const commitOrg = state.commit_time.map((time, commit) =>
+    commit === UNKNOWN ? null : organizationOf(state.commit_author[commit], time));
 
-  await fs.writeFile(path.join(dir, "events.json"), JSON.stringify(
-    state.events.map(([time, lines, hash, subject, path]) =>
-      ({ date: Day(time), lines, hash, subject, path }))));
-
-  const summary = await WriteDirectories(state, dir, usernameOf);
-
-  // Usernames: their lines over time, merging their emails like the rest of
-  // the site. The state keeps the raw emails, for the mailmap to be updated
-  // without replaying the history.
-  const usernames = new Map();
-  const dates = state.author_samples.map(([time]) => Day(time));
-  state.author_samples.forEach(([, values], index) => {
-    for (let i = 0; i < values.length; i += 2) {
-      const [id, lines] = [values[i], values[i + 1]];
-      // The bots count in the years, but aren't developers.
-      if (id === -1 || !IsEmailValid(state.authors[id])) continue;
-      const username = mailMap(state.authors[id]).split("@")[0];
-      if (!usernames.has(username)) {
-        usernames.set(username, new Array(dates.length).fill(0));
-      }
-      usernames.get(username)[index] += lines;
-    }
-  });
-
-  // The lines each developer authored, alive today, in the directories of the
-  // summary, as [index in the summary, lines, ...], and those they reviewed,
-  // written by others. The generated files have no author.
-  const ownership = new Map(); // Username -> Map(index -> lines).
-  const reviewership = new Map(); // Username -> Map(index -> lines).
   const review_start = ReviewStart(state);
   const reviewersOf = commit => review_start !== null && state.commit_time[commit] >= review_start
     ? state.reviewers.get(commit) || []
@@ -1175,113 +1342,176 @@ const WriteOutput = async (state, dir) => {
     for (const id of reviewersOf(commit) || []) known.push(usernameOf[id]);
     return [...new Set(known.filter(Boolean))];
   };
-  // Index -> Map(commit -> lines), for the bus factor counting the reviewers:
-  // the lines of the review era. The whole repository is the index -1.
-  const knownLines = new Map();
-  const allLines = new Map(); // Index -> lines with an author, for the coverage.
-  const credit = (map, username, owned, lines) => {
-    if (!map.has(username)) map.set(username, new Map());
-    const directories = map.get(username);
+
+  // Decode directory samples once; both the repository root and each language
+  // slice project from the same decoded maps.
+  const decodeDirectoryValues = values => {
+    const result = new Map();
+    for (let i = 0; i < values.length;) {
+      const [id, recent, count] = [values[i], values[i + 1], values[i + 2]];
+      const years = {};
+      for (let j = 0; j < count; j++) {
+        const year = values[i + 3 + 2 * j];
+        years[year === 0 ? "unknown" : String(1999 + year)] = values[i + 4 + 2 * j];
+      }
+      result.set(state.directory_names[id], { recent, years });
+      i += 3 + 2 * count;
+    }
+    return result;
+  };
+  const decodedDirSamples = [...state.directory_samples, [now, state.directoryValues(now)]]
+    .map(([time, values]) => [time, decodeDirectoryValues(values)]);
+
+  const MIN_LANGUAGE_LINES = 100;
+  await fs.rm(path.join(dir, "languages"), { recursive: true, force: true });
+
+  const makeScope = (langIndex, outDir, summary) => ({
+    langIndex,
+    outDir,
+    summary,
+    indices: new Map(summary.map((entry, index) => [entry.path, index])),
+    ownership: new Map(),       // Username -> Map(index -> lines).
+    reviewership: new Map(),    // Username -> Map(index -> lines).
+    orgOwnership: new Map(),    // Organization -> Map(index -> lines).
+    orgReviewership: new Map(), // Organization -> Map(index -> lines).
+    knownLines: new Map(),      // Index -> Map(commit -> lines) in review era.
+    reviewedLines: new Map(),   // Index -> lines with a human reviewer.
+    allLines: new Map(),        // Index -> lines with an author or reviewer.
+  });
+
+  const rootSummary = await WriteDirectories(
+    state, dir, usernameOf, organizationOf, decodedDirSamples,
+    { langIndex: -1, minLines: 1000, hasHistory: true, now });
+  const rootScope = makeScope(-1, dir, rootSummary);
+
+  const availableLanguages = [];
+  const langScopes = new Map();
+  for (let l = 0; l < LANG_COUNT; l++) {
+    const lang = LANGUAGES[l];
+    const rootTotal = state.lang_total[l] || 0;
+    if (rootTotal < MIN_LANGUAGE_LINES) continue;
+    availableLanguages.push({
+      id: lang.id,
+      label: lang.label,
+      hint: lang.hint,
+      lines: rootTotal,
+    });
+    const langDir = path.join(dir, "languages", lang.id);
+    await fs.mkdir(langDir, { recursive: true });
+    const minLines = Math.min(1000, Math.max(200, Math.floor(rootTotal * 0.005)));
+    const langSummary = await WriteDirectories(
+      state, langDir, usernameOf, organizationOf, decodedDirSamples,
+      { langIndex: l, minLines, hasHistory: state.has_lang_history, now });
+    langScopes.set(l, makeScope(l, langDir, langSummary));
+  }
+
+  // Single pass over all surviving file runs to populate author and reviewer
+  // ownership for both the whole repository and each active language.
+  const credit = (map, owner, owned, lines) => {
+    let directories = map.get(owner);
+    if (!directories) {
+      directories = new Map();
+      map.set(owner, directories);
+    }
     for (const index of owned) directories.set(index, (directories.get(index) || 0) + lines);
   };
-  const indices = new Map(summary.map((entry, index) => [entry.path, index]));
+  const creditScope = (scope, owned, commit, lines, username, org, reviewers, reviewerOrgs, hasHumanReviewer) => {
+    if (username) credit(scope.ownership, username, owned, lines);
+    if (org) credit(scope.orgOwnership, org, owned, lines);
+    if (reviewers) {
+      for (const id of reviewers) {
+        const reviewer = usernameOf[id];
+        if (!reviewer || reviewer === username) continue;
+        credit(scope.reviewership, reviewer, owned, lines);
+      }
+      for (const revOrg of reviewerOrgs) {
+        credit(scope.orgReviewership, revOrg, owned, lines);
+      }
+    }
+    if (hasHumanReviewer) {
+      for (const index of owned) {
+        scope.reviewedLines.set(index, (scope.reviewedLines.get(index) || 0) + lines);
+      }
+    }
+    if (!username && !reviewers?.length) return;
+    for (const index of owned) {
+      scope.allLines.set(index, (scope.allLines.get(index) || 0) + lines);
+    }
+    if (!reviewers) return;
+    for (const index of owned) {
+      let commits = scope.knownLines.get(index);
+      if (!commits) {
+        commits = new Map();
+        scope.knownLines.set(index, commits);
+      }
+      commits.set(commit, (commits.get(commit) || 0) + lines);
+    }
+  };
+
   for (const [file, runs] of state.files) {
     if (state.excludedFile(file)) continue;
-    const owned = Directories(file).map(directory => indices.get(directory))
-      .filter(index => index !== undefined);
-    owned.push(-1);
+    const rawDirs = Directories(file);
+    const rootOwned = rawDirs.map(d => rootScope.indices.get(d)).filter(i => i !== undefined);
+    rootOwned.push(-1);
+    const lang = LanguageIndex(file);
+    const langScope = lang === -1 ? null : langScopes.get(lang);
+    const langOwned = langScope
+      ? [...rawDirs.map(d => langScope.indices.get(d)).filter(i => i !== undefined), -1]
+      : null;
     for (let i = 0; i < runs.length; i += 2) {
       const [commit, lines] = [runs[i], runs[i + 1]];
       const author = state.commit_author[commit];
       if (author !== -1 && state.excludedAuthor(author)) continue;
       const username = author === -1 ? null : usernameOf[author];
-      if (username) credit(ownership, username, owned, lines);
+      const org = commitOrg[commit];
       const reviewers = reviewersOf(commit);
+      const reviewerOrgs = reviewers ? new Set() : null;
+      let hasHumanReviewer = false;
       for (const id of reviewers || []) {
         const reviewer = usernameOf[id];
-        if (reviewer && reviewer !== username) credit(reviewership, reviewer, owned, lines);
+        if (!reviewer || reviewer === username) continue;
+        hasHumanReviewer = true;
+        const revOrg = organizationOf(id, state.commit_time[commit]);
+        if (revOrg) reviewerOrgs.add(revOrg);
       }
-      if (!username && !reviewers?.length) continue;
-      for (const index of owned) allLines.set(index, (allLines.get(index) || 0) + lines);
-      if (!reviewers) continue;
-      for (const index of owned) {
-        if (!knownLines.has(index)) knownLines.set(index, new Map());
-        const commits = knownLines.get(index);
-        commits.set(commit, (commits.get(commit) || 0) + lines);
+      creditScope(rootScope, rootOwned, commit, lines, username, org, reviewers, reviewerOrgs, hasHumanReviewer);
+      if (langScope) {
+        creditScope(langScope, langOwned, commit, lines, username, org, reviewers, reviewerOrgs, hasHumanReviewer);
       }
     }
   }
-  const OWNED_MIN = 10; // Lines, below which a directory isn't listed.
 
-  // The bus factor of each directory, from the lines authored alive, and
-  // counting the reviewers too.
-  const authored = summary.map(() => []);
-  for (const directories of ownership.values()) {
-    for (const [index, lines] of directories) if (index >= 0) authored[index].push(lines);
-  }
-  // With the reviewers, on the lines of the review era, when most of them are.
-  const reviewedFigures = index => {
-    if (review_start === null) return {};
-    const era = [...(knownLines.get(index)?.values() || [])].reduce((a, b) => a + b, 0);
-    const coverage = era / (allLines.get(index) || 1);
+  const synthesizeFromAlive = (alive, time) => {
+    const years = {};
+    const authors = new Map();
+    let recent = 0;
+    const cutoff = time - 365 * 86400;
+    for (let commit = 0; commit < alive.length; commit++) {
+      const count = alive[commit];
+      if (count === 0) continue;
+      const year = commit === UNKNOWN
+        ? "unknown"
+        : new Date(state.commit_time[commit] * 1000).getUTCFullYear();
+      years[year] = (years[year] || 0) + count;
+      if (commit !== UNKNOWN && state.commit_time[commit] > cutoff) recent += count;
+      const author = state.commit_author[commit];
+      if (author >= 0) authors.set(author, (authors.get(author) || 0) + count);
+    }
     return {
-      bus_factor_reviewed: coverage >= REVIEWED_COVERAGE_MIN
-        ? KnowledgeFactor(knownLines.get(index), people)
-        : undefined,
-      reviewed_coverage: Math.round(coverage * 1000) / 1000,
+      samples: [[time, years, recent]],
+      authorSamples: [[time, [...authors].flat()]],
     };
   };
-  summary.forEach((entry, index) => {
-    entry.bus_factor = BusFactor(authored[index]);
-    Object.assign(entry, reviewedFigures(index));
-  });
-  await fs.writeFile(path.join(dir, "directories.json"), JSON.stringify(summary));
-  const reviewed = {
-    ...reviewedFigures(-1),
-    reviewed_since: review_start === null ? undefined : Day(review_start),
-  };
 
-  // The breadth of each developer during the last 365 days, or else the last
-  // calendar years: their commits per component, a directory two levels deep
-  // (Blink counting as one).
-  const recent = Year(now) - RECENT_YEARS + 1;
+  const OWNED_MIN = 10; // Lines, below which a directory isn't listed.
+  const USER_LANG_SERIES_MIN = 100; // Peak lines for per-language developer series.
+  const recentYearCutoff = Year(now) - RECENT_YEARS + 1;
   const level = directory => directory.split("/").length -
     (directory.startsWith("third_party/blink") ? 1 : 0);
-  const components = new Map(); // Username -> Map(component -> commits).
-  const commits = new Map(); // Username -> commits.
-  const add_commits = (username, directory, count) => {
-    if (directory === "") {
-      commits.set(username, (commits.get(username) || 0) + count);
-      return;
-    }
-    if (!components.has(username)) components.set(username, new Map());
-    const counts = components.get(username);
-    counts.set(directory, (counts.get(directory) || 0) + count);
-  };
-  // Of the last 365 days, or else of the last calendar years.
-  const recent_complete = state.activity_complete && RecentComplete(state, now);
-  for (const directory of recent_complete ? state.recent.keys() : []) {
-    if (directory !== "" && level(directory) !== 2) continue;
-    for (const [username, count] of RecentCommits(state, directory, usernameOf, now)) {
-      add_commits(username, directory, count);
-    }
-  }
-  const yearly = state.activity_complete && !recent_complete ? state.contributors : [];
-  for (const [directory, years] of yearly) {
-    if (directory !== "" && level(directory) !== 2) continue;
-    for (const [year, authors] of years) {
-      if (year < recent) continue;
-      for (const [author, count] of authors) {
-        const username = usernameOf[author];
-        if (username) add_commits(username, directory, count);
-      }
-    }
-  }
-  const Breadth = username => {
-    const counts = [...(components.get(username) || [])].sort((a, b) => b[1] - a[1]);
+  const BreadthOf = map => {
+    const counts = [...(map || [])].sort((a, b) => b[1] - a[1]);
     const total = counts.reduce((sum, [, count]) => sum + count, 0);
     if (!total) return undefined;
-    // The effective number of components: e^entropy.
     const entropy = -counts.reduce((sum, [, count]) =>
       sum + count / total * Math.log(count / total), 0);
     return {
@@ -1290,120 +1520,344 @@ const WriteOutput = async (state, dir) => {
       share: counts[0][1] / total,
     };
   };
+  const topPairs = map => map && [...map].sort((a, b) => b[1] - a[1]).slice(0, 10);
 
-  // Whose lines were removed by whom, mechanical commits aside.
-  const removedBy = new Map(); // Username -> Map(username -> lines).
-  const removedOf = new Map(); // Username -> Map(username -> lines).
-  const removedTotal = new Map(); // Username -> lines, by anyone.
-  const add = (map, key, other, lines) => {
-    if (!map.has(key)) map.set(key, new Map());
-    map.get(key).set(other, (map.get(key).get(other) || 0) + lines);
-  };
-  for (const [written, by] of state.activity_complete ? state.removals : []) {
-    const writer = usernameOf[written];
-    for (const [author, lines] of by) {
-      const remover = usernameOf[author];
-      if (writer) removedTotal.set(writer, (removedTotal.get(writer) || 0) + lines);
-      if (writer && remover) {
-        add(removedBy, writer, remover, lines);
-        add(removedOf, remover, writer, lines);
+  const writeScopeFiles = async scope => {
+    const isLang = scope.langIndex !== -1;
+    const hasHistory = !isLang || state.has_lang_history;
+    const rootKey = isLang ? LangScopeKey(scope.langIndex, "") : "";
+    const dirPrefix = isLang ? `${rootKey}/` : "";
+    const alive = isLang ? state.lang_alive[scope.langIndex] : state.alive;
+    const eventsList = isLang
+      ? (hasHistory ? state.lang_events[scope.langIndex] : [])
+      : state.events;
+    const removalsMap = isLang
+      ? (hasHistory ? state.lang_removals[scope.langIndex] : new Map())
+      : state.removals;
+
+    let samples = isLang ? state.lang_samples[scope.langIndex] : state.samples;
+    let authorSamples = isLang ? state.lang_author_samples[scope.langIndex] : state.author_samples;
+    if (!hasHistory || samples.length === 0 || authorSamples.length === 0) {
+      const synth = synthesizeFromAlive(alive, sampleNow);
+      if (!hasHistory || samples.length === 0) samples = synth.samples;
+      if (!hasHistory || authorSamples.length === 0) authorSamples = synth.authorSamples;
+    }
+
+    await fs.writeFile(path.join(scope.outDir, "events.json"), JSON.stringify(
+      eventsList.map(([time, lines, hash, subject, eventPath]) =>
+        ({ date: Day(time), lines, hash, subject, path: eventPath }))));
+
+    // Directory bus factors and review-era knowledge figures.
+    const authored = scope.summary.map(() => []);
+    for (const directories of scope.ownership.values()) {
+      for (const [index, count] of directories) if (index >= 0) authored[index].push(count);
+    }
+    const reviewedFigures = index => {
+      if (review_start === null) return {};
+      const era = [...(scope.knownLines.get(index)?.values() || [])].reduce((a, b) => a + b, 0);
+      const coverage = era / (scope.allLines.get(index) || 1);
+      return {
+        bus_factor_reviewed: coverage >= REVIEWED_COVERAGE_MIN
+          ? KnowledgeFactor(scope.knownLines.get(index), people)
+          : undefined,
+        reviewed_coverage: Math.round(coverage * 1000) / 1000,
+        reviewed_lines: scope.reviewedLines.get(index) || 0,
+      };
+    };
+    scope.summary.forEach((entry, index) => {
+      entry.bus_factor = BusFactor(authored[index]);
+      Object.assign(entry, reviewedFigures(index));
+    });
+    await fs.writeFile(path.join(scope.outDir, "directories.json"), JSON.stringify(scope.summary));
+    const reviewed = {
+      ...reviewedFigures(-1),
+      reviewed_since: review_start === null ? undefined : Day(review_start),
+    };
+
+    // Usernames and organizations: lines alive over time.
+    const usernames = new Map();
+    const orgSeries = new Map();
+    const dates = authorSamples.map(([time]) => Day(time));
+    authorSamples.forEach(([time, values], index) => {
+      for (let i = 0; i < values.length; i += 2) {
+        const [id, count] = [values[i], values[i + 1]];
+        if (id === -1 || !emailOf[id]) continue;
+        const username = usernameOf[id];
+        if (!usernames.has(username)) {
+          usernames.set(username, new Array(dates.length).fill(0));
+        }
+        usernames.get(username)[index] += count;
+        const org = organizationOf(id, time);
+        if (org) {
+          if (!orgSeries.has(org)) {
+            orgSeries.set(org, new Array(dates.length).fill(0));
+          }
+          orgSeries.get(org)[index] += count;
+        }
+      }
+    });
+
+    // Commits and breadth across depth-2 components in this scope.
+    const matchScopeDir = rawKey => {
+      if (!isLang) return rawKey.startsWith(":") ? null : rawKey;
+      if (rawKey === rootKey) return "";
+      if (rawKey.startsWith(dirPrefix)) return rawKey.slice(dirPrefix.length);
+      return null;
+    };
+    const components = new Map();
+    const commits = new Map();
+    const orgComponents = new Map();
+    const orgCommits = new Map();
+    const orgAuthors = new Map();
+    const add_commits = (commitsMap, componentsMap, owner, directory, count) => {
+      if (directory === "") {
+        commitsMap.set(owner, (commitsMap.get(owner) || 0) + count);
+        return;
+      }
+      if (!componentsMap.has(owner)) componentsMap.set(owner, new Map());
+      const counts = componentsMap.get(owner);
+      counts.set(directory, (counts.get(directory) || 0) + count);
+    };
+    const recent_complete = hasHistory && state.activity_complete && RecentComplete(state, now);
+    for (const rawKey of recent_complete ? state.recent.keys() : []) {
+      const directory = matchScopeDir(rawKey);
+      if (directory === null || (directory !== "" && level(directory) !== 2)) continue;
+      for (const [username, count] of RecentCommits(state, rawKey, usernameOf, now)) {
+        add_commits(commits, components, username, directory, count);
+      }
+      const list = state.recent.get(rawKey) || [];
+      for (let i = 0; i < list.length; i += 2) {
+        if (list[i] < now - 365 * 86400) continue;
+        const org = organizationOf(list[i + 1], list[i]);
+        if (!org) continue;
+        add_commits(orgCommits, orgComponents, org, directory, 1);
+        if (directory === "" && usernameOf[list[i + 1]]) {
+          if (!orgAuthors.has(org)) orgAuthors.set(org, new Set());
+          orgAuthors.get(org).add(usernameOf[list[i + 1]]);
+        }
       }
     }
-  }
-  const top = map => map && [...map].sort((a, b) => b[1] - a[1]).slice(0, 10);
+    const yearly = hasHistory && state.activity_complete && !recent_complete ? state.contributors : [];
+    for (const [rawKey, years] of yearly) {
+      const directory = matchScopeDir(rawKey);
+      if (directory === null || (directory !== "" && level(directory) !== 2)) continue;
+      for (const [year, authors] of years) {
+        if (year < recentYearCutoff) continue;
+        const midYear = Date.UTC(YEAR0 + year, 6, 1) / 1000;
+        for (const [author, count] of authors) {
+          const username = usernameOf[author];
+          if (username) add_commits(commits, components, username, directory, count);
+          const org = organizationOf(author, midYear);
+          if (org) {
+            add_commits(orgCommits, orgComponents, org, directory, count);
+            if (directory === "" && username) {
+              if (!orgAuthors.has(org)) orgAuthors.set(org, new Set());
+              orgAuthors.get(org).add(username);
+            }
+          }
+        }
+      }
+    }
 
-  // Grouped by first letter, as one file per developer would make tens of
-  // thousands of files to deploy.
-  await fs.rm(path.join(dir, "usernames"), { recursive: true, force: true });
-  await fs.mkdir(path.join(dir, "usernames"), { recursive: true });
-  const leaderboard = [];
-  const buckets = new Map();
-  for (const [username, lines] of usernames) {
-    const first = lines.findIndex(value => value > 0);
-    if (first === -1) continue;
-    const bucket = UsernameBucket(username);
-    if (!buckets.has(bucket)) buckets.set(bucket, { dates, users: {} });
-    const directories = [...(ownership.get(username) || [])]
-      .filter(([index, owned]) => index >= 0 && owned >= OWNED_MIN)
-      .sort((a, b) => a[0] - b[0]);
-    const reviewed = [...(reviewership.get(username) || [])]
-      .filter(([index, lines]) => index >= 0 && lines >= OWNED_MIN)
-      .sort((a, b) => a[0] - b[0]);
-    const breadth = Breadth(username);
-    buckets.get(bucket).users[username] = {
-      first,
-      lines: lines.slice(first),
-      directories: directories.flat(),
-      reviewed: reviewed.length ? reviewed.flat() : undefined,
-      reviewed_total: reviewership.get(username)?.get(-1),
-      commits: commits.get(username),
-      breadth,
-      removals: removedTotal.has(username) || removedOf.has(username) ? {
-        total: removedTotal.get(username) || 0,
-        self: removedBy.get(username)?.get(username) || 0,
-        by: top(removedBy.get(username)),
-        of: top(removedOf.get(username)),
-      } : undefined,
+    // Whose lines were removed by whom, mechanical commits aside.
+    const removedBy = new Map();
+    const removedOf = new Map();
+    const removedTotal = new Map();
+    const orgRemovedBy = new Map();
+    const orgRemovedOf = new Map();
+    const orgRemovedTotal = new Map();
+    const addRemoval = (map, key, other, count) => {
+      if (!map.has(key)) map.set(key, new Map());
+      map.get(key).set(other, (map.get(key).get(other) || 0) + count);
     };
-    leaderboard.push({
-      username,
-      lines: lines.at(-1),
-      peak: Math.max(...lines),
-      commits: commits.get(username),
-      breadth: breadth?.effective,
-    });
-  }
-  for (const [bucket, content] of buckets) {
-    await fs.writeFile(path.join(dir, "usernames", `${bucket}.json`),
-      JSON.stringify(content));
-  }
-  leaderboard.sort((a, b) => b.lines - a.lines);
-  await fs.writeFile(path.join(dir, "leaderboard.json"),
-    JSON.stringify(leaderboard.slice(0, 100)));
+    for (const [written, by] of (hasHistory && state.activity_complete) ? removalsMap : []) {
+      const writer = usernameOf[written];
+      const writerOrg = organizationOf(written, sampleNow);
+      for (const [author, count] of by) {
+        const remover = usernameOf[author];
+        const removerOrg = organizationOf(author, sampleNow);
+        if (writer) removedTotal.set(writer, (removedTotal.get(writer) || 0) + count);
+        if (writer && remover) {
+          addRemoval(removedBy, writer, remover, count);
+          addRemoval(removedOf, remover, writer, count);
+        }
+        if (writerOrg) orgRemovedTotal.set(writerOrg, (orgRemovedTotal.get(writerOrg) || 0) + count);
+        if (writerOrg && removerOrg) {
+          addRemoval(orgRemovedBy, writerOrg, removerOrg, count);
+          addRemoval(orgRemovedOf, removerOrg, writerOrg, count);
+        }
+      }
+    }
 
-  // Cohorts: one row per sample, one column per year. With the activity and
-  // the contributors of the whole repository.
-  const keys = new Set();
-  for (const [, years] of state.samples) {
-    Object.keys(years).forEach(key => keys.add(key));
+    // Developer buckets and leaderboards.
+    await fs.rm(path.join(scope.outDir, "usernames"), { recursive: true, force: true });
+    await fs.mkdir(path.join(scope.outDir, "usernames"), { recursive: true });
+    const leaderboard = [];
+    const buckets = new Map();
+    const allUsernames = new Set([
+      ...usernames.keys(),
+      ...scope.ownership.keys(),
+      ...scope.reviewership.keys(),
+    ]);
+    const seriesMin = isLang ? USER_LANG_SERIES_MIN : 0;
+    for (const username of allUsernames) {
+      const series = usernames.get(username);
+      const first = series ? series.findIndex(value => value > 0) : -1;
+      const totalLines = scope.ownership.get(username)?.get(-1) ??
+        (first !== -1 ? series.at(-1) : 0);
+      const reviewedTotal = scope.reviewership.get(username)?.get(-1) || 0;
+      if (first === -1 && !totalLines && !reviewedTotal) continue;
+      const peak = first !== -1
+        ? Math.max(totalLines, ...series.slice(first))
+        : totalLines;
+      const keepSeries = first !== -1 && peak >= seriesMin;
+      const bucket = UsernameBucket(username);
+      if (!buckets.has(bucket)) buckets.set(bucket, { dates, users: {} });
+      const directories = [...(scope.ownership.get(username) || [])]
+        .filter(([index, owned]) => index >= 0 && owned >= OWNED_MIN)
+        .sort((a, b) => a[0] - b[0]);
+      const reviewedDirs = [...(scope.reviewership.get(username) || [])]
+        .filter(([index, count]) => index >= 0 && count >= OWNED_MIN)
+        .sort((a, b) => a[0] - b[0]);
+      const breadth = BreadthOf(components.get(username));
+      buckets.get(bucket).users[username] = {
+        first: keepSeries ? first : undefined,
+        lines: keepSeries ? series.slice(first) : undefined,
+        total: totalLines || undefined,
+        directories: directories.length ? directories.flat() : undefined,
+        reviewed: reviewedDirs.length ? reviewedDirs.flat() : undefined,
+        reviewed_total: reviewedTotal || undefined,
+        commits: commits.get(username),
+        breadth,
+        removals: removedTotal.has(username) || removedOf.has(username) ? {
+          total: removedTotal.get(username) || 0,
+          self: removedBy.get(username)?.get(username) || 0,
+          by: topPairs(removedBy.get(username)),
+          of: topPairs(removedOf.get(username)),
+        } : undefined,
+      };
+      if (totalLines > 0 || first !== -1) {
+        leaderboard.push({
+          username,
+          lines: totalLines,
+          peak,
+          commits: commits.get(username),
+          breadth: breadth?.effective,
+        });
+      }
+    }
+    for (const [bucket, content] of buckets) {
+      await fs.writeFile(path.join(scope.outDir, "usernames", `${bucket}.json`),
+        JSON.stringify(content));
+    }
+    leaderboard.sort((a, b) => b.lines - a.lines || b.peak - a.peak || a.username.localeCompare(b.username));
+    await fs.writeFile(path.join(scope.outDir, "leaderboard.json"),
+      JSON.stringify(leaderboard.slice(0, 100)));
+    if (review_start !== null) {
+      const leaderboardReviewed = [...scope.reviewership]
+        .map(([username, dirs]) => ({ username, lines: dirs.get(-1) || 0 }))
+        .filter(entry => entry.lines > 0)
+        .sort((a, b) => b.lines - a.lines || a.username.localeCompare(b.username))
+        .slice(0, 100);
+      await fs.writeFile(path.join(scope.outDir, "leaderboard_reviewed.json"),
+        JSON.stringify(leaderboardReviewed));
+    }
+
+    // Organizations.
+    const allOrgs = new Set([
+      ...orgSeries.keys(),
+      ...scope.orgOwnership.keys(),
+      ...scope.orgReviewership.keys(),
+    ]);
+    const organizationsOut = {};
+    for (const org of [...allOrgs].sort()) {
+      const series = orgSeries.get(org) || [];
+      const first = series.findIndex(value => value > 0);
+      const totalLines = scope.orgOwnership.get(org)?.get(-1) || 0;
+      const reviewedTotal = scope.orgReviewership.get(org)?.get(-1) || 0;
+      if (first === -1 && !totalLines && !reviewedTotal) continue;
+      const directories = [...(scope.orgOwnership.get(org) || [])]
+        .filter(([index, owned]) => index >= 0 && owned >= OWNED_MIN)
+        .sort((a, b) => a[0] - b[0]);
+      const reviewedDirs = [...(scope.orgReviewership.get(org) || [])]
+        .filter(([index, count]) => index >= 0 && count >= OWNED_MIN)
+        .sort((a, b) => a[0] - b[0]);
+      const breadth = BreadthOf(orgComponents.get(org));
+      organizationsOut[org] = {
+        first: first === -1 ? dates.length : first,
+        lines: first === -1 ? [] : series.slice(first),
+        total: totalLines,
+        peak: Math.max(totalLines, ...(first === -1 ? [0] : series.slice(first))),
+        directories: directories.flat(),
+        reviewed: reviewedDirs.length ? reviewedDirs.flat() : undefined,
+        reviewed_total: reviewedTotal || undefined,
+        commits: orgCommits.get(org),
+        authors: orgAuthors.get(org)?.size,
+        breadth,
+        removals: orgRemovedTotal.has(org) || orgRemovedOf.has(org) ? {
+          total: orgRemovedTotal.get(org) || 0,
+          self: orgRemovedBy.get(org)?.get(org) || 0,
+          by: topPairs(orgRemovedBy.get(org)),
+          of: topPairs(orgRemovedOf.get(org)),
+        } : undefined,
+      };
+    }
+    await fs.writeFile(path.join(scope.outDir, "organizations.json"),
+      JSON.stringify({ dates, organizations: organizationsOut }));
+
+    // Cohorts: one row per sample, one column per year, plus root activity & contributors.
+    const keys = new Set();
+    for (const [, years] of samples) {
+      Object.keys(years).forEach(key => keys.add(key));
+    }
+    const years = [...keys].sort();
+    const lines = samples.map(([, values]) => years.map(year => values[year] || 0));
+    const total = lines.at(-1)?.reduce((a, b) => a + b, 0) || 0;
+    const last_time = samples.at(-1)?.[0] ?? now;
+    const year_ago_index = samples.findLastIndex(([time]) => time <= last_time - 365 * 86400);
+    const total_year_ago = year_ago_index === -1
+      ? 0
+      : lines[year_ago_index].reduce((a, b) => a + b, 0);
+    const activity = hasHistory
+      ? DirectoryActivity(state, rootKey, usernameOf, organizationOf, now)
+      : {};
+    const rootAuthored = [...scope.ownership.values()]
+      .map(dirs => dirs.get(-1) || 0)
+      .filter(count => count > 0);
+    await fs.writeFile(path.join(scope.outDir, "cohorts.json"), JSON.stringify({
+      dates: samples.map(([time]) => Day(time)),
+      years,
+      lines,
+      recent: samples.map(([, , recentCount]) => recentCount),
+      median_age: MedianAge(state, alive, sampleNow),
+      ...activity,
+      label: activity.activity
+        ? ActivityLabel(activity.activity, total, total_year_ago, now)
+        : undefined,
+      bus_factor: BusFactor(rootAuthored),
+      ...reviewed,
+      ...(isLang ? {} : { languages: availableLanguages }),
+    }));
+  };
+
+  await writeScopeFiles(rootScope);
+  for (const langScope of langScopes.values()) {
+    await writeScopeFiles(langScope);
   }
-  const years = [...keys].sort();
-  const lines = state.samples.map(([, values]) => years.map(year => values[year] || 0));
-  const total = lines.at(-1)?.reduce((a, b) => a + b, 0) || 0;
-  // The last sample at least a year before the last one.
-  const last_time = state.samples.at(-1)?.[0] ?? now;
-  const year_ago_index = state.samples.findLastIndex(([time]) => time <= last_time - 365 * 86400);
-  const total_year_ago = year_ago_index === -1
-    ? 0
-    : lines[year_ago_index].reduce((a, b) => a + b, 0);
-  const activity = DirectoryActivity(state, "", usernameOf, now);
-  await fs.writeFile(path.join(dir, "cohorts.json"), JSON.stringify({
-    dates: state.samples.map(([time]) => Day(time)),
-    years,
-    lines,
-    recent: state.samples.map(([, , recent]) => recent),
-    median_age: MedianAge(state),
-    ...activity,
-    label: activity.activity
-      ? ActivityLabel(activity.activity, total, total_year_ago, now)
-      : undefined,
-    bus_factor: BusFactor([...usernames.values()].map(series => series.at(-1))),
-    ...reviewed,
-  }));
 };
 
 // The median age of the lines alive, in days, at the last sample.
-const MedianAge = state => {
-  const now = state.samples.at(-1)[0];
+const MedianAge = (state, alive, now) => {
   const commits = [];
-  for (let commit = 1; commit < state.alive.length; commit++) {
-    if (state.alive[commit] > 0) commits.push(commit);
+  for (let commit = 1; commit < alive.length; commit++) {
+    if (alive[commit] > 0) commits.push(commit);
   }
   commits.sort((a, b) => state.commit_time[b] - state.commit_time[a]);
-  const total = commits.reduce((sum, commit) => sum + state.alive[commit], 0);
+  const total = commits.reduce((sum, commit) => sum + alive[commit], 0);
+  if (!total) return null;
   let seen = 0;
   for (const commit of commits) {
-    seen += state.alive[commit];
+    seen += alive[commit];
     if (2 * seen >= total) {
       return Math.round((now - state.commit_time[commit]) / 86400);
     }
@@ -1437,7 +1891,13 @@ const CommitDirectories = (state, files) => {
   for (const file of files) {
     if (state.excludedFile(file)) continue;
     counted = true;
-    Directories(file).forEach(directory => directories.add(directory));
+    const rawDirs = Directories(file);
+    rawDirs.forEach(directory => directories.add(directory));
+    const lang = LanguageIndex(file);
+    if (lang !== -1) {
+      directories.add(LangScopeKey(lang, ""));
+      rawDirs.forEach(directory => directories.add(LangScopeKey(lang, directory)));
+    }
   }
   return counted ? directories : null;
 };
@@ -1448,7 +1908,7 @@ const RECENT_YEARS = 3; // For the top authors, without the recent commits.
 // The recent commits are kept this long, for the contributors of the last 365
 // days.
 const RECENT_WINDOW = 400 * 86400;
-const DirectoryActivity = (state, directory, usernameOf, now) => {
+const DirectoryActivity = (state, directory, usernameOf, organizationOf, now) => {
   const result = {};
   if (!state.activity_complete) return result;
   const counters = state.activity.get(directory);
@@ -1467,12 +1927,16 @@ const DirectoryActivity = (state, directory, usernameOf, now) => {
   if (byYear) {
     const rows = [...byYear.keys()].sort((a, b) => a - b).map(year => {
       const users = new Map();
+      const orgs = new Map();
+      const midYear = Date.UTC(YEAR0 + year, 6, 1) / 1000;
       for (const [author, commits] of byYear.get(year)) {
         const username = usernameOf[author];
         if (username) users.set(username, (users.get(username) || 0) + commits);
+        const org = organizationOf(author, midYear);
+        if (org) orgs.set(org, (orgs.get(org) || 0) + commits);
       }
       // Core: about a commit a month. Drive-by: one or two in the year.
-      const row = { year: YEAR0 + year, commits: 0, core: 0, regular: 0, driveby: 0, users };
+      const row = { year: YEAR0 + year, commits: 0, core: 0, regular: 0, driveby: 0, users, orgs };
       for (const commits of users.values()) {
         row.commits += commits;
         row[commits >= 12 ? "core" : commits >= 3 ? "regular" : "driveby"]++;
@@ -1483,13 +1947,18 @@ const DirectoryActivity = (state, directory, usernameOf, now) => {
       ["year", "commits", "core", "regular", "driveby"].map(key =>
         [key === "year" ? "years" : key, rows.map(row => row[key])]));
     const top = new Map();
+    const topOrgs = new Map();
     for (const row of rows) {
       if (row.year < YEAR0 + Year(now) - RECENT_YEARS + 1) continue;
       for (const [username, commits] of row.users) {
         top.set(username, (top.get(username) || 0) + commits);
       }
+      for (const [org, commits] of row.orgs) {
+        topOrgs.set(org, (topOrgs.get(org) || 0) + commits);
+      }
     }
     result.top = [...top].sort((a, b) => b[1] - a[1]).slice(0, 10);
+    result.top_organizations = [...topOrgs].sort((a, b) => b[1] - a[1]).slice(0, 10);
   }
   // With the recent commits: the contributors and the top authors of exactly
   // the last 365 days.
@@ -1502,6 +1971,14 @@ const DirectoryActivity = (state, directory, usernameOf, now) => {
     }
     result.recent_contributors = recent;
     result.top = [...users].sort((a, b) => b[1] - a[1]).slice(0, 10);
+    const orgs = new Map();
+    const list = state.recent.get(directory) || [];
+    for (let i = 0; i < list.length; i += 2) {
+      if (list[i] < now - 365 * 86400) continue;
+      const org = organizationOf(list[i + 1], list[i]);
+      if (org) orgs.set(org, (orgs.get(org) || 0) + 1);
+    }
+    result.top_organizations = [...orgs].sort((a, b) => b[1] - a[1]).slice(0, 10);
   }
   return result;
 };
@@ -1610,43 +2087,39 @@ const DirectoryPack = directory => directory.startsWith("third_party/blink")
   ? "third_party/blink"
   : directory.split("/")[0];
 
-const WriteDirectories = async (state, dir, usernameOf) => {
-  const MIN_LINES = 1000;
-  // The state is at the last commit, newer than the last sample.
-  const now = Math.floor(Date.now() / 1000);
-  const decode = values => {
-    const result = new Map();
-    for (let i = 0; i < values.length;) {
-      const [id, recent, count] = [values[i], values[i + 1], values[i + 2]];
-      const years = {};
-      for (let j = 0; j < count; j++) {
-        const year = values[i + 3 + 2 * j];
-        years[year === 0 ? "unknown" : String(1999 + year)] = values[i + 4 + 2 * j];
-      }
-      result.set(state.directory_names[id], { recent, years });
-      i += 3 + 2 * count;
-    }
-    return result;
-  };
-  // The samples, plus the current lines.
-  const samples = [...state.directory_samples, [now, state.directoryValues(now)]]
-    .map(([time, values]) => [time, decode(values)]);
+const WriteDirectories = async (state, dir, usernameOf, organizationOf, decodedSamples, options) => {
+  const { langIndex = -1, minLines = 1000, hasHistory = true, now = Math.floor(Date.now() / 1000) } = options;
+  const isLang = langIndex !== -1;
+  const prefix = isLang ? `${LangScopeKey(langIndex, "")}/` : "";
+  const samples = hasHistory ? decodedSamples : [decodedSamples.at(-1)];
+  const allDates = samples.map(([time]) => Day(time));
   const current = samples.at(-1)[1];
   // The last sample at least a year old.
-  const year_ago = samples.findLast(([time]) => time <= now - 365 * 86400)?.[1];
+  const year_ago = hasHistory
+    ? samples.findLast(([time]) => time <= now - 365 * 86400)?.[1]
+    : undefined;
 
   const output = path.join(dir, "directories");
   await fs.rm(output, { recursive: true, force: true });
   const summary = [];
   // Grouped by top-level directory, as one file per directory would make
-  // thousands of files to deploy.
+  // thousands of files to deploy. Each pack shares `dates` once and trims
+  // trailing zeros on `lines` rows.
   const packs = new Map();
-  for (const [name, { recent, years }] of current) {
+  for (const [rawName, { recent, years }] of current) {
+    let relPath;
+    if (!isLang) {
+      if (rawName.startsWith(":")) continue;
+      relPath = rawName;
+    } else {
+      if (!rawName.startsWith(prefix)) continue;
+      relPath = rawName.slice(prefix.length);
+    }
     const lines = Object.values(years).reduce((a, b) => a + b, 0);
-    if (lines < MIN_LINES) continue;
+    if (lines < minLines) continue;
 
     // The median age, in years, from the lines per month.
-    const months = state.directories.get(name);
+    const months = state.directories.get(rawName);
     let seen = 0;
     let median_age = null;
     for (let month = MONTHS - 1; month > 0; month--) {
@@ -1656,15 +2129,17 @@ const WriteDirectories = async (state, dir, usernameOf) => {
         break;
       }
     }
-    const before = year_ago?.get(name);
-    const lines_year_ago = before
-      ? Object.values(before.years).reduce((a, b) => a + b, 0)
-      : 0;
-    const activity = DirectoryActivity(state, name, usernameOf, now);
+    const before = year_ago?.get(rawName);
+    const lines_year_ago = hasHistory
+      ? (before ? Object.values(before.years).reduce((a, b) => a + b, 0) : 0)
+      : undefined;
+    const activity = hasHistory
+      ? DirectoryActivity(state, rawName, usernameOf, organizationOf, now)
+      : {};
     const last = YEAR0 + Year(now) - 1;
     const lastContributors = activity.contributors?.years.indexOf(last) ?? -1;
     summary.push({
-      path: name,
+      path: relPath,
       lines,
       recent,
       year_ago: lines_year_ago,
@@ -1684,19 +2159,27 @@ const WriteDirectories = async (state, dir, usernameOf) => {
         (lastContributors === -1 ? undefined : activity.contributors.core[lastContributors]),
     });
 
-    const history = samples.filter(([, values]) => values.has(name));
+    const first = samples.findIndex(([, values]) => values.has(rawName));
+    const dirSamples = samples.slice(first);
     const keys = new Set();
-    history.forEach(([, values]) => Object.keys(values.get(name).years)
-      .forEach(key => keys.add(key)));
+    dirSamples.forEach(([, values]) => {
+      const entry = values.get(rawName);
+      if (entry) Object.keys(entry.years).forEach(key => keys.add(key));
+    });
     const columns = [...keys].sort();
-    const pack = DirectoryPack(name);
-    if (!packs.has(pack)) packs.set(pack, {});
-    packs.get(pack)[name] = {
-      dates: history.map(([time]) => Day(time)),
+    const pack = DirectoryPack(relPath);
+    if (!packs.has(pack)) packs.set(pack, { dates: allDates, directories: {} });
+    packs.get(pack).directories[relPath] = {
+      first,
       years: columns,
-      lines: history.map(([, values]) => columns.map(year =>
-        values.get(name).years[year] || 0)),
-      recent: history.map(([, values]) => values.get(name).recent),
+      lines: dirSamples.map(([, values]) => {
+        const entry = values.get(rawName);
+        if (!entry) return [];
+        const row = columns.map(year => entry.years[year] || 0);
+        while (row.length > 0 && row.at(-1) === 0) row.pop();
+        return row;
+      }),
+      recent: dirSamples.map(([, values]) => values.get(rawName)?.recent || 0),
       ...activity,
     };
   }
@@ -1801,9 +2284,13 @@ const main = async () => {
     .filter(f => f === `--${name}` || f.startsWith(`--${name}=`))
     .map(f => f.includes("=") ? f.slice(f.indexOf("=") + 1) : true);
   const flag = name => values(name)[0];
-  const cwd = dirname;
+  const cwd = flag("repo-dir") || dirname;
+  if (flag("concurrency")) {
+    CONFIG.concurrency = Number(flag("concurrency"));
+    CONFIG.lookahead = Math.max(CONFIG.lookahead, CONFIG.concurrency + 4);
+  }
   const dir = path.join(flag("output") || CONFIG.output_dir, dirname);
-  const state_file = path.join(dir, "state.bin.gz");
+  const state_file = flag("state") || path.join(dir, "state.bin.gz");
   await fs.mkdir(dir, { recursive: true });
 
   let state;
@@ -1821,6 +2308,10 @@ const main = async () => {
     };
   }
   console.log("Options:", JSON.stringify(state.options));
+  if (flag("write-only")) {
+    await WriteOutput(state, dir);
+    return;
+  }
   const pathspecs = [...(PATHSPECS[dirname] || PATHSPECS.default),
     ...state.options.exclude.map(glob => `:(exclude,glob)${glob}`)];
 

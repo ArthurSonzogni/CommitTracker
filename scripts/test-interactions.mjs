@@ -305,6 +305,39 @@ const tests = [
     `,
   },
   {
+    name: 'accretion: the lines organizations authored in the directories',
+    url: 'accretion?organizations=Microsoft',
+    run: `
+      const column = await __t.until(() => [...document.querySelectorAll('table th')].some(th => (th.querySelector('.tooltip-trigger') || th).textContent.trim() === 'Microsoft'), 20000);
+      const owned = await __t.until(() => (__t.text('.ownership') || '').includes('Microsoft authored') && __t.text('.ownership').includes('of Chromium'), 20000);
+      const treemap = await __t.until(() => __t.count('.ownership-treemap rect') > 5, 20000);
+      const leaderboard = await __t.until(() => [...document.querySelectorAll('#developers table td')].some(td => td.textContent.trim() === 'Google'), 20000);
+      __t.byText('#developers .segmented-option', 'Reviewed').click();
+      const reviewed = await __t.until(() => (__t.text('.ownership') || '').includes('Microsoft reviewed') && location.search.includes('lines=reviewed'), 10000);
+      return { ok: !!column && !!owned && !!treemap && !!leaderboard && !!reviewed, detail: __t.text('.ownership') + ' rectangles=' + __t.count('.ownership-treemap rect') };
+    `,
+  },
+  {
+    name: 'accretion: language filter updates history, reduction, activity and ownership',
+    url: 'accretion?organizations=Microsoft',
+    run: `
+      await __t.until(() => __t.byText('.language-bar .segmented-option', 'Java'), 20000);
+      __t.byText('.language-bar .segmented-option', 'Java').click();
+      const javaOwned = await __t.until(() =>
+        location.search.includes('lang=java') &&
+        (__t.text('.ownership') || '').includes('Java lines alive') &&
+        (__t.text('.ownership') || '').includes("of Chromium's Java"), 20000);
+      const historyChart = await __t.until(() => __t.count('#chart .chart svg path') > 5, 10000);
+      const hex = await __t.until(() => __t.count('#yearly-reduction .hex-reduction polygon') > 10, 10000);
+      const activity = await __t.until(() => __t.count('#activity .stacked-bars rect') > 5, 10000);
+      const ownerSeries = await __t.until(() => __t.count('#developers .chart svg path') >= 1, 10000);
+      const cardText = __t.text('.ownership');
+      document.querySelector('.language-chip button').click();
+      const reset = await __t.until(() => !location.search.includes('lang='), 10000);
+      return { ok: !!javaOwned && !!historyChart && !!hex && !!activity && !!ownerSeries && !!reset, detail: cardText };
+    `,
+  },
+  {
     name: 'individuals: author/review toggles change counts',
     url: 'individuals?developers=arthursonzogni',
     run: `

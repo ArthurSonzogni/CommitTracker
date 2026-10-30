@@ -95,7 +95,7 @@ const label = node => node.depth === 0
 const describe = node => node.data.path === undefined
   ? `${compact(node.data.owned)} lines elsewhere in this directory`
   : `${node.data.path || "Everything"}: ${compact(node.data.owned)} lines ${props.verb}, ` +
-    `${percent(share(node))} of its ${compact(node.data.lines)} lines`;
+    `${percent(share(node))} of its ${compact(node.data.lines)} ${props.verb === "reviewed" ? "reviewed " : ""}lines`;
 </script>
 
 <style scoped>

@@ -57,6 +57,8 @@ runs:
           rm -rf "$repository"
           echo "::endgroup::"
         done
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
 
     # The state is saved weekly, as the samples are: the days in between
     # replay the week again, in seconds.
