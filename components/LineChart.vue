@@ -107,8 +107,10 @@ const render = () => {
     left: 60,
   };
 
-  const innerWidth = container.value?.clientWidth - margin.left - margin.right || 0;
-  const innerHeight = container.value?.clientHeight - margin.top - margin.bottom || 0;
+  const width = lastWidth || container.value?.clientWidth || 0;
+  const height = lastHeight || container.value?.clientHeight || 0;
+  const innerWidth = Math.max(0, width - margin.left - margin.right);
+  const innerHeight = Math.max(0, height - margin.top - margin.bottom);
 
   select(content.value)
     .attr("transform", `translate(${margin.left}, ${margin.top})`);
@@ -425,7 +427,7 @@ onMounted(() => {
     resizeObserver = new ResizeObserver(() => {
       const w = container.value?.clientWidth || 0;
       const h = container.value?.clientHeight || 0;
-      if (w === lastWidth && h === lastHeight) return;
+      if (w <= 0 || h <= 0 || (w === lastWidth && h === lastHeight)) return;
       lastWidth = w;
       lastHeight = h;
       render();

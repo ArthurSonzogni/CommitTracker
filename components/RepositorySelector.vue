@@ -97,9 +97,14 @@ const updateAll = async () => {
 // Scroll the first selected repository into view, without scrolling the page.
 const fields = ref<HTMLElement | null>(null);
 onMounted(() => {
-  const selected = fields.value?.querySelector(".is-selected");
-  if (selected) {
-    fields.value.scrollLeft = (selected as HTMLElement).offsetLeft - 24;
+  const container = fields.value;
+  const selected = container?.querySelector(".is-selected") as HTMLElement | null;
+  if (container && selected && selected !== container.firstElementChild) {
+    requestAnimationFrame(() => {
+      if (fields.value && selected.isConnected) {
+        fields.value.scrollLeft = selected.offsetLeft - 24;
+      }
+    });
   }
 });
 

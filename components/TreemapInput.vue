@@ -3,10 +3,7 @@
         <template v-slot="props">
             <strong class="mr-2 is-size-6"
                 >{{ props.option.name }}</strong>
-            <span class="tag" v-if="props.option.tags" v-for="tag in props.option.tags" :key="tag" :style="{
-                    color: textColorOn($color(tag)),
-                    backgroundColor: $color(tag)
-                }">
+            <span class="tag" v-if="props.option.tags" v-for="tag in props.option.tags" :key="tag" :style="tagStyle(tag)">
                 {{ tag }}
             </span>
             <p style="font-style: italic">
@@ -23,20 +20,24 @@
 
 <script setup lang="ts">
 
-// Format is:
-// {
-//   "metrics": [
-//     {
-//       "name": string,
-//       "description": string,
-//       "script": string,
-//       "file":string
-//       "tags": string[]
-//     }
-//   ]
-// ]
-import entries from '../public/treemap/entries.json'
 import repositories_json from '../public/data/repositories.json'
+import {
+    allTreemapMetrics,
+    fetchRepoAvailableMetrics,
+    getCachedAvailableMetrics,
+} from '~/utils/treemapMetrics'
+
+const { $color } = useNuxtApp();
+const tagStyleCache = new Map<string, { color: string; backgroundColor: string }>();
+const tagStyle = (tag: string) => {
+    let cached = tagStyleCache.get(tag);
+    if (!cached) {
+        const bg = $color(tag);
+        cached = { color: textColorOn(bg), backgroundColor: bg };
+        tagStyleCache.set(tag, cached);
+    }
+    return cached;
+};
 
 const value = defineModel("value");
 
@@ -57,82 +58,58 @@ const props = defineProps({
 
 const emit = defineEmits(["input"]);
 
-const availableMetrics = ref(new Set<string>());
+const availableMetrics = shallowRef(new Set<string>());
 
-const fetchAvailableMetrics = async () => {
-    if (!props.repositories || props.repositories.length === 0) {
-        availableMetrics.value = new Set();
-        return;
-    }
+const applyAvailableSet = (set: Set<string>) => {
+    availableMetrics.value = set;
+    computeFilteredList("");
 
-    let intersection = null;
-
-    for (const repo of props.repositories) {
-        try {
-            const response = await fetch(`/treemap/${repo}/available_metrics.json`);
-            if (response.ok) {
-                const contentType = response.headers.get("content-type");
-                if (contentType && contentType.includes("application/json")) {
-                    const metrics = await response.json();
-                    const metricsSet = new Set(metrics);
-                    
-                    if (intersection === null) {
-                        intersection = metricsSet;
-                    } else {
-                        // Intersect
-                        const newIntersection = new Set<string>();
-                        for (const elem of intersection) {
-                            if (metricsSet.has(elem)) {
-                                newIntersection.add(elem);
-                            }
-                        }
-                        intersection = newIntersection;
-                    }
-                } else {
-                    intersection = new Set<string>();
-                }
-            } else {
-                // If a repo is missing its JSON, we can assume it has 0 common metrics, or we ignore it.
-                // Safest to intersect with empty set if it fails to load.
-                intersection = new Set<string>();
-            }
-        } catch (e) {
-            console.error(`Failed to fetch available metrics for ${repo}`, e);
-            intersection = new Set<string>();
-        }
-    }
-    
-    availableMetrics.value = intersection || new Set();
-    computeFilteredList(""); // Trigger refilter
-
-    // Remove any currently selected values that are not available in the new repository
     if (value.value && Array.isArray(value.value)) {
-        const newValue = value.value.filter((item: any) => availableMetrics.value.has(item.file));
+        const newValue = value.value.filter((item: any) => set.has(item.file));
         if (newValue.length !== value.value.length) {
             value.value = newValue;
         }
     }
 };
 
+const fetchAvailableMetrics = async () => {
+    const repos = (props.repositories as string[]) || [];
+    if (repos.length === 0) {
+        applyAvailableSet(new Set());
+        return;
+    }
+
+    if (repos.length === 1) {
+        const sync = getCachedAvailableMetrics(repos[0]);
+        if (sync) {
+            applyAvailableSet(sync);
+            return;
+        }
+    }
+
+    const sets = await Promise.all(repos.map(repo => fetchRepoAvailableMetrics(repo)));
+    let intersection = sets[0] || new Set<string>();
+    for (let i = 1; i < sets.length; i++) {
+        const next = new Set<string>();
+        for (const elem of intersection) {
+            if (sets[i].has(elem)) next.add(elem);
+        }
+        intersection = next;
+    }
+    applyAvailableSet(intersection);
+};
+
 watch(() => props.repositories, fetchAvailableMetrics, { immediate: true });
 
-const entryListFiltered = ref([]);
+const entryListFiltered = shallowRef<any[]>([]);
 
-const computeFilteredList = (name:string) => {
+const computeFilteredList = (name: string) => {
     const query = name?.toLowerCase() || "";
-    entryListFiltered.value = entries.metrics.filter((option:any) => {
-        // Must be in the available set
-        if (!availableMetrics.value.has(option.file)) {
-            return false;
-        }
-
-        if (!query) {
-            return true;
-        }
-        return option.name.toLowerCase().includes(query) ||
-            option.description.toLowerCase().includes(query) ||
-            option.file.toLowerCase().includes(query) ||
-            (option.aliases && option.aliases.some((alias: string) => alias.toLowerCase().includes(query)));
+    const avail = availableMetrics.value;
+    entryListFiltered.value = allTreemapMetrics.filter((option) => {
+        if (!avail.has(option.file)) return false;
+        if (!query) return true;
+        return option.searchText.includes(query);
     });
 };
 

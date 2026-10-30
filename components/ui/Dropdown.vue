@@ -21,6 +21,7 @@
       :popover="popover ? 'manual' : undefined"
       :style="popover ? { positionAnchor: anchorName } : undefined">
       <div
+        v-if="open"
         class="dropdown-content"
         :style="{ maxHeight, overflowY: 'auto', overflowX: 'hidden' }">
         <slot />
@@ -55,7 +56,7 @@ watch(open, (value) => {
   if (popover && menu.value) {
     menu.value.togglePopover(value);
   }
-});
+}, { flush: "post" });
 
 provide("dropdown", {
   value,

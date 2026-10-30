@@ -23,7 +23,7 @@
           </div>
 
           <div>
-            <LineChart v-if="history?.length" :data="history" :milestones="milestones" :animate="!props.animate" />
+            <LineChart v-if="history?.length" :data="history" :milestones="milestones" :animate="false" />
             <p v-if="history?.length" class="source-note">{{ sourceNote }}</p>
           </div>
         </div>
@@ -33,7 +33,7 @@
 
 <script setup lang="ts">
 
-import {easeCubicInOut, easeLinear} from "d3-ease";
+import {easeLinear} from "d3-ease";
 import {hierarchy, treemap, treemapSquarify} from "d3-hierarchy";
 import {interpolateRgb} from "d3-interpolate";
 import {scaleLinear} from "d3-scale";
@@ -44,6 +44,8 @@ import {transition} from "d3-transition";
 import {format} from "d3-format";
 import repositories_json from '../public/data/repositories.json'
 import MILESTONES from '../utils/milestones.json'
+import { callTreemapWorker } from '~/utils/treemapWorkerClient'
+import type { PrunedTreemapNode } from '~/utils/treemap.worker'
 
 const { $color_map } = useNuxtApp();
 
@@ -54,47 +56,13 @@ const tooltip_title = ref("Tooltip");
 const tooltip_dir_dot = ref(".");
 const tooltip_dir_dotdot = ref("..");
 
-interface TreeNode {
-  name: string;
-  id: number;
-  subtreeEnd: number;
-  area: number;
-  color: number;
-  children?: TreeNode[];
-}
-
-interface TreeIndex {
-  root: TreeNode;
-  numNodes: number;
-  parentId: Int32Array;
-  excludeFlags: Uint8Array | null;
-  isCompact: boolean;
-}
-
-interface MetricStore {
-  kind: "latest" | "compact" | "legacy";
-  rows?: number[][];
-  legacy?: Record<string, [number, number][]>;
-}
-
-// Module-level caches so navigating or toggling options never re-fetches or
-// re-decodes unchanged trees or metric histories.
-const datesCache = new Map<string, Promise<Date[]>>();
-const latestTreeCache = new Map<string, Promise<TreeIndex | null>>();
-const fullTreeCache = new Map<string, Promise<TreeIndex | null>>();
-const latestMetricCache = new Map<string, Promise<MetricStore | null>>();
-const fullMetricCache = new Map<string, Promise<MetricStore | null>>();
-const historySeriesCache = new Map<string, number[]>();
-
-let activeTreeIndex: TreeIndex | null = null;
 let dates: Date[] = [];
-let metrics: Record<string, MetricStore> = {};
-let metrics_accumulation: Record<string, Float64Array> = {};
-let areaById = new Float64Array(0);
-let colorById = new Float64Array(0);
-const data = shallowRef<any>({});
+let lastPrunedRoot: PrunedTreemapNode | null = null;
+let lastHistorySeries: Record<string, number[]> = {};
+const data = shallowRef<any>(null);
 
 let current_date_id = -1;
+let isSnapshot = false;
 
 const history = shallowRef<any[]>([]);
 const milestones = shallowRef<any[]>([]);
@@ -154,128 +122,45 @@ function browserDownload(content: string, filename: string, contentType: string)
   a.click();
 }
 
+const activeRepo = () =>
+  (props.repositories as string[])?.[0] || repositories_json[0]?.dirname || "chromium";
+
 const getActiveExcludeMask = () =>
   (props.exclude_test ? 1 : 0) | (props.exclude_third_party ? 2 : 0);
 
-const isNodeExcluded = (id: number) => {
-  const mask = getActiveExcludeMask();
-  if (!mask || !activeTreeIndex?.excludeFlags) return false;
-  return (activeTreeIndex.excludeFlags[id] & mask) !== 0;
+const getHistoryFields = (): string[] => {
+  const fSize = (props.field_size as string[]) || [];
+  const fColor = (props.field_color as string[]) || [];
+  if (fSize.length === 0) return Array.from(new Set(fColor));
+  if (fColor.length === 0) return Array.from(new Set(fSize));
+  if (props.history_color && props.history_size) {
+    return Array.from(new Set([...fSize, ...fColor]));
+  }
+  if (props.history_color) return Array.from(new Set(fColor));
+  if (props.history_size) return Array.from(new Set(fSize));
+  return [];
 };
 
-const hasVisibleChildren = (node: TreeNode) => {
-  if (!node?.children) return false;
-  const mask = getActiveExcludeMask();
-  const flags = activeTreeIndex?.excludeFlags;
-  if (!mask || !flags) return node.children.length > 0;
-  for (let i = 0; i < node.children.length; i++) {
-    if ((flags[node.children[i].id] & mask) === 0) return true;
-  }
-  return false;
-};
-
-const getTreeNodeFromPath = (pathArr: string[]): TreeNode | null => {
-  if (!activeTreeIndex) return null;
-  let current = activeTreeIndex.root;
-  for (const name of (pathArr || [])) {
-    const next = current.children?.find(c => c.name === name && !isNodeExcluded(c.id));
-    if (!next) break;
-    current = next;
-  }
-  return current;
-};
-
-function download(kind: string) {
-  const fields: string[] = []
-    .concat(props.field_size as any)
-    .concat(props.field_color as any);
-
-  if (kind == "temporal_json") {
-    const out = [];
-    for (const field of fields) {
-      out.push({
-        metric: field,
-        values: computeHistoryForField(field).map((d, i) => ({
-          date: formatDateInverse(i),
-          count: d,
-        })),
-      });
-    }
-    browserDownload(JSON.stringify(out, null, 2), "temporal.json", "application/json");
-    return;
-  }
-
-  if (kind == "temporal_csv") {
-    const seriesByField = fields.map(field => computeHistoryForField(field));
-    let out = "date," + fields.join(",") + "\n";
-    for (let i = 0; i < dates.length; ++i) {
-      const row: (string | number)[] = [formatDateInverse(i).toISOString().split("T")[0]];
-      for (let f = 0; f < fields.length; ++f) {
-        row.push(seriesByField[f][i]);
-      }
-      out += row.join(",") + "\n";
-    }
-    browserDownload(out, "temporal.csv", "text/csv");
-    return;
-  }
-
-  const startNode = getTreeNodeFromPath(props.path as string[]);
-  if (!startNode) return;
-
-  if (kind == "spatial_json") {
-    const get = (file: TreeNode): any => {
-      if (isNodeExcluded(file.id)) return null;
-      const out: any = {};
-      let all_zero = true;
-      for (const field of fields) {
-        const v = metrics_accumulation[field]?.[file.id] || 0;
-        out[field] = v;
-        if (v != 0) all_zero = false;
-      }
-      if (all_zero) return null;
-      if (file.children) {
-        out.children = {};
-        for (const child of file.children) {
-          const child_out = get(child);
-          if (child_out) out.children[child.name] = child_out;
-        }
-        if (Object.keys(out.children).length == 0) {
-          delete out.children;
-        }
-      }
-      return out;
-    };
-    const out = get(startNode);
-    browserDownload(JSON.stringify(out, null, 2), "spatial.json", "application/json");
-    return;
-  }
-
-  if (kind == "spatial_csv") {
-    let out = "path," + fields.join(",") + "\n";
-    const get = (file: TreeNode, p: string[]) => {
-      if (isNodeExcluded(file.id)) return;
-      const row: (string | number)[] = [p.join("/") || "/"];
-      let all_zero = true;
-      for (const field of fields) {
-        const value = metrics_accumulation[field]?.[file.id] || 0;
-        row.push(value);
-        if (value != 0) all_zero = false;
-      }
-      if (!all_zero) {
-        out += row.join(",") + "\n";
-      }
-      for (const child of file.children || []) {
-        get(child, p.concat([child.name]));
-      }
-    };
-    get(startNode, (props.path as string[]) || []);
-    browserDownload(out, "spatial.csv", "text/csv");
-    return;
+async function download(kind: string) {
+  const res = await callTreemapWorker({
+    type: "download",
+    repo: String(activeRepo()),
+    kind,
+    fieldSize: Array.from((props.field_size as string[]) || []),
+    fieldColor: Array.from((props.field_color as string[]) || []),
+    path: Array.from((props.path as string[]) || []),
+    excludeMask: getActiveExcludeMask(),
+    dateEndMs: ((props.dates as Date[])?.[1] ?? new Date()).getTime(),
+  });
+  if (res) {
+    browserDownload(res.content, res.filename, res.contentType);
   }
 }
 
-const svgWidth = () => container.value?.clientWidth || 0;
-const svgHeight = () => container.value?.clientHeight || 0;
+let lastWidth = 0;
+let lastHeight = 0;
+const svgWidth = () => lastWidth || (lastWidth = container.value?.clientWidth || 0);
+const svgHeight = () => lastHeight || (lastHeight = container.value?.clientHeight || 0);
 
 // The colormap domain. The bounds not given by the user are centered on the
 // ratio of the displayed directory, so that its children contrast.
@@ -329,26 +214,26 @@ const prepareTiles = function(children: any[], parentNode: any, x: any, y: any) 
     if (total_size > 0) {
       const percent = (size / total_size) * 10;
       if (percent >= 0.02) {
-        fs = Math.min(20, Math.sqrt(percent) * 30);
+        fs = Math.max(6, Math.round(Math.min(20, Math.sqrt(percent) * 30)));
       }
     }
 
-    const fit = (lbl: string, index: number) => {
+    const fit = (lbl: string, charScale: number) => {
       if (fs <= 0) return "";
       const availWidth = w - 16;
       if (availWidth <= 0) return "";
-      const max_chars = Math.floor(availWidth / (fs * (4 - index) * 0.25 * 0.6));
+      const max_chars = Math.floor(availWidth / (fs * charScale * 0.6));
       if (lbl.length <= max_chars) return lbl;
       return max_chars >= 4 ? lbl.slice(0, max_chars - 1) + "…" : "";
     };
 
-    const label1 = fs > 0 ? fit(d.data.name, 0) : "";
+    const label1 = fs > 0 ? fit(d.data.name, 1) : "";
     let label2 = "";
     if (fs > 0) {
       const raw2 = color <= size
         ? `${number_format(color)}/${number_format(size)} (${percent_format(ratio)})`
         : `${number_format(color)}/${number_format(size)} (${ratio.toFixed(1)}x)`;
-      label2 = fit(raw2, 1);
+      label2 = fit(raw2, 0.75);
     }
 
     d._x = x0;
@@ -359,9 +244,10 @@ const prepareTiles = function(children: any[], parentNode: any, x: any, y: any) 
     d._hoverFill = interpolateRgb("gray", c2)(0.5);
     d._isDark = isDark;
     d._fs = fs;
+    d._fs2 = fs > 0 ? Math.max(6, Math.round(fs * 0.75)) : 0;
     d._label1 = label1;
     d._label2 = label2;
-    d._clickable = hasVisibleChildren(d.data);
+    d._clickable = !!d.data.clickable;
     visible.push(d);
   }
 
@@ -377,9 +263,10 @@ const prepareTiles = function(children: any[], parentNode: any, x: any, y: any) 
     d._hoverFill = interpolateRgb("gray", c2)(0.5);
     d._isDark = hsl(c2).l < 0.5;
     d._fs = 0;
+    d._fs2 = 0;
     d._label1 = "";
     d._label2 = "";
-    d._clickable = hasVisibleChildren(d.data);
+    d._clickable = !!d.data.clickable;
     visible.push(d);
   }
 
@@ -393,13 +280,11 @@ const syncTileTexts = function(gSelection: any) {
       if (!t1) {
         t1 = document.createElementNS("http://www.w3.org/2000/svg", "text");
         t1.setAttribute("class", "text-1");
-        t1.setAttribute("text-anchor", "start");
-        t1.setAttribute("alignment-baseline", "middle");
         t1.setAttribute("x", "8");
         this.appendChild(t1);
       }
-      setAttrIfChanged(t1, "font-size", String(+d._fs.toFixed(1)));
-      setAttrIfChanged(t1, "y", String(+(5 + d._fs * 1.2).toFixed(1)));
+      setAttrIfChanged(t1, "font-size", String(d._fs));
+      setAttrIfChanged(t1, "y", String(Math.round(5 + d._fs * 1.2)));
       if (t1.textContent !== d._label1) t1.textContent = d._label1;
     } else if (t1) {
       t1.remove();
@@ -410,13 +295,11 @@ const syncTileTexts = function(gSelection: any) {
       if (!t2) {
         t2 = document.createElementNS("http://www.w3.org/2000/svg", "text");
         t2.setAttribute("class", "text-2");
-        t2.setAttribute("text-anchor", "start");
-        t2.setAttribute("alignment-baseline", "middle");
         t2.setAttribute("x", "8");
         this.appendChild(t2);
       }
-      setAttrIfChanged(t2, "font-size", String(+(d._fs * 0.75).toFixed(1)));
-      setAttrIfChanged(t2, "y", String(+(5 + d._fs * 2.4).toFixed(1)));
+      setAttrIfChanged(t2, "font-size", String(d._fs2));
+      setAttrIfChanged(t2, "y", String(Math.round(5 + d._fs * 2.4)));
       if (t2.textContent !== d._label2) t2.textContent = d._label2;
     } else if (t2) {
       t2.remove();
@@ -433,7 +316,7 @@ let hoveredContainerRect: DOMRect | null = null;
 let hoveredTooltipWidth = 0;
 let hoveredTooltipHeight = 0;
 
-const render = function(group: any, nodeData: any, x: any, y: any, _is_zoom = false, trans: any) {
+const render = function(group: any, nodeData: any, x: any, y: any, _is_zoom = false, trans: any): number {
   if (!nodeData?.children || nodeData.children.length === 0) {
     group.selectAll("g").remove();
 
@@ -445,23 +328,24 @@ const render = function(group: any, nodeData: any, x: any, y: any, _is_zoom = fa
         const t = enter.append("text");
         t.classed("no-data", true)
           .attr("text-anchor", "middle")
-          .attr("alignment-baseline", "middle")
+          .attr("dominant-baseline", "central")
           .attr("x", w / 2)
           .attr("y", h / 2)
-          .style("font-size", 20)
+          .style("font-size", "20px")
           .style("font-weight", "bold")
-          .style("fill", "gray")
+          .style("fill", "var(--muted)")
           .text("Zero data recorded at this directory and date");
         return t;
       },
       (update: any) => update,
       (leave: any) => leave.remove()
     );
-    return;
+    return 0;
   }
   group.selectAll("text.no-data").remove();
 
   const visibleChildren = prepareTiles(nodeData.children, nodeData, x, y);
+  let animatedCount = 0;
 
   const child = group
     .selectAll(":scope > g")
@@ -475,7 +359,7 @@ const render = function(group: any, nodeData: any, x: any, y: any, _is_zoom = fa
           .attr("rx", 10)
           .attr("width", (d: any) => d._w)
           .attr("height", (d: any) => d._h)
-          .attr("fill", (d: any) => d._fill);
+          .style("fill", (d: any) => d._fill);
         syncTileTexts(g);
         return g;
       },
@@ -485,20 +369,34 @@ const render = function(group: any, nodeData: any, x: any, y: any, _is_zoom = fa
         });
         syncTileTexts(update);
         if (trans) {
-          const g = update.transition(trans);
-          g.attr("transform", (d: any) => `translate(${d._x}, ${d._y})`);
-          g.select("rect")
-            .attr("width", (d: any) => d._w)
-            .attr("height", (d: any) => d._h)
-            .attr("fill", (d: any) => d._fill);
+          const changed = update.filter(function(this: SVGGElement, d: any) {
+            const tf = `translate(${d._x}, ${d._y})`;
+            if (this.getAttribute("transform") !== tf) return true;
+            const r = this.querySelector(":scope > rect") as SVGRectElement | null;
+            if (!r) return true;
+            return (
+              r.getAttribute("width") !== String(d._w) ||
+              r.getAttribute("height") !== String(d._h) ||
+              r.style.fill !== d._fill
+            );
+          });
+          animatedCount = changed.size();
+          if (animatedCount > 0) {
+            const g = changed.transition(trans);
+            g.attr("transform", (d: any) => `translate(${d._x}, ${d._y})`);
+            g.select("rect")
+              .attr("width", (d: any) => d._w)
+              .attr("height", (d: any) => d._h)
+              .style("fill", (d: any) => d._fill);
+          }
         } else {
           update.each(function(this: SVGGElement, d: any) {
             setAttrIfChanged(this, "transform", `translate(${d._x}, ${d._y})`);
-            const r = this.querySelector(":scope > rect");
+            const r = this.querySelector(":scope > rect") as SVGRectElement | null;
             if (r) {
               setAttrIfChanged(r, "width", String(d._w));
               setAttrIfChanged(r, "height", String(d._h));
-              setAttrIfChanged(r, "fill", d._fill);
+              if (r.style.fill !== d._fill) r.style.fill = d._fill;
             }
           });
         }
@@ -513,8 +411,8 @@ const render = function(group: any, nodeData: any, x: any, y: any, _is_zoom = fa
     })
     .on("mouseenter", (event: MouseEvent, d: any) => {
       hoveredContainerRect = container.value?.getBoundingClientRect() ?? null;
-      const rectEl = (event.currentTarget as SVGGElement).querySelector(":scope > rect");
-      if (rectEl) rectEl.setAttribute("fill", d._hoverFill);
+      const rectEl = (event.currentTarget as SVGGElement).querySelector(":scope > rect") as SVGRectElement | null;
+      if (rectEl) rectEl.style.fill = d._hoverFill;
 
       tooltip_title.value = d.data.name;
       tooltip_dir_dot.value = d.data.name;
@@ -526,11 +424,11 @@ const render = function(group: any, nodeData: any, x: any, y: any, _is_zoom = fa
 
       const updateRow = (tr: any) => {
         tr.select("td.v1").text((field: string) => field);
-        tr.select("td.v2").text((field: string) => number_format(metrics_accumulation[field]?.[nodeData.data.id] || 0));
-        tr.select("td.v3").text((field: string) => number_format(metrics_accumulation[field]?.[d.data.id] || 0));
+        tr.select("td.v2").text((field: string) => number_format(nodeData.data.metrics?.[field] || 0));
+        tr.select("td.v3").text((field: string) => number_format(d.data.metrics?.[field] || 0));
         tr.select("td.v4").text((field: string) => {
-          const value = metrics_accumulation[field]?.[d.data.id] || 0;
-          const total = metrics_accumulation[field]?.[nodeData.data.id] || 0;
+          const value = d.data.metrics?.[field] || 0;
+          const total = nodeData.data.metrics?.[field] || 0;
           if (value > total) {
             const multiple = total > 0 ? (value / total).toFixed(1) : "0.0";
             return `${multiple}x`;
@@ -581,10 +479,12 @@ const render = function(group: any, nodeData: any, x: any, y: any, _is_zoom = fa
       tooltip.value.style.transform = `translate3d(${tx}px, ${ty}px, 0)`;
     })
     .on("mouseleave", (event: MouseEvent, d: any) => {
-      const rectEl = (event.currentTarget as SVGGElement).querySelector(":scope > rect");
-      if (rectEl) rectEl.setAttribute("fill", d._fill);
+      const rectEl = (event.currentTarget as SVGGElement).querySelector(":scope > rect") as SVGRectElement | null;
+      if (rectEl) rectEl.style.fill = d._fill;
       if (tooltip.value) tooltip.value.style.opacity = "0";
     });
+
+  return animatedCount;
 };
 
 const zoomin = function(child: any) {
@@ -598,8 +498,10 @@ const cancelLayerAnimations = () => {
   }
 };
 
-const zoom = async function(data_old: any, data_new: any) {
+const zoom = async function(data_old: any, data_new: any, historySeries: Record<string, number[]>) {
   if (!data_old || !data_new || !content.value) return;
+  const w = Math.max(0, svgWidth() - 20);
+  const h = Math.max(0, svgHeight() - 20);
   updateColorDomain(data_new);
 
   cancelLayerAnimations();
@@ -612,22 +514,19 @@ const zoom = async function(data_old: any, data_new: any) {
   }
 
   const old_content = select(content.value).select(":scope > svg");
-  const new_content = select(content.value)
-    .append("svg")
-    .attr("class", "treemap-layer");
+  const newNode = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  newNode.setAttribute("class", "treemap-layer");
 
-  const w = Math.max(0, svgWidth() - 20);
-  const h = Math.max(0, svgHeight() - 20);
   const xNew = scaleLinear()
     .domain([data_new.x0, data_new.x1])
     .rangeRound([0, w]);
   const yNew = scaleLinear()
     .domain([data_new.y0, data_new.y1])
     .rangeRound([0, h]);
-  render(new_content, data_new, xNew, yNew, true, null);
+  render(select(newNode), data_new, xNew, yNew, true, null);
+  content.value.appendChild(newNode);
 
   const oldNode = old_content.node() as SVGSVGElement | null;
-  const newNode = new_content.node() as SVGSVGElement | null;
   const oldW = data_old.x1 - data_old.x0;
   const oldH = data_old.y1 - data_old.y0;
   const newW = data_new.x1 - data_new.x0;
@@ -635,7 +534,7 @@ const zoom = async function(data_old: any, data_new: any) {
   const reducedMotion = typeof window !== "undefined" &&
     window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
 
-  if (!reducedMotion && oldNode && newNode && w > 0 && h > 0 && oldW > 0 && oldH > 0 && newW > 0 && newH > 0) {
+  if (!reducedMotion && oldNode && w > 0 && h > 0 && oldW > 0 && oldH > 0 && newW > 0 && newH > 0) {
     const sxNew = newW / oldW;
     const syNew = newH / oldH;
     const txNew = ((data_new.x0 - data_old.x0) / oldW) * w;
@@ -660,7 +559,7 @@ const zoom = async function(data_old: any, data_new: any) {
       { transform: "translate(0px, 0px) scale(1, 1)", opacity: 1 },
     ], opts);
 
-    computeHistory();
+    applyHistorySeries(historySeries);
     try {
       await Promise.all([animOld.finished, animNew.finished]);
     } catch (e) {}
@@ -668,59 +567,28 @@ const zoom = async function(data_old: any, data_new: any) {
     old_content.remove();
   } else {
     old_content.remove();
-    computeHistory();
+    applyHistorySeries(historySeries);
   }
 };
 
-// Build a path-scoped d3.hierarchy and treemap layout: only expands nodes along
-// `pathsToExpand` (and their immediate children), avoiding laying out ~566,000
-// invisible descendant nodes while producing identical coordinates.
-const mytreemap = function(pathsToExpand: string[][] = [(props.path as string[]) || []]) {
-  if (!activeTreeIndex) return null;
-  const root = activeTreeIndex.root;
-  root.area = areaById[root.id] || 0;
-  root.color = colorById[root.id] || 0;
+const mytreemap = function(prunedRoot: PrunedTreemapNode | null) {
+  if (!prunedRoot) return null;
+  const w = svgWidth();
+  const h = svgHeight();
 
-  const expandedSet = new Set<TreeNode>([root]);
-  for (const p of pathsToExpand) {
-    let cur = root;
-    for (const name of (p || [])) {
-      const child = cur.children?.find(c => c.name === name && !isNodeExcluded(c.id));
-      if (!child) break;
-      expandedSet.add(child);
-      cur = child;
-    }
-  }
-
-  const mask = getActiveExcludeMask();
-  const flags = activeTreeIndex.excludeFlags;
-
-  const data_with_layout = hierarchy(root, (d: TreeNode) => {
-    if (!expandedSet.has(d) || !d.children) return null;
-    const out: TreeNode[] = [];
-    for (let i = 0; i < d.children.length; i++) {
-      const c = d.children[i];
-      if (mask && flags && (flags[c.id] & mask) !== 0) continue;
-      c.area = areaById[c.id] || 0;
-      c.color = colorById[c.id] || 0;
-      if (c.area <= 0 && !expandedSet.has(c)) continue;
-      out.push(c);
-    }
-    return out;
-  })
+  const data_with_layout = hierarchy(prunedRoot)
     .each((d: any) => { d.value = d.data.area; })
     .sort((a: any, b: any) => b.value - a.value);
 
-  const map = treemap<TreeNode>()
+  const map = treemap<PrunedTreemapNode>()
     .tile(treemapSquarify)
-    .size([svgWidth() * 0.8, svgHeight()])
+    .size([w * 0.8, h])
     .round(true);
 
-  const out = map(data_with_layout)
+  return map(data_with_layout)
     .sort((a: any, b: any) =>
-      (hasVisibleChildren(b.data) ? 1 : 0) - (hasVisibleChildren(a.data) ? 1 : 0)
+      (b.data.clickable ? 1 : 0) - (a.data.clickable ? 1 : 0)
     );
-  return out;
 };
 
 // Finds the best index for a given date.
@@ -738,104 +606,14 @@ const formatDate = (date: Date) => {
   return best_index;
 };
 
-const formatDateInverse = (dateIdx: number) => {
-  return dates[dateIdx];
-};
-
-const computeHistoryForField = (field: string): number[] => {
-  if (!activeTreeIndex || dates.length === 0) return [];
-  const dirNode = getTreeNodeFromPath((props.path as string[]) || []);
-  if (!dirNode) return new Array(dates.length).fill(0);
-
-  const repo = (props.repositories as string[])?.[0] || repositories_json[0]?.dirname || "chromium";
-  const mask = getActiveExcludeMask();
-  const cacheKey = `${repo}|${field}|${dirNode.id}|${mask}|${dates.length}`;
-  const cached = historySeriesCache.get(cacheKey);
-  if (cached) return cached;
-
-  const store = metrics[field];
-  if (!store) return new Array(dates.length).fill(0);
-
-  if (mask) {
-    ensureExcludeFlags(activeTreeIndex);
-  }
-  const flags = activeTreeIndex.excludeFlags;
-  const numDates = dates.length;
-  const diff = new Float64Array(numDates);
-
-  if (store.kind === "compact" && store.rows) {
-    const rows = store.rows;
-    const startId = dirNode.id;
-    const endId = dirNode.subtreeEnd;
-    let id = 0;
-    for (let r = 0; r < rows.length; r++) {
-      const row = rows[r];
-      id += row[0];
-      if (id < startId) continue;
-      if (id >= endId) break;
-      if (mask && flags && (flags[id] & mask) !== 0) continue;
-      let d = 0;
-      for (let i = 1; i < row.length; i += 2) {
-        d += row[i];
-        if (d < numDates) {
-          diff[d] += row[i + 1];
-        }
-      }
-    }
-  } else if (store.kind === "legacy" && store.legacy) {
-    const legacy = store.legacy;
-    const walk = (entry: TreeNode) => {
-      if (mask && flags && (flags[entry.id] & mask) !== 0) return;
-      for (const child of entry.children || []) walk(child);
-      const h = legacy[entry.id];
-      if (!h) return;
-      let prev = 0;
-      for (let i = 0; i < h.length; i++) {
-        const d = h[i][0];
-        const v = h[i][1];
-        if (d < numDates) {
-          diff[d] += v - prev;
-          prev = v;
-        }
-      }
-    };
-    walk(dirNode);
-  }
-
-  const values = new Array<number>(numDates);
-  let sum = 0;
-  for (let d = 0; d < numDates; d++) {
-    sum += diff[d];
-    values[d] = sum;
-  }
-
-  if (historySeriesCache.size > 200) {
-    historySeriesCache.clear();
-  }
-  historySeriesCache.set(cacheKey, values);
-  return values;
-};
-
-const computeHistory = () => {
+const applyHistorySeries = (seriesMap: Record<string, number[]>) => {
+  lastHistorySeries = seriesMap;
   if (isSnapshot) {
     history.value = [];
     return;
   }
-  let fields: string[] = [];
-  const fSize = (props.field_size as string[]) || [];
-  const fColor = (props.field_color as string[]) || [];
-
-  if (fSize.length == 0) {
-    fields = fColor;
-  } else if (fColor.length == 0) {
-    fields = fSize;
-  } else if (props.history_color && props.history_size) {
-    fields = ([] as string[]).concat(fSize).concat(fColor);
-  } else if (props.history_color) {
-    fields = fColor;
-  } else if (props.history_size) {
-    fields = fSize;
-  } else {
+  const fields = getHistoryFields();
+  if (fields.length === 0) {
     history.value = [];
     return;
   }
@@ -849,393 +627,50 @@ const computeHistory = () => {
 
   const out = [];
   for (const field of fields) {
-    const values = computeHistoryForField(field);
+    const values = seriesMap[field] || [];
+    const filtered: { x: Date; y: number }[] = [];
+    for (let i = 0; i < values.length && i < dates.length; i++) {
+      const xDate = dates[i];
+      if ((!d0 || xDate >= d0) && (!d1 || xDate <= d1)) {
+        filtered.push({ x: xDate, y: values[i] });
+      }
+    }
     out.push({
       label: field,
       extra_label: " = " + format(",d")(values.at(-1) || 0),
-      values: values
-        .map((d, i) => ({
-          x: formatDateInverse(i),
-          y: d,
-        }))
-        .filter(d => d.x >= d0 && d.x <= d1),
+      values: filtered,
     });
   }
   history.value = out;
-  sourceNote.value = `Measured on the ${(props.repositories as string[])[0]} source tree at ` +
-    `${dates.length} dates, the last on ${dates.at(-1)?.toISOString().slice(0, 10)}.`;
-};
-
-async function fetchJson(url: string) {
-  try {
-    const response = await fetch(url);
-    const contentType = response.headers.get("content-type");
-    if (response.ok && contentType && contentType.includes("application/json")) {
-      return await response.json();
-    }
-  } catch (e) {
-    console.error(`Error fetching ${url}`, e);
-  }
-  return null;
-}
-
-async function FetchDates() {
-  const repo = (props.repositories as string[])?.[0] || repositories_json[0]?.dirname || "chromium";
-  if (!datesCache.has(repo)) {
-    datesCache.set(repo, (async () => {
-      const json = await fetchJson(`/treemap/${repo}/dates.json`);
-      return Array.isArray(json) ? json.map((d: string) => new Date(d)) : [];
-    })());
-  }
-  dates = await datesCache.get(repo)!;
-}
-
-const buildTreeIndexFromCompact = (compact: any): TreeIndex => {
-  let cap = 65536;
-  let parentId = new Int32Array(cap);
-  parentId[0] = -1;
-  let nextId = 0;
-
-  const decode = (node: any, pId: number): TreeNode => {
-    const id = nextId++;
-    if (id >= cap) {
-      cap *= 2;
-      const next = new Int32Array(cap);
-      next.set(parentId);
-      parentId = next;
-    }
-    parentId[id] = pId;
-
-    if (typeof node === "string") {
-      return { name: node, id, subtreeEnd: id + 1, area: 0, color: 0 };
-    }
-    const len = node.length - 1;
-    const children = new Array<TreeNode>(len);
-    for (let i = 0; i < len; ++i) {
-      children[i] = decode(node[i + 1], id);
-    }
-    return {
-      name: node[0],
-      id,
-      subtreeEnd: nextId,
-      area: 0,
-      color: 0,
-      children,
-    };
-  };
-
-  const root = decode(compact, -1);
-  return {
-    root,
-    numNodes: nextId,
-    parentId: parentId.subarray(0, nextId),
-    excludeFlags: null,
-    isCompact: true,
-  };
-};
-
-const buildTreeIndexFromLegacy = (rawRoot: any): TreeIndex => {
-  let maxId = 0;
-  const findMax = (n: any) => {
-    if (n.id > maxId) maxId = n.id;
-    for (const c of n.children || []) findMax(c);
-  };
-  findMax(rawRoot);
-  const numNodes = maxId + 1;
-  const parentId = new Int32Array(numNodes).fill(-1);
-
-  const convert = (n: any, pId: number): TreeNode => {
-    const id = n.id;
-    parentId[id] = pId;
-    if (!n.children || n.children.length === 0) {
-      return { name: n.name, id, subtreeEnd: id + 1, area: 0, color: 0 };
-    }
-    const children = n.children.map((c: any) => convert(c, id));
-    return { name: n.name, id, subtreeEnd: id + 1, area: 0, color: 0, children };
-  };
-
-  const root = convert(rawRoot, -1);
-  return {
-    root,
-    numNodes,
-    parentId,
-    excludeFlags: null,
-    isCompact: false,
-  };
-};
-
-// Lazily compute the 2-bit exclusion flags (bit 1 = test, bit 2 = third_party)
-// only when exclude_test or exclude_third_party is actually checked.
-const ensureExcludeFlags = (treeIndex: TreeIndex) => {
-  if (treeIndex.excludeFlags) return;
-  const flags = new Uint8Array(treeIndex.numNodes);
-
-  const isTestName = (name: string) => {
-    const n = name.toLowerCase();
-    return n.includes("test") || n.includes("mock") || n.includes("example");
-  };
-
-  const walk = (node: TreeNode, isThirdPartyParent: boolean, inhFlags: number) => {
-    let f = inhFlags;
-    if (node.id > 0 && node.name) {
-      if ((f & 1) === 0 && isTestName(node.name)) {
-        f |= 1;
-      }
-      if (isThirdPartyParent && node.name.toLowerCase() !== "blink") {
-        f |= 2;
-      }
-    }
-    flags[node.id] = f;
-    if (node.children) {
-      const tpParent = node.name?.toLowerCase() === "third_party";
-      for (let i = 0; i < node.children.length; i++) {
-        walk(node.children[i], tpParent, f);
-      }
-    }
-  };
-
-  walk(treeIndex.root, false, 0);
-  treeIndex.excludeFlags = flags;
-};
-
-const getLatestTreeIndex = (repo: string): Promise<TreeIndex | null> => {
-  if (!latestTreeCache.has(repo)) {
-    latestTreeCache.set(repo, (async () => {
-      const index = await fetchJson(`/treemap/${repo}/file_index.latest.json`);
-      return index ? buildTreeIndexFromCompact(index) : null;
-    })());
-  }
-  return latestTreeCache.get(repo)!;
-};
-
-const getFullTreeIndex = (repo: string): Promise<TreeIndex | null> => {
-  if (!fullTreeCache.has(repo)) {
-    fullTreeCache.set(repo, (async () => {
-      const compact = await fetchJson(`/treemap/${repo}/file_index.compact.json`);
-      if (compact) return buildTreeIndexFromCompact(compact);
-      const legacy = await fetchJson(`/treemap/${repo}/file_index.json`);
-      return legacy ? buildTreeIndexFromLegacy(legacy) : null;
-    })());
-  }
-  return fullTreeCache.get(repo)!;
-};
-
-const getLatestMetric = (repo: string, field: string): Promise<MetricStore | null> => {
-  const key = `${repo}/${field}`;
-  if (!latestMetricCache.has(key)) {
-    latestMetricCache.set(key, (async () => {
-      const rows = await fetchJson(`/treemap/${repo}/metrics/${field}.latest.json`);
-      return rows ? { kind: "latest", rows } : null;
-    })());
-  }
-  return latestMetricCache.get(key)!;
-};
-
-const getFullMetric = (repo: string, field: string, isCompact: boolean): Promise<MetricStore | null> => {
-  const key = `${repo}/${field}/${isCompact ? "c" : "l"}`;
-  if (!fullMetricCache.has(key)) {
-    fullMetricCache.set(key, (async () => {
-      if (isCompact) {
-        const rows = await fetchJson(`/treemap/${repo}/metrics/${field}.compact.json`);
-        return rows ? { kind: "compact", rows } : null;
-      }
-      const legacy = await fetchJson(`/treemap/${repo}/metrics/${field}.json`);
-      return legacy ? { kind: "legacy", legacy } : null;
-    })());
-  }
-  return fullMetricCache.get(key)!;
-};
-
-async function FetchMetrics(latest = false) {
-  metrics = {};
-  const repo = (props.repositories as string[])?.[0] || repositories_json[0]?.dirname || "chromium";
-  const fields = Array.from(new Set(
-    ([] as string[])
-      .concat(props.field_size as any)
-      .concat(props.field_color as any)
-      .filter(Boolean)
-  ));
-
-  if (latest) {
-    await Promise.all(fields.map(async field => {
-      const store = await getLatestMetric(repo, field);
-      if (store) metrics[field] = store;
-    }));
-    return;
-  }
-
-  const isCompact = activeTreeIndex?.isCompact ?? true;
-  await Promise.all(fields.map(async field => {
-    const store = await getFullMetric(repo, field, isCompact);
-    if (store) metrics[field] = store;
-  }));
-}
-
-function computeMetricsAccumulation() {
-  if (!activeTreeIndex) return;
-  const numNodes = activeTreeIndex.numNodes;
-  const parentId = activeTreeIndex.parentId;
-  const mask = getActiveExcludeMask();
-  if (mask) {
-    ensureExcludeFlags(activeTreeIndex);
-  }
-  const flags = activeTreeIndex.excludeFlags;
-
-  for (const field in metrics) {
-    const store = metrics[field];
-    let acc = metrics_accumulation[field];
-    if (!acc || acc.length !== numNodes) {
-      acc = new Float64Array(numNodes);
-      metrics_accumulation[field] = acc;
-    } else {
-      acc.fill(0);
-    }
-
-    if (store.kind === "latest" && store.rows) {
-      const rows = store.rows;
-      let id = 0;
-      for (let r = 0; r < rows.length; r++) {
-        const row = rows[r];
-        id += row[0];
-        if (mask && flags && (flags[id] & mask) !== 0) continue;
-        acc[id] = row[1];
-      }
-    } else if (store.kind === "compact" && store.rows) {
-      const rows = store.rows;
-      let id = 0;
-      for (let r = 0; r < rows.length; r++) {
-        const row = rows[r];
-        id += row[0];
-        if (mask && flags && (flags[id] & mask) !== 0) continue;
-        let d = 0;
-        let val = 0;
-        for (let i = 1; i < row.length; i += 2) {
-          d += row[i];
-          if (d > current_date_id) break;
-          val += row[i + 1];
-        }
-        acc[id] = val;
-      }
-    } else if (store.kind === "legacy" && store.legacy) {
-      for (const file_id in store.legacy) {
-        const id = Number(file_id);
-        if (mask && flags && (flags[id] & mask) !== 0) continue;
-        const hist = store.legacy[file_id];
-        let val = 0;
-        for (let i = 0; i < hist.length; i++) {
-          if (hist[i][0] <= current_date_id) val = hist[i][1];
-          else break;
-        }
-        acc[id] = val;
-      }
-    }
-
-    if (activeTreeIndex.isCompact) {
-      // Preorder numbering guarantees parentId[i] < i for all i > 0, so a single
-      // reverse pass accumulates the entire tree without recursion.
-      for (let i = numNodes - 1; i > 0; i--) {
-        const v = acc[i];
-        if (v !== 0) {
-          acc[parentId[i]] += v;
-        }
-      }
-    } else {
-      const accWalk = (entry: TreeNode) => {
-        if (!entry.children) return;
-        for (const child of entry.children) {
-          accWalk(child);
-          acc[entry.id] += acc[child.id];
-        }
-      };
-      accWalk(activeTreeIndex.root);
-    }
-
-    metrics_accumulation[field] = acc;
-  }
-}
-
-function computeFetchedData() {
-  if (!activeTreeIndex) return;
-  const numNodes = activeTreeIndex.numNodes;
-  if (areaById.length !== numNodes) {
-    areaById = new Float64Array(numNodes);
-  } else {
-    areaById.fill(0);
-  }
-  if (colorById.length !== numNodes) {
-    colorById = new Float64Array(numNodes);
-  } else {
-    colorById.fill(0);
-  }
-
-  const fSize = (props.field_size as string[]) || [];
-  const fColor = (props.field_color as string[]) || [];
-  const props_field_size = fSize.length ? fSize : fColor;
-  const props_field_color = fColor.length ? fColor : fSize;
-
-  for (const field of props_field_size) {
-    const acc = metrics_accumulation[field];
-    if (acc) {
-      for (let i = 0; i < numNodes; i++) {
-        areaById[i] += acc[i];
-      }
-    }
-  }
-  for (const field of props_field_color) {
-    const acc = metrics_accumulation[field];
-    if (acc) {
-      for (let i = 0; i < numNodes; i++) {
-        colorById[i] += acc[i];
-      }
-    }
-  }
-}
-
-// While only the snapshot of the last date is loaded: the history is unknown.
-let isSnapshot = false;
-
-const prefetchHistory = (repo: string) => {
-  getFullTreeIndex(repo);
-  const fields = Array.from(new Set(
-    ([] as string[])
-      .concat(props.field_size as any)
-      .concat(props.field_color as any)
-      .filter(Boolean)
-  ));
-  for (const field of fields) {
-    getFullMetric(repo, field, true);
+  if (dates.length > 0) {
+    sourceNote.value = `Measured on the ${activeRepo()} source tree at ` +
+      `${dates.length} dates, the last on ${dates.at(-1)?.toISOString().slice(0, 10)}.`;
   }
 };
 
-async function fetchLatestEntries() {
-  const repo = (props.repositories as string[])?.[0] || repositories_json[0]?.dirname || "chromium";
-  await FetchDates();
-  if (dates.length == 0 || formatDate((props.dates as Date[])[1]) != dates.length - 1) {
-    return false;
+async function queryAndLoad(mode: "latest" | "full", pathsToExpand: string[][] | null) {
+  const res = await callTreemapWorker({
+    type: "query",
+    repo: String(activeRepo()),
+    mode,
+    fieldColor: Array.from((props.field_color as string[]) || []),
+    fieldSize: Array.from((props.field_size as string[]) || []),
+    historyFields: mode === "full" ? Array.from(getHistoryFields()) : [],
+    dateEndMs: ((props.dates as Date[])?.[1] ?? new Date()).getTime(),
+    excludeMask: getActiveExcludeMask(),
+    pathsToExpand: pathsToExpand ? pathsToExpand.map(p => Array.from(p || [])) : null,
+    path: Array.from((props.path as string[]) || []),
+  });
+  if (!res?.ok) return null;
+  if (res.datesMs && res.datesMs.length !== dates.length) {
+    dates = res.datesMs.map((ms: number) => new Date(ms));
   }
-  const treeIdx = await getLatestTreeIndex(repo);
-  if (!treeIdx) {
-    return false;
+  current_date_id = res.dateId;
+  isSnapshot = mode === "latest";
+  if (res.root) {
+    lastPrunedRoot = res.root;
   }
-  activeTreeIndex = treeIdx;
-  await FetchMetrics(true);
-  prefetchHistory(repo);
-  isSnapshot = true;
-  current_date_id = dates.length - 1;
-  computeMetricsAccumulation();
-  computeFetchedData();
-  return true;
-}
-
-async function fetchEntries() {
-  const repo = (props.repositories as string[])?.[0] || repositories_json[0]?.dirname || "chromium";
-  isSnapshot = false;
-  await FetchDates();
-  activeTreeIndex = await getFullTreeIndex(repo);
-  await FetchMetrics(false);
-  current_date_id = formatDate((props.dates as Date[])[1]);
-  computeMetricsAccumulation();
-  computeFetchedData();
+  return res;
 }
 
 const getCurrentDataFromPath = function(pathArr: string[]) {
@@ -1254,10 +689,16 @@ const getCurrentDataFromPath = function(pathArr: string[]) {
 };
 
 async function refresh(options: { withHistory?: boolean; emitEnd?: boolean; animateTransition?: boolean } = {}) {
-  const { withHistory = true, emitEnd = true, animateTransition = true } = options;
+  const {
+    withHistory = true,
+    emitEnd = true,
+    animateTransition = Boolean(props.animate),
+  } = options;
   colormapFunc = $color_map[props.colormap as string];
 
   if (!content.value) return;
+  const w = Math.max(0, svgWidth() - 20);
+  const h = Math.max(0, svgHeight() - 20);
   cancelLayerAnimations();
   select(content.value).selectAll("*").interrupt();
 
@@ -1266,39 +707,49 @@ async function refresh(options: { withHistory?: boolean; emitEnd?: boolean; anim
     svgs.filter((_d, i) => i < svgs.size() - 1).remove();
   }
 
-  if (!select(content.value).select(":scope > svg").node()) {
-    select(content.value).append("svg").attr("class", "treemap-layer");
+  let svgNode = content.value.querySelector(":scope > svg") as SVGSVGElement | null;
+  const isInitialInsert = !svgNode;
+  if (!svgNode) {
+    svgNode = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svgNode.setAttribute("class", "treemap-layer");
   }
 
   const nodeData = getCurrentDataFromPath(props.path as string[]);
   if (!nodeData) return;
   updateColorDomain(nodeData);
 
-  const group = select(content.value).select(":scope > svg");
+  const group = select(svgNode);
 
   const x = scaleLinear()
     .domain([nodeData.x0, nodeData.x1])
-    .rangeRound([0, svgWidth() - 20]);
+    .rangeRound([0, w]);
   const y = scaleLinear()
     .domain([nodeData.y0, nodeData.y1])
-    .rangeRound([0, svgHeight() - 20]);
+    .rangeRound([0, h]);
 
-  if (animateTransition) {
+  if (animateTransition && !isInitialInsert) {
     const transition_refresh = transition()
-      .duration(300)
-      .ease(props.animate ? easeLinear : easeCubicInOut);
+      .duration(200)
+      .ease(easeLinear);
 
-    render(group, nodeData, x, y, false, transition_refresh);
+    const animatedCount = render(group, nodeData, x, y, false, transition_refresh);
 
-    try {
-      await transition_refresh.end();
-    } catch (e) {}
+    if (animatedCount > 0) {
+      try {
+        await transition_refresh.end();
+      } catch (e) {}
+    } else {
+      await new Promise(requestAnimationFrame);
+    }
   } else {
     render(group, nodeData, x, y, false, null);
+    if (isInitialInsert) {
+      content.value.appendChild(svgNode);
+    }
   }
 
   if (withHistory) {
-    computeHistory();
+    applyHistorySeries(lastHistorySeries);
   }
 
   if (emitEnd) {
@@ -1307,15 +758,18 @@ async function refresh(options: { withHistory?: boolean; emitEnd?: boolean; anim
 }
 
 async function render_refresh(options: { withHistory?: boolean; emitEnd?: boolean; animateTransition?: boolean } = {}) {
-  data.value = mytreemap([(props.path as string[]) || []]);
+  data.value = mytreemap(lastPrunedRoot);
   await refresh(options);
 }
 
 const pathChanged = async function(new_path: string[], old_path: string[]) {
-  data.value = mytreemap([old_path || [], new_path || []]);
+  const mode = isSnapshot ? "latest" : "full";
+  const res = await queryAndLoad(mode, [old_path || [], new_path || []]);
+  if (!res?.root) return;
+  data.value = mytreemap(res.root);
   const data_old = getCurrentDataFromPath(old_path);
   const data_new = getCurrentDataFromPath(new_path);
-  await zoom(data_old, data_new);
+  await zoom(data_old, data_new, res.historySeries || {});
 };
 
 const path_wrapped = computed(() => [...((props.path as string[]) || [])]);
@@ -1326,43 +780,38 @@ watch(() => [
   props.field_size,
   props.field_color,
 ], () => lock(async () => {
-  metrics_accumulation = {};
-  historySeriesCache.clear();
-  await fetchEntries();
-  await render_refresh();
+  dates = [];
+  const res = await queryAndLoad("full", [(props.path as string[]) || []]);
+  if (res) {
+    lastHistorySeries = res.historySeries || {};
+    await render_refresh({ animateTransition: false });
+  }
 }));
 
-// Exclusion checkboxes changed: recompute accumulation from cached metrics.
+// Exclusion checkboxes changed: recompute accumulation in worker.
 watch(() => [
   props.exclude_test,
   props.exclude_third_party,
 ], () => lock(async () => {
-  if (isSnapshot) {
-    await fetchEntries();
-  } else {
-    computeMetricsAccumulation();
-    computeFetchedData();
+  const res = await queryAndLoad("full", [(props.path as string[]) || []]);
+  if (res) {
+    lastHistorySeries = res.historySeries || {};
+    await render_refresh({ animateTransition: false });
   }
-  await render_refresh();
 }));
 
-// Date range changed: if the end date_id changed, re-accumulate; if only the
-// start date changed, only re-filter the history chart.
+// Date range changed: if the end date_id changed, re-accumulate in worker; if
+// only the start date changed, re-slice the cached history series locally.
 watch(() => props.dates, () => lock(async () => {
-  if (isSnapshot) {
-    await fetchEntries();
-    await render_refresh();
+  if (!isSnapshot && dates.length > 0 && formatDate((props.dates as Date[])?.[1]) === current_date_id) {
+    applyHistorySeries(lastHistorySeries);
+    emits("animationend");
     return;
   }
-  const newDateId = formatDate((props.dates as Date[])?.[1]);
-  if (newDateId !== current_date_id) {
-    current_date_id = newDateId;
-    computeMetricsAccumulation();
-    computeFetchedData();
+  const res = await queryAndLoad("full", [(props.path as string[]) || []]);
+  if (res) {
+    lastHistorySeries = res.historySeries || {};
     await render_refresh();
-  } else {
-    computeHistory();
-    emits("animationend");
   }
 }));
 
@@ -1371,7 +820,16 @@ watch(() => [
   props.history_color,
   props.history_size,
 ], () => lock(async () => {
-  computeHistory();
+  if (isSnapshot) return;
+  const needed = getHistoryFields();
+  if (needed.every(f => lastHistorySeries[f])) {
+    applyHistorySeries(lastHistorySeries);
+    return;
+  }
+  const res = await queryAndLoad("full", null);
+  if (res) {
+    applyHistorySeries(res.historySeries || {});
+  }
 }));
 
 // Colormap settings only affect tile colors.
@@ -1379,45 +837,48 @@ watch(() => [
   props.colormap,
   props.colormapMin,
   props.colormapMax,
-], () => lock(() => refresh({ withHistory: false, emitEnd: false })));
+], () => lock(() => refresh({ withHistory: false, emitEnd: false, animateTransition: false })));
 
 watch(path_wrapped, (new_path, old_path) => lock(() => pathChanged(new_path, old_path)));
 
 let resizeObserver: ResizeObserver | null = null;
-let lastWidth = 0;
-let lastHeight = 0;
+let unmounted = false;
 
-onMounted(() => lock(async () => {
-  const renderedSnapshot = await fetchLatestEntries();
-  if (renderedSnapshot) {
-    await render_refresh({ withHistory: false, emitEnd: false, animateTransition: false });
-  }
-  const snapshotDateId = current_date_id;
-  await fetchEntries();
-  if (renderedSnapshot && current_date_id === snapshotDateId) {
-    // The treemap tiles are already showing the latest snapshot; update the
-    // backing node ids for tooltips/zooming without running a second transition,
-    // and populate the history chart.
-    await render_refresh({ withHistory: true, emitEnd: true, animateTransition: false });
-  } else {
-    await render_refresh();
-  }
+onMounted(() => {
   if (container.value) {
-    lastWidth = svgWidth();
-    lastHeight = svgHeight();
+    lastWidth = container.value.clientWidth || 0;
+    lastHeight = container.value.clientHeight || 0;
     resizeObserver = new ResizeObserver(() => {
-      const w = svgWidth();
-      const h = svgHeight();
-      if (w === lastWidth && h === lastHeight) return;
+      const w = container.value?.clientWidth || 0;
+      const h = container.value?.clientHeight || 0;
+      if (w <= 0 || h <= 0 || (w === lastWidth && h === lastHeight)) return;
       lastWidth = w;
       lastHeight = h;
       lock(() => render_refresh({ withHistory: false, emitEnd: false, animateTransition: false }));
     });
     resizeObserver.observe(container.value);
   }
-}));
+
+  lock(async () => {
+    const snapRes = await queryAndLoad("latest", [(props.path as string[]) || []]);
+    if (unmounted) return;
+    if (snapRes?.root) {
+      await render_refresh({ withHistory: false, emitEnd: false, animateTransition: false });
+    }
+    const snapshotDateId = current_date_id;
+    const fullRes = await queryAndLoad("full", [(props.path as string[]) || []]);
+    if (unmounted || !fullRes) return;
+    lastHistorySeries = fullRes.historySeries || {};
+    if (snapRes?.root && current_date_id === snapshotDateId) {
+      await render_refresh({ withHistory: true, emitEnd: true, animateTransition: false });
+    } else {
+      await render_refresh({ animateTransition: false });
+    }
+  });
+});
 
 onBeforeUnmount(() => {
+  unmounted = true;
   resizeObserver?.disconnect();
 });
 
@@ -1464,8 +925,10 @@ onBeforeUnmount(() => {
 }
 
 .treemap-tile text {
+  dominant-baseline: central;
   fill: #000;
   pointer-events: none;
+  text-anchor: start;
   user-select: none;
 }
 

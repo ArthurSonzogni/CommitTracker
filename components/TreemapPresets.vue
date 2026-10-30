@@ -10,8 +10,8 @@
         <p class="description">{{ category.description }}</p>
         <ul class="preset-list">
           <li v-for="preset in category.presets" :key="preset.name" class="preset-item">
-            <a :href="url(preset)" :title="formula(preset)" @click.prevent="emit('select', preset)">{{ preset.name }}</a>
-            <span class="preset-formula" aria-hidden="true">{{ shortFormula(preset) }}</span>
+            <a :href="url(preset)" :title="preset.formula" @click.prevent="emit('select', preset)">{{ preset.name }}</a>
+            <span class="preset-formula" aria-hidden="true">{{ preset.shortFormula }}</span>
           </li>
         </ul>
       </section>
@@ -22,7 +22,11 @@
 <script setup lang="ts">
 // Predefined views of the treemap, shown when no metric is selected.
 
-import entries from '../public/treemap/entries.json'
+import {
+  fetchRepoAvailableMetrics,
+  getCachedAvailableMetrics,
+  getTreemapMetricName,
+} from '~/utils/treemapMetrics';
 
 type Preset = {
   name: string; color: string[]; size: string[];
@@ -30,6 +34,12 @@ type Preset = {
   start?: string;
   // Also plot the denominator in the history chart.
   history_size?: boolean;
+};
+
+type EnrichedPreset = Preset & {
+  formula: string;
+  shortFormula: string;
+  allFiles: string[];
 };
 
 const props = defineProps<{ repository: string }>();
@@ -68,19 +78,19 @@ const CATEGORIES: {
     name: "Migrations",
     description: "Old APIs on their way out. Play the timeline to watch them shrink.",
     presets: [
-      { name: "Polymer → Lit", color: ["lit_element"], size: ["polymer_element", "lit_element"] },
+      { name: "Polymer → Lit", color: ["lit_element"], size: ["polymer_element", "lit_element"], history_size: true },
       { name: "Legacy IPC → Mojo", color: ["legacy_ipc"], size: ["line"] },
-      { name: "absl::optional → std::optional", color: ["std_optional"], size: ["absl_optional", "std_optional"] },
-      { name: "StringPiece → string_view", color: ["string_view"], size: ["string_piece", "string_view"] },
+      { name: "absl::optional → std::optional", color: ["std_optional"], size: ["absl_optional", "std_optional"], history_size: true },
+      { name: "StringPiece → string_view", color: ["string_view"], size: ["string_piece", "string_view"], history_size: true },
     ],
   },
   {
     name: "Languages",
     description: "Which languages the code is written in.",
     presets: [
-      { name: "JavaScript → TypeScript", color: ["javascript_file"], size: ["javascript_file", "typescript_file"] },
+      { name: "JavaScript → TypeScript", color: ["javascript_file"], size: ["javascript_file", "typescript_file"], history_size: true },
       { name: "Java → Kotlin", color: ["java_file"], size: ["java_file", "kotlin_file"] },
-      { name: "Rust", color: ["rust_file"], size: ["rust_file", "file"] },
+      { name: "Rust", color: ["rust_file"], size: ["rust_file", "file"], history_size: true },
     ],
   },
   {
@@ -94,44 +104,65 @@ const CATEGORIES: {
   },
 ];
 
+const todayIso = new Date().toISOString().split("T")[0];
+
+const ENRICHED_CATEGORIES = CATEGORIES.map(category => ({
+  ...category,
+  presets: category.presets.map<EnrichedPreset>(preset => ({
+    ...preset,
+    formula: `${preset.color.map(getTreemapMetricName).join(" + ")} ÷ ${preset.size.map(getTreemapMetricName).join(" + ")}`,
+    shortFormula: `per ${preset.size.length > 1 ? preset.size.join("+") : getTreemapMetricName(preset.size[0]).toLowerCase()}`,
+    allFiles: [...preset.color, ...preset.size],
+  })),
+}));
+
 // The link to the view, for opening it elsewhere.
 const url = (preset: Preset) => `/treemap?${new URLSearchParams({
   field_color: preset.color.join(","),
   field_size: preset.size.join(","),
   repositories: props.repository,
   ...(preset.start && {
-    dates: `${preset.start},${new Date().toISOString().split("T")[0]}`,
+    dates: `${preset.start},${todayIso}`,
   }),
   ...(preset.history_size && { history_size: "1" }),
 })}`;
 
-const metricName = (file: string) =>
-  entries.metrics.find((metric: any) => metric.file === file)?.name ?? file;
-
-const formula = (preset: Preset) =>
-  `${preset.color.map(metricName).join(" + ")} ÷ ${preset.size.map(metricName).join(" + ")}`;
-
-const shortFormula = (preset: Preset) =>
-  `per ${preset.size.length > 1 ? preset.size.join("+") : metricName(preset.size[0]).toLowerCase()}`;
-
-// The metrics of the repository. Presets using other metrics are hidden.
-const available = ref<Set<string> | null>(null);
-watch(() => props.repository, async (repository) => {
-  available.value = null;
-  try {
-    const response = await fetch(`/treemap/${repository}/available_metrics.json`);
-    available.value = new Set(await response.json());
-  } catch (e) {}
-}, { immediate: true });
-
-const categories = computed(() => CATEGORIES
+const buildCategories = (avail: Set<string> | null) => ENRICHED_CATEGORIES
   .map(category => ({
     ...category,
-    presets: category.presets.filter(preset =>
-      [...preset.color, ...preset.size].every(file =>
-        available.value?.has(file) ?? true)),
+    presets: avail
+      ? category.presets.filter(preset => preset.allFiles.every(file => avail.has(file)))
+      : category.presets,
   }))
-  .filter(category => category.presets.length > 0));
+  .filter(category => category.presets.length > 0);
+
+const categorySignature = (cats: typeof ENRICHED_CATEGORIES) =>
+  cats.map(c => `${c.name}:${c.presets.map(p => p.name).join(",")}`).join("|");
+
+// The metrics of the repository. Presets using other metrics are hidden.
+const categories = shallowRef(buildCategories(getCachedAvailableMetrics(props.repository) ?? null));
+let lastSig = categorySignature(categories.value);
+
+const applyCategories = (avail: Set<string> | null) => {
+  const next = buildCategories(avail);
+  const sig = categorySignature(next);
+  if (sig !== lastSig) {
+    lastSig = sig;
+    categories.value = next;
+  }
+};
+
+watch(() => props.repository, async (repository) => {
+  const cached = getCachedAvailableMetrics(repository);
+  if (cached) {
+    applyCategories(cached);
+    return;
+  }
+  const fetched = await fetchRepoAvailableMetrics(repository);
+  if (props.repository === repository) {
+    applyCategories(fetched);
+  }
+}, { immediate: true });
 </script>
 
 <style scoped>

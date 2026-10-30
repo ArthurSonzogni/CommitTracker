@@ -216,20 +216,14 @@
 
 import {format} from "d3-format";
 import repositories_json from '../public/data/repositories.json'
-import entries from '../public/treemap/entries.json'
+import { allTreemapMetrics, findTreemapMetric } from '~/utils/treemapMetrics'
 
 const treemap = ref(null);
 
 const route = useRoute()
 const router = useRouter()
 
-const findMetric = (identifier: string) => {
-  return entries.metrics?.find((e: any) =>
-    e.file === identifier ||
-    e.name === identifier ||
-    e.aliases?.includes(identifier)
-  );
-};
+const findMetric = findTreemapMetric;
 
 // Empty by default: the page then proposes some views.
 const field_color = ref([]);
@@ -269,7 +263,7 @@ const applyQuery = (query) => {
     : [];
   field_size.value = query.field_size
     ? (query.field_size as string).split(",").map(findMetric).filter(f => f)
-    : [findMetric('line') || entries.metrics?.[0]];
+    : [findMetric('line') || allTreemapMetrics[0]];
   dates.value = query.dates
     ? query.dates.split(',').map(d => new Date(d))
     : [new Date("2020-01-01"), new Date()];
@@ -380,22 +374,24 @@ const truncate = (str, n) => {
   return str.slice(0, n - 1) + '…';
 };
 
-watch(repositories, updateUrl);
-watch(colormap, updateUrl);
-watch(colormapMax, updateUrl);
-watch(colormapMin, updateUrl);
-watch(field_color, updateUrl);
-watch(field_size, updateUrl);
-watch(path, updateUrl, { deep: true });
-watch(dates, () => {
+watch([
+  repositories,
+  colormap,
+  colormapMax,
+  colormapMin,
+  field_color,
+  field_size,
+  path,
+  dates,
+  history_color,
+  history_size,
+  exclude_test,
+  exclude_third_party,
+], () => {
   if (!animate.value) {
     updateUrl();
   }
-}, { deep: true });
-watch(history_color, updateUrl);
-watch(history_size, updateUrl);
-watch(exclude_test, updateUrl);
-watch(exclude_third_party, updateUrl);
+}, { deep: true, flush: "post" });
 
 onMounted(() => {
   if (
