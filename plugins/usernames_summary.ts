@@ -1,4 +1,4 @@
-const MAX_CACHE_ENTRIES = 2;
+const MAX_CACHE_ENTRIES = 24;
 const cache = new Map<string, Promise<any>>();
 
 const fetchData = async (repo: string, type: string, grouping: string, kind: string) => {

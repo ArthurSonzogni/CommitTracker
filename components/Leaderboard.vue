@@ -6,7 +6,7 @@
           <option v-for="(d, i) in date" :key="i" :value="i">{{ d }} </option>
         </UiSelect>
       </UiField>
-      <div class="form-row">
+      <div class="playback-nav">
         <button type="button" class="button" @click="previous" :disabled="timeIndexModel == date.length - 1">
           Previous
         </button>
@@ -40,16 +40,11 @@
 
 <script setup lang="ts">
 
-import {axisTop} from "d3-axis";
-import {format} from "d3-format";
-import {scaleBand, scaleLinear} from "d3-scale";
-import {select} from "d3-selection";
-import "d3-transition";
-import {transition} from "d3-transition";
-import {range} from "d3-array";
-import {easeCubicOut} from "d3-ease";
+import { format } from "d3-format";
+import { scaleBand, scaleLinear } from "d3-scale";
+import { range } from "d3-array";
+import { callLeaderboardWorker } from "~/utils/leaderboardWorkerClient";
 
-const { $usersInfo } = useNuxtApp();
 const { $color } = useNuxtApp();
 
 const timeIndexModel = defineModel<number>("timeIndex", { default: 0 });
@@ -66,8 +61,11 @@ const svg = ref<SVGSVGElement | null>(null);
 const svg_axis = ref<SVGSVGElement | null>(null);
 const svg_title = ref<SVGSVGElement | null>(null);
 
+const SVG_NS = "http://www.w3.org/2000/svg";
 const take_n = 100;
 const svgHeight = take_n * 50;
+const BUFFER = 12;
+
 let scrollY = 0;
 let windowHeight = 900;
 let containerTop = 0;
@@ -82,6 +80,14 @@ const updateScrollMetrics = () => {
   }
 };
 
+const getVisibleRankBounds = (): [number, number] => {
+  const viewTop = scrollY - containerTop;
+  const viewBottom = viewTop + windowHeight;
+  const minRank = Math.max(0, Math.floor(viewTop / rowStep) - BUFFER);
+  const maxRank = Math.min(take_n + 1, Math.ceil(viewBottom / rowStep) + BUFFER);
+  return [minRank, maxRank];
+};
+
 const getPeriodDuration = () => {
   switch (props.grouping) {
     case "monthly": return 400;
@@ -91,9 +97,9 @@ const getPeriodDuration = () => {
   }
 };
 
-const STEP_DURATION = 420;    // ms for single-frame transitions
-const RANK_OMEGA = 14;        // Critically-damped spring frequency for rank swaps
-const OPACITY_OMEGA = 16;     // Critically-damped spring frequency for fade in/out
+const STEP_DURATION = 420;            // ms for single-frame transitions
+const RANK_TRANSITION_S = 0.25;       // seconds for linear rank swap
+const OPACITY_TRANSITION_S = 0.25;    // seconds for linear fade in/out
 
 const date = ref<string[]>([]);
 const is_animating = ref<boolean>(false);
@@ -110,7 +116,6 @@ const rowBandwidth = yBand.bandwidth();
 const rowPaddingOffset = yBand(0) || 0;
 const rankToY = (rank: number) => rowPaddingOffset + rank * rowStep;
 
-const formatTick = (d: number) => format(".2s")(d).replace("G", "B");
 const formatMetric = format(".3s");
 const formatValue = (v: number) => {
   const rounded = Math.round(v);
@@ -123,26 +128,41 @@ const formatValue = (v: number) => {
 interface FrameData {
   date: string;
   users: [string, number][];
-  valueMap: Map<string, number>;
+  valueMap: Map<string, number> | null;
 }
+
+const getFrameValueMap = (frame: FrameData): Map<string, number> => {
+  if (!frame.valueMap) {
+    const m = new Map<string, number>();
+    for (let i = 0; i < frame.users.length; i++) {
+      m.set(frame.users[i][0], frame.users[i][1]);
+    }
+    frame.valueMap = m;
+  }
+  return frame.valueMap;
+};
 
 interface BarRow {
   user: string;
   el: SVGGElement;
   rectEl: SVGRectElement;
   indexEl: SVGTextElement;
+  labelGroupEl: SVGGElement;
   nameEl: SVGTextElement;
   commitEl: SVGTextElement;
   rank: number;
-  rankVel: number;
+  startRank: number;
   targetRank: number;
+  rankProgress: number;
   opacity: number;
-  opacityVel: number;
+  startOpacity: number;
   targetOpacity: number;
+  opacityProgress: number;
   value: number;
   startValue: number;
   targetValue: number;
   active: boolean;
+  visible: boolean;
   lastY: number;
   lastOpacity: number;
   lastWidth: number;
@@ -152,18 +172,65 @@ interface BarRow {
   lastCommitText: string;
 }
 
+const setRowTargets = (
+  row: BarRow,
+  nextRank: number,
+  nextOpacity: number,
+  immediate = false
+) => {
+  if (immediate) {
+    row.rank = nextRank;
+    row.startRank = nextRank;
+    row.targetRank = nextRank;
+    row.rankProgress = 1;
+    row.opacity = nextOpacity;
+    row.startOpacity = nextOpacity;
+    row.targetOpacity = nextOpacity;
+    row.opacityProgress = 1;
+    return;
+  }
+  if (nextRank !== row.targetRank) {
+    row.startRank = row.rank;
+    row.targetRank = nextRank;
+    row.rankProgress = Math.abs(nextRank - row.rank) < 0.001 ? 1 : 0;
+  }
+  if (nextOpacity !== row.targetOpacity) {
+    row.startOpacity = row.opacity;
+    row.targetOpacity = nextOpacity;
+    row.opacityProgress = Math.abs(nextOpacity - row.opacity) < 0.001 ? 1 : 0;
+  }
+};
+
+interface StickyTickItem {
+  g: SVGGElement;
+  text: SVGTextElement;
+  lastX: number;
+  lastLabel: string;
+  visible: boolean;
+}
+
+interface GridTickItem {
+  g: SVGGElement;
+  lastX: number;
+  visible: boolean;
+}
+
 // Frames sorted newest-first (matching `date.value` indices).
 let framesDesc: FrameData[] = [];
 let fetchGeneration = 0;
+let activeLoadPromise: Promise<void> | null = null;
 let updatingTimeIndexInternally = false;
 
 // DOM groups & active row state.
 let barsGroupEl: SVGGElement | null = null;
-let axisGroupSel: any = null;
-let axisStickyGroupSel: any = null;
+let axisGridGroupEl: SVGGElement | null = null;
+let axisStickyGroupEl: SVGGElement | null = null;
+const stickyTicks: StickyTickItem[] = [];
+const gridTicks: GridTickItem[] = [];
 const rows = new Map<string, BarRow>();
 let hasRenderedOnce = false;
 let currentDisplayedDate = "";
+let activeTitleEl: SVGTextElement | null = null;
 let currentMax = 1;
 
 // Animation loop state.
@@ -179,179 +246,34 @@ let stepFrame: FrameData | null = null;
 interface PlaybackTrack {
   user: string;
   values: Float64Array;
-  tangents: Float64Array;
   currentVal: number;
 }
 let playbackStartTime = 0;
 let playbackCursor = 0;
-let playbackFrames: FrameData[] = [];
+let playbackDates: string[] = [];
 let playbackDateIndices: number[] = [];
 let playbackTracks: PlaybackTrack[] = [];
 let currentPlaybackDateIndex: number | null = null;
-let contributionsByDate = new Map<string, [string, number][]>();
 
-const mergeDataForRepositories = (repositoriesData: Record<string, Record<string, number>>[]) => {
-  const out: Record<string, Record<string, number>> = Object.create(null);
-  for (const data of repositoriesData) {
-    for (const [developer, timevalue] of Object.entries(data)) {
-      let devMap = out[developer];
-      if (!devMap) {
-        devMap = Object.create(null);
-        out[developer] = devMap;
-      }
-      for (const [time, value] of Object.entries(timevalue)) {
-        devMap[time] = (devMap[time] || 0) + value;
-      }
-    }
-  }
-  return out;
-};
-
-const CANDIDATE_LIMIT = take_n + 50; // Keep top 150 candidates per frame
-
-const buildFramesByDate = (data: Record<string, Record<string, number>>): FrameData[] => {
-  const byDate = new Map<string, [string, number][]>();
-  for (const [user, timeValues] of Object.entries(data)) {
-    for (const [d, val] of Object.entries(timeValues)) {
-      if (!val) continue;
-      let list = byDate.get(d);
-      if (!list) {
-        list = [];
-        byDate.set(d, list);
-      }
-      list.push([user, val]);
-    }
-  }
-
-  contributionsByDate = byDate;
-
-  const sortedDates = Array.from(byDate.keys()).sort((a, b) => (a < b ? 1 : a > b ? -1 : 0));
-  date.value = sortedDates;
-
-  if (sortedDates.length === 0) {
-    timeIndexModel.value = 0;
-    return [];
-  }
-
-  const clampedIndex = Math.min(Math.max(timeIndexModel.value || 0, 0), sortedDates.length - 1);
-  if (timeIndexModel.value !== clampedIndex) {
-    updatingTimeIndexInternally = true;
-    timeIndexModel.value = clampedIndex;
-    nextTick(() => { updatingTimeIndexInternally = false; });
-  }
-
-  const out: FrameData[] = [];
-  for (const d of sortedDates) {
-    const allUsers = byDate.get(d) || [];
-    allUsers.sort((a, b) => b[1] - a[1]);
-    const users = allUsers.slice(0, CANDIDATE_LIMIT);
-    const valueMap = new Map<string, number>();
-    for (let i = 0; i < users.length; i++) {
-      valueMap.set(users[i][0], users[i][1]);
-    }
-    out.push({
-      date: d,
-      users,
-      valueMap,
-    });
-  }
-  return out;
-};
-
-// Compute Fritsch-Carlson monotone cubic spline tangents for smooth C1 interpolation
-// without overshooting or undershooting keyframe values.
-const computeMonotoneTangents = (values: Float64Array): Float64Array => {
-  const n = values.length;
-  const tangents = new Float64Array(n);
-  if (n <= 1) return tangents;
-  if (n === 2) {
-    const slope = values[1] - values[0];
-    tangents[0] = slope;
-    tangents[1] = slope;
-    return tangents;
-  }
-
-  const deltas = new Float64Array(n - 1);
-  for (let i = 0; i < n - 1; i++) {
-    deltas[i] = values[i + 1] - values[i];
-  }
-
-  tangents[0] = deltas[0];
-  tangents[n - 1] = deltas[n - 2];
-  for (let i = 1; i < n - 1; i++) {
-    if (deltas[i - 1] * deltas[i] <= 0) {
-      tangents[i] = 0;
-    } else {
-      tangents[i] = 0.5 * (deltas[i - 1] + deltas[i]);
-    }
-  }
-
-  for (let i = 0; i < n - 1; i++) {
-    const d = deltas[i];
-    if (d === 0) {
-      tangents[i] = 0;
-      tangents[i + 1] = 0;
-    } else {
-      const a = tangents[i] / d;
-      const b = tangents[i + 1] / d;
-      const s = a * a + b * b;
-      if (s > 9) {
-        const tau = 3 / Math.sqrt(s);
-        tangents[i] = tau * a * d;
-        tangents[i + 1] = tau * b * d;
-      }
-    }
-  }
-  return tangents;
-};
-
-const evaluateHermite = (
-  values: Float64Array,
-  tangents: Float64Array,
-  idx: number,
-  s: number
-): number => {
-  const s2 = s * s;
-  const s3 = s2 * s;
-  const h00 = 2 * s3 - 3 * s2 + 1;
-  const h10 = s3 - 2 * s2 + s;
-  const h01 = -2 * s3 + 3 * s2;
-  const h11 = s3 - s2;
-  const v =
-    h00 * values[idx] +
-    h10 * tangents[idx] +
-    h01 * values[idx + 1] +
-    h11 * tangents[idx + 1];
-  return v > 0 ? v : 0;
-};
-
-// Analytical step for a critically-damped spring:
-// x'' + 2 * omega * x' + omega^2 * (x - target) = 0
-const stepSpring = (
-  pos: number,
-  vel: number,
-  target: number,
-  omega: number,
-  dt: number
-): [number, number] => {
-  const exp = Math.exp(-omega * dt);
-  const delta = pos - target;
-  const nextPos = target + (delta + (vel + omega * delta) * dt) * exp;
-  const nextVel = (vel - (vel + omega * delta) * omega * dt) * exp;
-  return [nextPos, nextVel];
-};
-
-const createRowElement = (user: string, initialRank: number, initialOpacity: number): BarRow => {
-  const ns = "http://www.w3.org/2000/svg";
-  const el = document.createElementNS(ns, "g");
+const createRowElement = (
+  user: string,
+  initialRank: number,
+  initialOpacity: number,
+  minVisibleRank: number,
+  maxVisibleRank: number
+): BarRow => {
+  const el = document.createElementNS(SVG_NS, "g");
   const initialY = rankToY(initialRank);
   el.setAttribute("transform", `translate(0, ${initialY.toFixed(2)})`);
   el.setAttribute("opacity", initialOpacity.toFixed(3));
-  if (initialOpacity <= 0) {
+
+  const initiallyVisible =
+    initialOpacity > 0 && initialRank >= minVisibleRank && initialRank <= maxVisibleRank;
+  if (!initiallyVisible) {
     el.style.display = "none";
   }
 
-  const rectEl = document.createElementNS(ns, "rect");
+  const rectEl = document.createElementNS(SVG_NS, "rect");
   rectEl.setAttribute("fill", $color(user));
   rectEl.setAttribute("opacity", "0.5");
   rectEl.setAttribute("rx", "4");
@@ -360,32 +282,33 @@ const createRowElement = (user: string, initialRank: number, initialOpacity: num
   rectEl.setAttribute("width", "0");
   el.appendChild(rectEl);
 
-  const indexEl = document.createElementNS(ns, "text");
+  const indexEl = document.createElementNS(SVG_NS, "text");
   indexEl.setAttribute("class", "index");
-  indexEl.setAttribute("fill", "black");
   indexEl.setAttribute("dx", "0");
   indexEl.setAttribute("dy", String(rowBandwidth / 2));
   indexEl.setAttribute("alignment-baseline", "middle");
   el.appendChild(indexEl);
 
-  const nameEl = document.createElementNS(ns, "text");
+  const labelGroupEl = document.createElementNS(SVG_NS, "g");
+  labelGroupEl.setAttribute("class", "labels");
+
+  const nameEl = document.createElementNS(SVG_NS, "text");
   nameEl.setAttribute("class", "name");
-  nameEl.setAttribute("fill", "black");
   nameEl.setAttribute("dy", "0.35em");
   nameEl.setAttribute("dx", "5");
   nameEl.setAttribute("y", "10");
   nameEl.textContent = user;
-  el.appendChild(nameEl);
+  labelGroupEl.appendChild(nameEl);
 
-  const commitEl = document.createElementNS(ns, "text");
+  const commitEl = document.createElementNS(SVG_NS, "text");
   commitEl.setAttribute("class", "commit");
-  commitEl.setAttribute("fill", "gray");
   commitEl.setAttribute("dy", "0.35em");
   commitEl.setAttribute("dx", "5");
   commitEl.setAttribute("y", "30");
   commitEl.textContent = "0";
-  el.appendChild(commitEl);
+  labelGroupEl.appendChild(commitEl);
 
+  el.appendChild(labelGroupEl);
   barsGroupEl?.appendChild(el);
 
   return {
@@ -393,21 +316,25 @@ const createRowElement = (user: string, initialRank: number, initialOpacity: num
     el,
     rectEl,
     indexEl,
+    labelGroupEl,
     nameEl,
     commitEl,
     rank: initialRank,
-    rankVel: 0,
+    startRank: initialRank,
     targetRank: initialRank,
+    rankProgress: 1,
     opacity: initialOpacity,
-    opacityVel: 0,
-    targetOpacity: 1,
+    startOpacity: initialOpacity,
+    targetOpacity: initialOpacity,
+    opacityProgress: 1,
     value: 0,
     startValue: 0,
     targetValue: 0,
     active: true,
-    lastY: NaN,
-    lastOpacity: NaN,
-    lastWidth: NaN,
+    visible: initiallyVisible,
+    lastY: initialY,
+    lastOpacity: initialOpacity,
+    lastWidth: 0,
     lastTextX: NaN,
     lastAnchor: "",
     lastIndexText: "",
@@ -416,57 +343,56 @@ const createRowElement = (user: string, initialRank: number, initialOpacity: num
 };
 
 const updateTitle = (dateStr: string, immediate = false) => {
-  if (!svg_title.value) return;
-  const width = svgWidth();
-  const titleSvg = select(svg_title.value);
+  const titleSvg = svg_title.value;
+  if (!titleSvg) return;
+  const xPos = String(svgWidth() - 10);
 
   if (dateStr === currentDisplayedDate) {
-    titleSvg.selectAll("text").attr("x", width - 10);
+    if (activeTitleEl) {
+      activeTitleEl.setAttribute("x", xPos);
+    }
     return;
   }
   currentDisplayedDate = dateStr;
 
-  const t = transition().duration(immediate ? 0 : 320).ease(easeCubicOut);
+  const prevEl = activeTitleEl;
+  activeTitleEl = null;
 
-  titleSvg
-    .selectAll("text")
-    .data(dateStr ? [dateStr] : [], (d: any) => d)
-    .join(
-      enter => {
-        const text = enter
-          .append("text")
-          .text(d => d)
-          .attr("text-anchor", "end")
-          .attr("x", width - 10)
-          .attr("y", 80 - 32)
-          .attr("transform", immediate ? "translate(0, 0)" : "translate(0, 28)")
-          .attr("opacity", immediate ? 1 : 0)
-          .attr("font-size", "2em");
+  if (prevEl) {
+    if (immediate || typeof prevEl.animate !== "function") {
+      prevEl.remove();
+    } else {
+      const anim = prevEl.animate(
+        [
+          { transform: "translateY(0px)", opacity: 1 },
+          { transform: "translateY(-28px)", opacity: 0 },
+        ],
+        { duration: 320, easing: "linear", fill: "forwards" }
+      );
+      anim.onfinish = () => prevEl.remove();
+    }
+  }
 
-        if (!immediate) {
-          text
-            .transition(t as any)
-            .attr("transform", "translate(0, 0)")
-            .attr("opacity", 1);
-        }
-        return text;
-      },
-      update => {
-        return update
-          .attr("x", width - 10)
-          .attr("y", 80 - 32);
-      },
-      exit => {
-        if (immediate) {
-          return exit.remove();
-        }
-        return exit
-          .transition(t as any)
-          .attr("transform", "translate(0, -28)")
-          .attr("opacity", 0)
-          .remove();
-      }
+  if (!dateStr) return;
+
+  const nextEl = document.createElementNS(SVG_NS, "text");
+  nextEl.textContent = dateStr;
+  nextEl.setAttribute("text-anchor", "end");
+  nextEl.setAttribute("x", xPos);
+  nextEl.setAttribute("y", String(80 - 32));
+  nextEl.setAttribute("font-size", "2em");
+  titleSvg.appendChild(nextEl);
+  activeTitleEl = nextEl;
+
+  if (!immediate && typeof nextEl.animate === "function") {
+    nextEl.animate(
+      [
+        { transform: "translateY(28px)", opacity: 0 },
+        { transform: "translateY(0px)", opacity: 1 },
+      ],
+      { duration: 320, easing: "linear" }
     );
+  }
 };
 
 let lastRenderedDomainMax = 0;
@@ -479,7 +405,7 @@ const renderAxes = (x: any, force = false) => {
     !force &&
     width === lastRenderedSvgWidth &&
     lastRenderedDomainMax > 0 &&
-    Math.abs(domainMax - lastRenderedDomainMax) / lastRenderedDomainMax < 0.005
+    Math.abs(domainMax - lastRenderedDomainMax) / lastRenderedDomainMax < 0.008
   ) {
     return;
   }
@@ -487,21 +413,82 @@ const renderAxes = (x: any, force = false) => {
   lastRenderedDomainMax = domainMax;
 
   const tickCount = Math.max(2, width / 100);
+  const ticks: number[] = x.ticks(tickCount);
+  const fmt = x.tickFormat(tickCount);
+  const gridHeightStr = String(svgHeight - 100);
 
-  if (axisGroupSel) {
-    const gridAxis = axisTop(x)
-      .ticks(tickCount)
-      .tickSizeOuter(0)
-      .tickSizeInner(-svgHeight + 100)
-      .tickFormat(formatTick as any);
+  if (axisStickyGroupEl) {
+    while (stickyTicks.length < ticks.length) {
+      const g = document.createElementNS(SVG_NS, "g");
+      g.setAttribute("class", "tick");
+      const line = document.createElementNS(SVG_NS, "line");
+      line.setAttribute("y2", "-6");
+      const text = document.createElementNS(SVG_NS, "text");
+      text.setAttribute("y", "-9");
+      text.setAttribute("dy", "0em");
+      g.appendChild(line);
+      g.appendChild(text);
+      axisStickyGroupEl.appendChild(g);
+      stickyTicks.push({ g, text, lastX: NaN, lastLabel: "", visible: true });
+    }
 
-    axisGroupSel.call(gridAxis);
-    axisGroupSel.attr("opacity", 0.2);
+    for (let i = 0; i < stickyTicks.length; i++) {
+      const item = stickyTicks[i];
+      if (i >= ticks.length) {
+        if (item.visible) {
+          item.g.style.display = "none";
+          item.visible = false;
+        }
+        continue;
+      }
+      if (!item.visible) {
+        item.g.style.display = "";
+        item.visible = true;
+      }
+      const tickVal = ticks[i];
+      const tx = x(tickVal) + 0.5;
+      if (Math.abs(tx - item.lastX) > 0.25 || isNaN(item.lastX)) {
+        item.g.setAttribute("transform", `translate(${tx.toFixed(2)}, 0)`);
+        item.lastX = tx;
+      }
+      const label = fmt(tickVal);
+      if (label !== item.lastLabel) {
+        item.text.textContent = label;
+        item.lastLabel = label;
+      }
+    }
   }
 
-  if (axisStickyGroupSel) {
-    const topAxis = axisTop(x).ticks(tickCount);
-    axisStickyGroupSel.call(topAxis);
+  if (axisGridGroupEl) {
+    while (gridTicks.length < ticks.length) {
+      const g = document.createElementNS(SVG_NS, "g");
+      g.setAttribute("class", "tick");
+      const line = document.createElementNS(SVG_NS, "line");
+      line.setAttribute("y2", gridHeightStr);
+      g.appendChild(line);
+      axisGridGroupEl.appendChild(g);
+      gridTicks.push({ g, lastX: NaN, visible: true });
+    }
+
+    for (let i = 0; i < gridTicks.length; i++) {
+      const item = gridTicks[i];
+      if (i >= ticks.length) {
+        if (item.visible) {
+          item.g.style.display = "none";
+          item.visible = false;
+        }
+        continue;
+      }
+      if (!item.visible) {
+        item.g.style.display = "";
+        item.visible = true;
+      }
+      const tx = x(ticks[i]) + 0.5;
+      if (Math.abs(tx - item.lastX) > 0.25 || isNaN(item.lastX)) {
+        item.g.setAttribute("transform", `translate(${tx.toFixed(2)}, 0)`);
+        item.lastX = tx;
+      }
+    }
   }
 };
 
@@ -515,39 +502,33 @@ const flushDOM = (dt: number, immediate: boolean): boolean => {
 
   const x0 = x(0);
   let allSettled = true;
-
-  const BUFFER = 12;
-  const viewTop = scrollY - containerTop;
-  const viewBottom = viewTop + windowHeight;
-  const minVisibleRank = Math.max(0, Math.floor(viewTop / rowStep) - BUFFER);
-  const maxVisibleRank = Math.min(take_n + 1, Math.ceil(viewBottom / rowStep) + BUFFER);
+  const [minVisibleRank, maxVisibleRank] = getVisibleRankBounds();
 
   for (const [user, row] of rows.entries()) {
     if (immediate || dt <= 0) {
       row.rank = row.targetRank;
-      row.rankVel = 0;
+      row.startRank = row.targetRank;
+      row.rankProgress = 1;
       row.opacity = row.targetOpacity;
-      row.opacityVel = 0;
+      row.startOpacity = row.targetOpacity;
+      row.opacityProgress = 1;
     } else {
-      const [nextRank, nextRankVel] = stepSpring(
-        row.rank,
-        row.rankVel,
-        row.targetRank,
-        RANK_OMEGA,
-        dt
-      );
-      row.rank = nextRank;
-      row.rankVel = nextRankVel;
+      if (row.rankProgress < 1) {
+        row.rankProgress = Math.min(1, row.rankProgress + dt / RANK_TRANSITION_S);
+        row.rank = row.startRank + (row.targetRank - row.startRank) * row.rankProgress;
+      } else {
+        row.rank = row.targetRank;
+      }
 
-      const [nextOpacity, nextOpacityVel] = stepSpring(
-        row.opacity,
-        row.opacityVel,
-        row.targetOpacity,
-        OPACITY_OMEGA,
-        dt
-      );
-      row.opacity = Math.max(0, Math.min(1, nextOpacity));
-      row.opacityVel = nextOpacityVel;
+      if (row.opacityProgress < 1) {
+        row.opacityProgress = Math.min(1, row.opacityProgress + dt / OPACITY_TRANSITION_S);
+        row.opacity = Math.max(
+          0,
+          Math.min(1, row.startOpacity + (row.targetOpacity - row.startOpacity) * row.opacityProgress)
+        );
+      } else {
+        row.opacity = row.targetOpacity;
+      }
     }
 
     if (!row.active && row.opacity < 0.01 && Math.abs(row.targetOpacity) < 0.01) {
@@ -556,29 +537,24 @@ const flushDOM = (dt: number, immediate: boolean): boolean => {
       continue;
     }
 
-    const rankError = Math.abs(row.rank - row.targetRank);
-    const opacityError = Math.abs(row.opacity - row.targetOpacity);
-    if (rankError > 0.002 || opacityError > 0.005 || Math.abs(row.rankVel) > 0.01) {
+    if (row.rankProgress < 1 || row.opacityProgress < 1) {
       allSettled = false;
-    } else {
-      row.rank = row.targetRank;
-      row.rankVel = 0;
-      row.opacity = row.targetOpacity;
-      row.opacityVel = 0;
     }
 
-    // Viewport Culling: Only update DOM attributes if the row is within (or near) the visible viewport.
-    const inViewport = immediate ||
+    // Viewport Culling: Only keep rows in the layout tree when within (or near) the viewport.
+    const inViewport =
       (row.rank >= minVisibleRank && row.rank <= maxVisibleRank) ||
       (row.targetRank >= minVisibleRank && row.targetRank <= maxVisibleRank);
 
     if (inViewport) {
-      if (row.el.style.display === "none") {
+      if (!row.visible) {
         row.el.style.display = "";
+        row.visible = true;
       }
     } else {
-      if (row.el.style.display !== "none") {
+      if (row.visible) {
         row.el.style.display = "none";
+        row.visible = false;
       }
       continue;
     }
@@ -606,15 +582,12 @@ const flushDOM = (dt: number, immediate: boolean): boolean => {
     const anchor = isShort ? "start" : "end";
 
     if (Math.abs(textX - row.lastTextX) > 0.05 || isNaN(row.lastTextX)) {
-      const textXStr = textX.toFixed(2);
-      row.nameEl.setAttribute("x", textXStr);
-      row.commitEl.setAttribute("x", textXStr);
+      row.labelGroupEl.setAttribute("transform", `translate(${textX.toFixed(2)}, 0)`);
       row.lastTextX = textX;
     }
 
     if (anchor !== row.lastAnchor) {
-      row.nameEl.setAttribute("text-anchor", anchor);
-      row.commitEl.setAttribute("text-anchor", anchor);
+      row.labelGroupEl.setAttribute("text-anchor", anchor);
       row.lastAnchor = anchor;
     }
 
@@ -640,6 +613,7 @@ const assignTargetRanks = (topUsers: [string, number][], enterImmediately: boole
     row.active = false;
   }
 
+  const [minVis, maxVis] = getVisibleRankBounds();
   const count = Math.min(take_n, topUsers.length);
   let maxVal = 0;
 
@@ -651,19 +625,22 @@ const assignTargetRanks = (topUsers: [string, number][], enterImmediately: boole
     if (!row) {
       const initialRank = enterImmediately ? i : take_n + 0.5;
       const initialOpacity = enterImmediately ? 1 : 0;
-      row = createRowElement(user, initialRank, initialOpacity);
+      row = createRowElement(user, initialRank, initialOpacity, minVis, maxVis);
       rows.set(user, row);
     }
     row.active = true;
-    row.targetRank = i;
-    row.targetOpacity = 1;
+    setRowTargets(row, i, 1, enterImmediately);
     row.value = val;
   }
 
-  for (const row of rows.values()) {
+  for (const [user, row] of rows.entries()) {
     if (!row.active) {
-      row.targetRank = take_n + 1;
-      row.targetOpacity = 0;
+      if (enterImmediately || (row.rank > maxVis && row.targetRank > maxVis)) {
+        row.el.remove();
+        rows.delete(user);
+      } else {
+        setRowTargets(row, take_n + 1, 0, false);
+      }
     }
   }
 
@@ -675,6 +652,7 @@ const assignTargetRanksFromTracks = (topTracks: PlaybackTrack[], enterImmediatel
     row.active = false;
   }
 
+  const [minVis, maxVis] = getVisibleRankBounds();
   const count = Math.min(take_n, topTracks.length);
   let maxVal = 0;
 
@@ -688,19 +666,22 @@ const assignTargetRanksFromTracks = (topTracks: PlaybackTrack[], enterImmediatel
     if (!row) {
       const initialRank = enterImmediately ? i : take_n + 0.5;
       const initialOpacity = enterImmediately ? 1 : 0;
-      row = createRowElement(user, initialRank, initialOpacity);
+      row = createRowElement(user, initialRank, initialOpacity, minVis, maxVis);
       rows.set(user, row);
     }
     row.active = true;
-    row.targetRank = i;
-    row.targetOpacity = 1;
+    setRowTargets(row, i, 1, enterImmediately);
     row.value = val;
   }
 
-  for (const row of rows.values()) {
+  for (const [user, row] of rows.entries()) {
     if (!row.active) {
-      row.targetRank = take_n + 1;
-      row.targetOpacity = 0;
+      if (row.rank > maxVis && row.targetRank > maxVis) {
+        row.el.remove();
+        rows.delete(user);
+      } else {
+        setRowTargets(row, take_n + 1, 0, false);
+      }
     }
   }
 
@@ -715,11 +696,10 @@ const tick = (now: number) => {
   if (animMode === "step" && stepFrame) {
     const elapsed = now - stepStartTime;
     const progress = Math.min(1, elapsed / STEP_DURATION);
-    const eased = easeCubicOut(progress);
 
     const activeUsers: [string, number][] = [];
     for (const row of rows.values()) {
-      row.value = row.startValue + (row.targetValue - row.startValue) * eased;
+      row.value = row.startValue + (row.targetValue - row.startValue) * progress;
       if (row.active || row.value > 0.5) {
         activeUsers.push([row.user, row.value]);
       }
@@ -732,13 +712,11 @@ const tick = (now: number) => {
       const row = rows.get(user)!;
       if (i < take_n && (row.targetValue > 0 || progress < 1)) {
         row.active = true;
-        row.targetRank = i;
-        row.targetOpacity = 1;
+        setRowTargets(row, i, 1, false);
         if (val > maxVal) maxVal = val;
       } else {
         row.active = false;
-        row.targetRank = take_n + 1;
-        row.targetOpacity = 0;
+        setRowTargets(row, take_n + 1, 0, false);
       }
     }
     currentMax = maxVal > 0 ? maxVal : 1;
@@ -753,8 +731,8 @@ const tick = (now: number) => {
     return;
   }
 
-  if (animMode === "playback" && playbackFrames.length > 0) {
-    const totalIntervals = Math.max(1, playbackFrames.length - 1);
+  if (animMode === "playback" && playbackDates.length > 0) {
+    const totalIntervals = Math.max(1, playbackDates.length - 1);
     if (is_animating.value) {
       const elapsed = now - playbackStartTime;
       playbackCursor = Math.min(totalIntervals, Math.max(0, elapsed / getPeriodDuration()));
@@ -769,7 +747,7 @@ const tick = (now: number) => {
     const alpha = cursor - idx;
 
     const displayIdx = alpha >= 0.5 ? idx + 1 : idx;
-    const frameDate = playbackFrames[displayIdx].date;
+    const frameDate = playbackDates[displayIdx];
     updateTitle(frameDate, false);
 
     currentPlaybackDateIndex = playbackDateIndices[displayIdx] ?? null;
@@ -777,7 +755,9 @@ const tick = (now: number) => {
     const activeTracks: PlaybackTrack[] = [];
     for (let i = 0; i < playbackTracks.length; i++) {
       const track = playbackTracks[i];
-      const val = evaluateHermite(track.values, track.tangents, idx, alpha);
+      const v0 = track.values[idx];
+      const v1 = track.values[idx + 1];
+      const val = v0 + (v1 - v0) * alpha;
       if (val > 0) {
         track.currentVal = val;
         activeTracks.push(track);
@@ -819,6 +799,7 @@ const transitionToFrame = (frame: FrameData | undefined) => {
   const isFirstRender = !hasRenderedOnce;
   hasRenderedOnce = true;
 
+  updateScrollMetrics();
   updateTitle(frame.date, isFirstRender);
 
   const topSlice = frame.users.slice(0, take_n);
@@ -837,34 +818,35 @@ const transitionToFrame = (frame: FrameData | undefined) => {
     return;
   }
 
-  // Mark existing rows with their start and target values.
+  const [minVis, maxVis] = getVisibleRankBounds();
   const topSet = new Set<string>();
   for (let i = 0; i < topSlice.length; i++) {
     const [user, val] = topSlice[i];
     topSet.add(user);
     let row = rows.get(user);
     if (!row) {
-      row = createRowElement(user, take_n + 0.5, 0);
+      row = createRowElement(user, take_n + 0.5, 0, minVis, maxVis);
       row.value = 0;
       rows.set(user, row);
     }
     row.startValue = row.value;
     row.targetValue = val;
     row.active = true;
-    row.targetRank = i;
-    row.targetOpacity = 1;
+    setRowTargets(row, i, 1, false);
   }
 
+  const valueMap = getFrameValueMap(frame);
   for (const [user, row] of rows.entries()) {
-    if (row.targetRank > 30 && row.rank > 30) {
-      continue;
-    }
     if (!topSet.has(user)) {
+      if (row.rank > maxVis && row.targetRank > maxVis) {
+        row.el.remove();
+        rows.delete(user);
+        continue;
+      }
       row.startValue = row.value;
-      row.targetValue = frame.valueMap.get(user) || 0;
+      row.targetValue = valueMap.get(user) || 0;
       row.active = false;
-      row.targetRank = take_n + 1;
-      row.targetOpacity = 0;
+      setRowTargets(row, take_n + 1, 0, false);
     }
   }
 
@@ -874,27 +856,56 @@ const transitionToFrame = (frame: FrameData | undefined) => {
   ensureRaf();
 };
 
-const loadData = async () => {
+const loadData = (): Promise<void> => {
   is_animating.value = false;
-  if ( animMode === "playback") {
+  if (animMode === "playback") {
     animMode = "idle";
   }
   const gen = ++fetchGeneration;
-  const repoData = await Promise.all(
-    props.repositories.map(repo =>
-      $usersInfo(repo, props.type, props.grouping, props.kind)
-    )
-  );
-  if (gen !== fetchGeneration) return;
+  const repositories = Array.from(props.repositories);
+  const promise = (async () => {
+    const res = await callLeaderboardWorker<{
+      dates: string[];
+      framesUsers: [string, number][][];
+    }>({
+      action: "load",
+      repositories,
+      type: props.type,
+      grouping: props.grouping,
+      kind: props.kind,
+    });
+    if (gen !== fetchGeneration) return;
 
-  const merged = mergeDataForRepositories(repoData);
-  framesDesc = buildFramesByDate(merged);
+    const sortedDates = res.dates;
+    date.value = sortedDates;
 
-  if (framesDesc.length === 0) return;
+    if (sortedDates.length === 0) {
+      framesDesc = [];
+      timeIndexModel.value = 0;
+      return;
+    }
 
-  const idx = Math.min(Math.max(timeIndexModel.value || 0, 0), framesDesc.length - 1);
-  transitionToFrame(framesDesc[idx]);
+    const clampedIndex = Math.min(Math.max(timeIndexModel.value || 0, 0), sortedDates.length - 1);
+    if (timeIndexModel.value !== clampedIndex) {
+      updatingTimeIndexInternally = true;
+      timeIndexModel.value = clampedIndex;
+      nextTick(() => { updatingTimeIndexInternally = false; });
+    }
+
+    framesDesc = sortedDates.map((d, i) => ({
+      date: d,
+      users: res.framesUsers[i],
+      valueMap: null,
+    }));
+
+    transitionToFrame(framesDesc[clampedIndex]);
+  })();
+
+  activeLoadPromise = promise;
+  return promise;
 };
+
+let playbackGeneration = 0;
 
 const animate = async (should_accumulate = false) => {
   if (is_animating.value) {
@@ -902,91 +913,63 @@ const animate = async (should_accumulate = false) => {
     return;
   }
 
-  if (framesDesc.length === 0) {
+  const pGen = ++playbackGeneration;
+  is_animating.value = true;
+
+  if (activeLoadPromise) {
+    await activeLoadPromise;
+  } else if (framesDesc.length === 0) {
     await loadData();
   }
-  if (framesDesc.length < 2) return;
+
+  if (pGen !== playbackGeneration || !is_animating.value) return;
+  if (framesDesc.length < 2) {
+    is_animating.value = false;
+    return;
+  }
 
   const startDescIdx = Math.min(
     framesDesc.length - 1,
     Math.max(1, timeIndexModel.value || 0)
   );
 
-  // Build chronological sequence from startDescIdx down to 0 (newest).
-  const chronoFrames: FrameData[] = [];
-  const chronoDateIndices: number[] = [];
+  const res = await callLeaderboardWorker<{
+    dates: string[];
+    dateIndices: number[];
+    firstFrameUsers: [string, number][];
+    tracks: { user: string; values: Float64Array }[];
+  }>({
+    action: "preparePlayback",
+    startDescIdx,
+    shouldAccumulate: should_accumulate,
+    existingUsers: Array.from(rows.keys()),
+  });
 
-  if (should_accumulate) {
-    const accu = new Map<string, number>();
-    for (let dIdx = startDescIdx; dIdx >= 0; dIdx--) {
-      const src = framesDesc[dIdx];
-      const contribs = contributionsByDate.get(src.date) || src.users;
-      for (let uIdx = 0; uIdx < contribs.length; uIdx++) {
-        const [user, val] = contribs[uIdx];
-        accu.set(user, (accu.get(user) || 0) + val);
-      }
-      const users: [string, number][] = Array.from(accu.entries());
-      users.sort((a, b) => b[1] - a[1]);
-      const topUsers = users.slice(0, CANDIDATE_LIMIT);
-      const valueMap = new Map<string, number>(topUsers);
-      chronoFrames.push({
-        date: src.date,
-        users: topUsers,
-        valueMap,
-      });
-      chronoDateIndices.push(dIdx);
-    }
-  } else {
-    for (let dIdx = startDescIdx; dIdx >= 0; dIdx--) {
-      chronoFrames.push(framesDesc[dIdx]);
-      chronoDateIndices.push(dIdx);
-    }
+  if (pGen !== playbackGeneration || !is_animating.value) return;
+  if (res.dates.length < 2) {
+    is_animating.value = false;
+    return;
   }
 
-  // Collect candidate users: anyone in the top (take_n + 50) of any frame
-  // in the sequence, plus any currently displayed users.
-  const candidateLimit = CANDIDATE_LIMIT;
-  const candidateSet = new Set<string>(rows.keys());
-  for (let f = 0; f < chronoFrames.length; f++) {
-    const uList = chronoFrames[f].users;
-    const lim = Math.min(candidateLimit, uList.length);
-    for (let i = 0; i < lim; i++) {
-      candidateSet.add(uList[i][0]);
-    }
-  }
+  assignTargetRanks(res.firstFrameUsers.slice(0, take_n), false);
+  updateTitle(res.dates[0], false);
 
-  const numFrames = chronoFrames.length;
-  const tracks: PlaybackTrack[] = [];
-  for (const user of candidateSet) {
-    const values = new Float64Array(numFrames);
-    let hasNonZero = false;
-    for (let f = 0; f < numFrames; f++) {
-      const v = chronoFrames[f].valueMap.get(user) || 0;
-      values[f] = v;
-      if (v > 0) hasNonZero = true;
-    }
-    if (!hasNonZero) continue;
-    const tangents = computeMonotoneTangents(values);
-    tracks.push({ user, values, tangents, currentVal: 0 });
-  }
-
-  // Initialize rows to the starting frame of the animation.
-  const firstFrame = chronoFrames[0];
-  assignTargetRanks(firstFrame.users.slice(0, take_n), false);
-  updateTitle(firstFrame.date, false);
-
+  playbackDates = res.dates;
+  playbackDateIndices = res.dateIndices;
+  playbackTracks = res.tracks.map(t => ({
+    user: t.user,
+    values: t.values,
+    currentVal: 0,
+  }));
   currentPlaybackDateIndex = playbackDateIndices[0] ?? null;
-  playbackFrames = chronoFrames;
-  playbackDateIndices = chronoDateIndices;
-  playbackTracks = tracks;
   playbackStartTime = performance.now();
   playbackCursor = 0;
-  is_animating.value = true;
   animMode = "playback";
   ensureRaf();
 };
 
 const stop = () => {
+  playbackGeneration++;
   is_animating.value = false;
   if (currentPlaybackDateIndex !== null && timeIndexModel.value !== currentPlaybackDateIndex) {
     updatingTimeIndexInternally = true;
@@ -1006,6 +989,20 @@ const next = () => {
 };
 
 let resizeObserver: ResizeObserver | null = null;
+let scrollRafPending = false;
+
+const onScroll = () => {
+  updateScrollMetrics();
+  if (hasRenderedOnce && animMode === "idle" && !scrollRafPending) {
+    scrollRafPending = true;
+    requestAnimationFrame(() => {
+      scrollRafPending = false;
+      if (animMode === "idle") {
+        flushDOM(0, false);
+      }
+    });
+  }
+};
 
 const onResize = () => {
   cachedSvgWidth = container.value?.clientWidth || 800;
@@ -1014,6 +1011,11 @@ const onResize = () => {
   if (currentDisplayedDate) {
     updateTitle(currentDisplayedDate, true);
   }
+  const width = svgWidth();
+  const x = scaleLinear()
+    .domain([0, Math.max(1, currentMax)])
+    .range([25, width - 10]);
+  renderAxes(x, true);
   flushDOM(0, false);
 };
 
@@ -1034,7 +1036,7 @@ watch(timeIndexModel, (newIdx) => {
 
 onMounted(() => {
   updateScrollMetrics();
-  window.addEventListener("scroll", updateScrollMetrics, { passive: true });
+  window.addEventListener("scroll", onScroll, { passive: true });
   if (container.value) {
     cachedSvgWidth = container.value.clientWidth || 800;
     resizeObserver = new ResizeObserver((entries) => {
@@ -1049,13 +1051,23 @@ onMounted(() => {
     resizeObserver.observe(container.value);
   }
   if (svg.value) {
-    barsGroupEl = select(svg.value).append("g").node();
-    axisGroupSel = select(svg.value).append("g").classed("axis-grid", true);
+    const barsG = document.createElementNS(SVG_NS, "g");
+    const gridG = document.createElementNS(SVG_NS, "g");
+    gridG.setAttribute("class", "axis-grid");
+    gridG.setAttribute("opacity", "0.2");
+    svg.value.appendChild(barsG);
+    svg.value.appendChild(gridG);
+    barsGroupEl = barsG;
+    axisGridGroupEl = gridG;
   }
   if (svg_axis.value) {
-    axisStickyGroupSel = select(svg_axis.value)
-      .append("g")
-      .attr("transform", "translate(0, 30)");
+    const stickyG = document.createElementNS(SVG_NS, "g");
+    stickyG.setAttribute("transform", "translate(0, 30)");
+    stickyG.setAttribute("fill", "none");
+    stickyG.setAttribute("font-size", "10");
+    stickyG.setAttribute("text-anchor", "middle");
+    svg_axis.value.appendChild(stickyG);
+    axisStickyGroupEl = stickyG;
   }
   window.addEventListener("resize", onResize);
   loadData();
@@ -1063,7 +1075,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener("resize", onResize);
-  window.removeEventListener("scroll", updateScrollMetrics);
+  window.removeEventListener("scroll", onScroll);
   resizeObserver?.disconnect();
   resizeObserver = null;
   if (rafId !== null) {
@@ -1074,15 +1086,22 @@ onBeforeUnmount(() => {
     row.el.remove();
   }
   rows.clear();
+  stickyTicks.length = 0;
+  gridTicks.length = 0;
   framesDesc = [];
-  playbackFrames = [];
+  playbackDates = [];
   playbackTracks = [];
-  contributionsByDate.clear();
 });
 
 </script>
 
 <style scoped>
+
+.playback-nav {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+}
 
 .svg {
   padding: 0;
@@ -1090,14 +1109,17 @@ onBeforeUnmount(() => {
 }
 
 svg :deep(.index),
-svg :deep(.commit) {
-  font-variant-numeric: tabular-nums;
+svg :deep(.name) {
+  fill: var(--ink);
 }
 
-svg :deep(.axis-grid .domain),
-svg :deep(.axis-grid .tick:first-of-type text),
-.sticky-top :deep(.domain) {
-  display: none;
+svg :deep(.commit) {
+  fill: var(--muted);
+}
+
+svg :deep(.index),
+svg :deep(.commit) {
+  font-variant-numeric: tabular-nums;
 }
 
 svg :deep(.axis-grid .tick line) {
