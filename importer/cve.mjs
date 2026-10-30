@@ -27,7 +27,7 @@ const loadDatabase = () => {
     for (const cve of values) {
       cve.components = cve.components?.map(decodeHtmlEntities);
     }
-    return values.filter(cve => cve.id).sort((a, b) => a.id - b.id)
+    return values;
   } catch (e) {
     return []
   }
@@ -300,8 +300,15 @@ const retrieveCveList = async (database) => {
 
     const transformed = transformCve(cve)
 
-    const existing = database.find(entry => entry.id == transformed.id);
+    // Previous versions of the importer overwrote cve.id with null when the bug
+    // had no CVE field. Match those entries back by bug URL and publish date so
+    // their scraped bug and commit data is preserved.
+    const existing = database.find(entry => entry.id == transformed.id) ||
+      database.find(entry => !entry.id &&
+        entry.bug == transformed.bug &&
+        entry.published == transformed.published);
     if (existing) {
+      existing.id = transformed.id;
       // Update metadata fields from the CVE repository.
       existing.cweId = transformed.cweId;
       existing.problem = transformed.problem;
@@ -314,6 +321,12 @@ const retrieveCveList = async (database) => {
 
     console.log("Adding CVE", transformed.id)
     database.push(transformed)
+  }
+
+  for (let i = database.length - 1; i >= 0; i--) {
+    if (!database[i].id) {
+      database.splice(i, 1);
+    }
   }
 }
 

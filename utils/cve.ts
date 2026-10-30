@@ -8,7 +8,7 @@ const decodeHtmlEntities = (text: string) => text
 
 export const fetchCveData = async () => {
   const response = await fetch("/cve/data.json");
-  const data = await response.json();
+  const data = (await response.json()).filter((cve: any) => cve.id);
   for (const cve of data) {
     cve.components = cve.components?.map(decodeHtmlEntities);
   }
