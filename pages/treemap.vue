@@ -33,13 +33,13 @@
             <template #trigger="{ active }">
               <button type="button" class="button">
                 <span class="color-swatch"
-                      :style="{ background: $GetColormapGradient(colormap) }"/>
+                      :style="{ background: activeColormapGradient }"/>
                 {{ colormap }}
               <UiIcon :name="active ? 'menu-up' : 'menu-down'" size="small" /></button>
             </template>
             <UiDropdownItem v-for="option in colormap_list" :key="option" :value="option">
               <span class="color-swatch"
-                    :style="{ background: $GetColormapGradient(option, 10) }"/>
+                    :style="{ background: colormapSwatches[option] }"/>
                 {{ truncate(option, 5) }}
             </UiDropdownItem>
           </UiDropdown>
@@ -94,7 +94,7 @@
           <span>{{ percent(color_domain[0]) }}</span>
           <span class="legend-gradient"
                 aria-label="Color scale"
-                :style="{ background: $GetColormapGradient(colormap) }"/>
+                :style="{ background: activeColormapGradient }"/>
           <span>{{ percent(color_domain[1]) }}</span>
 
           <button type="button" class="button is-small ml-2" @click="fullscreen = true">
@@ -142,19 +142,23 @@
         </Treemap>
       </div>
       <div class="section">
-        <div class="form-row">
-          <UiField expanded>
-            <Timeline v-model="dates" ></Timeline>
-          </UiField>
-          <div class="form-row">
-            <button type="button" class="button ml-5" @click="toggleAnimate" :disabled="dates[1].getTime() > new Date().getTime() - 100000000">
-              <UiIcon :name="animate ? 'pause' : 'play'" size="small"></UiIcon>
-            </button>
-            <button type="button" class="button" :disabled="dates[1].getTime() > new Date().getTime() - 100000000" @click="increaseAnimateSpeed">
-              x{{animate_speed}}
-            </button>
-          </div>
-        </div>
+        <Timeline v-model="dates">
+          <button
+            type="button"
+            class="button"
+            :aria-label="animate ? 'Pause' : 'Play'"
+            :disabled="dates[1].getTime() > new Date().getTime() - 100000000"
+            @click="toggleAnimate">
+            <UiIcon :name="animate ? 'pause' : 'play'" size="small"></UiIcon>
+          </button>
+          <button
+            type="button"
+            class="button"
+            :disabled="dates[1].getTime() > new Date().getTime() - 100000000"
+            @click="increaseAnimateSpeed">
+            x{{animate_speed}}
+          </button>
+        </Timeline>
       </div>
 
       <section class="section content">
@@ -162,12 +166,12 @@
           Download data:
         </h2>
 
-        <ul>
-          <li>Temporal data:
+        <ul class="download-list">
+          <li><span>Temporal data:</span>
             <button type="button" class="button is-small" @click="treemap.download('temporal_json')">JSON</button>
             <button type="button" class="button is-small" @click="treemap.download('temporal_csv')">CSV</button>
           </li>
-          <li>Spatial data:
+          <li><span>Spatial data:</span>
             <button type="button" class="button is-small" @click="treemap.download('spatial_json')">JSON</button>
             <button type="button" class="button is-small" @click="treemap.download('spatial_csv')">CSV</button>
           </li>
@@ -300,6 +304,10 @@ const {
   $GetColormapGradient
 } = useNuxtApp();
 const colormap_list = ref(Object.keys($color_map));
+const colormapSwatches = Object.fromEntries(
+  Object.keys($color_map).map(option => [option, $GetColormapGradient(option, 10)])
+);
+const activeColormapGradient = computed(() => $GetColormapGradient(colormap.value));
 
 const increaseAnimateSpeed = () => {
   switch(animate_speed.value) {
@@ -379,7 +387,11 @@ watch(colormapMin, updateUrl);
 watch(field_color, updateUrl);
 watch(field_size, updateUrl);
 watch(path, updateUrl, { deep: true });
-watch(dates, updateUrl, { deep: true });
+watch(dates, () => {
+  if (!animate.value) {
+    updateUrl();
+  }
+}, { deep: true });
 watch(history_color, updateUrl);
 watch(history_size, updateUrl);
 watch(exclude_test, updateUrl);
@@ -409,14 +421,13 @@ const animationEnd = async () => {
 watch(animate, () => {
   if (animate.value) {
     animationEnd();
+  } else {
+    updateUrl();
   }
 })
 
 const toggleAnimate = () => {
   animate.value = !animate.value;
-  if (animate.value) {
-    animationEnd();
-  }
 }
 
 </script>
@@ -539,6 +550,15 @@ section {
   border-radius: 2px;
   margin-right: 0.5em;
   vertical-align: middle;
+}
+
+.download-list li > span,
+.download-list .button {
+  vertical-align: middle;
+}
+
+.download-list .button {
+  margin-left: 0.35rem;
 }
 
 </style>

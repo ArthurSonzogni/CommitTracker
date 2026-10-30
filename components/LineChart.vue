@@ -80,8 +80,10 @@ const props = defineProps({
   },
   // Hand-picked events explaining the inflection points: { date, label }.
   milestones: { type: Array, default: () => [] },
+  animate: { type: Boolean, default: true },
 });
 const formatValue = d => props.formatter ? props.formatter(d) : "" + d;
+const milestoneWidthCache = new Map<string, number>();
 
 const dateExtent = computed(() => {
   if (!props.data || props.data.length === 0) return [new Date(), new Date()];
@@ -123,17 +125,23 @@ const render = () => {
     .range([ innerHeight, 0 ])
     .domain(patchExtent.value);
 
-  select(xAxis.value)
-    .transition()
-    .duration(500)
-    .call(axisBottom(x).ticks(7));
-
+  const bottomAxis = axisBottom(x).ticks(7);
   const leftAxis = axisLeft(y);
   if (props.formatter) leftAxis.tickFormat(props.formatter);
-  select(yAxis.value)
-    .transition()
-    .duration(500)
-    .call(leftAxis);
+
+  if (props.animate) {
+    select(xAxis.value)
+      .transition()
+      .duration(500)
+      .call(bottomAxis);
+    select(yAxis.value)
+      .transition()
+      .duration(500)
+      .call(leftAxis);
+  } else {
+    select(xAxis.value).interrupt().call(bottomAxis);
+    select(yAxis.value).interrupt().call(leftAxis);
+  }
 
   // Chrome releases, every 10 milestones, under the years. Labels without
   // room are skipped.
@@ -185,10 +193,15 @@ const render = () => {
         .attr("y1", 0)
         .attr("y2", innerHeight);
       const texts = group.select("text").text(m => m.label);
-      const placement = labelLanes(texts.nodes().map((node, i) => ({
-        x: milestones[i].x,
-        width: node.getComputedTextLength(),
-      })), innerWidth);
+      const placement = labelLanes(texts.nodes().map((node, i) => {
+        const label = milestones[i].label;
+        let width = milestoneWidthCache.get(label);
+        if (width === undefined) {
+          width = node.getComputedTextLength();
+          milestoneWidthCache.set(label, width);
+        }
+        return { x: milestones[i].x, width };
+      }), innerWidth);
       texts
         .attr("text-anchor", (m, i) => placement[i].anchor)
         .attr("x", (m, i) => placement[i].anchor === "start" ? m.x + 4 : m.x - 4)
@@ -292,53 +305,76 @@ const render = () => {
     .selectAll(".line")
     .data(props.data, d => d.label)
     .join(
-      enter => enter
-      .insert("path", ":first-child")
-      .attr("class", "line")
-      .attr("fill", "none")
-      .attr("stroke", d => d.color || $color(d.label))
-      .attr("stroke-width", 0)
-      .attr("d", d => valueZero(d.values))
-      .transition()
-      .duration(500)
-      .attr("d", d => valueLines(d.values))
-      .attr("stroke-width", 1.5),
+      enter => {
+        const path = enter
+          .insert("path", ":first-child")
+          .attr("class", "line")
+          .attr("fill", "none")
+          .attr("stroke", d => d.color || $color(d.label));
+        if (!props.animate) {
+          return path
+            .attr("stroke-width", 1.5)
+            .attr("d", d => valueLines(d.values));
+        }
+        return path
+          .attr("stroke-width", 0)
+          .attr("d", d => valueZero(d.values))
+          .transition()
+          .duration(500)
+          .attr("d", d => valueLines(d.values))
+          .attr("stroke-width", 1.5);
+      },
 
-      update => update
-      .attr("stroke", d => d.color || $color(d.label))
-      .transition()
-      .duration(500)
-      .attr("stroke-width", 1.5)
-      .attrTween('d', function (d) {
-        var previous = select(this).attr('d');
-        var current = valueLines(d.values);
-        return interpolatePath(previous, current);
-      })
-      ,
+      update => {
+        update.attr("stroke", d => d.color || $color(d.label));
+        if (!props.animate) {
+          return update
+            .interrupt()
+            .attr("stroke-width", 1.5)
+            .attr("d", d => valueLines(d.values));
+        }
+        return update
+          .transition()
+          .duration(500)
+          .attr("stroke-width", 1.5)
+          .attrTween('d', function (d) {
+            var previous = select(this).attr('d');
+            var current = valueLines(d.values);
+            return interpolatePath(previous, current);
+          });
+      },
 
-      exit => exit
-      .transition(500)
-      .duration(500)
-      .attr("d", d => valueZero(d.values))
-      .remove()
+      exit => props.animate
+        ? exit
+          .transition(500)
+          .duration(500)
+          .attr("d", d => valueZero(d.values))
+          .remove()
+        : exit.remove()
     )
 
   select(legend.value)
     .selectAll(".legend")
     .data(props.data, d => (d.label + (d.extra_label || "")))
     .join(
-      enter => {enter
+      enter => {
         const group = enter
           .append("g")
           .attr("class", "legend")
 
-        group
-          .attr("opacity", 0)
-          .attr("transform", (d, i) => `translate(100, ${i*20})`)
-          .transition()
-          .duration(500)
-          .attr("transform", (d, i) => `translate(10, ${i*20})`)
-          .attr("opacity", 1)
+        if (props.animate) {
+          group
+            .attr("opacity", 0)
+            .attr("transform", (d, i) => `translate(100, ${i*20})`)
+            .transition()
+            .duration(500)
+            .attr("transform", (d, i) => `translate(10, ${i*20})`)
+            .attr("opacity", 1)
+        } else {
+          group
+            .attr("opacity", 1)
+            .attr("transform", (d, i) => `translate(10, ${i*20})`)
+        }
 
         group
           .append("text")
@@ -349,6 +385,12 @@ const render = () => {
         return group;
       },
       update => {
+        if (!props.animate) {
+          return update
+            .interrupt()
+            .attr("transform", (d, i) => `translate(10, ${i*20})`)
+            .attr("opacity", 1);
+        }
         update
           .transition()
           .duration(1000)
@@ -357,6 +399,9 @@ const render = () => {
         return update;
       },
       exit => {
+        if (!props.animate) {
+          return exit.remove();
+        }
         exit
           .transition()
           .duration(500)

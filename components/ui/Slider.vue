@@ -280,7 +280,7 @@ const onKeydown = (index: number, event: KeyboardEvent) => {
 .ui-slider-tooltip {
   background: var(--tooltip-bg);
   border-radius: var(--radius-sm);
-  bottom: calc(100% + 0.5rem);
+  bottom: calc(100% + 0.65rem);
   color: var(--tooltip-ink);
   font-size: 0.72rem;
   font-variant-numeric: tabular-nums;

@@ -28,7 +28,7 @@
           @blur="focused = false"
           @keydown="onKeydown" />
         <UiIcon v-if="icon" :name="icon" class="is-left" size="small" />
-        <div v-show="isOpen" class="dropdown-menu" role="listbox">
+        <div v-if="isOpen" class="dropdown-menu" role="listbox">
           <div class="dropdown-content">
             <div v-if="$slots.header" class="dropdown-header">
               <slot name="header" />
@@ -146,8 +146,8 @@ const onKeydown = (event: KeyboardEvent) => {
   display: flex;
   flex-wrap: wrap;
   gap: 0.3rem;
-  min-height: 2.5em;
-  padding: 0.25rem 0.4rem;
+  min-height: 2.25rem;
+  padding: 0.2rem 0.4rem;
 }
 
 
@@ -158,7 +158,7 @@ const onKeydown = (event: KeyboardEvent) => {
 
 .autocomplete {
   flex: 1;
-  min-width: 10rem;
+  min-width: 4rem;
   position: relative;
 }
 
@@ -166,12 +166,12 @@ const onKeydown = (event: KeyboardEvent) => {
   background: transparent;
   border: none;
   box-shadow: none;
-  height: 2em;
+  height: 1.7rem;
 }
 
 .autocomplete .icon.is-left {
   color: var(--faint);
-  height: 2em;
+  height: 1.7rem;
   left: 0;
   pointer-events: none;
   position: absolute;

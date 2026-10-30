@@ -19,13 +19,11 @@
             </table>
 
             <!-- Treemap -->
-            <svg width="100%" height="100%">
-              <g ref="content"/>
-            </svg>
+            <div ref="content" class="treemap-stage" />
           </div>
 
           <div>
-            <LineChart v-if="history?.length" :data="history" :milestones="milestones" />
+            <LineChart v-if="history?.length" :data="history" :milestones="milestones" :animate="!props.animate" />
             <p v-if="history?.length" class="source-note">{{ sourceNote }}</p>
           </div>
         </div>
@@ -300,122 +298,142 @@ defineExpose({
   color_domain,
 });
 
-const renderGroup = function(group: any, x: any, y: any) {
-  return group.attr("transform", (d: any) => `translate(${x(d.x0)}, ${y(d.y0)})`);
+const setAttrIfChanged = (el: Element, name: string, value: string) => {
+  if (el.getAttribute(name) !== value) {
+    el.setAttribute(name, value);
+  }
 };
 
-const renderRect = function(rect: any, x: any, y: any, hover: boolean) {
-  const colorScale = scaleLinear()
-    .domain(color_domain.value)
-    .range([0, 1]);
-  const blend = hover ? 0.5 : 0.9;
-
-  return rect
-    .attr("rx", 10)
-    .attr("stroke", "white")
-    .attr("stroke-width", 5)
-    .attr("fill-opacity", 0.9)
-    .attr("width", (d: any) => Math.max(0, x(d.x1) - x(d.x0)))
-    .attr("height", (d: any) => Math.max(0, y(d.y1) - y(d.y0)))
-    .style("fill", (d: any) => {
-      const color = d.data.color;
-      const size = d.data.area;
-      const c2 = colormapFunc(colorScale(size > 0 ? color / size : 0));
-      return interpolateRgb("gray", c2)(blend);
-    });
-};
-
-const initText = function(text: any, index: number) {
-  return text
-    .attr("text-anchor", "start")
-    .attr("alignment-baseline", "middle")
-    .attr("x", 8)
-    .attr("opacity", 0.5 - index * 0.2)
-    .style("font-weight", index == 0 ? "bold" : "normal");
-};
-
-const renderText = function(text: any, index: number, parentNode: any, x: any) {
+const prepareTiles = function(children: any[], parentNode: any, x: any, y: any) {
   const colorScale = scaleLinear()
     .domain(color_domain.value)
     .range([0, 1]);
   const total_size = parentNode.data.area;
+  const visible: any[] = [];
 
-  const font_size = (d: any) => {
-    if (total_size == 0) return 0;
-    const percent = (d.data.area / total_size) * 10;
-    if (percent < 0.02) return 0;
-    return Math.min(20, Math.sqrt(percent) * 30);
-  };
+  for (let i = 0; i < children.length; i++) {
+    const d = children[i];
+    const x0 = x(d.x0);
+    const y0 = y(d.y0);
+    const w = x(d.x1) - x0;
+    const h = y(d.y1) - y0;
+    if (w < 2 || h < 2) continue;
 
-  const label = (d: any) => {
-    if (index == 0) {
-      return d.data.name;
-    }
     const color = d.data.color;
     const size = d.data.area;
-    if (color <= size) {
-      return `${number_format(color)}/${number_format(size)} (${percent_format(size > 0 ? color / size : 0)})`;
-    }
-    const multiple = (color / size).toFixed(1);
-    return `${number_format(color)}/${number_format(size)} (${multiple}x)`;
-  };
+    const ratio = size > 0 ? color / size : 0;
+    const c2 = colormapFunc(colorScale(ratio));
+    const isDark = hsl(c2).l < 0.5;
 
-  // Truncate a label to the width of its tile, estimating the width of a
-  // character from the font size. Hide it when too little would remain.
-  const fit = (d: any, lbl: string) => {
-    const width = x(d.x1) - x(d.x0) - 16;
-    const fs = font_size(d);
-    if (fs <= 0) return "";
-    const max_chars = Math.floor(width / (fs * (4 - index) * 0.25 * 0.6));
-    if (lbl.length <= max_chars) {
-      return lbl;
+    let fs = 0;
+    if (total_size > 0) {
+      const percent = (size / total_size) * 10;
+      if (percent >= 0.02) {
+        fs = Math.min(20, Math.sqrt(percent) * 30);
+      }
     }
-    return max_chars >= 4 ? lbl.slice(0, max_chars - 1) + "…" : "";
-  };
 
-  text
-    .style("fill", (d: any) => {
-      const color = d.data.color;
-      const size = d.data.area;
-      const c2 = colormapFunc(colorScale(size > 0 ? color / size : 0));
-      return hsl(c2).l < 0.5 ? "white" : "black";
-    })
-    .style("font-size", (d: any) => font_size(d) * (4 - index) * 0.25)
-    .attr("y", (d: any) => 5 + font_size(d) * (index + 1) * 1.2)
-    .text((d: any) => fit(d, label(d)));
+    const fit = (lbl: string, index: number) => {
+      if (fs <= 0) return "";
+      const availWidth = w - 16;
+      if (availWidth <= 0) return "";
+      const max_chars = Math.floor(availWidth / (fs * (4 - index) * 0.25 * 0.6));
+      if (lbl.length <= max_chars) return lbl;
+      return max_chars >= 4 ? lbl.slice(0, max_chars - 1) + "…" : "";
+    };
+
+    const label1 = fs > 0 ? fit(d.data.name, 0) : "";
+    let label2 = "";
+    if (fs > 0) {
+      const raw2 = color <= size
+        ? `${number_format(color)}/${number_format(size)} (${percent_format(ratio)})`
+        : `${number_format(color)}/${number_format(size)} (${ratio.toFixed(1)}x)`;
+      label2 = fit(raw2, 1);
+    }
+
+    d._x = x0;
+    d._y = y0;
+    d._w = w;
+    d._h = h;
+    d._fill = interpolateRgb("gray", c2)(0.9);
+    d._hoverFill = interpolateRgb("gray", c2)(0.5);
+    d._isDark = isDark;
+    d._fs = fs;
+    d._label1 = label1;
+    d._label2 = label2;
+    d._clickable = hasVisibleChildren(d.data);
+    visible.push(d);
+  }
+
+  if (visible.length === 0 && children.length > 0) {
+    const d = children[0];
+    d._x = x(d.x0);
+    d._y = y(d.y0);
+    d._w = Math.max(1, x(d.x1) - d._x);
+    d._h = Math.max(1, y(d.y1) - d._y);
+    const ratio = d.data.area > 0 ? d.data.color / d.data.area : 0;
+    const c2 = colormapFunc(colorScale(ratio));
+    d._fill = interpolateRgb("gray", c2)(0.9);
+    d._hoverFill = interpolateRgb("gray", c2)(0.5);
+    d._isDark = hsl(c2).l < 0.5;
+    d._fs = 0;
+    d._label1 = "";
+    d._label2 = "";
+    d._clickable = hasVisibleChildren(d.data);
+    visible.push(d);
+  }
+
+  return visible;
 };
 
-const render = function(group: any, nodeData: any, x: any, y: any, _is_zoom = false, trans: any) {
-  const join = (d: any) => {
-    return d.join(
-      (enter: any) => {
-        const g = enter.append("g");
-        const rect = g.append("rect");
-        const text_1 = g.append("text").classed("text-1", true);
-        const text_2 = g.append("text").classed("text-2", true);
-        renderGroup(g, x, y);
-        renderRect(rect, x, y, false);
-        initText(text_1, 0);
-        initText(text_2, 1);
-        renderText(text_1, 0, nodeData, x);
-        renderText(text_2, 1, nodeData, x);
-        return g;
-      },
-      (update: any) => {
-        const g = trans ? update.transition(trans) : update;
-        const rect = g.select("rect");
-        renderGroup(g, x, y);
-        renderRect(rect, x, y, false);
-        const text_1 = g.select("text.text-1");
-        const text_2 = g.select("text.text-2");
-        renderText(text_1, 0, nodeData, x);
-        renderText(text_2, 1, nodeData, x);
-        return update;
-      },
-      (leave: any) => leave.remove()
-    );
-  };
+const syncTileTexts = function(gSelection: any) {
+  gSelection.each(function(this: SVGGElement, d: any) {
+    let t1 = this.querySelector(":scope > text.text-1") as SVGTextElement | null;
+    if (d._label1) {
+      if (!t1) {
+        t1 = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        t1.setAttribute("class", "text-1");
+        t1.setAttribute("text-anchor", "start");
+        t1.setAttribute("alignment-baseline", "middle");
+        t1.setAttribute("x", "8");
+        this.appendChild(t1);
+      }
+      setAttrIfChanged(t1, "font-size", String(+d._fs.toFixed(1)));
+      setAttrIfChanged(t1, "y", String(+(5 + d._fs * 1.2).toFixed(1)));
+      if (t1.textContent !== d._label1) t1.textContent = d._label1;
+    } else if (t1) {
+      t1.remove();
+    }
 
+    let t2 = this.querySelector(":scope > text.text-2") as SVGTextElement | null;
+    if (d._label2) {
+      if (!t2) {
+        t2 = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        t2.setAttribute("class", "text-2");
+        t2.setAttribute("text-anchor", "start");
+        t2.setAttribute("alignment-baseline", "middle");
+        t2.setAttribute("x", "8");
+        this.appendChild(t2);
+      }
+      setAttrIfChanged(t2, "font-size", String(+(d._fs * 0.75).toFixed(1)));
+      setAttrIfChanged(t2, "y", String(+(5 + d._fs * 2.4).toFixed(1)));
+      if (t2.textContent !== d._label2) t2.textContent = d._label2;
+    } else if (t2) {
+      t2.remove();
+    }
+  });
+};
+
+const tileClass = (d: any) =>
+  "treemap-tile" +
+  (d._clickable ? " is-clickable" : "") +
+  (d._isDark ? " is-dark-tile" : "");
+
+let hoveredContainerRect: DOMRect | null = null;
+let hoveredTooltipWidth = 0;
+let hoveredTooltipHeight = 0;
+
+const render = function(group: any, nodeData: any, x: any, y: any, _is_zoom = false, trans: any) {
   if (!nodeData?.children || nodeData.children.length === 0) {
     group.selectAll("g").remove();
 
@@ -443,93 +461,129 @@ const render = function(group: any, nodeData: any, x: any, y: any, _is_zoom = fa
   }
   group.selectAll("text.no-data").remove();
 
-  const child = join(
-    group
-      .selectAll("g")
-      .data(nodeData.children, (d: any) => d.data.name)
-  );
+  const visibleChildren = prepareTiles(nodeData.children, nodeData, x, y);
+
+  const child = group
+    .selectAll(":scope > g")
+    .data(visibleChildren, (d: any) => d.data.name)
+    .join(
+      (enter: any) => {
+        const g = enter.append("g")
+          .attr("class", tileClass)
+          .attr("transform", (d: any) => `translate(${d._x}, ${d._y})`);
+        g.append("rect")
+          .attr("rx", 10)
+          .attr("width", (d: any) => d._w)
+          .attr("height", (d: any) => d._h)
+          .attr("fill", (d: any) => d._fill);
+        syncTileTexts(g);
+        return g;
+      },
+      (update: any) => {
+        update.each(function(this: SVGGElement, d: any) {
+          setAttrIfChanged(this, "class", tileClass(d));
+        });
+        syncTileTexts(update);
+        if (trans) {
+          const g = update.transition(trans);
+          g.attr("transform", (d: any) => `translate(${d._x}, ${d._y})`);
+          g.select("rect")
+            .attr("width", (d: any) => d._w)
+            .attr("height", (d: any) => d._h)
+            .attr("fill", (d: any) => d._fill);
+        } else {
+          update.each(function(this: SVGGElement, d: any) {
+            setAttrIfChanged(this, "transform", `translate(${d._x}, ${d._y})`);
+            const r = this.querySelector(":scope > rect");
+            if (r) {
+              setAttrIfChanged(r, "width", String(d._w));
+              setAttrIfChanged(r, "height", String(d._h));
+              setAttrIfChanged(r, "fill", d._fill);
+            }
+          });
+        }
+        return update;
+      },
+      (leave: any) => leave.remove()
+    );
 
   child
-    .filter((d: any) => hasVisibleChildren(d.data))
-    .attr("cursor", "pointer")
-    .on("click", (_event: any, d: any) => zoomin(d));
-
-  child
-    .on("mousemove", (event: MouseEvent, d: any) => {
-      const rect = select(event.currentTarget as any).select("rect");
-      renderRect(rect, x, y, true);
+    .on("click", (_event: MouseEvent, d: any) => {
+      if (d._clickable) zoomin(d);
+    })
+    .on("mouseenter", (event: MouseEvent, d: any) => {
+      hoveredContainerRect = container.value?.getBoundingClientRect() ?? null;
+      const rectEl = (event.currentTarget as SVGGElement).querySelector(":scope > rect");
+      if (rectEl) rectEl.setAttribute("fill", d._hoverFill);
 
       tooltip_title.value = d.data.name;
       tooltip_dir_dot.value = d.data.name;
       tooltip_dir_dotdot.value = nodeData.data.name;
-      select(tooltip.value).style("opacity", 1.0);
-
-      const container_bounds = container.value?.getBoundingClientRect();
-      if (!container_bounds || !content.value || !tooltip.value) return;
-      const bounds = content.value.getBoundingClientRect();
-      const tooltip_bounds = tooltip.value.getBoundingClientRect();
-
-      const max_right = bounds.right - tooltip_bounds.width;
-      const max_bottom = bounds.bottom - tooltip_bounds.height;
-      let mouse_x = Math.min(event.clientX + 20, max_right);
-      let mouse_y = Math.min(event.clientY + 20, max_bottom);
-
-      if (mouse_x == max_right && mouse_y == max_bottom) {
-        mouse_x = event.clientX - tooltip_bounds.width - 20;
-        mouse_y = event.clientY - tooltip_bounds.height - 20;
-      }
-
-      select(tooltip.value)
-        .style("left", (mouse_x - bounds.left) + "px")
-        .style("top", (mouse_y - bounds.top) + "px");
 
       const fields: string[] = []
         .concat(props.field_size as any)
         .concat(props.field_color as any);
 
-      const update = (tr: any) => {
-        const v1 = tr.select("td.v1");
-        const v2 = tr.select("td.v2");
-        const v3 = tr.select("td.v3");
-        const v4 = tr.select("td.v4");
-        v1.text((field: string) => field);
-        v2.text((field: string) => number_format(metrics_accumulation[field]?.[nodeData.data.id] || 0));
-        v3.text((field: string) => number_format(metrics_accumulation[field]?.[d.data.id] || 0));
-        v4.text((field: string) => {
+      const updateRow = (tr: any) => {
+        tr.select("td.v1").text((field: string) => field);
+        tr.select("td.v2").text((field: string) => number_format(metrics_accumulation[field]?.[nodeData.data.id] || 0));
+        tr.select("td.v3").text((field: string) => number_format(metrics_accumulation[field]?.[d.data.id] || 0));
+        tr.select("td.v4").text((field: string) => {
           const value = metrics_accumulation[field]?.[d.data.id] || 0;
           const total = metrics_accumulation[field]?.[nodeData.data.id] || 0;
           if (value > total) {
             const multiple = total > 0 ? (value / total).toFixed(1) : "0.0";
             return `${multiple}x`;
-          } else {
-            const percent = total > 0 ? Math.floor((100 * value) / total) : 0;
-            return `${percent}%`;
           }
+          const percent = total > 0 ? Math.floor((100 * value) / total) : 0;
+          return `${percent}%`;
         });
         return tr;
       };
 
-      select(tooltip.value)
-        .select("tbody")
-        .selectAll("tr")
-        .data(fields)
-        .join(
-          (enter: any) => {
-            const row = enter.append("tr");
-            row.append("td").attr("class", "v1");
-            row.append("td").attr("class", "v2");
-            row.append("td").attr("class", "v3");
-            row.append("td").attr("class", "v4");
-            return update(row);
-          },
-          update,
-          (exit: any) => exit.remove()
-        );
+      if (tooltip.value) {
+        select(tooltip.value)
+          .select("tbody")
+          .selectAll("tr")
+          .data(fields)
+          .join(
+            (enter: any) => {
+              const row = enter.append("tr");
+              row.append("td").attr("class", "v1");
+              row.append("td").attr("class", "v2");
+              row.append("td").attr("class", "v3");
+              row.append("td").attr("class", "v4");
+              return updateRow(row);
+            },
+            updateRow,
+            (exit: any) => exit.remove()
+          );
+        tooltip.value.style.opacity = "1";
+        hoveredTooltipWidth = tooltip.value.offsetWidth;
+        hoveredTooltipHeight = tooltip.value.offsetHeight;
+      }
     })
-    .on("mouseleave", (event: MouseEvent, _d: any) => {
-      const rect = select(event.currentTarget as any).select("rect");
-      renderRect(rect, x, y, false);
-      select(tooltip.value).style("opacity", 0.0);
+    .on("mousemove", (event: MouseEvent) => {
+      if (!hoveredContainerRect || !tooltip.value) return;
+      const pad = 10;
+      const max_right = hoveredContainerRect.right - pad - hoveredTooltipWidth;
+      const max_bottom = hoveredContainerRect.bottom - pad - hoveredTooltipHeight;
+      let mouse_x = Math.min(event.clientX + 20, max_right);
+      let mouse_y = Math.min(event.clientY + 20, max_bottom);
+
+      if (mouse_x === max_right && mouse_y === max_bottom) {
+        mouse_x = event.clientX - hoveredTooltipWidth - 20;
+        mouse_y = event.clientY - hoveredTooltipHeight - 20;
+      }
+
+      const tx = Math.max(0, mouse_x - hoveredContainerRect.left);
+      const ty = Math.max(0, mouse_y - hoveredContainerRect.top);
+      tooltip.value.style.transform = `translate3d(${tx}px, ${ty}px, 0)`;
+    })
+    .on("mouseleave", (event: MouseEvent, d: any) => {
+      const rectEl = (event.currentTarget as SVGGElement).querySelector(":scope > rect");
+      if (rectEl) rectEl.setAttribute("fill", d._fill);
+      if (tooltip.value) tooltip.value.style.opacity = "0";
     });
 };
 
@@ -537,64 +591,85 @@ const zoomin = function(child: any) {
   emits("zoomin", child.data.name);
 };
 
+const cancelLayerAnimations = () => {
+  if (!content.value) return;
+  for (const svgEl of content.value.querySelectorAll(":scope > svg")) {
+    svgEl.getAnimations?.().forEach(a => a.cancel());
+  }
+};
+
 const zoom = async function(data_old: any, data_new: any) {
-  if (!data_old || !data_new) return;
+  if (!data_old || !data_new || !content.value) return;
   updateColorDomain(data_new);
 
-  const transition_zoom = transition()
-    .duration(500)
-    .ease(easeCubicInOut);
+  cancelLayerAnimations();
+  select(content.value).selectAll("*").interrupt();
+  if (tooltip.value) tooltip.value.style.opacity = "0";
 
-  const old_content = select(content.value).select("g");
-  const new_content = select(content.value).append("g");
-
-  // Draw the old and new contents from the old content zoom.
-  {
-    const x = scaleLinear()
-      .domain([data_old.x0, data_old.x1])
-      .rangeRound([0, svgWidth() - 20]);
-    const y = scaleLinear()
-      .domain([data_old.y0, data_old.y1])
-      .rangeRound([0, svgHeight() - 20]);
-    render(old_content, data_old, x, y, true, null);
-    render(new_content, data_new, x, y, true, null);
+  const svgs = select(content.value).selectAll(":scope > svg");
+  if (svgs.size() > 1) {
+    svgs.filter((_d, i) => i < svgs.size() - 1).remove();
   }
 
-  // Draw the old and new contents from the new content zoom.
-  {
-    const x = scaleLinear()
-      .domain([data_new.x0, data_new.x1])
-      .rangeRound([0, svgWidth() - 20]);
-    const y = scaleLinear()
-      .domain([data_new.y0, data_new.y1])
-      .rangeRound([0, svgHeight() - 20]);
-    render(old_content, data_old, x, y, true, transition_zoom);
-    render(new_content, data_new, x, y, true, transition_zoom);
+  const old_content = select(content.value).select(":scope > svg");
+  const new_content = select(content.value)
+    .append("svg")
+    .attr("class", "treemap-layer");
+
+  const w = Math.max(0, svgWidth() - 20);
+  const h = Math.max(0, svgHeight() - 20);
+  const xNew = scaleLinear()
+    .domain([data_new.x0, data_new.x1])
+    .rangeRound([0, w]);
+  const yNew = scaleLinear()
+    .domain([data_new.y0, data_new.y1])
+    .rangeRound([0, h]);
+  render(new_content, data_new, xNew, yNew, true, null);
+
+  const oldNode = old_content.node() as SVGSVGElement | null;
+  const newNode = new_content.node() as SVGSVGElement | null;
+  const oldW = data_old.x1 - data_old.x0;
+  const oldH = data_old.y1 - data_old.y0;
+  const newW = data_new.x1 - data_new.x0;
+  const newH = data_new.y1 - data_new.y0;
+  const reducedMotion = typeof window !== "undefined" &&
+    window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+
+  if (!reducedMotion && oldNode && newNode && w > 0 && h > 0 && oldW > 0 && oldH > 0 && newW > 0 && newH > 0) {
+    const sxNew = newW / oldW;
+    const syNew = newH / oldH;
+    const txNew = ((data_new.x0 - data_old.x0) / oldW) * w;
+    const tyNew = ((data_new.y0 - data_old.y0) / oldH) * h;
+
+    const sxOld = oldW / newW;
+    const syOld = oldH / newH;
+    const txOld = ((data_old.x0 - data_new.x0) / newW) * w;
+    const tyOld = ((data_old.y0 - data_new.y0) / newH) * h;
+
+    const opts: KeyframeAnimationOptions = {
+      duration: 500,
+      easing: "cubic-bezier(0.65, 0, 0.35, 1)",
+      fill: "forwards",
+    };
+    const animOld = oldNode.animate([
+      { transform: "translate(0px, 0px) scale(1, 1)", opacity: 1 },
+      { transform: `translate(${txOld}px, ${tyOld}px) scale(${sxOld}, ${syOld})`, opacity: 0 },
+    ], opts);
+    const animNew = newNode.animate([
+      { transform: `translate(${txNew}px, ${tyNew}px) scale(${sxNew}, ${syNew})`, opacity: 0 },
+      { transform: "translate(0px, 0px) scale(1, 1)", opacity: 1 },
+    ], opts);
+
+    computeHistory();
+    try {
+      await Promise.all([animOld.finished, animNew.finished]);
+    } catch (e) {}
+    animNew.cancel();
+    old_content.remove();
+  } else {
+    old_content.remove();
+    computeHistory();
   }
-
-  // Transition the opacity of the old and new contents.
-  {
-    old_content
-      .attr("opacity", 1)
-      .transition(transition_zoom as any)
-      .attr("opacity", 0);
-
-    new_content
-      .attr("opacity", 0)
-      .transition(transition_zoom as any)
-      .attr("opacity", 1);
-  }
-
-  old_content
-    .transition(transition_zoom as any)
-    .remove();
-
-  const transition_end = transition_zoom.end();
-
-  computeHistory();
-  try {
-    await transition_end;
-  } catch (e) {}
 };
 
 // Build a path-scoped d3.hierarchy and treemap layout: only expands nodes along
@@ -628,6 +703,7 @@ const mytreemap = function(pathsToExpand: string[][] = [(props.path as string[])
       if (mask && flags && (flags[c.id] & mask) !== 0) continue;
       c.area = areaById[c.id] || 0;
       c.color = colorById[c.id] || 0;
+      if (c.area <= 0 && !expandedSet.has(c)) continue;
       out.push(c);
     }
     return out;
@@ -1182,22 +1258,23 @@ async function refresh(options: { withHistory?: boolean; emitEnd?: boolean; anim
   colormapFunc = $color_map[props.colormap as string];
 
   if (!content.value) return;
+  cancelLayerAnimations();
   select(content.value).selectAll("*").interrupt();
 
-  const gs = select(content.value).selectAll("g");
-  if (gs.size() > 1) {
-    gs.filter((_d, i) => i < gs.size() - 1).remove();
+  const svgs = select(content.value).selectAll(":scope > svg");
+  if (svgs.size() > 1) {
+    svgs.filter((_d, i) => i < svgs.size() - 1).remove();
   }
 
-  if (!select(content.value).select("g").node()) {
-    select(content.value).append("g");
+  if (!select(content.value).select(":scope > svg").node()) {
+    select(content.value).append("svg").attr("class", "treemap-layer");
   }
 
   const nodeData = getCurrentDataFromPath(props.path as string[]);
   if (!nodeData) return;
   updateColorDomain(nodeData);
 
-  const group = select(content.value).select("g");
+  const group = select(content.value).select(":scope > svg");
 
   const x = scaleLinear()
     .domain([nodeData.x0, nodeData.x1])
@@ -1209,7 +1286,7 @@ async function refresh(options: { withHistory?: boolean; emitEnd?: boolean; anim
   if (animateTransition) {
     const transition_refresh = transition()
       .duration(300)
-      .ease(props.animate ? easeCubicInOut : easeLinear);
+      .ease(props.animate ? easeLinear : easeCubicInOut);
 
     render(group, nodeData, x, y, false, transition_refresh);
 
@@ -1313,7 +1390,7 @@ let lastHeight = 0;
 onMounted(() => lock(async () => {
   const renderedSnapshot = await fetchLatestEntries();
   if (renderedSnapshot) {
-    await render_refresh({ withHistory: false, emitEnd: false });
+    await render_refresh({ withHistory: false, emitEnd: false, animateTransition: false });
   }
   const snapshotDateId = current_date_id;
   await fetchEntries();
@@ -1356,13 +1433,66 @@ onBeforeUnmount(() => {
 }
 
 
+.treemap-container {
+  position: relative;
+}
+
+.treemap-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.treemap-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform-origin: 0 0;
+  will-change: transform, opacity;
+}
+
+.treemap-tile rect {
+  stroke: var(--surface);
+  stroke-width: 5px;
+  fill-opacity: 0.9;
+}
+
+.treemap-tile.is-clickable {
+  cursor: pointer;
+}
+
+.treemap-tile text {
+  fill: #000;
+  pointer-events: none;
+  user-select: none;
+}
+
+.treemap-tile.is-dark-tile text {
+  fill: #fff;
+}
+
+.treemap-tile text.text-1 {
+  font-weight: bold;
+  opacity: 0.5;
+}
+
+.treemap-tile text.text-2 {
+  font-weight: normal;
+  opacity: 0.3;
+}
+
 .treemap-tooltip {
   backdrop-filter: blur(5px);
   position: absolute;
+  top: 0;
+  left: 0;
   pointer-events: none;
   color: var(--ink);
   z-index: 1;
   opacity: 0;
+  will-change: transform, opacity;
   box-shadow:
   0 2px 10px rgba(0, 0, 0, 0.5),
   inset 0 2px 10px color-mix(in srgb, var(--surface) 90%, transparent);
@@ -1389,10 +1519,6 @@ onBeforeUnmount(() => {
   }
 }
 
-.component-container {
-  container-type: inline-size;
-}
-
 .split-view {
   display: flex;
   flex-direction: row;
@@ -1408,7 +1534,7 @@ onBeforeUnmount(() => {
   padding: 10px;
 }
 
-@container (width < 800px) {
+@media (max-width: 800px) {
   .split-view {
     flex-direction: column;
     height: 150vh;

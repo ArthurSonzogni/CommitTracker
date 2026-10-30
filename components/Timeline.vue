@@ -1,7 +1,7 @@
 <template>
   <div class="timeline">
     <div class="form-row quarter-row" v-if="more">
-      <button type="button" @click="toggleMore" class="button is-small toggle" title="Back to the slider" aria-label="Back to the slider">
+      <button type="button" @click="toggleMore" class="button toggle" title="Back to the slider" aria-label="Back to the slider">
         <UiIcon name="tune-variant" size="small" />
       </button>
       <UiField :label="anchor === null ? 'Click a quarter, or two for a range' : 'Click the end of the range'" expanded>
@@ -44,10 +44,13 @@
           :min="minDate"
           :max="maxDate" />
       </UiField>
+      <div v-if="$slots.default" class="timeline-actions">
+        <slot />
+      </div>
     </div>
 
     <div class="form-row slider-row" v-if="!more">
-      <button type="button" @click="toggleMore" class="button is-small toggle" title="Select quarters or dates" aria-label="Select quarters or dates">
+      <button type="button" @click="toggleMore" class="button toggle" title="Select quarters or dates" aria-label="Select quarters or dates">
         <UiIcon name="calendar-range" size="small" />
       </button>
       <div ref="sliderBox" class="slider-box">
@@ -56,6 +59,9 @@
             {{tick.label}}
           </UiSliderTick>
         </UiSlider>
+      </div>
+      <div v-if="$slots.default" class="timeline-actions">
+        <slot />
       </div>
     </div>
   </div>
@@ -282,6 +288,21 @@ watch(strip, (element) => {
 .slider-row {
   align-items: center;
   flex-wrap: nowrap;
+  margin-bottom: 0;
+}
+
+/* Compensate for UiSlider.has-ticks' extra 1rem bottom padding so buttons
+ * center on the slider track rather than on track + tick labels. */
+.slider-row > .toggle,
+.slider-row > .timeline-actions {
+  margin-bottom: 1rem;
+}
+
+.timeline-actions {
+  align-items: center;
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.5rem;
 }
 
 .slider-box {
@@ -295,6 +316,7 @@ watch(strip, (element) => {
 
 .quarter-row {
   flex-wrap: nowrap;
+  margin-bottom: 0;
 }
 @media (max-width: 768px) {
   .quarter-row {
