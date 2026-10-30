@@ -196,7 +196,10 @@ const tests = [
       const prevLabel = timeLabel();
       __t.byText('.chip', 'Blink').click();
       const blink = await __t.until(() => location.search.includes('blink'), 8000);
-      return { ok: !!monthly && !!prev && !!blink, detail: year + ' -> monthly ' + monthLabel + ' -> previous ' + prevLabel + ' / url ' + location.search };
+      __t.byText('button', 'Animate').click();
+      const stopBtn = await __t.until(() => __t.byText('button', 'Stop'), 4000);
+      const finished = await __t.until(() => !__t.byText('button', 'Stop') && timeLabel() === monthLabel, 8000);
+      return { ok: !!monthly && !!prev && !!blink && !!stopBtn && !!finished, detail: year + ' -> monthly ' + monthLabel + ' -> previous ' + prevLabel + ' -> animated / url ' + location.search };
     `,
   },
   {

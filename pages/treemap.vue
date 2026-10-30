@@ -135,7 +135,7 @@
           :history_size="history_size"
           :exclude_test="exclude_test"
           :exclude_third_party="exclude_third_party"
-          @zoomin="path.push($event); updateUrl(0, 1)"
+          @zoomin="path = [...path, $event]"
           @animationend="animationEnd()"
           ref="treemap"
           >
@@ -338,7 +338,7 @@ const updateUrl = (old_value, new_value) => {
     return;
   }
   last_full_path = router.resolve({ query }).fullPath;
-  router.push({ query });
+  router.replace({ query });
 }
 
 // Back/forward navigation: restore the state from the new URL, without
@@ -378,8 +378,8 @@ watch(colormapMax, updateUrl);
 watch(colormapMin, updateUrl);
 watch(field_color, updateUrl);
 watch(field_size, updateUrl);
-watch(path, updateUrl);
-watch(dates, updateUrl);
+watch(path, updateUrl, { deep: true });
+watch(dates, updateUrl, { deep: true });
 watch(history_color, updateUrl);
 watch(history_size, updateUrl);
 watch(exclude_test, updateUrl);
@@ -393,25 +393,6 @@ onMounted(() => {
     updateUrl();
   }
 });
-
-const updateHasScrolled = () => {
-  const maxScroll = Math.max(
-    document.body.scrollHeight,
-    document.body.offsetHeight,
-    document.documentElement.clientHeight,
-    document.documentElement.scrollHeight,
-    document.documentElement.offsetHeight
-  );
-
-  document.documentElement.dataset.scrolltop =
-    (window.scrollY > 100) ? '1' : '0';
-  document.documentElement.dataset.scrollbottom=
-    (maxScroll - window.scrollY > 1000) ? '1' : '0';
-};
-
-updateHasScrolled();
-document.addEventListener('scroll', updateHasScrolled, { passive: true });
-
 
 const animationEnd = async () => {
   if (dates.value[1] > new Date()) {

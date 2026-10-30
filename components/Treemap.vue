@@ -35,14 +35,11 @@
 
 <script setup lang="ts">
 
-import {easeCubicInOut} from "d3-ease";
-import {easeLinear} from "d3-ease";
-import {hierarchy} from "d3-hierarchy";
+import {easeCubicInOut, easeLinear} from "d3-ease";
+import {hierarchy, treemap, treemapSquarify} from "d3-hierarchy";
 import {interpolateRgb} from "d3-interpolate";
 import {scaleLinear} from "d3-scale";
 import {select} from "d3-selection";
-import {treemapSquarify} from "d3-hierarchy";
-import {treemap} from "d3-hierarchy";
 import {hsl} from "d3-color";
 import "d3-transition";
 import {transition} from "d3-transition";
@@ -55,25 +52,54 @@ const { $color_map } = useNuxtApp();
 const container = ref<HTMLElement|null>(null);
 const content = ref<HTMLElement|null>(null);
 const tooltip = ref<HTMLElement|null>(null);
-const component_name = ref<HTMLElement|null>(null);
 const tooltip_title = ref("Tooltip");
 const tooltip_dir_dot = ref(".");
 const tooltip_dir_dotdot = ref("..");
 
-let fetchedData = undefined;
-let dates = [];
-let file_index = {};
-let file_index_excluding_test = {};
-let file_index_excluding_third_party = {};
-let file_index_excluding_test_and_third_party = {};
-let metrics = {};
-let metrics_accumulation = {};
-const data = shallowRef({});
+interface TreeNode {
+  name: string;
+  id: number;
+  subtreeEnd: number;
+  area: number;
+  color: number;
+  children?: TreeNode[];
+}
+
+interface TreeIndex {
+  root: TreeNode;
+  numNodes: number;
+  parentId: Int32Array;
+  excludeFlags: Uint8Array | null;
+  isCompact: boolean;
+}
+
+interface MetricStore {
+  kind: "latest" | "compact" | "legacy";
+  rows?: number[][];
+  legacy?: Record<string, [number, number][]>;
+}
+
+// Module-level caches so navigating or toggling options never re-fetches or
+// re-decodes unchanged trees or metric histories.
+const datesCache = new Map<string, Promise<Date[]>>();
+const latestTreeCache = new Map<string, Promise<TreeIndex | null>>();
+const fullTreeCache = new Map<string, Promise<TreeIndex | null>>();
+const latestMetricCache = new Map<string, Promise<MetricStore | null>>();
+const fullMetricCache = new Map<string, Promise<MetricStore | null>>();
+const historySeriesCache = new Map<string, number[]>();
+
+let activeTreeIndex: TreeIndex | null = null;
+let dates: Date[] = [];
+let metrics: Record<string, MetricStore> = {};
+let metrics_accumulation: Record<string, Float64Array> = {};
+let areaById = new Float64Array(0);
+let colorById = new Float64Array(0);
+const data = shallowRef<any>({});
 
 let current_date_id = -1;
 
-const history = shallowRef([]);
-const milestones = shallowRef([]);
+const history = shallowRef<any[]>([]);
+const milestones = shallowRef<any[]>([]);
 const sourceNote = ref("");
 
 let colormapFunc = $color_map[0];
@@ -82,7 +108,7 @@ const number_format = format(",d");
 const percent_format = format(".1%");
 
 const props = defineProps({
-  repositories: { type:Array[String], default: () => [repositories_json[0]?.dirname || "chromium"],},
+  repositories: { type: Array[String], default: () => [repositories_json[0]?.dirname || "chromium"] },
   path: {},
   field_color: {},
   field_size: {},
@@ -90,11 +116,11 @@ const props = defineProps({
   colormapMin: {},
   colormapMax: {},
   dates: {},
-  animate: { type:Boolean, default: false },
-  history_color: { type:Boolean, default: true },
-  history_size: { type:Boolean, default: false },
-  exclude_test: { type:Boolean, default: false },
-  exclude_third_party: { type:Boolean, default: false },
+  animate: { type: Boolean, default: false },
+  history_color: { type: Boolean, default: true },
+  history_size: { type: Boolean, default: false },
+  exclude_test: { type: Boolean, default: false },
+  exclude_third_party: { type: Boolean, default: false },
 });
 
 const emits = defineEmits([
@@ -122,168 +148,147 @@ const lock = (f: () => Promise<void>) => {
   })();
 };
 
-function browserDownload(content, filename, contentType) {
+function browserDownload(content: string, filename: string, contentType: string) {
   const a = document.createElement('a');
-  const file = new Blob([content], {type: contentType});
+  const file = new Blob([content], { type: contentType });
   a.href = URL.createObjectURL(file);
   a.download = filename;
   a.click();
 }
 
-function download(kind) {
+const getActiveExcludeMask = () =>
+  (props.exclude_test ? 1 : 0) | (props.exclude_third_party ? 2 : 0);
+
+const isNodeExcluded = (id: number) => {
+  const mask = getActiveExcludeMask();
+  if (!mask || !activeTreeIndex?.excludeFlags) return false;
+  return (activeTreeIndex.excludeFlags[id] & mask) !== 0;
+};
+
+const hasVisibleChildren = (node: TreeNode) => {
+  if (!node?.children) return false;
+  const mask = getActiveExcludeMask();
+  const flags = activeTreeIndex?.excludeFlags;
+  if (!mask || !flags) return node.children.length > 0;
+  for (let i = 0; i < node.children.length; i++) {
+    if ((flags[node.children[i].id] & mask) === 0) return true;
+  }
+  return false;
+};
+
+const getTreeNodeFromPath = (pathArr: string[]): TreeNode | null => {
+  if (!activeTreeIndex) return null;
+  let current = activeTreeIndex.root;
+  for (const name of (pathArr || [])) {
+    const next = current.children?.find(c => c.name === name && !isNodeExcluded(c.id));
+    if (!next) break;
+    current = next;
+  }
+  return current;
+};
+
+function download(kind: string) {
+  const fields: string[] = []
+    .concat(props.field_size as any)
+    .concat(props.field_color as any);
 
   if (kind == "temporal_json") {
-    const fields = []
-      .concat(props.field_size)
-      .concat(props.field_color)
-    ;
     const out = [];
-    for(const field of fields) {
+    for (const field of fields) {
       out.push({
         metric: field,
-        values: computeHistoryForField(field).map((d, i) => {
-          return {
-            date: formatDateInverse(i),
-            count: d,
-          };
-        }),
+        values: computeHistoryForField(field).map((d, i) => ({
+          date: formatDateInverse(i),
+          count: d,
+        })),
       });
     }
-
     browserDownload(JSON.stringify(out, null, 2), "temporal.json", "application/json");
     return;
   }
 
   if (kind == "temporal_csv") {
-    const fields = []
-      .concat(props.field_size)
-      .concat(props.field_color)
-    ;
+    const seriesByField = fields.map(field => computeHistoryForField(field));
     let out = "date," + fields.join(",") + "\n";
-    for(let i = 0; i < dates.length; ++i) {
-      const row = [formatDateInverse(i).toISOString().split("T")[0]];
-      for(const field of fields) {
-        const values = computeHistoryForField(field);
-        row.push(values[i]);
+    for (let i = 0; i < dates.length; ++i) {
+      const row: (string | number)[] = [formatDateInverse(i).toISOString().split("T")[0]];
+      for (let f = 0; f < fields.length; ++f) {
+        row.push(seriesByField[f][i]);
       }
       out += row.join(",") + "\n";
     }
-
     browserDownload(out, "temporal.csv", "text/csv");
     return;
   }
 
+  const startNode = getTreeNodeFromPath(props.path as string[]);
+  if (!startNode) return;
+
   if (kind == "spatial_json") {
-    // Build a JSON with the current metrics_accumulation for each field.
-    const fields = []
-      .concat(props.field_size)
-      .concat(props.field_color)
-    ;
-    const get = (file) => {
-      const out = {}
-      for(const field of fields) {
-        out[field] = metrics_accumulation[field][file.id] || 0;
-      }
-      // If none of the fields are non-zero, return null.
+    const get = (file: TreeNode): any => {
+      if (isNodeExcluded(file.id)) return null;
+      const out: any = {};
       let all_zero = true;
-      for(const field of fields) {
-        if (out[field] != 0) {
-          all_zero = false;
-          break;
+      for (const field of fields) {
+        const v = metrics_accumulation[field]?.[file.id] || 0;
+        out[field] = v;
+        if (v != 0) all_zero = false;
+      }
+      if (all_zero) return null;
+      if (file.children) {
+        out.children = {};
+        for (const child of file.children) {
+          const child_out = get(child);
+          if (child_out) out.children[child.name] = child_out;
+        }
+        if (Object.keys(out.children).length == 0) {
+          delete out.children;
         }
       }
-      if (all_zero) {
-        return null;
-      }
-      out.children = {}
-      for(const child of file.children || []) {
-        const child_out = get(child);
-        if (child_out)
-          out.children[child.name] = child_out;
-      }
-      if (Object.keys(out.children).length == 0) {
-        delete out.children;
-      }
       return out;
-    }
-    const out = get(getCurrentDataFromPath(props.path).data);
+    };
+    const out = get(startNode);
     browserDownload(JSON.stringify(out, null, 2), "spatial.json", "application/json");
     return;
   }
 
   if (kind == "spatial_csv") {
-    const fields = []
-      .concat(props.field_size)
-      .concat(props.field_color)
-    ;
     let out = "path," + fields.join(",") + "\n";
-    const get = (file, path) => {
-      const row = [path.join("/") || "/"];
+    const get = (file: TreeNode, p: string[]) => {
+      if (isNodeExcluded(file.id)) return;
+      const row: (string | number)[] = [p.join("/") || "/"];
       let all_zero = true;
-      for(const field of fields) {
-        const value = metrics_accumulation[field][file.id] || 0;
+      for (const field of fields) {
+        const value = metrics_accumulation[field]?.[file.id] || 0;
         row.push(value);
-        if (value != 0) {
-          all_zero = false;
-        }
+        if (value != 0) all_zero = false;
       }
       if (!all_zero) {
         out += row.join(",") + "\n";
       }
-      for(const child of file.children || []) {
-        get(child, path.concat([child.name]));
+      for (const child of file.children || []) {
+        get(child, p.concat([child.name]));
       }
-    }
-    get(getCurrentDataFromPath(props.path).data, props.path);
+    };
+    get(startNode, (props.path as string[]) || []);
     browserDownload(out, "spatial.csv", "text/csv");
     return;
   }
-
 }
 
-
-const get_file_index = () => {
-  if (props.exclude_test && props.exclude_third_party) {
-    return file_index_excluding_test_and_third_party;
-  } else if (props.exclude_test) {
-    return file_index_excluding_test;
-  } else if (props.exclude_third_party) {
-    return file_index_excluding_third_party;
-  } else {
-    return file_index;
-  }
-}
-
-
-const metric_current_value = (field, file_id) => {
-  let value = 0;
-  for(const [d, v] of metrics[field][file_id] || []) {
-    if (d <= current_date_id) {
-      value = v;
-      continue;
-    }
-    break;
-  }
-  return value;
-}
-
-const svgWidth = () => {
-  return container.value?.clientWidth;
-}
-
-const svgHeight = () => {
-  return container.value?.clientHeight;
-}
+const svgWidth = () => container.value?.clientWidth || 0;
+const svgHeight = () => container.value?.clientHeight || 0;
 
 // The colormap domain. The bounds not given by the user are centered on the
 // ratio of the displayed directory, so that its children contrast.
 const color_domain = ref([0, 1]);
-const parseBound = (value) => {
+const parseBound = (value: any) => {
   const number = parseFloat(value);
   return isNaN(number) ? null : number;
 };
-const updateColorDomain = function(data) {
-  const ratio = data.data.area > 0 ? data.data.color / data.data.area : 0;
+const updateColorDomain = function(nodeData: any) {
+  if (!nodeData?.data) return;
+  const ratio = nodeData.data.area > 0 ? nodeData.data.color / nodeData.data.area : 0;
   color_domain.value = [
     parseBound(props.colormapMin) ?? 0,
     parseBound(props.colormapMax) ?? (2 * ratio || 1),
@@ -295,68 +300,61 @@ defineExpose({
   color_domain,
 });
 
-const renderGroup = function(group, x, y) {
-  return group.attr("transform", d => `translate(${x(d.x0)}, ${y(d.y0)})`) ;
+const renderGroup = function(group: any, x: any, y: any) {
+  return group.attr("transform", (d: any) => `translate(${x(d.x0)}, ${y(d.y0)})`);
 };
 
-const renderRect = function(rect, x, y, hover) {
+const renderRect = function(rect: any, x: any, y: any, hover: boolean) {
+  const colorScale = scaleLinear()
+    .domain(color_domain.value)
+    .range([0, 1]);
+  const blend = hover ? 0.5 : 0.9;
+
   return rect
     .attr("rx", 10)
     .attr("stroke", "white")
     .attr("stroke-width", 5)
     .attr("fill-opacity", 0.9)
-    .attr('width', d => x(d.x1) - x(d.x0))
-    .attr('height', d => y(d.y1) - y(d.y0))
-    .style("fill", d => {
-      const colorScale = scaleLinear()
-        .domain(color_domain.value)
-        .range([0, 1])
-      ;
+    .attr("width", (d: any) => Math.max(0, x(d.x1) - x(d.x0)))
+    .attr("height", (d: any) => Math.max(0, y(d.y1) - y(d.y0)))
+    .style("fill", (d: any) => {
       const color = d.data.color;
       const size = d.data.area;
-      const c1 = "gray";
-      const c2 = colormapFunc(colorScale(color / size));
-      return interpolateRgb(c1, c2)(hover ? 0.5 : 0.9);
-    })
+      const c2 = colormapFunc(colorScale(size > 0 ? color / size : 0));
+      return interpolateRgb("gray", c2)(blend);
+    });
 };
 
-const initText = function(text, index) {
+const initText = function(text: any, index: number) {
   return text
     .attr("text-anchor", "start")
     .attr("alignment-baseline", "middle")
     .attr("x", 8)
     .attr("opacity", 0.5 - index * 0.2)
-    .style("font-weight", index == 0 ? "bold" : "normal")
-  ;
+    .style("font-weight", index == 0 ? "bold" : "normal");
 };
 
-const renderText = function(text, index, data, x) {
+const renderText = function(text: any, index: number, parentNode: any, x: any) {
   const colorScale = scaleLinear()
     .domain(color_domain.value)
-    .range([0, 1])
-  ;
+    .range([0, 1]);
+  const total_size = parentNode.data.area;
 
-  const font_size = d => {
-    const total_size = data.data.area;
-    const size = d.data.area;
-    if (total_size == 0) {
-      return 0;
-    }
-    const percent = size / total_size * 10;
-    if (percent < 0.02) {
-      return 0;
-    }
+  const font_size = (d: any) => {
+    if (total_size == 0) return 0;
+    const percent = (d.data.area / total_size) * 10;
+    if (percent < 0.02) return 0;
     return Math.min(20, Math.sqrt(percent) * 30);
-  }
+  };
 
-  const label = d => {
+  const label = (d: any) => {
     if (index == 0) {
       return d.data.name;
     }
     const color = d.data.color;
     const size = d.data.area;
     if (color <= size) {
-      return `${number_format(color)}/${number_format(size)} (${percent_format(color/size)})`;
+      return `${number_format(color)}/${number_format(size)} (${percent_format(size > 0 ? color / size : 0)})`;
     }
     const multiple = (color / size).toFixed(1);
     return `${number_format(color)}/${number_format(size)} (${multiple}x)`;
@@ -364,118 +362,110 @@ const renderText = function(text, index, data, x) {
 
   // Truncate a label to the width of its tile, estimating the width of a
   // character from the font size. Hide it when too little would remain.
-  const fit = (d, label) => {
+  const fit = (d: any, lbl: string) => {
     const width = x(d.x1) - x(d.x0) - 16;
-    const max_chars = Math.floor(width / (font_size(d) * (4-index) * 0.25 * 0.6));
-    if (label.length <= max_chars) {
-      return label;
+    const fs = font_size(d);
+    if (fs <= 0) return "";
+    const max_chars = Math.floor(width / (fs * (4 - index) * 0.25 * 0.6));
+    if (lbl.length <= max_chars) {
+      return lbl;
     }
-    return max_chars >= 4 ? label.slice(0, max_chars - 1) + "…" : "";
+    return max_chars >= 4 ? lbl.slice(0, max_chars - 1) + "…" : "";
   };
 
   text
-    .style("fill", d => {
+    .style("fill", (d: any) => {
       const color = d.data.color;
       const size = d.data.area;
-      const c2 = colormapFunc(colorScale(color / size));
-      // Try to get a good contrast between the text and the background.
-      const c1 = hsl(c2).l < 0.5 ? "white" : "black";
-      return c1;
+      const c2 = colormapFunc(colorScale(size > 0 ? color / size : 0));
+      return hsl(c2).l < 0.5 ? "white" : "black";
     })
-    .style("font-size", d => font_size(d) * (4-index) * 0.25)
-    .attr("y", d => 5 + font_size(d) * (index + 1) * 1.2)
-    .text(d => fit(d, label(d)))
-  ;
+    .style("font-size", (d: any) => font_size(d) * (4 - index) * 0.25)
+    .attr("y", (d: any) => 5 + font_size(d) * (index + 1) * 1.2)
+    .text((d: any) => fit(d, label(d)));
 };
 
-const render = function(group, data, x, y, is_zoom = false, transition) {
-  const join = d => {
+const render = function(group: any, nodeData: any, x: any, y: any, _is_zoom = false, trans: any) {
+  const join = (d: any) => {
     return d.join(
-      enter => {
-        const group = enter.append("g");
-        const rect = group.append("rect")
-        const text_1 = group.append("text").classed("text-1", true)
-        const text_2 = group.append("text").classed("text-2", true)
-        renderGroup(group, x, y);
-        renderRect(rect, x, y, false)
+      (enter: any) => {
+        const g = enter.append("g");
+        const rect = g.append("rect");
+        const text_1 = g.append("text").classed("text-1", true);
+        const text_2 = g.append("text").classed("text-2", true);
+        renderGroup(g, x, y);
+        renderRect(rect, x, y, false);
         initText(text_1, 0);
         initText(text_2, 1);
-        renderText(text_1, 0, data, x);
-        renderText(text_2, 1, data, x);
-        return group;
+        renderText(text_1, 0, nodeData, x);
+        renderText(text_2, 1, nodeData, x);
+        return g;
       },
-
-      update => {
-        const group = update.transition(transition);
-        const rect = group.select("rect");
-        renderGroup(group, x, y);
-        renderRect(rect, x, y, false)
-        const text_1 = group.select("text.text-1");
-        const text_2 = group.select("text.text-2");
-        renderText(text_1, 0, data, x);
-        renderText(text_2, 1, data, x);
+      (update: any) => {
+        const g = trans ? update.transition(trans) : update;
+        const rect = g.select("rect");
+        renderGroup(g, x, y);
+        renderRect(rect, x, y, false);
+        const text_1 = g.select("text.text-1");
+        const text_2 = g.select("text.text-2");
+        renderText(text_1, 0, nodeData, x);
+        renderText(text_2, 1, nodeData, x);
         return update;
       },
-
-      leave => leave.remove()
+      (leave: any) => leave.remove()
     );
   };
 
-  // There might be no children.
-  if (!data.children) {
+  if (!nodeData?.children || nodeData.children.length === 0) {
     group.selectAll("g").remove();
 
-    // Display some text in the middle saying there are zero data recorded
-    // at this directory and date.
     const w = svgWidth();
     const h = svgHeight();
-    const text = group.selectAll("text").data([0], d => d);
+    const text = group.selectAll("text").data([0], (d: any) => d);
     text.join(
-      enter => {
+      (enter: any) => {
         const t = enter.append("text");
-        t
-         .classed("no-data", true)
-         .attr("text-anchor", "middle")
-         .attr("alignment-baseline", "middle")
-         .attr("x", w / 2)
-         .attr("y", h / 2)
-         .style("font-size", 20)
-         .style("font-weight", "bold")
-         .style("fill", "gray")
-         .text("Zero data recorded at this directory and date");
+        t.classed("no-data", true)
+          .attr("text-anchor", "middle")
+          .attr("alignment-baseline", "middle")
+          .attr("x", w / 2)
+          .attr("y", h / 2)
+          .style("font-size", 20)
+          .style("font-weight", "bold")
+          .style("fill", "gray")
+          .text("Zero data recorded at this directory and date");
         return t;
       },
-      update => update,
-      leave => leave.remove()
+      (update: any) => update,
+      (leave: any) => leave.remove()
     );
-
     return;
   }
   group.selectAll("text.no-data").remove();
 
-  const child = join(group
-    .selectAll("g")
-    .data(data.children, d => d.data.name)
-  )
-  ;
+  const child = join(
+    group
+      .selectAll("g")
+      .data(nodeData.children, (d: any) => d.data.name)
+  );
 
   child
-    .filter(d => d.children)
+    .filter((d: any) => hasVisibleChildren(d.data))
     .attr("cursor", "pointer")
-    .on("click", (_event, d) => zoomin(d))
+    .on("click", (_event: any, d: any) => zoomin(d));
 
   child
-    .on("mousemove", (event, d) => {
-      const rect = select(event.currentTarget).select("rect");
-      renderRect(rect, x, y, true)
+    .on("mousemove", (event: MouseEvent, d: any) => {
+      const rect = select(event.currentTarget as any).select("rect");
+      renderRect(rect, x, y, true);
 
       tooltip_title.value = d.data.name;
       tooltip_dir_dot.value = d.data.name;
-      tooltip_dir_dotdot.value = data.data.name;
-      select(tooltip.value).style("opacity", 1.0)
+      tooltip_dir_dotdot.value = nodeData.data.name;
+      select(tooltip.value).style("opacity", 1.0);
 
       const container_bounds = container.value?.getBoundingClientRect();
-      if (!container_bounds) return;
+      if (!container_bounds || !content.value || !tooltip.value) return;
       const bounds = content.value.getBoundingClientRect();
       const tooltip_bounds = tooltip.value.getBoundingClientRect();
 
@@ -491,294 +481,316 @@ const render = function(group, data, x, y, is_zoom = false, transition) {
 
       select(tooltip.value)
         .style("left", (mouse_x - bounds.left) + "px")
-        .style("top", (mouse_y - bounds.top)+ "px")
+        .style("top", (mouse_y - bounds.top) + "px");
 
-      const fields = []
-        .concat(props.field_size)
-        .concat(props.field_color)
+      const fields: string[] = []
+        .concat(props.field_size as any)
+        .concat(props.field_color as any);
 
-      const update = tr => {
+      const update = (tr: any) => {
         const v1 = tr.select("td.v1");
         const v2 = tr.select("td.v2");
         const v3 = tr.select("td.v3");
         const v4 = tr.select("td.v4");
-        v1.text(field => field)
-        v2.text(field => number_format(metrics_accumulation[field][data.data.id] || 0))
-        v3.text(field => number_format(metrics_accumulation[field][d.data.id] || 0))
-        v4.text(field => {
-          const value = metrics_accumulation[field][d.data.id] || 0;
-          const total = metrics_accumulation[field][data.data.id] || 0;
+        v1.text((field: string) => field);
+        v2.text((field: string) => number_format(metrics_accumulation[field]?.[nodeData.data.id] || 0));
+        v3.text((field: string) => number_format(metrics_accumulation[field]?.[d.data.id] || 0));
+        v4.text((field: string) => {
+          const value = metrics_accumulation[field]?.[d.data.id] || 0;
+          const total = metrics_accumulation[field]?.[nodeData.data.id] || 0;
           if (value > total) {
-            const multiple = (value / total).toFixed(1);
+            const multiple = total > 0 ? (value / total).toFixed(1) : "0.0";
             return `${multiple}x`;
           } else {
-            const percent = Math.floor(100 * value / total);
+            const percent = total > 0 ? Math.floor((100 * value) / total) : 0;
             return `${percent}%`;
           }
         });
         return tr;
-      }
+      };
 
       select(tooltip.value)
         .select("tbody")
         .selectAll("tr")
         .data(fields)
         .join(
-          enter => {
+          (enter: any) => {
             const row = enter.append("tr");
-            const v1 = row.append("td");
-            const v2 = row.append("td");
-            const v3 = row.append("td");
-            const v4 = row.append("td");
-            v1.attr("class", "v1");
-            v2.attr("class", "v2");
-            v3.attr("class", "v3");
-            v4.attr("class", "v4");
-            return update(row)
+            row.append("td").attr("class", "v1");
+            row.append("td").attr("class", "v2");
+            row.append("td").attr("class", "v3");
+            row.append("td").attr("class", "v4");
+            return update(row);
           },
           update,
-          exit => exit.remove(),
-        )
+          (exit: any) => exit.remove()
+        );
     })
-    .on("mouseleave", (event, _d) => {
-      const rect = select(event.currentTarget).select("rect");
-      renderRect(rect, x, y, false)
-
-      select(tooltip.value).style("opacity", 0.0)
-    })
+    .on("mouseleave", (event: MouseEvent, _d: any) => {
+      const rect = select(event.currentTarget as any).select("rect");
+      renderRect(rect, x, y, false);
+      select(tooltip.value).style("opacity", 0.0);
+    });
 };
 
-const zoomin = function(child) {
-  emits("zoomin", child.data.name)
+const zoomin = function(child: any) {
+  emits("zoomin", child.data.name);
 };
 
-const zoom = async function(data_old, data_new) {
+const zoom = async function(data_old: any, data_new: any) {
+  if (!data_old || !data_new) return;
   updateColorDomain(data_new);
-  const transition_imm = transition()
-    .duration(0)
-    .ease(easeCubicInOut)
 
   const transition_zoom = transition()
     .duration(500)
-    .ease(easeCubicInOut)
+    .ease(easeCubicInOut);
 
-  // Remove the previous content by fading them out.
-  const old_content = select(content.value).select('g')
-  const new_content = select(content.value).append("g")
+  const old_content = select(content.value).select("g");
+  const new_content = select(content.value).append("g");
 
   // Draw the old and new contents from the old content zoom.
   {
     const x = scaleLinear()
       .domain([data_old.x0, data_old.x1])
-      .rangeRound([0, svgWidth()-20])
-    ;
+      .rangeRound([0, svgWidth() - 20]);
     const y = scaleLinear()
       .domain([data_old.y0, data_old.y1])
-      .rangeRound([0, svgHeight()-20])
-    ;
-    render(old_content, data_old, x, y, true, transition_imm)
-    render(new_content, data_new, x, y, true, transition_imm)
+      .rangeRound([0, svgHeight() - 20]);
+    render(old_content, data_old, x, y, true, null);
+    render(new_content, data_new, x, y, true, null);
   }
 
   // Draw the old and new contents from the new content zoom.
   {
     const x = scaleLinear()
       .domain([data_new.x0, data_new.x1])
-      .rangeRound([0, svgWidth()-20])
-    ;
+      .rangeRound([0, svgWidth() - 20]);
     const y = scaleLinear()
       .domain([data_new.y0, data_new.y1])
-      .rangeRound([0, svgHeight()-20])
-    ;
-    render(old_content, data_old, x, y, true, transition_zoom)
-    render(new_content, data_new, x, y, true, transition_zoom)
+      .rangeRound([0, svgHeight() - 20]);
+    render(old_content, data_old, x, y, true, transition_zoom);
+    render(new_content, data_new, x, y, true, transition_zoom);
   }
-
 
   // Transition the opacity of the old and new contents.
   {
     old_content
       .attr("opacity", 1)
-      .transition(transition_zoom)
-      .attr("opacity", 0)
+      .transition(transition_zoom as any)
+      .attr("opacity", 0);
 
     new_content
       .attr("opacity", 0)
-      .transition(transition_zoom)
-      .attr("opacity", 1)
+      .transition(transition_zoom as any)
+      .attr("opacity", 1);
   }
 
-  // Delete the old content after the transition.
   old_content
-    .transition(transition_zoom)
-    .remove()
+    .transition(transition_zoom as any)
+    .remove();
 
   const transition_end = transition_zoom.end();
 
-  // Delay the historical data computation to avoid blocking the rendering.
   computeHistory();
   try {
     await transition_end;
   } catch (e) {}
-  };
-const mytreemap = function(data) {
-  // Sort children by area.
-  const data_with_layout =
-    hierarchy(data)
-    .each(d => d.value = d.data.area)
-    .sort((a, b) => b.value - a.value)
-  ;
+};
 
-  // Each node value is i
-  const map = treemap()
+// Build a path-scoped d3.hierarchy and treemap layout: only expands nodes along
+// `pathsToExpand` (and their immediate children), avoiding laying out ~566,000
+// invisible descendant nodes while producing identical coordinates.
+const mytreemap = function(pathsToExpand: string[][] = [(props.path as string[]) || []]) {
+  if (!activeTreeIndex) return null;
+  const root = activeTreeIndex.root;
+  root.area = areaById[root.id] || 0;
+  root.color = colorById[root.id] || 0;
+
+  const expandedSet = new Set<TreeNode>([root]);
+  for (const p of pathsToExpand) {
+    let cur = root;
+    for (const name of (p || [])) {
+      const child = cur.children?.find(c => c.name === name && !isNodeExcluded(c.id));
+      if (!child) break;
+      expandedSet.add(child);
+      cur = child;
+    }
+  }
+
+  const mask = getActiveExcludeMask();
+  const flags = activeTreeIndex.excludeFlags;
+
+  const data_with_layout = hierarchy(root, (d: TreeNode) => {
+    if (!expandedSet.has(d) || !d.children) return null;
+    const out: TreeNode[] = [];
+    for (let i = 0; i < d.children.length; i++) {
+      const c = d.children[i];
+      if (mask && flags && (flags[c.id] & mask) !== 0) continue;
+      c.area = areaById[c.id] || 0;
+      c.color = colorById[c.id] || 0;
+      out.push(c);
+    }
+    return out;
+  })
+    .each((d: any) => { d.value = d.data.area; })
+    .sort((a: any, b: any) => b.value - a.value);
+
+  const map = treemap<TreeNode>()
     .tile(treemapSquarify)
-    .size([svgWidth()*0.8, svgHeight()])
-    .round(true)
+    .size([svgWidth() * 0.8, svgHeight()])
+    .round(true);
 
   const out = map(data_with_layout)
-    .sort((a, b) => b.height - a.height)
+    .sort((a: any, b: any) =>
+      (hasVisibleChildren(b.data) ? 1 : 0) - (hasVisibleChildren(a.data) ? 1 : 0)
+    );
   return out;
 };
 
 // Finds the best index for a given date.
-const formatDate = date => {
+const formatDate = (date: Date) => {
   let best_index = 0;
   let best_diff = Infinity;
-  for(let i = 0; i < dates.length; ++i) {
-    const diff = Math.abs(dates[i] - date);
+  const t = date?.getTime?.() ?? 0;
+  for (let i = 0; i < dates.length; ++i) {
+    const diff = Math.abs(dates[i].getTime() - t);
     if (diff < best_diff) {
       best_diff = diff;
       best_index = i;
     }
   }
   return best_index;
-}
+};
 
-const formatDateInverse = date => {
-  return dates[date];
-}
+const formatDateInverse = (dateIdx: number) => {
+  return dates[dateIdx];
+};
 
-const computeHistoryForField = (field) => {
-  // For each date in [min_date, max_date], we need to accumulate the value
-  // for the current directory (data.data.id), which is the sum of all its
-  // children.
-  // We have already computed metrics_accumulation for each field and each
-  // but this is only for the current date (current_date_id).
-  // We need to do this for each date in [min_date, max_date].
+const computeHistoryForField = (field: string): number[] => {
+  if (!activeTreeIndex || dates.length === 0) return [];
+  const dirNode = getTreeNodeFromPath((props.path as string[]) || []);
+  if (!dirNode) return new Array(dates.length).fill(0);
 
-  const values = new Array(dates.length).fill(0);
-  const accumulate = (entry) => {
-    for(const child of entry.children || []) {
-      accumulate(child)
-    }
+  const repo = (props.repositories as string[])?.[0] || repositories_json[0]?.dirname || "chromium";
+  const mask = getActiveExcludeMask();
+  const cacheKey = `${repo}|${field}|${dirNode.id}|${mask}|${dates.length}`;
+  const cached = historySeriesCache.get(cacheKey);
+  if (cached) return cached;
 
-    const history = metrics[field] ? metrics[field][entry.id] : null;
-    if (!history) {
-      return;
-    }
+  const store = metrics[field];
+  if (!store) return new Array(dates.length).fill(0);
 
-    let current_value = 0;
-    let i = 0;
-    for(let date_id = 0; date_id < dates.length; ++date_id) {
-      while(i < history.length && history[i][0] <= date_id) {
-        current_value = history[i][1];
-        i += 1;
+  if (mask) {
+    ensureExcludeFlags(activeTreeIndex);
+  }
+  const flags = activeTreeIndex.excludeFlags;
+  const numDates = dates.length;
+  const diff = new Float64Array(numDates);
+
+  if (store.kind === "compact" && store.rows) {
+    const rows = store.rows;
+    const startId = dirNode.id;
+    const endId = dirNode.subtreeEnd;
+    let id = 0;
+    for (let r = 0; r < rows.length; r++) {
+      const row = rows[r];
+      id += row[0];
+      if (id < startId) continue;
+      if (id >= endId) break;
+      if (mask && flags && (flags[id] & mask) !== 0) continue;
+      let d = 0;
+      for (let i = 1; i < row.length; i += 2) {
+        d += row[i];
+        if (d < numDates) {
+          diff[d] += row[i + 1];
+        }
       }
-      values[date_id] += current_value;
     }
-  };
-  accumulate(getCurrentDataFromPath(props.path).data);
+  } else if (store.kind === "legacy" && store.legacy) {
+    const legacy = store.legacy;
+    const walk = (entry: TreeNode) => {
+      if (mask && flags && (flags[entry.id] & mask) !== 0) return;
+      for (const child of entry.children || []) walk(child);
+      const h = legacy[entry.id];
+      if (!h) return;
+      let prev = 0;
+      for (let i = 0; i < h.length; i++) {
+        const d = h[i][0];
+        const v = h[i][1];
+        if (d < numDates) {
+          diff[d] += v - prev;
+          prev = v;
+        }
+      }
+    };
+    walk(dirNode);
+  }
+
+  const values = new Array<number>(numDates);
+  let sum = 0;
+  for (let d = 0; d < numDates; d++) {
+    sum += diff[d];
+    values[d] = sum;
+  }
+
+  if (historySeriesCache.size > 200) {
+    historySeriesCache.clear();
+  }
+  historySeriesCache.set(cacheKey, values);
   return values;
-}
+};
 
 const computeHistory = () => {
   if (isSnapshot) {
     history.value = [];
     return;
   }
-  let fields = [];
+  let fields: string[] = [];
+  const fSize = (props.field_size as string[]) || [];
+  const fColor = (props.field_color as string[]) || [];
 
-  // If there are only a single field, use it.
-  if (props.field_size.length == 0) {
-    fields = props.field_color;
-  } else if (props.field_color.length == 0) {
-    fields = props.field_size;
+  if (fSize.length == 0) {
+    fields = fColor;
+  } else if (fColor.length == 0) {
+    fields = fSize;
   } else if (props.history_color && props.history_size) {
-    fields = []
-      .concat(props.field_size)
-      .concat(props.field_color);
+    fields = ([] as string[]).concat(fSize).concat(fColor);
   } else if (props.history_color) {
-    fields = props.field_color;
+    fields = fColor;
   } else if (props.history_size) {
-    fields = props.field_size;
+    fields = fSize;
   } else {
     history.value = [];
     return;
   }
 
   milestones.value = MILESTONES.filter(m =>
-    props.repositories.includes(m.repository) &&
+    (props.repositories as string[]).includes(m.repository) &&
     m.metrics.some(metric => fields.includes(metric)));
 
-  const out = [];
-  for(const field of fields) {
-    const values = computeHistoryForField(field);
+  const d0 = (props.dates as Date[])?.[0];
+  const d1 = (props.dates as Date[])?.[1];
 
+  const out = [];
+  for (const field of fields) {
+    const values = computeHistoryForField(field);
     out.push({
       label: field,
-      extra_label: " = " + format(",d")(values.at(-1)),
+      extra_label: " = " + format(",d")(values.at(-1) || 0),
       values: values
-        .map((d, i) => {
-          return {
-            x: formatDateInverse(i),
-            y: d,
-          }
-        })
-        .filter(d => {
-          return d.x >= props.dates[0] && d.x <= props.dates[1];
-        })
+        .map((d, i) => ({
+          x: formatDateInverse(i),
+          y: d,
+        }))
+        .filter(d => d.x >= d0 && d.x <= d1),
     });
-  };
-  history.value = out;
-  sourceNote.value = `Measured on the ${props.repositories[0]} source tree at ` +
-    `${dates.length} dates, the last on ${dates.at(-1)?.toISOString().slice(0, 10)}.`;
-}
-
-// Fetch dates.json
-//
-// Format:
-// [
-//   "2020-01-01",
-//   "2020-01-02",
-//   ...
-// ]
-async function FetchDates() {
-  dates = [];
-  const repo = props.repositories[0] || repositories_json[0]?.dirname || "chromium";
-  try {
-    const response = await fetch(`/treemap/${repo}/dates.json`);
-    if (response.ok) {
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        const json = await response.json();
-        dates = json.map(d => new Date(d));
-      }
-    }
-  } catch (e) {
-    console.error(`Error fetching dates for ${repo}`, e);
   }
+  history.value = out;
+  sourceNote.value = `Measured on the ${(props.repositories as string[])[0]} source tree at ` +
+    `${dates.length} dates, the last on ${dates.at(-1)?.toISOString().slice(0, 10)}.`;
 };
 
-// Fetch file_index.json
-//
-// Format:
-// {
-//   "name": "root",
-//   "id": 0,
-//   "children": [...]
-// }
-// Returns the parsed JSON, or null if unavailable.
-async function fetchJson(url) {
+async function fetchJson(url: string) {
   try {
     const response = await fetch(url);
     const contentType = response.headers.get("content-type");
@@ -791,276 +803,346 @@ async function fetchJson(url) {
   return null;
 }
 
-// The compact data (see scripts/compact-treemap.mjs) is much smaller, but
-// renumbers the nodes: the file index and the metrics must both come from it,
-// or both from the original files. The compact file index decides.
-let compactFileIndex = null;
-const fetchCompactFileIndex = repo =>
-  compactFileIndex ||= fetchJson(`/treemap/${repo}/file_index.compact.json`);
-
-// [name, ...children] for directories, name for files. Ids are the preorder
-// index.
-const decodeCompactFileIndex = compact => {
-  let id = 0;
-  const decode = node => {
-    if (typeof node === "string") {
-      return { name: node, id: id++ };
-    }
-    const out = { name: node[0], id: id++, children: [] };
-    for (let i = 1; i < node.length; ++i) {
-      out.children.push(decode(node[i]));
-    }
-    return out;
-  };
-  return decode(compact);
-};
-
-// [[id_delta, date_delta, value_delta, ...], ...] -> {id: [[date, value], ...]}
-const decodeCompactMetric = rows => {
-  const out = {};
-  let id = 0;
-  for (const row of rows) {
-    id += row[0];
-    const values = [];
-    let date = 0;
-    let value = 0;
-    for (let i = 1; i < row.length; i += 2) {
-      date += row[i];
-      value += row[i + 1];
-      values.push([date, value]);
-    }
-    out[id] = values;
+async function FetchDates() {
+  const repo = (props.repositories as string[])?.[0] || repositories_json[0]?.dirname || "chromium";
+  if (!datesCache.has(repo)) {
+    datesCache.set(repo, (async () => {
+      const json = await fetchJson(`/treemap/${repo}/dates.json`);
+      return Array.isArray(json) ? json.map((d: string) => new Date(d)) : [];
+    })());
   }
-  return out;
-};
-
-// [[id_delta, value], ...] -> {id: [[date, value]]}, for a snapshot of the
-// date `date`.
-const decodeLatestMetric = (rows, date) => {
-  const out = {};
-  let id = 0;
-  for (const [id_delta, value] of rows) {
-    id += id_delta;
-    out[id] = [[date, value]];
-  }
-  return out;
-};
-
-// `index`: a compact file index, from the snapshot of the last date. Without
-// it, the whole history's.
-async function FetchFileIndex(index = null) {
-  const repo = props.repositories[0] || repositories_json[0]?.dirname || "chromium";
-  const compact = index ?? await fetchCompactFileIndex(repo);
-  file_index = compact
-    ? decodeCompactFileIndex(compact)
-    : (await fetchJson(`/treemap/${repo}/file_index.json`)) ?? {};
-
-  const exclude_test = (parent_name, child_name) => {
-    if (!child_name) return false;
-    const name = child_name.toLowerCase();
-    const is_test =
-      name.includes("test") ||
-      name.includes("mock") ||
-      name.includes("example");
-    return is_test;
-  }
-
-  // Exclude third_party, exclude third_party/blink
-  const exclude_third_party = (parent_name, child_name) => {
-    if (!parent_name || !child_name) return false;
-    const parent = parent_name.toLowerCase();
-    const name = child_name.toLowerCase();
-    if (parent == "root" && name == "third_party") {
-      return false;
-    }
-    if (parent == "third_party") {
-      return name != "blink";
-    }
-    return false;
-  }
-
-  // Compute a version of the file_index excluding test files.
-  const exclude = (entry, filter, parent) => {
-    if (filter(parent, entry.name)) {
-      return null;
-    }
-
-    const out = {
-      name: entry.name,
-      id: entry.id,
-    };
-
-    if (!entry.children) {
-      return out;
-    }
-
-    out.children = [];
-    for(const child of entry.children) {
-      const child_out = exclude(child, filter, entry.name);
-      if (child_out) {
-        out.children.push(child_out);
-      }
-    }
-    if (out.children.length == 0) {
-      delete out.children;
-    }
-    return out;
-  };
-
-  file_index_excluding_test = exclude(file_index, exclude_test, "root");
-  file_index_excluding_third_party = exclude(
-    file_index,
-    exclude_third_party,
-    "root"
-  );
-  file_index_excluding_test_and_third_party = exclude(
-    file_index,
-    (parent, child) =>
-      exclude_test(parent, child) || exclude_third_party(parent, child),
-    "root"
-  );
+  dates = await datesCache.get(repo)!;
 }
 
-// Fetch all the metrics files:
-//
-// Format:
-// {
-//  "<id>": [[<date_id>, value], ...],
-//  ...
-// }
-async function FetchMetrics(latest = false)  {
-  metrics = {}; // Reset metrics
+const buildTreeIndexFromCompact = (compact: any): TreeIndex => {
+  let cap = 65536;
+  let parentId = new Int32Array(cap);
+  parentId[0] = -1;
+  let nextId = 0;
 
-  // Metrics to fetch:
-  const fields = []
-    .concat(props.field_size)
-    .concat(props.field_color)
+  const decode = (node: any, pId: number): TreeNode => {
+    const id = nextId++;
+    if (id >= cap) {
+      cap *= 2;
+      const next = new Int32Array(cap);
+      next.set(parentId);
+      parentId = next;
+    }
+    parentId[id] = pId;
 
-  const repo = props.repositories[0] || repositories_json[0]?.dirname || "chromium";
-  if (latest) {
-    await Promise.all(fields.filter(field => field).map(async field => {
-      const rows = await fetchJson(`/treemap/${repo}/metrics/${field}.latest.json`);
-      if (rows) {
-        metrics[field] = decodeLatestMetric(rows, dates.length - 1);
+    if (typeof node === "string") {
+      return { name: node, id, subtreeEnd: id + 1, area: 0, color: 0 };
+    }
+    const len = node.length - 1;
+    const children = new Array<TreeNode>(len);
+    for (let i = 0; i < len; ++i) {
+      children[i] = decode(node[i + 1], id);
+    }
+    return {
+      name: node[0],
+      id,
+      subtreeEnd: nextId,
+      area: 0,
+      color: 0,
+      children,
+    };
+  };
+
+  const root = decode(compact, -1);
+  return {
+    root,
+    numNodes: nextId,
+    parentId: parentId.subarray(0, nextId),
+    excludeFlags: null,
+    isCompact: true,
+  };
+};
+
+const buildTreeIndexFromLegacy = (rawRoot: any): TreeIndex => {
+  let maxId = 0;
+  const findMax = (n: any) => {
+    if (n.id > maxId) maxId = n.id;
+    for (const c of n.children || []) findMax(c);
+  };
+  findMax(rawRoot);
+  const numNodes = maxId + 1;
+  const parentId = new Int32Array(numNodes).fill(-1);
+
+  const convert = (n: any, pId: number): TreeNode => {
+    const id = n.id;
+    parentId[id] = pId;
+    if (!n.children || n.children.length === 0) {
+      return { name: n.name, id, subtreeEnd: id + 1, area: 0, color: 0 };
+    }
+    const children = n.children.map((c: any) => convert(c, id));
+    return { name: n.name, id, subtreeEnd: id + 1, area: 0, color: 0, children };
+  };
+
+  const root = convert(rawRoot, -1);
+  return {
+    root,
+    numNodes,
+    parentId,
+    excludeFlags: null,
+    isCompact: false,
+  };
+};
+
+// Lazily compute the 2-bit exclusion flags (bit 1 = test, bit 2 = third_party)
+// only when exclude_test or exclude_third_party is actually checked.
+const ensureExcludeFlags = (treeIndex: TreeIndex) => {
+  if (treeIndex.excludeFlags) return;
+  const flags = new Uint8Array(treeIndex.numNodes);
+
+  const isTestName = (name: string) => {
+    const n = name.toLowerCase();
+    return n.includes("test") || n.includes("mock") || n.includes("example");
+  };
+
+  const walk = (node: TreeNode, isThirdPartyParent: boolean, inhFlags: number) => {
+    let f = inhFlags;
+    if (node.id > 0 && node.name) {
+      if ((f & 1) === 0 && isTestName(node.name)) {
+        f |= 1;
       }
+      if (isThirdPartyParent && node.name.toLowerCase() !== "blink") {
+        f |= 2;
+      }
+    }
+    flags[node.id] = f;
+    if (node.children) {
+      const tpParent = node.name?.toLowerCase() === "third_party";
+      for (let i = 0; i < node.children.length; i++) {
+        walk(node.children[i], tpParent, f);
+      }
+    }
+  };
+
+  walk(treeIndex.root, false, 0);
+  treeIndex.excludeFlags = flags;
+};
+
+const getLatestTreeIndex = (repo: string): Promise<TreeIndex | null> => {
+  if (!latestTreeCache.has(repo)) {
+    latestTreeCache.set(repo, (async () => {
+      const index = await fetchJson(`/treemap/${repo}/file_index.latest.json`);
+      return index ? buildTreeIndexFromCompact(index) : null;
+    })());
+  }
+  return latestTreeCache.get(repo)!;
+};
+
+const getFullTreeIndex = (repo: string): Promise<TreeIndex | null> => {
+  if (!fullTreeCache.has(repo)) {
+    fullTreeCache.set(repo, (async () => {
+      const compact = await fetchJson(`/treemap/${repo}/file_index.compact.json`);
+      if (compact) return buildTreeIndexFromCompact(compact);
+      const legacy = await fetchJson(`/treemap/${repo}/file_index.json`);
+      return legacy ? buildTreeIndexFromLegacy(legacy) : null;
+    })());
+  }
+  return fullTreeCache.get(repo)!;
+};
+
+const getLatestMetric = (repo: string, field: string): Promise<MetricStore | null> => {
+  const key = `${repo}/${field}`;
+  if (!latestMetricCache.has(key)) {
+    latestMetricCache.set(key, (async () => {
+      const rows = await fetchJson(`/treemap/${repo}/metrics/${field}.latest.json`);
+      return rows ? { kind: "latest", rows } : null;
+    })());
+  }
+  return latestMetricCache.get(key)!;
+};
+
+const getFullMetric = (repo: string, field: string, isCompact: boolean): Promise<MetricStore | null> => {
+  const key = `${repo}/${field}/${isCompact ? "c" : "l"}`;
+  if (!fullMetricCache.has(key)) {
+    fullMetricCache.set(key, (async () => {
+      if (isCompact) {
+        const rows = await fetchJson(`/treemap/${repo}/metrics/${field}.compact.json`);
+        return rows ? { kind: "compact", rows } : null;
+      }
+      const legacy = await fetchJson(`/treemap/${repo}/metrics/${field}.json`);
+      return legacy ? { kind: "legacy", legacy } : null;
+    })());
+  }
+  return fullMetricCache.get(key)!;
+};
+
+async function FetchMetrics(latest = false) {
+  metrics = {};
+  const repo = (props.repositories as string[])?.[0] || repositories_json[0]?.dirname || "chromium";
+  const fields = Array.from(new Set(
+    ([] as string[])
+      .concat(props.field_size as any)
+      .concat(props.field_color as any)
+      .filter(Boolean)
+  ));
+
+  if (latest) {
+    await Promise.all(fields.map(async field => {
+      const store = await getLatestMetric(repo, field);
+      if (store) metrics[field] = store;
     }));
     return;
   }
-  const compact = await fetchCompactFileIndex(repo);
-  for(const field of fields) {
-    if (!field) continue;
-    if (compact) {
-      const rows = await (prefetchedMetrics[field] ??
-        fetchJson(`/treemap/${repo}/metrics/${field}.compact.json`));
-      if (rows) {
-        metrics[field] = decodeCompactMetric(rows);
-      }
-    } else {
-      const metric = await fetchJson(`/treemap/${repo}/metrics/${field}.json`);
-      if (metric) {
-        metrics[field] = metric;
-      }
-    }
-  }
+
+  const isCompact = activeTreeIndex?.isCompact ?? true;
+  await Promise.all(fields.map(async field => {
+    const store = await getFullMetric(repo, field, isCompact);
+    if (store) metrics[field] = store;
+  }));
 }
 
 function computeMetricsAccumulation() {
-  // Compute the metrics_accumulation for each field and each file.
-  for(const field in metrics) {
-    metrics_accumulation[field] = {};
+  if (!activeTreeIndex) return;
+  const numNodes = activeTreeIndex.numNodes;
+  const parentId = activeTreeIndex.parentId;
+  const mask = getActiveExcludeMask();
+  if (mask) {
+    ensureExcludeFlags(activeTreeIndex);
+  }
+  const flags = activeTreeIndex.excludeFlags;
 
-    // Initialize the metrics_accumulation with the current values.
-    // Ensure all nodes in metrics get initialized.
-    for(const file_id in metrics[field]) {
-      metrics_accumulation[field][file_id] = metric_current_value(field, file_id);
+  for (const field in metrics) {
+    const store = metrics[field];
+    let acc = metrics_accumulation[field];
+    if (!acc || acc.length !== numNodes) {
+      acc = new Float64Array(numNodes);
+      metrics_accumulation[field] = acc;
+    } else {
+      acc.fill(0);
     }
 
-    // Accumulate the metrics for each directory.
-    const accumulate = entry => {
-      metrics_accumulation[field][entry.id] ||= 0;
-      if (!entry.children) {
-        return;
+    if (store.kind === "latest" && store.rows) {
+      const rows = store.rows;
+      let id = 0;
+      for (let r = 0; r < rows.length; r++) {
+        const row = rows[r];
+        id += row[0];
+        if (mask && flags && (flags[id] & mask) !== 0) continue;
+        acc[id] = row[1];
       }
-
-      for(const child of entry.children) {
-        accumulate(child);
-
-        metrics_accumulation[field][entry.id] +=
-          metrics_accumulation[field][child.id] || 0; // Added || 0 to be safe
+    } else if (store.kind === "compact" && store.rows) {
+      const rows = store.rows;
+      let id = 0;
+      for (let r = 0; r < rows.length; r++) {
+        const row = rows[r];
+        id += row[0];
+        if (mask && flags && (flags[id] & mask) !== 0) continue;
+        let d = 0;
+        let val = 0;
+        for (let i = 1; i < row.length; i += 2) {
+          d += row[i];
+          if (d > current_date_id) break;
+          val += row[i + 1];
+        }
+        acc[id] = val;
+      }
+    } else if (store.kind === "legacy" && store.legacy) {
+      for (const file_id in store.legacy) {
+        const id = Number(file_id);
+        if (mask && flags && (flags[id] & mask) !== 0) continue;
+        const hist = store.legacy[file_id];
+        let val = 0;
+        for (let i = 0; i < hist.length; i++) {
+          if (hist[i][0] <= current_date_id) val = hist[i][1];
+          else break;
+        }
+        acc[id] = val;
       }
     }
-    accumulate(get_file_index());
+
+    if (activeTreeIndex.isCompact) {
+      // Preorder numbering guarantees parentId[i] < i for all i > 0, so a single
+      // reverse pass accumulates the entire tree without recursion.
+      for (let i = numNodes - 1; i > 0; i--) {
+        const v = acc[i];
+        if (v !== 0) {
+          acc[parentId[i]] += v;
+        }
+      }
+    } else {
+      const accWalk = (entry: TreeNode) => {
+        if (!entry.children) return;
+        for (const child of entry.children) {
+          accWalk(child);
+          acc[entry.id] += acc[child.id];
+        }
+      };
+      accWalk(activeTreeIndex.root);
+    }
+
+    metrics_accumulation[field] = acc;
   }
 }
 
 function computeFetchedData() {
-  // Finally, compute the value for each file.
-  const out = structuredClone(get_file_index());
+  if (!activeTreeIndex) return;
+  const numNodes = activeTreeIndex.numNodes;
+  if (areaById.length !== numNodes) {
+    areaById = new Float64Array(numNodes);
+  } else {
+    areaById.fill(0);
+  }
+  if (colorById.length !== numNodes) {
+    colorById = new Float64Array(numNodes);
+  } else {
+    colorById.fill(0);
+  }
 
-  // Compute area and color:
-  const props_field_size = props.field_size.length
-    ? props.field_size
-    : props.field_color;
-  const props_field_color = props.field_color.length
-    ? props.field_color
-    : props.field_size;
+  const fSize = (props.field_size as string[]) || [];
+  const fColor = (props.field_color as string[]) || [];
+  const props_field_size = fSize.length ? fSize : fColor;
+  const props_field_color = fColor.length ? fColor : fSize;
 
-  const compute = entry => {
-    // Recurse on children:
-    for(const child of entry.children || []) {
-      compute(child);
-    }
-
-    // Drop children with zero area or zero color:
-    //entry.children = (entry.children || []).filter(c => c.area > 0);
-
-    entry.area = 0;
-    entry.color = 0;
-    for(const field of props_field_size) {
-      if (metrics_accumulation[field]) {
-        entry.area += metrics_accumulation[field][entry.id] || 0;
-      }
-    }
-    for(const field of props_field_color) {
-      if (metrics_accumulation[field]) {
-        entry.color += metrics_accumulation[field][entry.id] || 0;
+  for (const field of props_field_size) {
+    const acc = metrics_accumulation[field];
+    if (acc) {
+      for (let i = 0; i < numNodes; i++) {
+        areaById[i] += acc[i];
       }
     }
   }
-  compute(out);
-
-  fetchedData = out;
-  return;
+  for (const field of props_field_color) {
+    const acc = metrics_accumulation[field];
+    if (acc) {
+      for (let i = 0; i < numNodes; i++) {
+        colorById[i] += acc[i];
+      }
+    }
+  }
 }
 
 // While only the snapshot of the last date is loaded: the history is unknown.
 let isSnapshot = false;
 
-// The whole history, downloading while the snapshot is drawn.
-let prefetchedMetrics = {};
-const prefetchHistory = repo => {
-  compactFileIndex = fetchJson(`/treemap/${repo}/file_index.compact.json`);
-  prefetchedMetrics = {};
-  for (const field of [].concat(props.field_size).concat(props.field_color)) {
-    if (field) {
-      prefetchedMetrics[field] = fetchJson(`/treemap/${repo}/metrics/${field}.compact.json`);
-    }
+const prefetchHistory = (repo: string) => {
+  getFullTreeIndex(repo);
+  const fields = Array.from(new Set(
+    ([] as string[])
+      .concat(props.field_size as any)
+      .concat(props.field_color as any)
+      .filter(Boolean)
+  ));
+  for (const field of fields) {
+    getFullMetric(repo, field, true);
   }
 };
 
-// The snapshot of the last date: much smaller than the whole history, it
-// shows the treemap quickly, on the first load. Returns whether it was used.
 async function fetchLatestEntries() {
-  const repo = props.repositories[0] || repositories_json[0]?.dirname || "chromium";
+  const repo = (props.repositories as string[])?.[0] || repositories_json[0]?.dirname || "chromium";
   await FetchDates();
-  if (dates.length == 0 || formatDate(props.dates[1]) != dates.length - 1) {
+  if (dates.length == 0 || formatDate((props.dates as Date[])[1]) != dates.length - 1) {
     return false;
   }
-  const index = await fetchJson(`/treemap/${repo}/file_index.latest.json`);
-  if (!index) {
+  const treeIdx = await getLatestTreeIndex(repo);
+  if (!treeIdx) {
     return false;
   }
-  await Promise.all([FetchFileIndex(index), FetchMetrics(true)]);
+  activeTreeIndex = treeIdx;
+  await FetchMetrics(true);
   prefetchHistory(repo);
   isSnapshot = true;
   current_date_id = dates.length - 1;
@@ -1070,29 +1152,22 @@ async function fetchLatestEntries() {
 }
 
 async function fetchEntries() {
-  if (!isSnapshot) {
-    compactFileIndex = null;
-    prefetchedMetrics = {};
-  }
+  const repo = (props.repositories as string[])?.[0] || repositories_json[0]?.dirname || "chromium";
   isSnapshot = false;
-  await Promise.all([
-    FetchDates(),
-    FetchFileIndex(),
-    FetchMetrics(),
-  ]);
-  prefetchedMetrics = {};
-  // From the dates, find the date_id to display.
-  current_date_id = formatDate(props.dates[1]);
-
+  await FetchDates();
+  activeTreeIndex = await getFullTreeIndex(repo);
+  await FetchMetrics(false);
+  current_date_id = formatDate((props.dates as Date[])[1]);
   computeMetricsAccumulation();
   computeFetchedData();
 }
 
-
-const getCurrentDataFromPath = function(path) {
-  let current_data = data.value
-  for(const name of path) {
-    for(let child of current_data.children) {
+const getCurrentDataFromPath = function(pathArr: string[]) {
+  let current_data = data.value;
+  if (!current_data) return null;
+  for (const name of (pathArr || [])) {
+    if (!current_data.children) break;
+    for (const child of current_data.children) {
       if (child.data.name == name) {
         current_data = child;
         break;
@@ -1102,98 +1177,172 @@ const getCurrentDataFromPath = function(path) {
   return current_data;
 };
 
-async function refresh() {
-  colormapFunc = $color_map[props.colormap];
+async function refresh(options: { withHistory?: boolean; emitEnd?: boolean; animateTransition?: boolean } = {}) {
+  const { withHistory = true, emitEnd = true, animateTransition = true } = options;
+  colormapFunc = $color_map[props.colormap as string];
 
-  // Interrupt any ongoing transitions
+  if (!content.value) return;
   select(content.value).selectAll("*").interrupt();
 
-  // If there are multiple 'g' elements (e.g., from an interrupted zoom), keep only the last one
   const gs = select(content.value).selectAll("g");
   if (gs.size() > 1) {
-    gs.filter((d, i) => i < gs.size() - 1).remove();
+    gs.filter((_d, i) => i < gs.size() - 1).remove();
   }
 
   if (!select(content.value).select("g").node()) {
-    select(content.value).append("g")
+    select(content.value).append("g");
   }
 
-  const data = getCurrentDataFromPath(props.path);
-  updateColorDomain(data);
+  const nodeData = getCurrentDataFromPath(props.path as string[]);
+  if (!nodeData) return;
+  updateColorDomain(nodeData);
 
-  const group =
-    select(content.value)
-    .select("g")
+  const group = select(content.value).select("g");
 
   const x = scaleLinear()
-    .domain([data.x0, data.x1])
-    .rangeRound([0, svgWidth()-20])
-  ;
+    .domain([nodeData.x0, nodeData.x1])
+    .rangeRound([0, svgWidth() - 20]);
   const y = scaleLinear()
-    .domain([data.y0, data.y1])
-    .rangeRound([0, svgHeight()-20])
-  ;
+    .domain([nodeData.y0, nodeData.y1])
+    .rangeRound([0, svgHeight() - 20]);
 
-  const transition_refresh =
-    transition()
-    .duration(300)
-    .ease(props.animate? easeCubicInOut : easeLinear)
+  if (animateTransition) {
+    const transition_refresh = transition()
+      .duration(300)
+      .ease(props.animate ? easeCubicInOut : easeLinear);
 
-  render(group, data, x, y, false, transition_refresh)
+    render(group, nodeData, x, y, false, transition_refresh);
 
-  // Delay the historical data computation to avoid blocking the rendering.
-  try {
-    await transition_refresh.end();
-  } catch (e) {}
-  computeHistory();
+    try {
+      await transition_refresh.end();
+    } catch (e) {}
+  } else {
+    render(group, nodeData, x, y, false, null);
+  }
 
-  emits("animationend");
-};
-async function render_refresh() {
-  data.value = mytreemap(fetchedData);
-  await refresh();
-};
+  if (withHistory) {
+    computeHistory();
+  }
 
-const pathChanged = async function(new_path, old_path) {
+  if (emitEnd) {
+    emits("animationend");
+  }
+}
+
+async function render_refresh(options: { withHistory?: boolean; emitEnd?: boolean; animateTransition?: boolean } = {}) {
+  data.value = mytreemap([(props.path as string[]) || []]);
+  await refresh(options);
+}
+
+const pathChanged = async function(new_path: string[], old_path: string[]) {
+  data.value = mytreemap([old_path || [], new_path || []]);
   const data_old = getCurrentDataFromPath(old_path);
   const data_new = getCurrentDataFromPath(new_path);
-  await zoom(data_old, data_new)
+  await zoom(data_old, data_new);
 };
 
-const path_wrapped = computed(() => [...props.path]);
+const path_wrapped = computed(() => [...((props.path as string[]) || [])]);
 
+// Repository or metric selection changed: load any new files and refresh.
 watch(() => [
   props.repositories,
   props.field_size,
   props.field_color,
-  props.dates,
-  props.history_color,
-  props.exclude_test,
-  props.exclude_third_party,
-  props.history_size,
 ], () => lock(async () => {
+  metrics_accumulation = {};
+  historySeriesCache.clear();
   await fetchEntries();
   await render_refresh();
 }));
 
+// Exclusion checkboxes changed: recompute accumulation from cached metrics.
+watch(() => [
+  props.exclude_test,
+  props.exclude_third_party,
+], () => lock(async () => {
+  if (isSnapshot) {
+    await fetchEntries();
+  } else {
+    computeMetricsAccumulation();
+    computeFetchedData();
+  }
+  await render_refresh();
+}));
+
+// Date range changed: if the end date_id changed, re-accumulate; if only the
+// start date changed, only re-filter the history chart.
+watch(() => props.dates, () => lock(async () => {
+  if (isSnapshot) {
+    await fetchEntries();
+    await render_refresh();
+    return;
+  }
+  const newDateId = formatDate((props.dates as Date[])?.[1]);
+  if (newDateId !== current_date_id) {
+    current_date_id = newDateId;
+    computeMetricsAccumulation();
+    computeFetchedData();
+    await render_refresh();
+  } else {
+    computeHistory();
+    emits("animationend");
+  }
+}));
+
+// History chart checkboxes only affect the LineChart series.
+watch(() => [
+  props.history_color,
+  props.history_size,
+], () => lock(async () => {
+  computeHistory();
+}));
+
+// Colormap settings only affect tile colors.
 watch(() => [
   props.colormap,
   props.colormapMin,
   props.colormapMax,
-], () => lock(refresh));
+], () => lock(() => refresh({ withHistory: false, emitEnd: false })));
 
 watch(path_wrapped, (new_path, old_path) => lock(() => pathChanged(new_path, old_path)));
 
+let resizeObserver: ResizeObserver | null = null;
+let lastWidth = 0;
+let lastHeight = 0;
+
 onMounted(() => lock(async () => {
-  if (await fetchLatestEntries()) {
+  const renderedSnapshot = await fetchLatestEntries();
+  if (renderedSnapshot) {
+    await render_refresh({ withHistory: false, emitEnd: false });
+  }
+  const snapshotDateId = current_date_id;
+  await fetchEntries();
+  if (renderedSnapshot && current_date_id === snapshotDateId) {
+    // The treemap tiles are already showing the latest snapshot; update the
+    // backing node ids for tooltips/zooming without running a second transition,
+    // and populate the history chart.
+    await render_refresh({ withHistory: true, emitEnd: true, animateTransition: false });
+  } else {
     await render_refresh();
   }
-  await fetchEntries();
-  await render_refresh();
   if (container.value) {
-    (new ResizeObserver(() => lock(render_refresh))).observe(container.value);
+    lastWidth = svgWidth();
+    lastHeight = svgHeight();
+    resizeObserver = new ResizeObserver(() => {
+      const w = svgWidth();
+      const h = svgHeight();
+      if (w === lastWidth && h === lastHeight) return;
+      lastWidth = w;
+      lastHeight = h;
+      lock(() => render_refresh({ withHistory: false, emitEnd: false, animateTransition: false }));
+    });
+    resizeObserver.observe(container.value);
   }
 }));
+
+onBeforeUnmount(() => {
+  resizeObserver?.disconnect();
+});
 
 </script>
 
@@ -1255,6 +1404,7 @@ onMounted(() => lock(async () => {
 
 .split-view > div {
   flex: 1;
+  min-width: 0;
   padding: 10px;
 }
 

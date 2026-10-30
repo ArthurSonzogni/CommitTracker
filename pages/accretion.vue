@@ -1235,7 +1235,9 @@ watch(() => route.query, value => {
 
 @media (min-width: 769px) {
   .figures {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+    grid-template-columns: none;
   }
 }
 
@@ -1244,7 +1246,7 @@ watch(() => route.query, value => {
   border-bottom: 1px solid var(--line);
   border-right: 1px solid var(--line);
   margin: 0 -1px -1px 0;
-  padding: 1rem 1.25rem;
+  padding: 0.9rem 1rem;
 }
 
 .figure-label {

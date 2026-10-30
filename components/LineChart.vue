@@ -368,9 +368,29 @@ const render = () => {
 
 };
 
+let lastWidth = 0;
+let lastHeight = 0;
+let resizeObserver: ResizeObserver | null = null;
+
 onMounted(() => {
+  lastWidth = container.value?.clientWidth || 0;
+  lastHeight = container.value?.clientHeight || 0;
   render();
-  (new ResizeObserver(render)).observe(container.value);
+  if (container.value) {
+    resizeObserver = new ResizeObserver(() => {
+      const w = container.value?.clientWidth || 0;
+      const h = container.value?.clientHeight || 0;
+      if (w === lastWidth && h === lastHeight) return;
+      lastWidth = w;
+      lastHeight = h;
+      render();
+    });
+    resizeObserver.observe(container.value);
+  }
+});
+
+onBeforeUnmount(() => {
+  resizeObserver?.disconnect();
 });
 
 watch(() => [props.data, props.milestones, props.formatter], render);
