@@ -397,10 +397,39 @@ const tests = [
       await __t.until(() =>
         document.querySelectorAll('.span-repo-table tbody tr').length === 6 &&
         document.querySelectorAll('.roi-svg-wrap svg rect').length > 10 &&
-        document.querySelector('#checks'), 25000);
+        document.querySelectorAll('#checks .milestone-pill').length >= 1 &&
+        document.querySelectorAll('.end-callout').length >= 2, 25000);
       const repoRows = document.querySelectorAll('.span-repo-table tbody tr').length;
       const beforeRects = document.querySelectorAll('.roi-svg-wrap svg rect').length;
       const firstCov = document.querySelector('.span-repo-table .progress-pct')?.textContent.trim();
+
+      // 1. Apr 1, 2026 systematic CHECK() conversion marker
+      const checkMarkerText = [...document.querySelectorAll('#checks .milestone text')]
+        .map(t => t.textContent).join(' | ');
+      const hasApr2026CheckMarker = checkMarkerText.includes('Apr 1, 2026') &&
+        checkMarkerText.includes('Systematic CHECK() conversion');
+
+      // 2. Timeline label color matches line stroke color across all LineCharts
+      const legendItems = [...document.querySelectorAll('g.legend')];
+      const legendColorMismatch = legendItems.filter(item => {
+        const swatch = item.querySelector('line.legend-swatch');
+        const txt = item.querySelector('text');
+        return !swatch || !txt || !txt.style.fill || swatch.style.stroke !== txt.style.fill;
+      });
+
+      // 3. Dashed linear completion trend lines & ETA callouts on UNSAFE_TODO + DanglingUntriaged
+      const dashedLines = document.querySelectorAll('path.line[stroke-dasharray]').length;
+      const calloutTexts = [...document.querySelectorAll('.end-callout text')]
+        .map(t => t.textContent).join(' | ');
+      const hasEtas = calloutTexts.includes('ETA 2027-') && calloutTexts.includes('ETA 2033-');
+
+      // 4. Verified raw_ptr jump markers on MiraclePtr chart
+      const miracleMilestones = [...document.querySelectorAll('#miracleptr .milestone text')]
+        .map(t => t.textContent).join(' | ');
+      const hasRawPtrJumps = miracleMilestones.includes('Big Rewrite') &&
+        miracleMilestones.includes('Renderer rewrite');
+
+      // 5. Expand uncovered directories & toggle First-party -> All code
       const expandBtn = document.querySelector('.span-repo-table .expand-btn');
       expandBtn.click();
       const expanded = await __t.until(() => document.querySelectorAll('.blocker-detail-row').length >= 1, 5000);
@@ -408,19 +437,43 @@ const tests = [
       const scopedAll = await __t.until(() =>
         location.search.includes('spanScope=all') &&
         document.querySelector('.span-repo-table .progress-pct')?.textContent.trim() !== firstCov, 5000);
+
+      // 6. Toggle RAW_PTR_EXCLUSION -> Exclude Chrome
+      const exclGroup = document.querySelector('[aria-label="RAW_PTR_EXCLUSION repository scope"]');
+      [...exclGroup.querySelectorAll('.segmented-option')]
+        .find(b => b.textContent.includes('Exclude Chrome')).click();
+      const exclSubrepos = await __t.until(() =>
+        location.search.includes('exclusionScope=subrepos') &&
+        document.querySelector('#miracleptr').innerText.includes('Sub-repos remaining'), 5000);
+
+      // 7. Toggle DanglingUntriaged projection basis -> Since peak
+      const dangGroup = document.querySelector('[aria-label="DanglingUntriaged projection basis"]');
+      [...dangGroup.querySelectorAll('.segmented-option')]
+        .find(b => b.textContent.includes('Since peak')).click();
+      const dangPeak = await __t.until(() => location.search.includes('danglingTrendBasis=peak'), 5000);
+
+      // 8. Toggle UAF Quarterly & CHECK hardening % (preserving Apr 1, 2026 marker)
       __t.byText('.segmented-option', 'Quarterly').click();
       const quarterly = await __t.until(() =>
         location.search.includes('uafGranularity=quarterly') &&
         document.querySelectorAll('.roi-svg-wrap svg rect').length > beforeRects, 5000);
       __t.byText('.segmented-option', 'CHECK hardening %').click();
-      const checkShare = await __t.until(() => location.search.includes('checksChartMode=share'), 5000);
+      const checkShare = await __t.until(() =>
+        location.search.includes('checksChartMode=share') &&
+        [...document.querySelectorAll('#checks .milestone text')].some(t => t.textContent.includes('Apr 1, 2026')), 5000);
+
       const missing = [...document.querySelectorAll('.mdi')].filter(el => {
         const c = getComputedStyle(el, '::before').content;
         return !c || c === 'none' || c === 'normal';
       });
       return {
-        ok: !!(expanded && scopedAll && quarterly && checkShare && missing.length === 0),
-        detail: 'repos=' + repoRows + ' cov1P=' + firstCov + ' uafRects=' + beforeRects + '->' + document.querySelectorAll('.roi-svg-wrap svg rect').length + ' missingIcons=' + missing.length,
+        ok: !!(hasApr2026CheckMarker && legendItems.length >= 10 && legendColorMismatch.length === 0 &&
+          dashedLines >= 2 && hasEtas && hasRawPtrJumps && expanded && scopedAll && exclSubrepos &&
+          dangPeak && quarterly && checkShare && missing.length === 0),
+        detail: 'repos=' + repoRows + ' cov1P=' + firstCov + ' dashed=' + dashedLines +
+          ' legends=' + legendItems.length + ' mismatch=' + legendColorMismatch.length +
+          ' exclSub=' + !!exclSubrepos + ' checkApr1=' + hasApr2026CheckMarker +
+          ' missingIcons=' + missing.length,
       };
     `,
   },

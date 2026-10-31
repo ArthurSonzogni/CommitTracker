@@ -3,7 +3,7 @@
 // label takes the first lane where it fits, on the right of its line, or else
 // on its left. A label avoids crossing the other lines when it can.
 export function labelLanes(
-  markers: { x: number; width: number }[],
+  markers: { x: number; width: number; preferredAnchor?: "start" | "end" }[],
   chartWidth: number,
   gap = 4,
 ): { lane: number; anchor: "start" | "end" }[] {
@@ -11,10 +11,12 @@ export function labelLanes(
   const lanes: [number, number][][] = [];
   const result = new Array(markers.length);
 
-  const candidates = (marker: { x: number; width: number }) => [
-    { anchor: "start" as const, from: marker.x + gap, to: marker.x + gap + marker.width },
-    { anchor: "end" as const, from: marker.x - gap - marker.width, to: marker.x - gap },
-  ].filter(c => c.from >= 0 && c.to <= chartWidth);
+  const candidates = (marker: { x: number; width: number; preferredAnchor?: "start" | "end" }) => {
+    const right = { anchor: "start" as const, from: marker.x + gap, to: marker.x + gap + marker.width };
+    const left = { anchor: "end" as const, from: marker.x - gap - marker.width, to: marker.x - gap };
+    const ordered = marker.preferredAnchor === "end" ? [left, right] : [right, left];
+    return ordered.filter(c => c.from >= 0 && c.to <= chartWidth);
+  };
 
   const crossesLine = (i: number, from: number, to: number) =>
     markers.some((other, j) => j !== i && other.x > from - gap && other.x < to + gap);

@@ -30,8 +30,7 @@
               <strong>Spanification coverage:</strong>
               <code>(total_cpp_lines − lines_unsafe_buffer_usage) ÷ total_cpp_lines</code>, matching
               each repository's <code>unsafe_buffers_paths.txt</code> and
-              <code>#pragma allow_unsafe_buffers</code> exemptions (top-level <code>tools/</code>
-              excluded consistently in numerator and denominator).
+              <code>#pragma allow_unsafe_buffers</code> exemptions.
             </li>
             <li>
               <strong>First-party scope:</strong> excludes vendored <code>third_party/</code>
@@ -55,10 +54,8 @@
             </div>
             <p class="kpi-detail">
               <strong>{{ fmtInt(payload.spanification.unsafeTodo.totals.current) }}</strong>
-              <code>UNSAFE_TODO</code> left ({{
-                fmtSigned(payload.spanification.unsafeTodo.totals.delta90d)
-              }}
-              in 90d)
+              <code>UNSAFE_TODO</code> left · ETA
+              <strong>{{ todoProjection90d?.etaDate ?? payload.spanification.unsafeTodo.totals.etaDate ?? '—' }}</strong>
             </p>
           </a>
 
@@ -90,10 +87,8 @@
             </div>
             <p class="kpi-detail">
               Down <strong>{{ payload.danglingPointers.totals.burnPct }}%</strong> from
-              {{ fmtInt(payload.danglingPointers.totals.peak) }} peak ({{
-                fmtSigned(payload.danglingPointers.totals.delta365d)
-              }}
-              in 1y)
+              {{ fmtInt(payload.danglingPointers.totals.peak) }} peak · 1y ETA
+              <strong>{{ danglingProjection1y?.etaDate?.slice(0, 7) ?? '—' }}</strong>
             </p>
           </a>
 
@@ -200,7 +195,7 @@
                     <td>
                       <div class="repo-cell">
                         <span class="repo-dot" :style="{ background: row.color }" />
-                        <strong>{{ row.label }}</strong>
+                        <strong :style="{ color: row.color }">{{ row.label }}</strong>
                       </div>
                     </td>
 
@@ -395,11 +390,18 @@
                   v-for="r in activeSpanScope.repos"
                   :key="r.repo"
                   type="button"
-                  class="chip"
+                  class="chip repo-filter-chip"
                   :class="{ 'is-active': spanReposSelected.includes(r.repo) }"
-                  @click="toggleRepoSelection(spanReposSelected, (v) => (spanReposSelected = v), r.repo)">
+                  :style="repoChipStyle(r.color, spanReposSelected.includes(r.repo))"
+                  @click="
+                    toggleRepoSelection(
+                      spanReposSelected,
+                      (v) => (spanReposSelected = v),
+                      r.repo,
+                    )
+                  ">
                   <span class="repo-dot" :style="{ background: r.color }" />
-                  {{ r.label }}
+                  <span>{{ r.label }}</span>
                 </button>
               </div>
             </div>
@@ -416,62 +418,79 @@
           <!-- 1B. UNSAFE_TODO Fixes -->
           <div class="sub-section-head">
             <div>
-              <h3 class="title is-5 mb-1"><code>UNSAFE_TODO</code> fixes</h3>
+              <h3 class="title is-5 mb-1"><code>UNSAFE_TODO</code> fixes &amp; completion trend</h3>
               <p class="muted-note">
                 Granular pointer-arithmetic call sites wrapped in <code>UNSAFE_TODO(...)</code>
                 (plus <code>ANGLE_UNSAFE_TODO</code>, <code>DAWN_UNSAFE_TODO</code>, and
-                <code>SK_UNSAFE_TODO</code>) as they are rewritten to bounds-checked spans.
+                <code>SK_UNSAFE_TODO</code>) with linear burn-down projection to zero.
               </p>
             </div>
-            <UiSegmented
-              v-model="todoChartMode"
-              aria-label="UNSAFE_TODO chart view"
-              :options="[
-                { value: 'by_repo', label: 'By repository' },
-                { value: 'subrepos', label: 'Sub-repos (excl. Chrome)' },
-                { value: 'vs_span', label: 'vs base::span<T>' },
-              ]" />
+            <div class="roi-controls">
+              <UiSegmented
+                v-model="todoChartMode"
+                aria-label="UNSAFE_TODO chart view"
+                :options="[
+                  { value: 'by_repo', label: 'By repository' },
+                  { value: 'subrepos', label: 'Exclude Chrome' },
+                  { value: 'vs_span', label: 'vs base::span<T>' },
+                ]" />
+              <UiSegmented
+                v-model="todoTrendBasis"
+                aria-label="UNSAFE_TODO projection basis"
+                :options="[
+                  { value: '90d', label: '90d rate' },
+                  { value: 'peak', label: 'Since peak' },
+                  { value: '1y', label: '1y rate' },
+                ]" />
+            </div>
           </div>
 
           <div class="stat-strip mb-3">
             <div class="stat-pill">
-              <span class="stat-label">Remaining</span>
-              <strong>{{ fmtInt(payload.spanification.unsafeTodo.totals.current) }}</strong>
+              <span class="stat-label">
+                {{ todoChartMode === 'subrepos' ? 'Sub-repos remaining' : 'Remaining' }}
+              </span>
+              <strong>{{ fmtInt(activeTodoProjection.curVal) }}</strong>
             </div>
             <div class="stat-pill">
               <span class="stat-label">Fixed from peak</span>
               <strong class="is-good-text">
-                {{ fmtInt(payload.spanification.unsafeTodo.totals.fixedFromPeak) }}
+                {{ fmtInt(activeTodoProjection.fixedFromPeak) }}
               </strong>
               <span class="stat-sub">
-                ({{ payload.spanification.unsafeTodo.totals.burnPct }}% of
-                {{ fmtInt(payload.spanification.unsafeTodo.totals.peak) }} peak on
-                {{ payload.spanification.unsafeTodo.totals.peakDate }})
+                ({{ activeTodoProjection.burnPct }}% of {{ fmtInt(activeTodoProjection.peakVal) }}
+                peak on {{ activeTodoProjection.peakDate }})
               </span>
             </div>
             <div class="stat-pill">
-              <span class="stat-label">90d burn</span>
+              <span class="stat-label">{{ basisLabel(todoTrendBasis) }} slope</span>
               <span
                 class="delta-badge"
-                :class="
-                  payload.spanification.unsafeTodo.totals.delta90d < 0 ? 'is-good' : 'is-warn'
-                ">
-                {{ fmtSigned(payload.spanification.unsafeTodo.totals.delta90d) }}
+                :class="activeTodoProjection.slopePerDay < -0.01 ? 'is-good' : 'is-warn'">
+                {{ fmtSlope(activeTodoProjection.slopePerDay) }}/d
               </span>
               <span class="stat-sub">
-                ({{ payload.spanification.unsafeTodo.totals.velocityPerDay90d }}/d)
+                ({{ fmtSigned(activeTodoProjection.delta) }} over
+                {{ Math.round(activeTodoProjection.days) }}d)
               </span>
             </div>
-            <div v-if="payload.spanification.unsafeTodo.totals.etaDate" class="stat-pill">
-              <span class="stat-label">Projected ETA</span>
-              <code>{{ payload.spanification.unsafeTodo.totals.etaDate }}</code>
-              <span class="stat-sub">
-                (~{{ fmtEtaDuration(payload.spanification.unsafeTodo.totals.etaDays) }})
+            <div class="stat-pill eta-pill">
+              <span class="stat-label">Estimated completion (ETA to 0)</span>
+              <template v-if="activeTodoProjection.etaDate">
+                <code class="eta-code">{{ activeTodoProjection.etaDate }}</code>
+                <span class="stat-sub">
+                  (~{{ fmtEtaDuration(activeTodoProjection.etaDays) }})
+                </span>
+              </template>
+              <span v-else class="delta-badge is-warn">
+                Rising over {{ basisLabel(todoTrendBasis) }} — select 90d or Since peak
               </span>
             </div>
             <div class="stat-pill">
               <span class="stat-label"><code>base::span&lt;T&gt;</code></span>
-              <strong>{{ fmtInt(payload.spanification.unsafeTodo.totals.baseSpanCurrent) }}</strong>
+              <strong :style="{ color: 'var(--series-3)' }">
+                {{ fmtInt(payload.spanification.unsafeTodo.totals.baseSpanCurrent) }}
+              </strong>
               <span class="stat-sub">
                 ({{ fmtSigned(payload.spanification.unsafeTodo.totals.baseSpanDelta90d) }} in 90d)
               </span>
@@ -482,11 +501,12 @@
             <div class="chart-card">
               <div class="repo-mini-pills mb-2">
                 <span
-                  v-for="r in payload.spanification.unsafeTodo.repos"
+                  v-for="r in activeTodoRepos"
                   :key="r.repo"
                   class="repo-mini-pill">
                   <span class="repo-dot" :style="{ background: r.color }" />
-                  {{ r.label }}: <strong>{{ fmtInt(r.current) }}</strong>
+                  <span class="repo-pill-label" :style="{ color: r.color }">{{ r.label }}:</span>
+                  <strong>{{ fmtInt(r.current) }}</strong>
                   <span v-if="r.delta90d !== 0" class="mini-delta">
                     ({{ fmtSigned(r.delta90d) }})
                   </span>
@@ -504,18 +524,21 @@
 
             <div class="dirs-card">
               <div class="dirs-card-head">
-                <strong>Top remaining <code>UNSAFE_TODO</code> directories</strong>
+                <strong>
+                  Top remaining <code>UNSAFE_TODO</code> directories
+                  <span v-if="todoChartMode === 'subrepos'" class="muted-note">(excl. Chrome)</span>
+                </strong>
                 <span class="muted-note">90d Δ</span>
               </div>
               <div class="dir-rows">
                 <div
-                  v-for="d in payload.spanification.unsafeTodo.topDirs.slice(0, 8)"
+                  v-for="d in activeTodoDirs"
                   :key="`${d.repo}:${d.path}`"
                   class="dir-row">
                   <div class="dir-main">
                     <span class="repo-tag" :style="{ borderColor: d.repoColor }">
                       <span class="repo-dot" :style="{ background: d.repoColor }" />
-                      {{ d.repoLabel }}
+                      <span :style="{ color: d.repoColor }">{{ d.repoLabel }}</span>
                     </span>
                     <NuxtLink :to="d.treemapUrl" class="dir-link">
                       <code>{{ d.path }}/</code>
@@ -585,21 +608,21 @@
 
           <div class="chart-card mb-5">
             <div class="roi-legend">
-              <span class="legend-item">
+              <span class="legend-item" style="color: var(--series-8)">
                 <span class="swatch" style="background: var(--series-8)" />
-                Browser / Non-Renderer UAF (MiraclePtr target)
+                <strong>Browser / Non-Renderer UAF (MiraclePtr target)</strong>
               </span>
-              <span class="legend-item">
+              <span class="legend-item" style="color: var(--series-2)">
                 <span class="swatch" style="background: var(--series-2)" />
-                Blink / V8 / Renderer UAF
+                <strong>Blink / V8 / Renderer UAF</strong>
               </span>
               <span v-if="uafMetric === 'count' || uafMetric === 'usd'" class="legend-item">
                 <span class="swatch" style="background: var(--line-strong)" />
                 Non-UAF CVEs
               </span>
-              <span class="legend-item is-line">
+              <span class="legend-item is-line" style="color: var(--series-1)">
                 <span class="line-swatch" style="border-color: var(--series-1)" />
-                <code>raw_ptr + raw_ref</code> across 6 repos (right axis)
+                <strong><code>raw_ptr + raw_ref</code> across 6 repos (right axis)</strong>
               </span>
             </div>
 
@@ -608,12 +631,12 @@
               <div v-if="uafHover" class="roi-tooltip" :style="uafTooltipStyle">
                 <div class="roi-tt-head">{{ uafHover.period }}</div>
                 <div class="roi-tt-row">
-                  <span>Browser / Non-Renderer UAF:</span>
-                  <strong>{{ uafHover.browserText }}</strong>
+                  <span style="color: var(--series-8)">Browser / Non-Renderer UAF:</span>
+                  <strong style="color: var(--series-8)">{{ uafHover.browserText }}</strong>
                 </div>
                 <div class="roi-tt-row">
-                  <span>Blink / V8 / Renderer UAF:</span>
-                  <strong>{{ uafHover.rendererText }}</strong>
+                  <span style="color: var(--series-2)">Blink / V8 / Renderer UAF:</span>
+                  <strong style="color: var(--series-2)">{{ uafHover.rendererText }}</strong>
                 </div>
                 <div class="roi-tt-row">
                   <span>Combined UAF share:</span>
@@ -621,8 +644,8 @@
                 </div>
                 <hr class="roi-tt-sep" />
                 <div class="roi-tt-row">
-                  <span>raw_ptr + raw_ref:</span>
-                  <strong>{{ fmtInt(uafHover.rawPtrTotal) }}</strong>
+                  <span style="color: var(--series-1)">raw_ptr + raw_ref:</span>
+                  <strong style="color: var(--series-1)">{{ fmtInt(uafHover.rawPtrTotal) }}</strong>
                 </div>
               </div>
             </div>
@@ -635,8 +658,8 @@
                 <code>raw_ptr</code> &amp; <code>raw_ref</code> across repositories
               </h3>
               <p class="muted-note">
-                Smart pointer field counts and density per 10,000 first-party C++ lines across
-                Chrome, ANGLE, PDFium, Dawn, Skia, and WebRTC.
+                Smart pointer field counts, mass-rewrite campaigns, and density per 10,000
+                first-party C++ lines across Chrome, ANGLE, PDFium, Dawn, Skia, and WebRTC.
               </p>
             </div>
             <div class="roi-controls">
@@ -653,7 +676,7 @@
                 aria-label="Repository scale"
                 :options="[
                   { value: 'all', label: 'All 6 repos' },
-                  { value: 'subrepos', label: 'Sub-repos (excl. Chrome)' },
+                  { value: 'subrepos', label: 'Exclude Chrome' },
                 ]" />
             </div>
           </div>
@@ -688,7 +711,7 @@
                     <td>
                       <div class="repo-cell">
                         <span class="repo-dot" :style="{ background: r.color }" />
-                        <strong>{{ r.label }}</strong>
+                        <strong :style="{ color: r.color }">{{ r.label }}</strong>
                       </div>
                     </td>
                     <td class="has-text-right num-cell">{{ fmtInt(r.rawPtr) }}</td>
@@ -759,14 +782,23 @@
                 constexpr/union layout, or FFI boundaries).
               </p>
             </div>
+            <UiSegmented
+              v-model="exclusionScope"
+              aria-label="RAW_PTR_EXCLUSION repository scope"
+              :options="[
+                { value: 'all', label: 'All 6 repos' },
+                { value: 'subrepos', label: 'Exclude Chrome' },
+              ]" />
           </div>
 
           <div class="stat-strip mb-3">
             <div class="stat-pill">
-              <span class="stat-label">Remaining</span>
-              <strong>{{ fmtInt(payload.miraclePtr.exclusion.totals.current) }}</strong>
+              <span class="stat-label">
+                {{ exclusionScope === 'subrepos' ? 'Sub-repos remaining' : 'Remaining' }}
+              </span>
+              <strong>{{ fmtInt(activeExclusionStats.current) }}</strong>
             </div>
-            <div class="stat-pill">
+            <div v-if="exclusionScope === 'all'" class="stat-pill">
               <span class="stat-label">Burned from peak</span>
               <strong class="is-good-text">
                 {{ payload.miraclePtr.exclusion.totals.burnPct }}%
@@ -781,13 +813,13 @@
               <span
                 class="delta-badge"
                 :class="
-                  payload.miraclePtr.exclusion.totals.delta90d < 0
+                  activeExclusionStats.delta90d < 0
                     ? 'is-good'
-                    : payload.miraclePtr.exclusion.totals.delta90d > 0
+                    : activeExclusionStats.delta90d > 0
                       ? 'is-warn'
                       : 'is-neutral'
                 ">
-                {{ fmtSigned(payload.miraclePtr.exclusion.totals.delta90d) }}
+                {{ fmtSigned(activeExclusionStats.delta90d) }}
               </span>
             </div>
             <div class="stat-pill">
@@ -795,13 +827,13 @@
               <span
                 class="delta-badge"
                 :class="
-                  payload.miraclePtr.exclusion.totals.delta365d < 0
+                  activeExclusionStats.delta365d < 0
                     ? 'is-good'
-                    : payload.miraclePtr.exclusion.totals.delta365d > 0
+                    : activeExclusionStats.delta365d > 0
                       ? 'is-warn'
                       : 'is-neutral'
                 ">
-                {{ fmtSigned(payload.miraclePtr.exclusion.totals.delta365d) }}
+                {{ fmtSigned(activeExclusionStats.delta365d) }}
               </span>
             </div>
           </div>
@@ -810,11 +842,15 @@
             <div class="chart-card">
               <div class="repo-mini-pills mb-2">
                 <span
-                  v-for="r in payload.miraclePtr.exclusion.repos"
+                  v-for="r in activeExclusionRepos"
                   :key="r.repo"
                   class="repo-mini-pill">
                   <span class="repo-dot" :style="{ background: r.color }" />
-                  {{ r.label }}: <strong>{{ fmtInt(r.current) }}</strong>
+                  <span class="repo-pill-label" :style="{ color: r.color }">{{ r.label }}:</span>
+                  <strong>{{ fmtInt(r.current) }}</strong>
+                  <span v-if="r.delta90d !== 0" class="mini-delta">
+                    ({{ fmtSigned(r.delta90d) }})
+                  </span>
                 </span>
               </div>
               <div class="line-chart-box is-compact">
@@ -822,25 +858,28 @@
                   <LineChart
                     :data="exclusionChartData"
                     :formatter="intFormatter"
-                    :milestones="miracleMilestones" />
+                    :milestones="exclusionMilestones" />
                 </ClientOnly>
               </div>
             </div>
 
             <div class="dirs-card">
               <div class="dirs-card-head">
-                <strong>Top <code>RAW_PTR_EXCLUSION</code> directories</strong>
+                <strong>
+                  Top <code>RAW_PTR_EXCLUSION</code> directories
+                  <span v-if="exclusionScope === 'subrepos'" class="muted-note">(excl. Chrome)</span>
+                </strong>
                 <span class="muted-note">90d Δ</span>
               </div>
               <div class="dir-rows">
                 <div
-                  v-for="d in payload.miraclePtr.exclusion.topDirs.slice(0, 8)"
+                  v-for="d in activeExclusionDirs"
                   :key="`${d.repo}:${d.path}`"
                   class="dir-row">
                   <div class="dir-main">
                     <span class="repo-tag" :style="{ borderColor: d.repoColor }">
                       <span class="repo-dot" :style="{ background: d.repoColor }" />
-                      {{ d.repoLabel }}
+                      <span :style="{ color: d.repoColor }">{{ d.repoLabel }}</span>
                     </span>
                     <NuxtLink :to="d.treemapUrl" class="dir-link">
                       <code>{{ d.path }}/</code>
@@ -872,13 +911,22 @@
           <div class="section-toolbar">
             <div>
               <div class="pillar-kicker">Pillar 3</div>
-              <h2 class="title is-4 mb-1">Dangling pointers (<code>DanglingUntriaged</code>)</h2>
+              <h2 class="title is-4 mb-1">
+                Dangling pointers (<code>DanglingUntriaged</code>) &amp; completion trend
+              </h2>
               <p class="muted-note">
                 Pre-existing <code>raw_ptr&lt;T, DanglingUntriaged&gt;</code> annotations awaiting
-                lifetime / ownership cleanup so runtime dangling-pointer detection can enforce on
-                every free.
+                lifetime / ownership cleanup, with linear burn-down projection to zero.
               </p>
             </div>
+            <UiSegmented
+              v-model="danglingTrendBasis"
+              aria-label="DanglingUntriaged projection basis"
+              :options="[
+                { value: '1y', label: '1y rate' },
+                { value: 'peak', label: 'Since peak' },
+                { value: '90d', label: '90d rate' },
+              ]" />
           </div>
 
           <div class="stat-strip mb-3">
@@ -898,36 +946,29 @@
               </span>
             </div>
             <div class="stat-pill">
-              <span class="stat-label">90d Δ</span>
+              <span class="stat-label">{{ basisLabel(danglingTrendBasis) }} slope</span>
               <span
                 class="delta-badge"
-                :class="
-                  payload.danglingPointers.totals.delta90d < 0
-                    ? 'is-good'
-                    : payload.danglingPointers.totals.delta90d > 0
-                      ? 'is-warn'
-                      : 'is-neutral'
-                ">
-                {{ fmtSigned(payload.danglingPointers.totals.delta90d) }}
+                :class="activeDanglingProjection.slopePerDay < -0.01 ? 'is-good' : 'is-warn'">
+                {{ fmtSlope(activeDanglingProjection.slopePerDay) }}/d
+              </span>
+              <span class="stat-sub">
+                ({{ fmtSigned(activeDanglingProjection.delta) }} over
+                {{ Math.round(activeDanglingProjection.days) }}d)
               </span>
             </div>
-            <div class="stat-pill">
-              <span class="stat-label">365d Δ</span>
-              <span
-                class="delta-badge"
-                :class="
-                  payload.danglingPointers.totals.delta365d < 0
-                    ? 'is-good'
-                    : payload.danglingPointers.totals.delta365d > 0
-                      ? 'is-warn'
-                      : 'is-neutral'
-                ">
-                {{ fmtSigned(payload.danglingPointers.totals.delta365d) }}
+            <div class="stat-pill eta-pill">
+              <span class="stat-label">Estimated completion (ETA to 0)</span>
+              <template v-if="activeDanglingProjection.etaDate">
+                <code class="eta-code">{{ activeDanglingProjection.etaDate }}</code>
+                <span class="stat-sub">
+                  (~{{ fmtEtaDuration(activeDanglingProjection.etaDays) }})
+                </span>
+              </template>
+              <span v-else class="delta-badge is-warn">
+                90d slightly rising ({{ fmtSigned(activeDanglingProjection.delta) }}) — switch to 1y
+                or Since peak
               </span>
-            </div>
-            <div v-if="payload.danglingPointers.totals.etaDate" class="stat-pill">
-              <span class="stat-label">Projected ETA</span>
-              <code>{{ payload.danglingPointers.totals.etaDate }}</code>
             </div>
           </div>
 
@@ -939,7 +980,8 @@
                   :key="r.repo"
                   class="repo-mini-pill">
                   <span class="repo-dot" :style="{ background: r.color }" />
-                  {{ r.label }}: <strong>{{ fmtInt(r.current) }}</strong>
+                  <span class="repo-pill-label" :style="{ color: r.color }">{{ r.label }}:</span>
+                  <strong>{{ fmtInt(r.current) }}</strong>
                 </span>
               </div>
               <div class="line-chart-box is-compact">
@@ -965,7 +1007,7 @@
                   <div class="dir-main">
                     <span class="repo-tag" :style="{ borderColor: d.repoColor }">
                       <span class="repo-dot" :style="{ background: d.repoColor }" />
-                      {{ d.repoLabel }}
+                      <span :style="{ color: d.repoColor }">{{ d.repoLabel }}</span>
                     </span>
                     <NuxtLink :to="d.treemapUrl" class="dir-link">
                       <code>{{ d.path }}/</code>
@@ -1010,7 +1052,7 @@
               aria-label="Rust repository view"
               :options="[
                 { value: 'all', label: 'All 6 repos' },
-                { value: 'subrepos', label: 'Sub-repos (excl. Chrome)' },
+                { value: 'subrepos', label: 'Exclude Chrome' },
               ]" />
           </div>
 
@@ -1041,9 +1083,10 @@
           <div class="split-grid">
             <div class="chart-card">
               <div class="repo-mini-pills mb-2">
-                <span v-for="r in payload.rust.repos" :key="r.repo" class="repo-mini-pill">
+                <span v-for="r in activeRustRepos" :key="r.repo" class="repo-mini-pill">
                   <span class="repo-dot" :style="{ background: r.color }" />
-                  {{ r.label }}: <strong>{{ fmtInt(r.current) }}</strong>
+                  <span class="repo-pill-label" :style="{ color: r.color }">{{ r.label }}:</span>
+                  <strong>{{ fmtInt(r.current) }}</strong>
                   <span v-if="r.delta90d !== 0" class="mini-delta">
                     ({{ fmtSigned(r.delta90d) }})
                   </span>
@@ -1061,18 +1104,21 @@
 
             <div class="dirs-card">
               <div class="dirs-card-head">
-                <strong>Top first-party Rust subsystems</strong>
+                <strong>
+                  Top first-party Rust subsystems
+                  <span v-if="rustScope === 'subrepos'" class="muted-note">(excl. Chrome)</span>
+                </strong>
                 <span class="muted-note">90d Δ</span>
               </div>
               <div class="dir-rows">
                 <div
-                  v-for="d in payload.rust.topDirs.slice(0, 8)"
+                  v-for="d in activeRustDirs"
                   :key="`${d.repo}:${d.path}`"
                   class="dir-row">
                   <div class="dir-main">
                     <span class="repo-tag" :style="{ borderColor: d.repoColor }">
                       <span class="repo-dot" :style="{ background: d.repoColor }" />
-                      {{ d.repoLabel }}
+                      <span :style="{ color: d.repoColor }">{{ d.repoLabel }}</span>
                     </span>
                     <NuxtLink :to="d.treemapUrl" class="dir-link">
                       <code>{{ d.path }}/</code>
@@ -1114,13 +1160,23 @@
                 <code>DCHECK(...)</code> UB.
               </p>
             </div>
-            <UiSegmented
-              v-model="checksChartMode"
-              aria-label="Checks chart mode"
-              :options="[
-                { value: 'counts', label: 'CHECK vs DCHECK counts' },
-                { value: 'share', label: 'CHECK hardening %' },
-              ]" />
+            <div class="roi-controls">
+              <UiSegmented
+                v-model="checksChartMode"
+                aria-label="Checks chart mode"
+                :options="[
+                  { value: 'counts', label: 'CHECK vs DCHECK counts' },
+                  { value: 'share', label: 'CHECK hardening %' },
+                ]" />
+              <UiSegmented
+                v-model="checksRange"
+                aria-label="Checks history window"
+                :options="[
+                  { value: '2022', label: 'Since 2022' },
+                  { value: '2025', label: '2025–2026' },
+                  { value: 'all', label: 'All history' },
+                ]" />
+            </div>
           </div>
 
           <div class="stat-strip mb-3">
@@ -1134,8 +1190,12 @@
               </span>
             </div>
             <div class="stat-pill">
-              <span class="stat-label"><code>CHECK(...)</code></span>
-              <strong>{{ fmtInt(payload.invariantHardening.totals.checkCurrent) }}</strong>
+              <span class="stat-label" style="color: var(--series-3)">
+                <strong><code>CHECK(...)</code></strong>
+              </span>
+              <strong style="color: var(--series-3)">
+                {{ fmtInt(payload.invariantHardening.totals.checkCurrent) }}
+              </strong>
               <span
                 class="delta-badge"
                 :class="
@@ -1145,8 +1205,12 @@
               </span>
             </div>
             <div class="stat-pill">
-              <span class="stat-label"><code>DCHECK(...)</code></span>
-              <strong>{{ fmtInt(payload.invariantHardening.totals.dcheckCurrent) }}</strong>
+              <span class="stat-label" style="color: var(--series-2)">
+                <strong><code>DCHECK(...)</code></strong>
+              </span>
+              <strong style="color: var(--series-2)">
+                {{ fmtInt(payload.invariantHardening.totals.dcheckCurrent) }}
+              </strong>
               <span
                 class="delta-badge"
                 :class="
@@ -1165,7 +1229,8 @@
                   :key="r.repo"
                   class="repo-mini-pill">
                   <span class="repo-dot" :style="{ background: r.color }" />
-                  {{ r.label }}: <strong>{{ r.checkSharePct.toFixed(0) }}%</strong>
+                  <span class="repo-pill-label" :style="{ color: r.color }">{{ r.label }}:</span>
+                  <strong>{{ r.checkSharePct.toFixed(0) }}%</strong>
                   <span class="mini-delta">
                     ({{ fmtCompact(r.checkCurrent) }} C / {{ fmtCompact(r.dcheckCurrent) }} D)
                   </span>
@@ -1200,7 +1265,7 @@
                   <div class="dir-main">
                     <span class="repo-tag" :style="{ borderColor: d.repoColor }">
                       <span class="repo-dot" :style="{ background: d.repoColor }" />
-                      {{ d.repoLabel }}
+                      <span :style="{ color: d.repoColor }">{{ d.repoLabel }}</span>
                     </span>
                     <NuxtLink :to="d.treemapUrl" class="dir-link">
                       <code>{{ d.path }}/</code>
@@ -1241,6 +1306,8 @@ import { axisBottom, axisLeft, axisRight } from 'd3-axis';
 import { select } from 'd3-selection';
 import { line as d3Line, curveMonotoneX } from 'd3-shape';
 import { useUrlState, urlCodecs } from '~/composables/useUrlState';
+
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 interface SpanDirEntry {
   repo: string;
@@ -1382,6 +1449,7 @@ interface SecurityPayload {
         series: Array<[string, number]>;
       }>;
       topDirs: CountDirEntry[];
+      subrepoTopDirs?: CountDirEntry[];
     };
   };
   miraclePtr: {
@@ -1459,6 +1527,7 @@ interface SecurityPayload {
         series: Array<[string, number]>;
       }>;
       topDirs: CountDirEntry[];
+      subrepoTopDirs?: CountDirEntry[];
     };
   };
   danglingPointers: {
@@ -1512,6 +1581,7 @@ interface SecurityPayload {
       series: Array<[string, number]>;
     }>;
     topDirs: CountDirEntry[];
+    subrepoTopDirs?: CountDirEntry[];
   };
   invariantHardening: {
     totals: {
@@ -1573,6 +1643,8 @@ interface SecurityPayload {
   };
 }
 
+type TrendBasis = '90d' | '1y' | 'peak';
+
 const fmtInt = format(',d');
 const fmtCompact = format('.3~s');
 const intFormatter = format(',.0f');
@@ -1580,6 +1652,11 @@ const pctFormatter = (d: number) => `${Number(d).toFixed(0)}%`;
 const fmtUsd = (v: number) =>
   '$' + (v >= 1_000_000 ? (v / 1_000_000).toFixed(2) + 'M' : fmtInt(Math.round(v)));
 const fmtSigned = (v: number) => (v > 0 ? `+${fmtInt(v)}` : fmtInt(v));
+const fmtSlope = (v: number) => {
+  const abs = Math.abs(v);
+  const str = abs >= 10 ? abs.toFixed(1) : abs.toFixed(2);
+  return v > 0 ? `+${str}` : v < 0 ? `−${str}` : '0.0';
+};
 const formatCovPct = (v: number) =>
   v >= 99.9 && v < 100 ? v.toFixed(2) : v > 0 && v < 1 ? v.toFixed(2) : v.toFixed(1);
 
@@ -1590,27 +1667,160 @@ const fmtEtaDuration = (days: number | null) => {
   return `${(days / 365.25).toFixed(1)} yrs`;
 };
 
+const basisLabel = (b: TrendBasis) => (b === '90d' ? '90d' : b === '1y' ? '1y' : 'Since peak');
+
+const repoChipStyle = (color: string, active: boolean) =>
+  active
+    ? {
+        color,
+        borderColor: `color-mix(in srgb, ${color} 55%, var(--line))`,
+        background: `color-mix(in srgb, ${color} 10%, var(--surface))`,
+      }
+    : undefined;
+
+// Linear burn-down fit & forward projection to y = 0 for a [date, count] series.
+function computeLinearProjection(
+  pts: Array<[string, number]>,
+  basis: TrendBasis,
+  minPeakDate = '2019-01-01',
+) {
+  if (!pts.length) {
+    return {
+      curDate: '',
+      curVal: 0,
+      peakDate: '',
+      peakVal: 0,
+      fixedFromPeak: 0,
+      burnPct: 0,
+      startDate: '',
+      startVal: 0,
+      days: 1,
+      delta: 0,
+      slopePerDay: 0,
+      etaDays: null as number | null,
+      etaDate: null as string | null,
+      trendPoints: [] as Array<{ x: Date; y: number }>,
+    };
+  }
+
+  const last = pts[pts.length - 1];
+  const curDate = last[0];
+  const curVal = last[1];
+  const curMs = new Date(curDate).getTime();
+
+  let peakPt = pts[0];
+  for (const p of pts) {
+    if (p[0] >= minPeakDate && p[1] >= peakPt[1]) {
+      peakPt = p;
+    }
+  }
+  const peakVal = peakPt[1];
+  const peakDate = peakPt[0];
+  const fixedFromPeak = Math.max(0, peakVal - curVal);
+  const burnPct = peakVal > 0 ? Math.round(((peakVal - curVal) / peakVal) * 1000) / 10 : 0;
+
+  const findClosest = (targetMs: number) =>
+    pts.reduce(
+      (best, p) =>
+        Math.abs(new Date(p[0]).getTime() - targetMs) <
+        Math.abs(new Date(best[0]).getTime() - targetMs)
+          ? p
+          : best,
+      pts[0],
+    );
+
+  const startPt =
+    basis === '90d'
+      ? findClosest(curMs - 90 * DAY_MS)
+      : basis === '1y'
+        ? findClosest(curMs - 365 * DAY_MS)
+        : peakPt;
+
+  const startDate = startPt[0];
+  const startVal = startPt[1];
+  const startMs = new Date(startDate).getTime();
+  const days = Math.max(1, (curMs - startMs) / DAY_MS);
+  const delta = curVal - startVal;
+  const slopePerDay = delta / days;
+
+  let etaDays: number | null = null;
+  let etaDate: string | null = null;
+  const trendPoints: Array<{ x: Date; y: number }> = [];
+
+  if (slopePerDay < -0.01 && curVal > 0) {
+    etaDays = Math.ceil(curVal / -slopePerDay);
+    const endMs = curMs + etaDays * DAY_MS;
+    etaDate = new Date(endMs).toISOString().slice(0, 10);
+
+    // Sample weekly/monthly points along the exact line from startMs -> curMs -> endMs
+    // so LineChart scrubbing tracks smoothly along the entire projection.
+    const spanMs = endMs - startMs;
+    const steps = 48;
+    for (let s = 0; s <= steps; s++) {
+      const t = startMs + (spanMs * s) / steps;
+      const val = Math.max(0, startVal + slopePerDay * ((t - startMs) / DAY_MS));
+      trendPoints.push({ x: new Date(t), y: Math.round(val) });
+    }
+    trendPoints[trendPoints.length - 1] = { x: new Date(endMs), y: 0 };
+  } else if (curVal > 0) {
+    // Rising or flat over the chosen window: show the fitted window + 120d forward preview.
+    const endMs = curMs + 120 * DAY_MS;
+    const spanMs = endMs - startMs;
+    const steps = 20;
+    for (let s = 0; s <= steps; s++) {
+      const t = startMs + (spanMs * s) / steps;
+      const val = Math.max(0, startVal + slopePerDay * ((t - startMs) / DAY_MS));
+      trendPoints.push({ x: new Date(t), y: Math.round(val) });
+    }
+  }
+
+  return {
+    curDate,
+    curVal,
+    peakDate,
+    peakVal,
+    fixedFromPeak,
+    burnPct,
+    startDate,
+    startVal,
+    days,
+    delta,
+    slopePerDay,
+    etaDays,
+    etaDate,
+    trendPoints,
+  };
+}
+
 const {
   spanScope,
   spanReposSelected,
   todoChartMode,
+  todoTrendBasis,
   uafMetric,
   uafGranularity,
   rawPtrField,
   rawPtrScope,
+  exclusionScope,
+  danglingTrendBasis,
   rustScope,
   checksChartMode,
+  checksRange,
   checksDirSort,
 } = useUrlState({
   spanScope: urlCodecs.enum(['first_party', 'all'] as const, 'first_party'),
   spanReposSelected: urlCodecs.csv(['chromium', 'angle', 'pdfium', 'dawn', 'skia', 'webrtc']),
   todoChartMode: urlCodecs.enum(['by_repo', 'subrepos', 'vs_span'] as const, 'by_repo'),
+  todoTrendBasis: urlCodecs.enum(['90d', 'peak', '1y'] as const, '90d'),
   uafMetric: urlCodecs.enum(['vrp_share', 'count', 'usd', 'all_share'] as const, 'vrp_share'),
   uafGranularity: urlCodecs.enum(['yearly', 'quarterly'] as const, 'yearly'),
   rawPtrField: urlCodecs.enum(['total', 'raw_ptr', 'raw_ref'] as const, 'total'),
   rawPtrScope: urlCodecs.enum(['all', 'subrepos'] as const, 'all'),
+  exclusionScope: urlCodecs.enum(['all', 'subrepos'] as const, 'all'),
+  danglingTrendBasis: urlCodecs.enum(['1y', 'peak', '90d'] as const, '1y'),
   rustScope: urlCodecs.enum(['all', 'subrepos'] as const, 'all'),
   checksChartMode: urlCodecs.enum(['counts', 'share'] as const, 'counts'),
+  checksRange: urlCodecs.enum(['2022', '2025', 'all'] as const, '2022'),
   checksDirSort: urlCodecs.enum(['dcheck', 'check'] as const, 'dcheck'),
 });
 
@@ -1679,34 +1889,138 @@ const chromeSpan1p = computed(() =>
   payload.value?.spanification.scopes.first_party.repos.find((r) => r.repo === 'chromium'),
 );
 
+// -----------------------------------------------------------------------------
+// Milestones (with exact series stroke colors & overlap-safe anchors)
+// -----------------------------------------------------------------------------
 const spanMilestones = [
-  { date: '2024-04-01', label: '-Wunsafe-buffer-usage rollout begins' },
-  { date: '2024-08-15', label: 'UNSAFE_TODO macro introduced' },
+  {
+    date: '2024-04-01',
+    label: '-Wunsafe-buffer-usage rollout',
+    color: 'var(--series-1)',
+    anchor: 'end' as const,
+  },
+  { date: '2024-08-15', label: 'UNSAFE_TODO macro introduced', color: 'var(--series-1)' },
 ];
 
-const todoMilestones = [
-  { date: '2024-08-15', label: 'UNSAFE_TODO macro introduced' },
-];
+const todoMilestones = computed(() => {
+  const c =
+    todoChartMode.value === 'vs_span'
+      ? 'var(--series-8)'
+      : todoChartMode.value === 'subrepos'
+        ? 'var(--series-7)'
+        : 'var(--series-1)';
+  return [{ date: '2024-08-15', label: 'UNSAFE_TODO macro introduced', color: c }];
+});
 
-const miracleMilestones = [
-  { date: '2021-11-25', label: 'Class fields rewritten to raw_ptr<T>' },
-  { date: '2022-09-01', label: 'MiraclePtr enabled on Stable' },
-];
+// Verified mass-rewrite commits across Chromium, Dawn, Skia, and ANGLE.
+const miracleMilestones = computed(() => {
+  if (rawPtrScope.value === 'subrepos') {
+    return [
+      { date: '2024-01-18', label: 'Dawn MiraclePtr rewrite (+255)', color: 'var(--series-3)' },
+      {
+        date: '2026-06-08',
+        label: 'Skia raw_ptr definitions (+81)',
+        color: 'var(--series-8)',
+        anchor: 'end' as const,
+      },
+      {
+        date: '2026-09-24',
+        label: 'ANGLE raw_ptr/ref (+143)',
+        color: 'var(--series-7)',
+        anchor: 'end' as const,
+      },
+      {
+        date: '2026-10-21',
+        label: 'Skia Graphite & SkSL (+91)',
+        color: 'var(--series-8)',
+        anchor: 'end' as const,
+      },
+    ];
+  }
+  if (rawPtrField.value === 'raw_ref') {
+    return [
+      { date: '2022-06-30', label: 'raw_ref<T> introduced (+231)', color: 'var(--series-1)' },
+      { date: '2022-11-09', label: 'T& → raw_ref rewrite (+426)', color: 'var(--series-1)' },
+      { date: '2023-04-27', label: 'Win/Android/Ash check (+59)', color: 'var(--series-1)' },
+      { date: '2023-10-01', label: 'Renderer rewrite (+87)', color: 'var(--series-1)' },
+    ];
+  }
+  return [
+    { date: '2021-11-27', label: 'Big Rewrite (+14.3k)', color: 'var(--series-1)' },
+    { date: '2022-06-21', label: 'Linux/Mac/CrOS (+2.0k)', color: 'var(--series-1)' },
+    { date: '2022-09-01', label: 'MiraclePtr on Stable', color: 'var(--series-1)' },
+    { date: '2023-04-21', label: 'Win, Android & Ash (+7.6k)', color: 'var(--series-1)' },
+    { date: '2023-10-01', label: 'Renderer rewrite (+1.0k)', color: 'var(--series-1)' },
+    { date: '2023-12-20', label: 'vector<raw_ptr> (+2.6k)', color: 'var(--series-1)' },
+  ];
+});
+
+const exclusionMilestones = computed(() =>
+  exclusionScope.value === 'subrepos'
+    ? [
+        { date: '2024-01-18', label: 'Dawn exclusions', color: 'var(--series-3)' },
+        {
+          date: '2026-06-15',
+          label: 'Skia C ABI exclusions',
+          color: 'var(--series-8)',
+          anchor: 'end' as const,
+        },
+        {
+          date: '2026-10-26',
+          label: 'Skia SkSL hot-path exclusions',
+          color: 'var(--series-8)',
+          anchor: 'end' as const,
+        },
+      ]
+    : [
+        { date: '2022-09-01', label: 'MiraclePtr on Stable', color: 'var(--series-1)' },
+        { date: '2023-04-18', label: 'Win/Android/Ash peak (912)', color: 'var(--series-1)' },
+      ],
+);
 
 const danglingMilestones = [
-  { date: '2022-10-01', label: 'DanglingPtr detector rollout' },
-  { date: '2023-08-31', label: 'Peak DanglingUntriaged (6,010)' },
+  { date: '2022-10-01', label: 'DanglingPtr detector rollout', color: 'var(--series-1)' },
+  { date: '2023-08-31', label: 'Peak DanglingUntriaged (6,010)', color: 'var(--series-1)' },
 ];
 
-const rustMilestones = [
-  { date: '2023-01-12', label: 'Production Rust allowed in Chromium' },
-];
+const rustMilestones = computed(() =>
+  rustScope.value === 'subrepos'
+    ? [
+        {
+          date: '2026-01-15',
+          label: 'ANGLE & Skia Rust crates',
+          color: 'var(--series-7)',
+          anchor: 'end' as const,
+        },
+      ]
+    : [{ date: '2023-01-12', label: 'Production Rust allowed in Chromium', color: 'var(--series-1)' }],
+);
 
-const checksMilestones = [
-  { date: '2023-02-01', label: 'Prefer CHECK() over DCHECK() guideline' },
-];
+const checksMilestones = computed(() => {
+  const c = checksChartMode.value === 'share' ? 'var(--series-1)' : 'var(--series-3)';
+  const items: any[] = [
+    {
+      date: '2026-04-01',
+      label: 'Apr 1, 2026: Systematic CHECK() conversion',
+      color: c,
+      anchor: 'end' as const,
+      pill: true,
+      yRatio: checksChartMode.value === 'share' ? 0.30 : 0.42,
+    },
+  ];
+  if (checksRange.value !== '2025') {
+    items.unshift({
+      date: '2023-02-01',
+      label: 'Prefer CHECK() over DCHECK() guideline',
+      color: c,
+    });
+  }
+  return items;
+});
 
+// -----------------------------------------------------------------------------
 // 1A. Spanification Coverage % LineChart
+// -----------------------------------------------------------------------------
 const spanCoverageChartData = computed(() => {
   const chosen = activeSpanScope.value.repos.filter((r) =>
     spanReposSelected.value.includes(r.repo),
@@ -1720,12 +2034,78 @@ const spanCoverageChartData = computed(() => {
   }));
 });
 
-// 1B. UNSAFE_TODO LineChart
+// -----------------------------------------------------------------------------
+// 1B. UNSAFE_TODO LineChart + Completion Projection
+// -----------------------------------------------------------------------------
+const subrepoTodoTotalSeries = computed<Array<[string, number]>>(() => {
+  if (!payload.value) return [];
+  const block = payload.value.spanification.unsafeTodo;
+  const chromeRepo = block.repos.find((r) => r.repo === 'chromium');
+  if (!chromeRepo) return block.totalSeries.map(([d, tot]) => [d, tot]);
+  const chromeMs = chromeRepo.series.map(([d, v]) => [new Date(d).getTime(), v] as const);
+  const sampleChrome = (ms: number) => {
+    let lo = 0;
+    let hi = chromeMs.length - 1;
+    let ans = 0;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      if (chromeMs[mid][0] <= ms) {
+        ans = mid;
+        lo = mid + 1;
+      } else {
+        hi = mid - 1;
+      }
+    }
+    return chromeMs.length ? chromeMs[ans][1] : 0;
+  };
+  return block.totalSeries.map(([d, tot]) => [
+    d,
+    Math.max(0, tot - sampleChrome(new Date(d).getTime())),
+  ]);
+});
+
+const todoProjection90d = computed(() => {
+  if (!payload.value) return null;
+  const pts: Array<[string, number]> = payload.value.spanification.unsafeTodo.totalSeries.map(
+    ([d, tot]) => [d, tot],
+  );
+  return computeLinearProjection(pts, '90d', '2024-06-01');
+});
+
+const activeTodoProjection = computed(() => {
+  if (!payload.value) return computeLinearProjection([], '90d');
+  const pts: Array<[string, number]> =
+    todoChartMode.value === 'subrepos'
+      ? subrepoTodoTotalSeries.value
+      : payload.value.spanification.unsafeTodo.totalSeries.map(([d, tot]) => [d, tot]);
+  return computeLinearProjection(pts, todoTrendBasis.value, '2024-06-01');
+});
+
+const activeTodoRepos = computed(() => {
+  if (!payload.value) return [];
+  const all = payload.value.spanification.unsafeTodo.repos;
+  return todoChartMode.value === 'subrepos' ? all.filter((r) => r.repo !== 'chromium') : all;
+});
+
+const activeTodoDirs = computed(() => {
+  if (!payload.value) return [];
+  const block = payload.value.spanification.unsafeTodo;
+  if (todoChartMode.value === 'subrepos') {
+    return (block.subrepoTopDirs || block.topDirs.filter((d) => d.repo !== 'chromium')).slice(0, 8);
+  }
+  return block.topDirs.slice(0, 8);
+});
+
 const unsafeTodoChartData = computed(() => {
   if (!payload.value) return [];
   const block = payload.value.spanification.unsafeTodo;
+  const proj = activeTodoProjection.value;
+  const endTag = proj.etaDate
+    ? `ETA ${proj.etaDate} (${fmtSlope(proj.slopePerDay)}/d)`
+    : `${fmtSlope(proj.slopePerDay)}/d (${basisLabel(todoTrendBasis.value)} rising)`;
+
   if (todoChartMode.value === 'vs_span') {
-    return [
+    const out: any[] = [
       {
         label: 'UNSAFE_TODO remaining',
         color: 'var(--series-8)',
@@ -1737,19 +2117,76 @@ const unsafeTodoChartData = computed(() => {
         values: block.totalSeries.map(([d, , span]) => ({ x: new Date(d), y: span })),
       },
     ];
+    if (proj.trendPoints.length) {
+      out.push({
+        label: `UNSAFE_TODO ${basisLabel(todoTrendBasis.value)} trend`,
+        color: 'var(--series-8)',
+        dashed: true,
+        endLabel: endTag,
+        values: proj.trendPoints,
+      });
+    }
+    return out;
   }
-  const repos =
-    todoChartMode.value === 'subrepos'
-      ? block.repos.filter((r) => r.repo !== 'chromium' && (r.peak > 0 || r.current > 0))
-      : block.repos.filter((r) => r.peak > 0 || r.current > 0 || r.repo === 'chromium');
-  return repos.map((r) => ({
-    label: r.label,
-    color: r.color,
-    values: r.series.map(([d, cnt]) => ({ x: new Date(d), y: cnt })),
-  }));
+
+  if (todoChartMode.value === 'subrepos') {
+    const repos = block.repos.filter(
+      (r) => r.repo !== 'chromium' && (r.peak > 0 || r.current > 0),
+    );
+    const out: any[] = [
+      {
+        label: 'Sub-repos total',
+        color: 'var(--ink)',
+        strokeWidth: 2,
+        values: subrepoTodoTotalSeries.value.map(([d, cnt]) => ({ x: new Date(d), y: cnt })),
+      },
+      ...repos.map((r) => ({
+        label: r.label,
+        color: r.color,
+        values: r.series.map(([d, cnt]) => ({ x: new Date(d), y: cnt })),
+      })),
+    ];
+    if (proj.trendPoints.length) {
+      out.push({
+        label: `Sub-repos ${basisLabel(todoTrendBasis.value)} trend`,
+        color: 'var(--ink)',
+        dashed: true,
+        endLabel: endTag,
+        values: proj.trendPoints,
+      });
+    }
+    return out;
+  }
+
+  const repos = block.repos.filter((r) => r.peak > 0 || r.current > 0 || r.repo === 'chromium');
+  const out: any[] = [
+    {
+      label: 'All 6 repos',
+      color: 'var(--ink)',
+      strokeWidth: 2,
+      values: block.totalSeries.map(([d, cnt]) => ({ x: new Date(d), y: cnt })),
+    },
+    ...repos.map((r) => ({
+      label: r.label,
+      color: r.color,
+      values: r.series.map(([d, cnt]) => ({ x: new Date(d), y: cnt })),
+    })),
+  ];
+  if (proj.trendPoints.length) {
+    out.push({
+      label: `Projected (${basisLabel(todoTrendBasis.value)} rate)`,
+      color: 'var(--ink)',
+      dashed: true,
+      endLabel: endTag,
+      values: proj.trendPoints,
+    });
+  }
+  return out;
 });
 
+// -----------------------------------------------------------------------------
 // 2B. raw_ptr / raw_ref LineChart
+// -----------------------------------------------------------------------------
 const rawPtrChartData = computed(() => {
   if (!payload.value) return [];
   const allRepos = payload.value.miraclePtr.adoption.repos;
@@ -1765,13 +2202,40 @@ const rawPtrChartData = computed(() => {
   }));
 });
 
-// 2C. RAW_PTR_EXCLUSION LineChart
-const exclusionChartData = computed(() => {
+// -----------------------------------------------------------------------------
+// 2C. RAW_PTR_EXCLUSION LineChart (with Exclude Chrome toggle)
+// -----------------------------------------------------------------------------
+const activeExclusionRepos = computed(() => {
   if (!payload.value) return [];
-  const nonZero = payload.value.miraclePtr.exclusion.repos.filter(
-    (r) => r.peak > 0 || r.current > 0,
-  );
-  if (!nonZero.length) return [];
+  const all = payload.value.miraclePtr.exclusion.repos;
+  return exclusionScope.value === 'subrepos' ? all.filter((r) => r.repo !== 'chromium') : all;
+});
+
+const activeExclusionStats = computed(() => {
+  if (!payload.value) return { current: 0, delta90d: 0, delta365d: 0 };
+  if (exclusionScope.value === 'all') {
+    const t = payload.value.miraclePtr.exclusion.totals;
+    return { current: t.current, delta90d: t.delta90d, delta365d: t.delta365d };
+  }
+  const subs = payload.value.miraclePtr.exclusion.repos.filter((r) => r.repo !== 'chromium');
+  return {
+    current: subs.reduce((s, r) => s + r.current, 0),
+    delta90d: subs.reduce((s, r) => s + r.delta90d, 0),
+    delta365d: subs.reduce((s, r) => s + r.delta365d, 0),
+  };
+});
+
+const activeExclusionDirs = computed(() => {
+  if (!payload.value) return [];
+  const ex = payload.value.miraclePtr.exclusion;
+  if (exclusionScope.value === 'subrepos') {
+    return (ex.subrepoTopDirs || ex.topDirs.filter((d) => d.repo !== 'chromium')).slice(0, 8);
+  }
+  return ex.topDirs.slice(0, 8);
+});
+
+const exclusionChartData = computed(() => {
+  const nonZero = activeExclusionRepos.value.filter((r) => r.peak > 0 || r.current > 0);
   return nonZero.map((r) => ({
     label: r.label,
     color: r.color,
@@ -1779,22 +2243,69 @@ const exclusionChartData = computed(() => {
   }));
 });
 
-// 3. DanglingUntriaged LineChart
+// -----------------------------------------------------------------------------
+// 3. DanglingUntriaged LineChart + Completion Projection
+// -----------------------------------------------------------------------------
+const danglingProjection1y = computed(() => {
+  if (!payload.value) return null;
+  return computeLinearProjection(payload.value.danglingPointers.totalSeries, '1y', '2022-01-01');
+});
+
+const activeDanglingProjection = computed(() => {
+  if (!payload.value) return computeLinearProjection([], '1y');
+  return computeLinearProjection(
+    payload.value.danglingPointers.totalSeries,
+    danglingTrendBasis.value,
+    '2022-01-01',
+  );
+});
+
 const danglingChartData = computed(() => {
   if (!payload.value) return [];
   const nonZero = payload.value.danglingPointers.repos.filter((r) => r.peak > 0 || r.current > 0);
-  if (!nonZero.length) return [];
-  return nonZero.map((r) => ({
+  const out: any[] = nonZero.map((r) => ({
     label: r.label,
     color: r.color,
     values: r.series.map(([d, cnt]) => ({ x: new Date(d), y: cnt })),
   }));
+
+  const proj = activeDanglingProjection.value;
+  if (proj.trendPoints.length) {
+    const endTag = proj.etaDate
+      ? `ETA ${proj.etaDate} (${fmtSlope(proj.slopePerDay)}/d)`
+      : `${fmtSlope(proj.slopePerDay)}/d (${basisLabel(danglingTrendBasis.value)} rising)`;
+    out.push({
+      label: `Projected (${basisLabel(danglingTrendBasis.value)} rate)`,
+      color: 'var(--ink)',
+      dashed: true,
+      endLabel: endTag,
+      values: proj.trendPoints,
+    });
+  }
+  return out;
 });
 
+// -----------------------------------------------------------------------------
 // 4. First-party Rust LineChart
+// -----------------------------------------------------------------------------
 const hasNonChromeRust = computed(() =>
   Boolean(payload.value?.rust.repos.some((r) => r.repo !== 'chromium' && r.current > 0)),
 );
+
+const activeRustRepos = computed(() => {
+  if (!payload.value) return [];
+  const all = payload.value.rust.repos;
+  return rustScope.value === 'subrepos' ? all.filter((r) => r.repo !== 'chromium') : all;
+});
+
+const activeRustDirs = computed(() => {
+  if (!payload.value) return [];
+  const rs = payload.value.rust;
+  if (rustScope.value === 'subrepos') {
+    return (rs.subrepoTopDirs || rs.topDirs.filter((d) => d.repo !== 'chromium')).slice(0, 8);
+  }
+  return rs.topDirs.slice(0, 8);
+});
 
 const rustChartData = computed(() => {
   if (!payload.value) return [];
@@ -1809,16 +2320,27 @@ const rustChartData = computed(() => {
   }));
 });
 
-// 5. CHECK vs DCHECK LineChart
+// -----------------------------------------------------------------------------
+// 5. CHECK vs DCHECK LineChart (with 2026-04-01 marker & history window)
+// -----------------------------------------------------------------------------
+const checksStartDate = computed(() =>
+  checksRange.value === '2025'
+    ? '2025-01-01'
+    : checksRange.value === '2022'
+      ? '2022-01-01'
+      : '2019-01-01',
+);
+
 const checksChartData = computed(() => {
   if (!payload.value) return [];
-  const ts = payload.value.invariantHardening.totalSeries.filter(([d]) => d >= '2020-01-01');
+  const minD = checksStartDate.value;
+  const ts = payload.value.invariantHardening.totalSeries.filter(([d]) => d >= minD);
   if (checksChartMode.value === 'share') {
     return payload.value.invariantHardening.repos.map((r) => ({
       label: `${r.label} CHECK %`,
       color: r.color,
       values: r.series
-        .filter(([d]) => d >= '2020-01-01')
+        .filter(([d]) => d >= minD)
         .map(([d, , , sh]) => ({ x: new Date(d), y: sh })),
     }));
   }
@@ -1843,7 +2365,9 @@ const activeCheckDirs = computed(() => {
     : payload.value.invariantHardening.topDcheckDirs.slice(0, 8);
 });
 
+// -----------------------------------------------------------------------------
 // Custom D3 UAF Share Over Time + MiraclePtr Overlay Chart
+// -----------------------------------------------------------------------------
 const uafChartWrap = ref<HTMLElement | null>(null);
 const uafSvg = ref<SVGSVGElement | null>(null);
 const uafHover = ref<any>(null);
@@ -1863,7 +2387,7 @@ const renderUafChart = () => {
 
   const width = uafChartWrap.value.clientWidth || 900;
   const height = 320;
-  const margin = { top: 18, right: 66, bottom: 38, left: 56 };
+  const margin = { top: 20, right: 68, bottom: 38, left: 56 };
   const innerW = Math.max(100, width - margin.left - margin.right);
   const innerH = Math.max(100, height - margin.top - margin.bottom);
 
@@ -1919,7 +2443,7 @@ const renderUafChart = () => {
     : (max(stackedData, (d) => d.total) || 10) * 1.08;
   const yLeft = scaleLinear().domain([0, maxLeft]).range([innerH, 0]);
 
-  const maxRight = (max(rows, (r) => r.rawPtrTotal) || 1000) * 1.08;
+  const maxRight = (max(rows, (r) => r.rawPtrTotal) || 1000) * 1.1;
   const yRight = scaleLinear().domain([0, maxRight]).range([innerH, 0]);
 
   g.append('g')
@@ -1976,7 +2500,7 @@ const renderUafChart = () => {
       };
       const [px, py] = [event.offsetX, event.offsetY];
       uafTooltipPos.value = {
-        x: Math.min(width - 240, Math.max(12, px + 14)),
+        x: Math.min(width - 250, Math.max(12, px + 14)),
         y: Math.max(10, py - 24),
       };
     })
@@ -1996,6 +2520,27 @@ const renderUafChart = () => {
     .attr('stroke', 'var(--series-1)')
     .attr('stroke-width', 2.4)
     .attr('d', rawPtrLine);
+
+  // Direct color-matched endpoint dot & label on the raw_ptr + raw_ref line.
+  const lastRow = rows[rows.length - 1];
+  const lastX = centerX(lastRow.period);
+  const lastY = yRight(lastRow.rawPtrTotal);
+  g.append('circle')
+    .attr('cx', lastX)
+    .attr('cy', lastY)
+    .attr('r', 3.5)
+    .style('fill', 'var(--series-1)');
+  g.append('text')
+    .attr('x', lastX - 7)
+    .attr('y', Math.max(12, lastY - 6))
+    .attr('text-anchor', 'end')
+    .attr('font-size', '11px')
+    .attr('font-weight', '650')
+    .style('fill', 'var(--series-1)')
+    .style('paint-order', 'stroke')
+    .style('stroke', 'var(--surface)')
+    .style('stroke-width', '3px')
+    .text(`raw_ptr + raw_ref: ${fmtCompact(lastRow.rawPtrTotal)}`);
 
   const xTickValues =
     uafGranularity.value === 'quarterly'
@@ -2257,6 +2802,14 @@ watch([() => payload.value, uafMetric, uafGranularity], () => {
   width: 0.55rem;
 }
 
+.repo-filter-chip {
+  font-weight: 620;
+}
+
+.repo-pill-label {
+  font-weight: 640;
+}
+
 .progress-col {
   min-width: 165px;
 }
@@ -2410,6 +2963,11 @@ watch([() => payload.value, uafMetric, uafGranularity], () => {
   padding: 0.4rem 0.7rem;
 }
 
+.eta-code {
+  color: var(--ink);
+  font-weight: 650;
+}
+
 .stat-label {
   color: var(--muted);
   font-size: 0.76rem;
@@ -2447,7 +3005,7 @@ watch([() => payload.value, uafMetric, uafGranularity], () => {
 }
 
 .line-chart-box.is-compact {
-  height: 285px;
+  height: 305px;
 }
 
 .repo-mini-pills {
@@ -2686,6 +3244,7 @@ watch([() => payload.value, uafMetric, uafGranularity], () => {
 .swatch {
   border-radius: 3px;
   display: inline-block;
+  flex-shrink: 0;
   height: 10px;
   width: 10px;
 }
@@ -2693,6 +3252,7 @@ watch([() => payload.value, uafMetric, uafGranularity], () => {
 .line-swatch {
   border-top: 2.5px solid;
   display: inline-block;
+  flex-shrink: 0;
   width: 18px;
 }
 
@@ -2708,33 +3268,30 @@ watch([() => payload.value, uafMetric, uafGranularity], () => {
   box-shadow: var(--shadow-lg);
   color: var(--tooltip-ink);
   font-size: 0.76rem;
-  min-width: 215px;
-  padding: 0.55rem 0.75rem;
+  min-width: 225px;
+  padding: 0.55rem 0.7rem;
   pointer-events: none;
   position: absolute;
-  z-index: 15;
-}
-
-.roi-tooltip strong {
-  color: var(--tooltip-ink);
-  font-family: var(--font-mono);
+  z-index: 20;
 }
 
 .roi-tt-head {
-  font-size: 0.82rem;
+  font-family: var(--font-mono);
   font-weight: 700;
   margin-bottom: 0.25rem;
 }
 
 .roi-tt-row {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.65rem;
   justify-content: space-between;
   line-height: 1.45;
 }
 
 .roi-tt-sep {
   background: rgba(255, 255, 255, 0.16);
+  border: 0;
+  height: 1px;
   margin: 0.3rem 0;
 }
 </style>

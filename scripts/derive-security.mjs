@@ -1427,6 +1427,7 @@ const securityPayload = {
       totalSeries: unsafeTodoTotalSeries,
       repos: unsafeTodoRepos,
       topDirs: unsafeTodoDirs.slice(0, 10),
+      subrepoTopDirs: unsafeTodoDirs.filter((d) => d.repo !== 'chromium').slice(0, 8),
     },
   },
   miraclePtr: {
@@ -1481,6 +1482,7 @@ const securityPayload = {
       totalSeries: exclusionTotalSeries,
       repos: exclusionRepos,
       topDirs: exclusionDirs.slice(0, 10),
+      subrepoTopDirs: exclusionDirs.filter((d) => d.repo !== 'chromium').slice(0, 8),
     },
   },
   danglingPointers: {
@@ -1513,6 +1515,7 @@ const securityPayload = {
     totalSeries: rustTotalSeries,
     repos: rustRepos,
     topDirs: rustDirs.slice(0, 10),
+    subrepoTopDirs: rustDirs.filter((d) => d.repo !== 'chromium').slice(0, 8),
   },
   invariantHardening: {
     totals: {

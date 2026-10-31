@@ -5,6 +5,7 @@
     <svg>
       <g ref="content">
         <g ref="milestonesGroup" />
+        <g ref="endLabelsGroup" />
         <g ref="tooltip" />
         <g ref="legend" />
       </g>
@@ -39,6 +40,7 @@ const content = ref<SVGGElement | null>(null);
 const tooltip = ref<SVGGElement | null>(null);
 const legend = ref<SVGGElement | null>(null);
 const milestonesGroup = ref<SVGGElement | null>(null);
+const endLabelsGroup = ref<SVGGElement | null>(null);
 const releaseAxis = ref<SVGGElement | null>(null);
 
 interface Point {
@@ -49,6 +51,10 @@ interface Point {
 interface Data {
   label: string;
   extra_label?: string;
+  color?: string;
+  dashed?: boolean;
+  strokeWidth?: number;
+  endLabel?: string;
   values: Array<Point>;
 }
 
@@ -58,7 +64,8 @@ const props = defineProps({
     type: Function,
     default: null,
   },
-  // Hand-picked events explaining the inflection points: { date, label }.
+  // Hand-picked events explaining the inflection points:
+  // { date, label, color?, anchor?: 'start' | 'end', pill?: boolean, yRatio?: number }.
   milestones: { type: Array, default: () => [] },
   animate: { type: Boolean, default: true },
 });
@@ -67,22 +74,23 @@ const milestoneWidthCache = new Map<string, number>();
 
 const dateExtent = computed(() => {
   if (!props.data || props.data.length === 0) return [new Date(), new Date()];
-  const allValues = props.data.map(e => e.values).flat();
+  const allValues = (props.data as Data[]).map(e => e.values).flat();
   if (allValues.length === 0) return [new Date(), new Date()];
-  return extent(allValues.map(d => d.x))
+  return extent(allValues.map(d => d.x));
 });
 const patchExtent = computed(() => {
   if (!props.data || props.data.length === 0) return [0, 0];
-  const allValues = props.data.map(e => e.values).flat();
+  const allValues = (props.data as Data[]).map(e => e.values).flat();
   if (allValues.length === 0) return [0, 0];
-  return [0, max(allValues.map(d => d.y))]
+  return [0, max(allValues.map(d => d.y))];
 });
 
 const render = () => {
   if (!props.data || props.data.length === 0) return;
+  const seriesList = props.data as Data[];
   const margin = {
     top: 10,
-    right: 30,
+    right: 32,
     bottom: 44,
     left: 60,
   };
@@ -95,21 +103,21 @@ const render = () => {
   select(content.value)
     .attr("transform", `translate(${margin.left}, ${margin.top})`);
   select(xAxis.value)
-    .attr("transform", `translate(${margin.left}, ${margin.top + innerHeight})`)
+    .attr("transform", `translate(${margin.left}, ${margin.top + innerHeight})`);
   select(yAxis.value)
-    .attr("transform", `translate(${margin.left}, ${margin.top})`)
+    .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
   const x = scaleTime()
-    .range([ 0, innerWidth])
-    .domain(dateExtent.value);
+    .range([0, innerWidth])
+    .domain(dateExtent.value as [Date, Date]);
 
   const y = scaleLinear()
-    .range([ innerHeight, 0 ])
-    .domain(patchExtent.value);
+    .range([innerHeight, 0])
+    .domain(patchExtent.value as [number, number]);
 
   const bottomAxis = axisBottom(x).ticks(7);
   const leftAxis = axisLeft(y);
-  if (props.formatter) leftAxis.tickFormat(props.formatter);
+  if (props.formatter) leftAxis.tickFormat(props.formatter as any);
 
   if (props.animate) {
     select(xAxis.value)
@@ -141,7 +149,7 @@ const render = () => {
   select(releaseAxis.value)
     .attr("transform", `translate(${margin.left}, ${margin.top + innerHeight + 34})`)
     .selectAll("text")
-    .data(releases, release => release.milestone)
+    .data(releases, (release: any) => release.milestone)
     .join("text")
     .attr("x", release => release.x)
     .attr("text-anchor", "middle")
@@ -149,63 +157,105 @@ const render = () => {
     .style("fill", "var(--faint)")
     .text(release => `M${release.milestone}`);
 
-  // The milestones: a dashed line, labeled near the bottom, in lanes avoiding
-  // the overlaps.
-  const milestones = props.milestones
+  // The milestones: a dashed line, labeled near the bottom (or at yRatio for
+  // callout pills), in lanes avoiding overlaps.
+  const milestones = (props.milestones as any[])
     .map(m => ({ ...m, x: x(new Date(m.date)) }))
     .filter(m => m.x >= 0 && m.x <= innerWidth);
   select(milestonesGroup.value)
     .selectAll(".milestone")
-    .data(milestones, m => m.label)
+    .data(milestones, (m: any) => `${m.date}:${m.label}`)
     .join(enter => {
       const group = enter.append("g").attr("class", "milestone");
-      group.append("line")
-        .style("stroke", "var(--faint)")
-        .attr("stroke-dasharray", "3 3");
-      group.append("text")
-        .attr("font-size", "11px")
-        .attr("font-style", "italic")
-        .style("fill", "var(--muted)");
+      group.append("line");
+      group.append("rect").attr("class", "milestone-pill");
+      group.append("text").attr("font-size", "11px");
       return group;
     })
     .call(group => {
       group.select("line")
-        .attr("x1", m => m.x)
-        .attr("x2", m => m.x)
+        .attr("x1", (m: any) => m.x)
+        .attr("x2", (m: any) => m.x)
         .attr("y1", 0)
-        .attr("y2", innerHeight);
-      const texts = group.select("text").text(m => m.label);
-      const placement = labelLanes(texts.nodes().map((node, i) => {
-        const label = milestones[i].label;
-        let width = milestoneWidthCache.get(label);
-        if (width === undefined) {
-          width = node.getComputedTextLength();
-          milestoneWidthCache.set(label, width);
+        .attr("y2", innerHeight)
+        .style("stroke", (m: any) => m.color || "var(--faint)")
+        .attr("stroke-width", (m: any) => m.pill ? 1.75 : (m.color ? 1.3 : 1))
+        .attr("stroke-dasharray", (m: any) => m.pill ? "5 3" : "3 3");
+
+      const texts = group.select("text")
+        .text((m: any) => m.label)
+        .attr("font-style", (m: any) => m.pill ? "normal" : "italic")
+        .attr("font-weight", (m: any) => m.pill ? "650" : (m.color ? "560" : "normal"))
+        .style("fill", (m: any) => m.color || "var(--muted)");
+
+      const widths = texts.nodes().map((node: any, i: number) => {
+        const key = `${milestones[i].pill ? "P:" : ""}${milestones[i].label}`;
+        let w = milestoneWidthCache.get(key);
+        if (w === undefined || w === 0) {
+          w = node.getComputedTextLength() || milestones[i].label.length * 6.2;
+          milestoneWidthCache.set(key, w);
         }
-        return { x: milestones[i].x, width };
-      }), innerWidth);
+        return w;
+      });
+
+      const placement = labelLanes(milestones.map((m, i) => ({
+        x: m.x,
+        width: widths[i] + (m.pill ? 12 : 0),
+        preferredAnchor: m.anchor,
+      })), innerWidth, 5);
+
+      const textPos = milestones.map((m, i) => {
+        const anchor = m.anchor || placement[i].anchor;
+        const pad = m.pill ? 9 : 4;
+        const tx = anchor === "start" ? m.x + pad : m.x - pad;
+        const ty = typeof m.yRatio === "number"
+          ? Math.max(18, Math.min(innerHeight - 10, Math.round(innerHeight * m.yRatio)))
+          : innerHeight - 6 - placement[i].lane * 15;
+        return { anchor, tx, ty, w: widths[i] };
+      });
+
       texts
-        .attr("text-anchor", (m, i) => placement[i].anchor)
-        .attr("x", (m, i) => placement[i].anchor === "start" ? m.x + 4 : m.x - 4)
-        .attr("y", (m, i) => innerHeight - 6 - placement[i].lane * 14);
+        .attr("text-anchor", (_, i) => textPos[i].anchor)
+        .attr("x", (_, i) => textPos[i].tx)
+        .attr("y", (_, i) => textPos[i].ty);
+
+      group.select("rect.milestone-pill")
+        .attr("display", (m: any) => m.pill ? null : "none")
+        .attr("x", (_, i) => textPos[i].anchor === "start" ? textPos[i].tx - 5 : textPos[i].tx - textPos[i].w - 5)
+        .attr("y", (_, i) => textPos[i].ty - 12)
+        .attr("width", (_, i) => textPos[i].w + 10)
+        .attr("height", 17)
+        .attr("rx", 4)
+        .style("fill", "var(--surface)")
+        .style("stroke", (m: any) => m.color || "var(--line-strong)")
+        .attr("stroke-width", 1)
+        .attr("opacity", 0.96);
     });
 
-  const max_curve_length = props.data.reduce((acc, d) => Math.max(acc, d.values.length), 0);
+  const max_curve_length = seriesList.reduce((acc, d) => Math.max(acc, d.values.length), 0);
 
-  const valueLines = line()
+  const smoothLine = line<Point>()
     .x(d => x(d.x))
     .y(d => y(d.y))
-    .curve(max_curve_length < 400 ? curveMonotoneX : curveLinear)
-  const valueZero = line()
+    .curve(max_curve_length < 400 ? curveMonotoneX : curveLinear);
+  const straightLine = line<Point>()
     .x(d => x(d.x))
-    .y(d => y(0))
+    .y(d => y(d.y))
+    .curve(curveLinear);
+  const pathFor = (d: Data) => d.dashed ? straightLine(d.values) : smoothLine(d.values);
+  const strokeWidthFor = (d: Data) => d.strokeWidth || (d.dashed ? 2 : 1.75);
+  const colorFor = (d: { label: string; color?: string }) => d.color || $color(d.label);
+
+  const valueZero = line<Point>()
+    .x(d => x(d.x))
+    .y(() => y(0));
 
   select(container.value)
     .on("pointerenter pointermove", event => {
-      const bisectDate = bisector(d => d.x).left;
+      const bisectDate = bisector((d: Point) => d.x).left;
       const date = x.invert(pointer(event)[0] - margin.left);
 
-      const references = props.data
+      const references = seriesList
         .map(d => {
           const i = bisectDate(d.values, date);
           if (i <= 0 || i >= d.values.length) {
@@ -213,59 +263,67 @@ const render = () => {
           }
           return {
             label: d.label,
+            color: d.color,
             x: d.values[i].x,
             y: d.values[i].y,
           };
         })
-        .filter(d => d !== null);
+        .filter((d): d is NonNullable<typeof d> => d !== null);
 
       select(tooltip.value)
         .selectAll(".tooltipData")
-        .data(references, reference => reference.label)
+        .data(references, (reference: any) => reference.label)
         .join(
           enter => {
             const group = enter
               .append("g")
               .attr("class", "tooltipData")
-              .attr("transform", d => `translate(${x(d.x)}, ${y(d.y)})`)
+              .attr("transform", d => `translate(${x(d.x)}, ${y(d.y)})`);
 
             group
               .attr("opacity", 0)
               .transition()
               .duration(300)
-              .attr("opacity", 1)
+              .attr("opacity", 1);
 
             group
               .append("text")
               .attr("font-size", "12px")
               .attr("font-weight", "bold")
-              .attr("x", -5)
-              .attr("y", -5)
-              .attr("text-anchor", "end")
+              .attr("x", d => x(d.x) < 140 ? 6 : -6)
+              .attr("y", -6)
+              .attr("text-anchor", d => x(d.x) < 140 ? "start" : "end")
               .attr("alignment-baseline", "bottom")
-              .attr("fill", d => d.color || $color(d.label))
-              .text(d => d.label + ":  " + formatValue(d.y))
+              .style("fill", d => colorFor(d))
+              .text(d => d.label + ":  " + formatValue(d.y));
 
             group.append("circle")
-              .attr("r", 3)
-              .attr("fill", d => d.color || $color(d.label))
+              .attr("r", 3.2)
+              .style("fill", d => colorFor(d));
             return group;
           },
 
           update => {
             update
-              .attr("transform", d => `translate(${x(d.x)}, ${y(d.y)})`)
+              .attr("transform", d => `translate(${x(d.x)}, ${y(d.y)})`);
+            update
               .select("text")
-              .text(d =>  d.label + ":  " + formatValue(d.y))
+              .attr("x", d => x(d.x) < 140 ? 6 : -6)
+              .attr("text-anchor", d => x(d.x) < 140 ? "start" : "end")
+              .style("fill", d => colorFor(d))
+              .text(d => d.label + ":  " + formatValue(d.y));
+            update
+              .select("circle")
+              .style("fill", d => colorFor(d));
+            return update;
           },
           exit => exit
-          .attr("opacity", 1)
-          .transition()
-          .duration(200)
-          .attr("opacity", 0)
-          .remove()
-        )
-      ;
+            .attr("opacity", 1)
+            .transition()
+            .duration(200)
+            .attr("opacity", 0)
+            .remove()
+        );
     })
     .on("pointerleave", event => {
       // On touch screens, keep the tooltip of the last tap.
@@ -277,119 +335,200 @@ const render = () => {
         .transition()
         .duration(500)
         .attr("opacity", 0)
-        .remove()
-    })
-  ;
+        .remove();
+    });
 
   select(content.value)
     .selectAll(".line")
-    .data(props.data, d => d.label)
+    .data(seriesList, (d: Data) => d.label)
     .join(
       enter => {
         const path = enter
           .insert("path", ":first-child")
           .attr("class", "line")
           .attr("fill", "none")
-          .attr("stroke", d => d.color || $color(d.label));
+          .style("stroke", d => colorFor(d))
+          .attr("stroke-dasharray", d => d.dashed ? "6 4" : null);
         if (!props.animate) {
           return path
-            .attr("stroke-width", 1.5)
-            .attr("d", d => valueLines(d.values));
+            .attr("stroke-width", d => strokeWidthFor(d))
+            .attr("d", d => pathFor(d));
         }
         return path
           .attr("stroke-width", 0)
           .attr("d", d => valueZero(d.values))
           .transition()
           .duration(500)
-          .attr("d", d => valueLines(d.values))
-          .attr("stroke-width", 1.5);
+          .attr("d", d => pathFor(d))
+          .attr("stroke-width", d => strokeWidthFor(d));
       },
 
       update => {
-        update.attr("stroke", d => d.color || $color(d.label));
+        update
+          .style("stroke", d => colorFor(d))
+          .attr("stroke-dasharray", d => d.dashed ? "6 4" : null);
         if (!props.animate) {
           return update
             .interrupt()
-            .attr("stroke-width", 1.5)
-            .attr("d", d => valueLines(d.values));
+            .attr("stroke-width", d => strokeWidthFor(d))
+            .attr("d", d => pathFor(d));
         }
         return update
           .transition()
           .duration(500)
-          .attr("stroke-width", 1.5)
+          .attr("stroke-width", d => strokeWidthFor(d))
           .attrTween('d', function (d) {
-            var previous = select(this).attr('d');
-            var current = valueLines(d.values);
+            const previous = select(this).attr('d');
+            const current = pathFor(d) || "";
             return interpolatePath(previous, current);
           });
       },
 
       exit => props.animate
         ? exit
-          .transition(500)
+          .transition()
           .duration(500)
-          .attr("d", d => valueZero(d.values))
+          .attr("d", (d: Data) => valueZero(d.values))
           .remove()
         : exit.remove()
-    )
+    );
+
+  // Optional end-of-line callout pills (e.g. projected 0-crossing ETA on dashed trend lines).
+  const endLabeled = seriesList
+    .filter(d => d.endLabel && d.values.length > 0)
+    .map(d => {
+      const lastPt = d.values[d.values.length - 1];
+      return {
+        key: d.label,
+        text: d.endLabel!,
+        color: colorFor(d),
+        px: x(lastPt.x),
+        py: y(lastPt.y),
+      };
+    });
+
+  select(endLabelsGroup.value)
+    .selectAll(".end-callout")
+    .data(endLabeled, (d: any) => d.key)
+    .join(enter => {
+      const g = enter.append("g").attr("class", "end-callout");
+      g.append("circle").attr("r", 3.5);
+      g.append("rect").attr("rx", 4);
+      g.append("text")
+        .attr("font-size", "11px")
+        .attr("font-weight", "650");
+      return g;
+    })
+    .call(g => {
+      g.select("circle")
+        .attr("cx", d => d.px)
+        .attr("cy", d => d.py)
+        .style("fill", d => d.color);
+
+      const texts = g.select("text")
+        .text(d => d.text)
+        .style("fill", d => d.color);
+
+      const boxPos = endLabeled.map((d, i) => {
+        const node = texts.nodes()[i] as SVGTextElement | undefined;
+        const w = (node && node.getComputedTextLength()) || d.text.length * 6.4;
+        const anchorEnd = d.px > innerWidth * 0.45;
+        const tx = anchorEnd ? d.px - 8 : d.px + 8;
+        const ty = Math.min(innerHeight - 10, Math.max(16, d.py - 8));
+        return { anchor: anchorEnd ? "end" : "start", tx, ty, w };
+      });
+
+      texts
+        .attr("text-anchor", (_, i) => boxPos[i].anchor)
+        .attr("x", (_, i) => boxPos[i].tx)
+        .attr("y", (_, i) => boxPos[i].ty);
+
+      g.select("rect")
+        .attr("x", (_, i) => boxPos[i].anchor === "end" ? boxPos[i].tx - boxPos[i].w - 5 : boxPos[i].tx - 5)
+        .attr("y", (_, i) => boxPos[i].ty - 12)
+        .attr("width", (_, i) => boxPos[i].w + 10)
+        .attr("height", 17)
+        .style("fill", "var(--surface)")
+        .style("stroke", d => d.color)
+        .attr("stroke-width", 1)
+        .attr("opacity", 0.96);
+    });
 
   select(legend.value)
     .selectAll(".legend")
-    .data(props.data, d => (d.label + (d.extra_label || "")))
+    .data(seriesList, (d: Data) => (d.label + (d.extra_label || "")))
     .join(
       enter => {
         const group = enter
           .append("g")
-          .attr("class", "legend")
+          .attr("class", "legend");
 
         if (props.animate) {
           group
             .attr("opacity", 0)
-            .attr("transform", (d, i) => `translate(100, ${i*20})`)
+            .attr("transform", (d, i) => `translate(100, ${i * 19})`)
             .transition()
             .duration(500)
-            .attr("transform", (d, i) => `translate(10, ${i*20})`)
-            .attr("opacity", 1)
+            .attr("transform", (d, i) => `translate(10, ${i * 19})`)
+            .attr("opacity", 1);
         } else {
           group
             .attr("opacity", 1)
-            .attr("transform", (d, i) => `translate(10, ${i*20})`)
+            .attr("transform", (d, i) => `translate(10, ${i * 19})`);
         }
 
         group
+          .append("line")
+          .attr("class", "legend-swatch")
+          .attr("x1", 0)
+          .attr("x2", 13)
+          .attr("y1", -4)
+          .attr("y2", -4)
+          .attr("stroke-width", 2.2)
+          .attr("stroke-dasharray", d => d.dashed ? "4 2.5" : null)
+          .style("stroke", d => colorFor(d));
+
+        group
           .append("text")
+          .attr("x", 18)
           .attr("font-size", "12px")
           .attr("font-weight", "bold")
-          .attr("fill", d => d.color || $color(d.label))
-          .text(d => d.label + (d.extra_label || ""))
+          .style("fill", d => colorFor(d))
+          .text(d => d.label + (d.extra_label || ""));
         return group;
       },
       update => {
+        update.select("line.legend-swatch")
+          .attr("stroke-dasharray", d => d.dashed ? "4 2.5" : null)
+          .style("stroke", d => colorFor(d));
+        update.select("text")
+          .style("fill", d => colorFor(d))
+          .text(d => d.label + (d.extra_label || ""));
         if (!props.animate) {
           return update
             .interrupt()
-            .attr("transform", (d, i) => `translate(10, ${i*20})`)
+            .attr("transform", (d, i) => `translate(10, ${i * 19})`)
             .attr("opacity", 1);
         }
         update
           .transition()
-          .duration(1000)
-          .attr("transform", (d, i) => `translate(10, ${i*20})`)
-          .attr("opacity", 1)
+          .duration(500)
+          .attr("transform", (d, i) => `translate(10, ${i * 19})`)
+          .attr("opacity", 1);
         return update;
       },
       exit => {
         if (!props.animate) {
           return exit.remove();
         }
-        exit
+        return exit
           .transition()
           .duration(500)
-          .attr("transform", (d, i) => `translate(100, ${i*20})`)
+          .attr("transform", (d, i) => `translate(100, ${i * 19})`)
           .attr("opacity", 0)
-          .remove()
+          .remove();
       }
-    )
+    );
 
 };
 
@@ -436,11 +575,6 @@ watchEffect(() => {
   width: 100%;
 }
 
-/* Scrub horizontally, while still scrolling the page vertically. */
-svg {
-  touch-action: pan-y;
-}
-
 .line-skeleton {
   inset: 0;
   min-height: 12rem;
@@ -453,10 +587,12 @@ svg {
   touch-action: pan-y;
 }
 
-svg :deep(.tooltipData text) {
+svg :deep(.tooltipData text),
+svg :deep(.legend text),
+svg :deep(.milestone text) {
   paint-order: stroke;
-  stroke: var(--bg);
-  stroke-width: 3px;
+  stroke: var(--surface);
+  stroke-width: 3.2px;
   stroke-linejoin: round;
 }
 </style>
