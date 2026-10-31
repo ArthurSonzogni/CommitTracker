@@ -1,16 +1,15 @@
 #ifndef RENDER_HPP_
 #define RENDER_HPP_
 
-#include <functional>
-#include <glm/glm.hpp>
 #include <string>
 #include <vector>
 #include "DensityGrid.hpp"
+#include "Vec.hpp"
 #include "Weight.hpp"
 
 void Render(DensityGrid* density_grid,
             const std::vector<std::string>& labels,
-            const std::vector<glm::vec2>& positions,
+            const std::vector<Vec2>& positions,
             const std::vector<float>& label_size,
             const std::vector<float>& colors,
             const std::vector<std::vector<Weight>>& edge_thickness,
@@ -23,7 +22,7 @@ void Render(DensityGrid* density_grid,
 // }
 // Coordinates are in the same [0, 2] x [0, 1] space as the SVG.
 void RenderJSON(const std::vector<std::string>& labels,
-                const std::vector<glm::vec2>& positions,
+                const std::vector<Vec2>& positions,
                 const std::vector<float>& label_size,
                 const std::vector<int>& clusters,
                 const std::vector<std::vector<Weight>>& edge_thickness,

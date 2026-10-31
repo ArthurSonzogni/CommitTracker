@@ -1,11 +1,13 @@
 #include <algorithm>
+#include <format>
+#include <iostream>
 #include <string>
 #include "MainLogic.hpp"
-#include "fmt/format.h"
 
 int main(int argc, char** argv) {
   if (argc < 3) {
-    fmt::print("Usage: {} <input> <output> [community count=10]\n", argv[0]);
+    std::cout << std::format(
+        "Usage: {} <input> <output> [community count=10]\n", argv[0]);
     return 1;
   }
   const std::string input = argv[1];

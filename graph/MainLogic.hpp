@@ -1,17 +1,16 @@
 #ifndef MAIN_LOGIC_HPP_
 #define MAIN_LOGIC_HPP_
 
-#include <functional>
-#include "Weight.hpp"
-#include <glm/glm.hpp>
 #include <map>
-#include "DensityGrid.hpp"
 #include <memory>
 #include <string>
 #include <vector>
+#include "DensityGrid.hpp"
+#include "Vec.hpp"
+#include "Weight.hpp"
 
 class MainLogic {
-  public:
+ public:
   // Usage:
   // - input: path to the input CSV file.
   // - output: path to the output SVG file. A JSON file with the same data is
@@ -32,11 +31,10 @@ class MainLogic {
   std::vector<int> clusters;  // Index of the community.
   std::vector<std::vector<Weight>> weights;
   std::vector<std::vector<Weight>> weights_incoming;
-  std::vector<glm::vec2> positions;
+  std::vector<Vec2> positions;
 
   void CreateUser(const std::string& user);
   int AddUser(const std::string& user);
-  void RenormalizePositions();
 
   void Planarize();
   void AdjustPositions();

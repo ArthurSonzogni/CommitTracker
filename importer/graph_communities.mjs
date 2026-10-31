@@ -155,7 +155,7 @@ function AssignColors(communities, previous) {
   }
 
   // Give the others a color the nearby communities don't have.
-  const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+  const distance = (a, b) => Math.hypot((a.x - b.x) / 2, a.y - b.y);
   for (const community of communities) {
     if (community.color >= 0) {
       continue;

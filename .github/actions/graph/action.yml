@@ -20,8 +20,7 @@ runs:
       with:
         source-dir: graph
         build-dir: graph/build
-        # The glm dependency requires an old CMake policy.
-        args: -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+        args: -DCMAKE_BUILD_TYPE:STRING=Release
         run-build: true
 
     # The graphs use derived data, made by the commits module when it runs.
@@ -31,6 +30,8 @@ runs:
         if [ ! -d public/data/chromium/usernames ]; then
           npm run generate-derived-data
         fi
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
 
     - name: Create Graphs
       shell: bash

@@ -42,6 +42,8 @@ Graph Louvain(Graph& input) {
   }
 
   std::vector<int> random_order = Shuffle(node_count);
+  std::vector<int> neighbours_link(node_count, 0);
+  std::vector<int> neighbours_community;
   for (int iteration = 0; iteration < 10; iteration++) {
     int changed = 0;
     for (int pos : random_order) {
@@ -49,9 +51,7 @@ Graph Louvain(Graph& input) {
       const int old_community = node_community[pos];
 
       // Calculating Neighbor Communities.
-      std::vector<int> neighbours_link(node_count, 0);
-      std::vector<int> neighbours_community;
-      for (auto& [to_node, weight] : node.neighbors) {
+      for (const auto& [to_node, weight] : node.neighbors) {
         const int to_community = node_community[to_node];
         if (neighbours_link[to_community] <= 0) {
           neighbours_community.emplace_back(to_community);
@@ -77,6 +77,11 @@ Graph Louvain(Graph& input) {
           best_community = community;
         }
       }
+
+      for (int c : neighbours_community) {
+        neighbours_link[c] = 0;
+      }
+      neighbours_community.clear();
 
       // If the best community is the current community, skip.
       if (best_community == old_community) {

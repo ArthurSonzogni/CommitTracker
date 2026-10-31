@@ -1,24 +1,21 @@
 #include "MainLogic.hpp"
 
-#include <fmt/core.h>
-#include <fmt/ostream.h>
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
+#include <format>
 #include <fstream>
-#include <functional>
-#include <glm/glm.hpp>
 #include <iostream>
 #include <map>
 #include <memory>
 #include <random>
-#include <sstream>
 #include <string>
-#include <tuple>
 #include <vector>
 #include "Colorize.hpp"
 #include "DensityGrid.hpp"
 #include "ReadCSV.hpp"
 #include "Render.hpp"
+#include "Vec.hpp"
 #include "Weight.hpp"
 
 namespace {
@@ -34,7 +31,7 @@ bool FilterUserName(const std::string& user) {
 // Initial positions: each node is placed randomly around the position of its
 // community. Communities are laid out with a small force-directed layout of the
 // community graph, so that close communities start next to each other.
-std::vector<glm::vec2> CommunityPositions(
+std::vector<Vec2> CommunityPositions(
     const std::vector<std::vector<Weight>>& weights,
     const std::vector<int>& clusters) {
   const int count = *std::max_element(clusters.begin(), clusters.end()) + 1;
@@ -59,43 +56,44 @@ std::vector<glm::vec2> CommunityPositions(
 
   std::mt19937 generator(42);
   std::uniform_real_distribution<float> uniform(0, 1);
-  std::vector<glm::vec2> center(count);
+  std::vector<Vec2> center(count);
   for (auto& c : center) {
     c = {uniform(generator), uniform(generator)};
   }
   for (int iteration = 0; iteration < 500; ++iteration) {
     const float step = 0.05f * (1.f - iteration / 500.f);
-    std::vector<glm::vec2> force(count, glm::vec2(0.f));
+    std::vector<Vec2> force(count, Vec2(0.f));
     for (int a = 0; a < count; ++a) {
       for (int b = 0; b < count; ++b) {
         if (a == b) {
           continue;
         }
-        glm::vec2 diff = center[b] - center[a];
-        const float d = std::max(0.01f, glm::length(diff));
+        Vec2 diff = center[b] - center[a];
+        const float d = std::max(0.01f, Length(diff));
         diff /= d;
         // Repulsion between all communities, attraction between linked ones.
-        force[a] -= diff * 0.02f / (d * d) * std::sqrt(size[b] / weights.size());
+        force[a] -=
+            diff * 0.02f / (d * d) * std::sqrt(size[b] / weights.size());
         if (max_between > 0) {
           force[a] += diff * d * between[a][b] / max_between;
         }
       }
     }
     for (int a = 0; a < count; ++a) {
-      const float length = glm::length(force[a]);
+      const float length = Length(force[a]);
       if (length > 0) {
         center[a] += force[a] / length * std::min(length, 1.f) * step;
       }
-      center[a] = glm::clamp(center[a], glm::vec2(0.15f), glm::vec2(0.85f));
+      center[a] = Clamp(center[a], Vec2(0.15f), Vec2(0.85f));
     }
   }
 
   std::normal_distribution<float> jitter(0.0, 0.05);
-  std::vector<glm::vec2> positions(weights.size());
+  std::vector<Vec2> positions(weights.size());
   for (int i = 0; i < weights.size(); ++i) {
-    positions[i] = glm::clamp(
-        center[clusters[i]] + glm::vec2(jitter(generator), jitter(generator)),
-        glm::vec2(0.f), glm::vec2(1.f));
+    positions[i] =
+        Clamp(center[clusters[i]] + Vec2(jitter(generator), jitter(generator)),
+              Vec2(0.f), Vec2(1.f));
   }
   return positions;
 }
@@ -183,20 +181,35 @@ std::vector<float> UserRepulsions(
   return user_repulsion;
 }
 
-glm::vec4 Interpolate(const std::vector<glm::vec4>& values, float time) {
+Vec4 Interpolate(const std::vector<Vec4>& values, float time) {
   if (values.size() == 1) {
     return values.front();
   }
 
   // Find the two values to interpolate between.
-  int i = 0;
-  while (i < values.size() - 1 && values[i + 1].x < time) {
+  size_t i = 0;
+  while (i + 2 < values.size() && values[i + 1].x < time) {
     ++i;
   }
 
+  const float span = values[i + 1].x - values[i].x;
+  if (span == 0.f) {
+    return values[i + 1];
+  }
+
   // Interpolate between the two values.
-  const float t = (time - values[i].x) / (values[i + 1].x - values[i].x);
-  return glm::mix(values[i], values[i + 1], t);
+  const float t = (time - values[i].x) / span;
+  return Mix(values[i], values[i + 1], t);
+}
+
+std::unique_ptr<DensityGrid> InitializeDensity(
+    const std::vector<Vec2>& positions,
+    const std::vector<float>& repulsion) {
+  auto density = std::make_unique<DensityGrid>(repulsion.size());
+  for (int i = 0; i < repulsion.size(); ++i) {
+    density->Add(positions[i], repulsion[i]);
+  }
+  return density;
 }
 
 }  // namespace
@@ -218,49 +231,13 @@ int MainLogic::AddUser(const std::string& user) {
   return users_id[user];
 }
 
-std::unique_ptr<DensityGrid> InitializeDensity(
-    const std::vector<glm::vec2>& positions,
-    const std::vector<float>& repulsion) {
-  auto density = std::make_unique<DensityGrid>(repulsion.size());
-  for (int i = 0; i < repulsion.size(); ++i) {
-    density->Add(positions[i], repulsion[i]);
-  }
-  return density;
-}
-
-// Interpolate between two values in a list, given a time.
-void MainLogic::RenormalizePositions() {
-  // Compute the bounding box of the graph.
-  glm::vec2 min = positions.front();
-  glm::vec2 max = positions.front();
-  for (auto& p : positions) {
-    min = glm::min(min, p);
-    max = glm::max(max, p);
-  }
-
-  // Renormalize progressively:
-  min = glm::vec2(0) + 0.5f * (min - glm::vec2(0));
-  max = glm::vec2(1) - 0.5f * (glm::vec2(1) - max);
-
-  // Compute the size of the bounding box.
-  const glm::vec2 size = max - min;
-
-  // Compute the scale to apply to the positions.
-  const float scale = 1.f / std::max(size.x, size.y);
-
-  // Apply the scale to the positions.
-  for (auto& p : positions) {
-    p = (p - min) * scale;
-  }
-
-  density = InitializeDensity(positions, user_repulsion);
-}
-
 int MainLogic::Main(const std::string& input,
                     const std::string& output,
                     int community_count) {
   ReadCSV(input, [this](std::vector<std::string> row) {
-    assert(row.size() == 3);
+    if (row.size() != 3) {
+      return;
+    }
     const std::string& user1 = row[0];
     const std::string& user2 = row[1];
     if (FilterUserName(user1) || FilterUserName(user2) || user1 == user2) {
@@ -293,8 +270,7 @@ int MainLogic::Main(const std::string& input,
   Render(density.get(), labels, positions, label_size, colors, edge_thickness,
          output);
 
-  const std::string json_output =
-      output.substr(0, output.rfind('.')) + ".json";
+  const std::string json_output = output.substr(0, output.rfind('.')) + ".json";
   RenderJSON(labels, positions, label_size, clusters, edge_thickness,
              json_output);
 
@@ -312,10 +288,7 @@ void MainLogic::Planarize() {
 
   const int max_iteration = 100;
   for (int iteration = 0; iteration < max_iteration; ++iteration) {
-    const float time_step = 1.0f / float(max_iteration);
     const float time = (iteration + 1) / float(max_iteration);
-    const float time_inv = 1.0 - time;
-    const float time_step_mul = std::pow(1.0f, 1.0 / float(max_iteration));
 
     const auto params = Interpolate(
         {
@@ -348,29 +321,26 @@ void MainLogic::Planarize() {
 
     std::normal_distribution<float> exploration(0.0, exploration_length);
 
-    // Renormalize the positions to better fit the screen.
-    //RenormalizePositions();
-
-    // Progressively cut weight when the distance to the neighbours it too big.
+    // Progressively cut weight when the distance to the neighbours is too big.
     {
 #pragma omp parallel for
       for (int i = 0; i < positions.size(); ++i) {
         for (auto& weight : weights[i]) {
-          const glm::vec2 neighbor_position = positions[weight.user_id];
-          const float d = glm::distance(positions[i], neighbor_position);
-          weight.weight *= std::exp(-d * d * time_step_mul * weight_decay);
+          const Vec2 neighbor_position = positions[weight.user_id];
+          const float d = Distance(positions[i], neighbor_position);
+          weight.weight *= std::exp(-d * d * weight_decay);
         }
       }
     }
 
     // The center of each community, to keep them together.
-    std::vector<glm::vec2> community_center;
+    std::vector<Vec2> community_center;
     {
       std::vector<float> community_weight;
       for (int i = 0; i < positions.size(); ++i) {
         const int c = clusters[i];
         if (c >= community_center.size()) {
-          community_center.resize(c + 1, glm::vec2(0.f));
+          community_center.resize(c + 1, Vec2(0.f));
           community_weight.resize(c + 1, 0.f);
         }
         community_center[c] += positions[i];
@@ -384,15 +354,15 @@ void MainLogic::Planarize() {
     }
 
     for (int i = 0; i < positions.size(); ++i) {
-      glm::vec2& position = positions[i];
+      Vec2& position = positions[i];
       density->Add(position, -user_repulsion[i]);
 
       // Compute centroid of the neighbors.
-      glm::vec2 centroid(0, 0);
+      Vec2 centroid(0, 0);
       float weight_sum = 0;
 
       for (const auto& weight : weights[i]) {
-        const glm::vec2 neighbor_position = positions[weight.user_id];
+        const Vec2 neighbor_position = positions[weight.user_id];
         const float w = weight.weight * weight.weight;
         centroid += neighbor_position * w;
         weight_sum += w;
@@ -406,12 +376,11 @@ void MainLogic::Planarize() {
       position += attractiveness * (centroid - position);
       position += std::min(1.f, kCommunityCohesion * attractiveness) *
                   (community_center[clusters[i]] - position);
-      position = glm::clamp(position, glm::vec2(0.f), glm::vec2(1.f));
+      position = Clamp(position, Vec2(0.f), Vec2(1.f));
 
-      for (int i = 0; i < 2; ++i) {
-        glm::vec2 new_position = position;
-        new_position +=
-            glm::vec2(exploration(generator), exploration(generator));
+      for (int attempt = 0; attempt < 2; ++attempt) {
+        Vec2 new_position = position;
+        new_position += Vec2(exploration(generator), exploration(generator));
 
         if (new_position.x < 0 || new_position.x > 1 ||  //
             new_position.y < 0 || new_position.y > 1) {
@@ -429,7 +398,7 @@ void MainLogic::Planarize() {
       density->Add(position, user_repulsion[i]);
     }
 
-    fmt::print(
+    std::cout << std::format(
         "Iteration: {:03}/{}, Attractiveness: {:4f} Exploration: {:4f}\n",
         iteration, max_iteration, attractiveness, exploration_length);
   }
@@ -437,23 +406,24 @@ void MainLogic::Planarize() {
 
 void MainLogic::AdjustPositions() {
   const std::vector<float> label_size = LabelSize(weights);
-  // Adjust the positions, so that the label do not overlap against each
+  // Adjust the positions, so that the labels do not overlap against each
   // other.
-  int iteration = 0;
-  std::vector<glm::vec2> speed(positions.size(), glm::vec2(0, 0));
-  std::vector<bool> inert(positions.size(), true);
+  std::vector<Vec2> speed(positions.size(), Vec2(0.f, 0.f));
+  std::vector<uint8_t> inert(positions.size(), 1);
   for (int iteration = 0; iteration < 300; ++iteration) {
     const float sx = 0.50f;
     const float sy = 0.28f;
 
-#pragma omp parallel
-#pragma omp for
+#pragma omp parallel for
     for (int i = 0; i < positions.size(); ++i) {
       const float a_x1 = positions[i].x - label_size[i] * labels[i].size() * sx;
       const float a_x2 = positions[i].x + label_size[i] * labels[i].size() * sx;
       const float a_y1 = positions[i].y - label_size[i] * sy;
       const float a_y2 = positions[i].y + label_size[i] * sy;
-      for (int j = i + 1; j < positions.size(); ++j) {
+      for (int j = 0; j < positions.size(); ++j) {
+        if (i == j) {
+          continue;
+        }
         const float b_x1 =
             positions[j].x - label_size[j] * labels[j].size() * sx;
         const float b_x2 =
@@ -461,7 +431,7 @@ void MainLogic::AdjustPositions() {
         const float b_y1 = positions[j].y - label_size[j] * sy;
         const float b_y2 = positions[j].y + label_size[j] * sy;
 
-        // Skip the one not colliding.
+        // Skip boxes that are not colliding.
         if (a_x1 > b_x2 ||  //
             a_x2 < b_x1 ||  //
             a_y1 > b_y2 ||  //
@@ -470,31 +440,22 @@ void MainLogic::AdjustPositions() {
         }
 
         // Labels are colliding:
-        inert[i] = false;
-        inert[j] = false;
+        inert[i] = 0;
 
-        // Find the direction of the minimal non-null overlap.
-        const float overlap_left = std::max(0.f, b_x2 - a_x1);
-        const float overlap_right = std::max(0.f, a_x2 - b_x1);
-        const float overlap_top = std::max(0.f, b_y2 - a_y1);
-        const float overlap_bottom = std::max(0.f, a_y2 - b_y1);
+        // Minimum Translation Vector (MTV) along X and Y to push `i` away from
+        // `j`.
+        const float dx_right = b_x2 - a_x1;
+        const float dx_left = a_x2 - b_x1;
+        const float ox = std::min(dx_right, dx_left);
 
-        const float overlap_min =
-            std::min(std::max(overlap_left, overlap_right),
-                     std::max(overlap_top, overlap_bottom));
+        const float dy_down = b_y2 - a_y1;
+        const float dy_up = a_y2 - b_y1;
+        const float oy = std::min(dy_down, dy_up);
 
-        if (overlap_left == overlap_min) {
-          speed[i].x += overlap_min * label_size[j];
-          speed[j].x -= overlap_min * label_size[i];
-        } else if (overlap_right == overlap_min) {
-          speed[i].x -= overlap_min * label_size[j];
-          speed[j].x += overlap_min * label_size[i];
-        } else if (overlap_top == overlap_min) {
-          speed[i].y -= overlap_min * label_size[j];
-          speed[j].y += overlap_min * label_size[i];
-        } else if (overlap_bottom == overlap_min) {
-          speed[i].y += overlap_min * label_size[j];
-          speed[j].y -= overlap_min * label_size[i];
+        if (ox < oy) {
+          speed[i].x += (dx_right < dx_left ? ox : -ox) * 0.002f;
+        } else {
+          speed[i].y += (dy_down < dy_up ? oy : -oy) * 0.002f;
         }
       }
     }
@@ -504,10 +465,11 @@ void MainLogic::AdjustPositions() {
     for (int i = 0; i < positions.size(); ++i) {
       inert_count += inert[i];
     }
-    fmt::print("Adjusting positions: Inert: {}/{} = {:.2f}%\n", inert_count,
-               positions.size(), 100.f * inert_count / positions.size());
+    std::cout << std::format("Adjusting positions: Inert: {}/{} = {:.2f}%\n",
+                             inert_count, positions.size(),
+                             100.f * inert_count / positions.size());
 
-    // Job completed if no label are colliding anymore.
+    // Job completed if no labels are colliding anymore.
     if (inert_count == positions.size()) {
       break;
     }
@@ -520,9 +482,9 @@ void MainLogic::AdjustPositions() {
       }
       positions[i] += 0.0005f * speed[i] / std::pow(label_size[i], 2.0f);
       // Stay within the drawing.
-      positions[i] = glm::clamp(positions[i], glm::vec2(0.f), glm::vec2(1.f));
+      positions[i] = Clamp(positions[i], Vec2(0.f), Vec2(1.f));
       speed[i] *= 0.90f;
-      inert[i] = true;
+      inert[i] = 1;
     }
   }
 }

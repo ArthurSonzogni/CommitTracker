@@ -1,12 +1,13 @@
 #include "Colorize.hpp"
 #include "Louvain.hpp"
-#include "fmt/format.h"
 
 #include <algorithm>
+#include <format>
+#include <iostream>
 #include <limits>
 #include <tuple>
-#include <utility>
 #include <unordered_map>
+#include <utility>
 
 namespace {
 
@@ -158,7 +159,6 @@ void Colorize(const std::vector<std::vector<Weight>>& weights,
               std::vector<int>& clusters,
               int target) {
   std::vector<louvain::Node> persons(weights.size());
-  std::mt19937 mt((std::random_device()()));
 
   // Add the edges
   for (int i = 0; i < weights.size(); ++i) {
@@ -166,7 +166,7 @@ void Colorize(const std::vector<std::vector<Weight>>& weights,
       persons[i].degree += weight.weight;
       persons[i].neighbors.push_back({
           weight.user_id,
-          weight.weight,
+          static_cast<int>(weight.weight),
       });
     }
   }
@@ -179,8 +179,8 @@ void Colorize(const std::vector<std::vector<Weight>>& weights,
     graphs.push_back(Louvain(graphs.back()));
 
     const size_t new_size = graphs.back().size();
-    fmt::print("Louvain: Iteration {}, size {} -> {}\n", i, previous_size,
-               new_size);
+    std::cout << std::format("Louvain: Iteration {}, size {} -> {}\n", i,
+                             previous_size, new_size);
 
     // Exit if it converged
     if (previous_size == new_size) {
@@ -189,7 +189,7 @@ void Colorize(const std::vector<std::vector<Weight>>& weights,
   }
 
   // Print the number of clusters:
-  fmt::print("Number of clusters: {}\n", graphs.back().size());
+  std::cout << std::format("Number of clusters: {}\n", graphs.back().size());
 
   // Assign colors to every node, based on the top-level cluster they belong to.
   for (int i = 0; i < weights.size(); ++i) {

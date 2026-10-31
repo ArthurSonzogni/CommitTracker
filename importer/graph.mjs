@@ -1,6 +1,6 @@
 import * as filesystem from "fs";
 import { createHash } from "crypto";
-import { execSync } from "child_process";
+import { execFileSync } from "child_process";
 import JSON5 from "json5";
 import { DescribeCommunities, UsernameOrganizations } from "./graph_communities.mjs";
 const fs = filesystem.promises;
@@ -124,9 +124,44 @@ async function GenerateGraphs(repos, accumulator, generator, organizations) {
 
     const community_count = CommunityCount(activity, task_time[date]);
 
-    // Delete username with low number of reviewers.
+    // Filter out users whose total undirected peer count (unique peers across
+    // both outgoing authored reviews and incoming reviewed commits) is <= 2,
+    // and clean up dangling references to filtered users before writing CSV.
+    const peers = new Map();
+    const addPeer = (a, b) => {
+      if (a === b) return;
+      let set = peers.get(a);
+      if (!set) {
+        set = new Set();
+        peers.set(a, set);
+      }
+      set.add(b);
+    };
     for (const user in output) {
-      if (Object.keys(output[user]).length <= 2) {
+      for (const reviewer in output[user]) {
+        addPeer(user, reviewer);
+        addPeer(reviewer, user);
+      }
+    }
+
+    const kept = new Set();
+    for (const [user, user_peers] of peers) {
+      if (user_peers.size > 2) {
+        kept.add(user);
+      }
+    }
+
+    for (const user of Object.keys(output)) {
+      if (!kept.has(user)) {
+        delete output[user];
+        continue;
+      }
+      for (const reviewer of Object.keys(output[user])) {
+        if (!kept.has(reviewer)) {
+          delete output[user][reviewer];
+        }
+      }
+      if (Object.keys(output[user]).length === 0) {
         delete output[user];
       }
     }
@@ -161,8 +196,9 @@ async function GenerateGraphs(repos, accumulator, generator, organizations) {
     await fs.writeFile(file_name, file_content);
 
     // Generate the graph, as SVG and JSON, by calling the c++ program.
-    execSync(
-      `../graph/build/generate ${file_name} ${svg_file} ${community_count}`,
+    execFileSync(
+      "../graph/build/generate",
+      [file_name, svg_file, String(community_count)],
       { stdio: "ignore" });
 
     // Describe the communities, keeping the colors of the previous version.
@@ -227,12 +263,6 @@ async function ProcessRepository(repository, accumulators) {
   const username = JSON.parse(await fs.readFile(usernames_file, "utf8"));
 
   for (const user of username) {
-    for (const accumulator of accumulators) {
-      for (const date of dates) {
-        accumulator[date].output[user] ||= {};
-      }
-    }
-
     const json = await fs.readFile(`${usernames_dir}/${user}.json`, "utf8");
     const data = JSON.parse(json);
     for (const commit of data) {
@@ -248,8 +278,8 @@ async function ProcessRepository(repository, accumulators) {
             activity.first = commit_date;
           }
           for (const reviewer of commit.peers) {
-            output[user][reviewer] ||= 0;
-            output[user][reviewer]++;
+            const user_output = (output[user] ||= {});
+            user_output[reviewer] = (user_output[reviewer] || 0) + 1;
           }
         }
       }
