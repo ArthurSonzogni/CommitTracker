@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 repo=https://github.com/ArthurSonzogni/CommitTracker.git
 
 # The date of the last update of each data branch, for the site footer.

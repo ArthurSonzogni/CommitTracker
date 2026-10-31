@@ -1088,6 +1088,12 @@ class Replayer {
         }
         // Ignored revision: the new lines keep the authors of the lines they
         // replace, spread proportionally.
+        if (b === d) {
+          for (let i = 0; i < removed.length; i += 2) {
+            push(out, removed[i], removed[i + 1]);
+          }
+          continue;
+        }
         const lines = [];
         for (let i = 0; i < removed.length; i += 2) {
           for (let j = 0; j < removed[i + 1]; j++) lines.push(removed[i]);
@@ -1100,7 +1106,7 @@ class Replayer {
     } catch (error) {
       // The state doesn't match the repository. This happens when git
       // considered a previous version as binary, and showed no hunks. The
-      // lines of the previous version are then attributed to this commit.
+      // lines of the previous version are then attributed to UNKNOWN.
       console.warn("Desync:", hash, error.message);
       this.desync++;
       this.state.removeFile(file);
@@ -1110,7 +1116,7 @@ class Replayer {
         let lines = 0;
         for (const byte of content) if (byte === 10) lines++;
         if (content.length && content.at(-1) !== 10) lines++;
-        this.state.setFile(file, [commit, lines]);
+        this.state.setFile(file, [UNKNOWN, lines]);
         this.applyHunks(file, hunks, commit, ignored, hash, null);
       }
       return;
@@ -1507,7 +1513,7 @@ const WriteOutput = async (state, dir) => {
   const USER_LANG_SERIES_MIN = 100; // Peak lines for per-language developer series.
   const recentYearCutoff = Year(now) - RECENT_YEARS + 1;
   const level = directory => directory.split("/").length -
-    (directory.startsWith("third_party/blink") ? 1 : 0);
+    (IsBlinkDirectory(directory) ? 1 : 0);
   const BreadthOf = map => {
     const counts = [...(map || [])].sort((a, b) => b[1] - a[1]);
     const total = counts.reduce((sum, [, count]) => sum + count, 0);
@@ -2081,9 +2087,11 @@ const KnowledgeFactor = (commitLines, people) => {
 
 // The files grouping the developers and the directories. The page computes
 // them the same way.
+const IsBlinkDirectory = path =>
+  path === "third_party/blink" || path.startsWith("third_party/blink/");
 const UsernameBucket = username =>
   /^[a-z0-9]/i.test(username) ? username[0].toLowerCase() : "_";
-const DirectoryPack = directory => directory.startsWith("third_party/blink")
+const DirectoryPack = directory => IsBlinkDirectory(directory)
   ? "third_party/blink"
   : directory.split("/")[0];
 

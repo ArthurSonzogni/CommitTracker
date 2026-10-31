@@ -12,7 +12,9 @@
 //   repository : The name of the repository on GitHub.
 //   cone       : The path to the directory to clone. If not specified, the
 //                whole repository will be cloned.
-//   parent     : The name of the parent repository. To be used with the cone
+//   parent     : The dirname of the parent repository. To be used with cone.
+//   reviewers  : Whether commit messages contain Gerrit reviewer trailers.
+//   treemap    : Whether treemap metrics are generated for this repository.
 // }
 [
   {
@@ -248,7 +250,7 @@
     owner: "WebKit",
     repository: "WebKit",
     cone: "Source/JavaScriptCore",
-    parent: "WebKit",
+    parent: "webkit",
     reviewers: false,
     treemap: false,
   },

@@ -38,6 +38,13 @@ on:
   schedule:
     - cron: '0 0 * * 1,2,3,4,5'
 
+concurrency:
+  group: importer
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
 jobs:
   importer:
     runs-on: ubuntu-latest
@@ -99,7 +106,6 @@ jobs:
 
       - name: Pull dependencies
         run: |
-          npm install
           npm run pull-data
           cd importer && npm install
 
@@ -113,21 +119,30 @@ jobs:
 
       - name: Run Treemap Module
         if: steps.config.outputs.run_treemap == 'true'
-        uses: ./.github/actions/treemap
+        uses: ./.github/actions/run-and-push
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          script: treemap
+          publish_dir: ./public/treemap/
+          publish_branch: treemap
 
       - name: Run Fuzz Module
         if: steps.config.outputs.run_fuzz == 'true'
-        uses: ./.github/actions/fuzz
+        uses: ./.github/actions/run-and-push
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          script: fuzztest
+          publish_dir: ./public/fuzz-test/
+          publish_branch: fuzz-test
 
       - name: Run CVE Module
         if: steps.config.outputs.run_cve == 'true'
-        uses: ./.github/actions/cve
+        uses: ./.github/actions/run-and-push
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          script: cve
+          publish_dir: ./public/cve/
+          publish_branch: cve
 
       - name: Run Graph Module
         if: steps.config.outputs.run_graph == 'true'
@@ -138,9 +153,12 @@ jobs:
 
       - name: Run Commit Rates Module
         if: steps.config.outputs.run_commit_rates == 'true'
-        uses: ./.github/actions/commit_rates
+        uses: ./.github/actions/run-and-push
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          script: commit_rates
+          publish_dir: ./public/commit_rates/
+          publish_branch: commit_rates
 
       - name: Run Accretion Module
         if: steps.config.outputs.run_accretion == 'true'

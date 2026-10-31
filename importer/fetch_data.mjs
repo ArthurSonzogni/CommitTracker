@@ -14,11 +14,6 @@ const ProcessCommit = (data, commit) => {
     return "skipped";
   }
 
-  const email = commit.author.email;
-  if (!IsEmailValid(email)) {
-    return "invalid email";
-  }
-
   // Commit from the WPT repository in Gecko are authored by the original
   // author, but committed by the wptsync bot.
   //
@@ -28,7 +23,10 @@ const ProcessCommit = (data, commit) => {
     return "wptsync";
   }
 
-  const author = mailMap(email);
+  const author = mailMap(commit.author.email);
+  if (author === 'deleted' || !IsEmailValid(author)) {
+    return "invalid email";
+  }
   const date = commit.committedDate;
   // Ignore self-review:
   //
@@ -150,7 +148,7 @@ const ProcessRepository = async (repository) => {
           map.set(commit.date, commit);
         }
       }
-      data[email] = Array.from(map.values()).sort((a,b) => a.date > b.date);
+      data[email] = Array.from(map.values()).sort((a, b) => a.date.localeCompare(b.date));
 
       await fs.writeFile(email_file, JSON.stringify(data[email], null, 1));
     }
@@ -168,6 +166,7 @@ const ProcessRepository = async (repository) => {
     if (index % 10000 == 0) {
       statusLine.logString(`Repo: ${repository.dirname} ${index}`);
     }
+    let succeeded = false;
     for(let retry = 0; retry < 5; ++retry) {
       try {
         const startTime = Date.now();
@@ -231,7 +230,6 @@ const ProcessRepository = async (repository) => {
         const history = response.repository.defaultBranchRef.target.history;
 
         for (const edge of history.edges) {
-          await new Promise(r => setTimeout(r, 3));
           index++;
           let commit = edge.node
           const result = ProcessCommit(data, commit);
@@ -245,6 +243,7 @@ const ProcessRepository = async (repository) => {
         hasNextPage = history.pageInfo.hasNextPage;
         cursor = history.pageInfo.endCursor;
 
+        succeeded = true;
         break;
       } catch (error) {
         console.log(error);
@@ -258,17 +257,16 @@ const ProcessRepository = async (repository) => {
         retry_total++;
       }
 
-      if (repository.name == 'SwiftShader') {
-        statusLine.error(`SwiftShader is known to have weird issues. Skipping.`);
-        hasNextPage = false;
-        break;
-      }
-
       if (retry_total > 100) {
         statusLine.error(`Too many retries. Skipping.`);
         hasNextPage = false;
         break;
       }
+    }
+
+    if (!succeeded && repository.name == 'SwiftShader') {
+      statusLine.error(`SwiftShader is known to have weird issues. Skipping.`);
+      hasNextPage = false;
     }
   }
 

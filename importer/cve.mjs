@@ -20,7 +20,6 @@ const decodeHtmlEntities = (text) => text
   .replaceAll('&amp;', '&');
 
 const loadDatabase = () => {
-  fs.mkdirSync('../data/cve', { recursive: true });
   try {
     const data = JSON.parse(fs.readFileSync('../public/cve/data.json', 'utf8'))
     const values = Object.values(data);
@@ -274,7 +273,7 @@ const transformCve = (cve) => {
   return {
     id: cve.cveMetadata.cveId.replace('CVE-', ''),
     cweId,
-    problem: cve.containers.cna.problemTypes[0].descriptions[0].description,
+    problem,
     bug,
     description,
     title: "n/a",

@@ -1,7 +1,8 @@
 import JSON5 from "json5";
 import YAML from 'yaml'
-import { spawn } from "child_process"
+import { execFileSync, spawn } from "child_process"
 import fs from "fs/promises";
+import os from "os";
 
 const CONFIG = {
   full: {
@@ -11,7 +12,7 @@ const CONFIG = {
     power: 0.3, // More iterations near the end.
   },
   // The number of metric scripts running at once.
-  parallel_scripts: 1,
+  parallel_scripts: Math.min(8, os.availableParallelism()),
 }
 
 async function pathExists(path) {
@@ -55,38 +56,30 @@ function update_metric(metrics_data, metric_name, file_id, date_id, value) {
     return; // Value hasn't changed, no need to store.
   }
 
-  history.push([date_id, value]);
-  metrics_data[metric_name][file_id] = history;
-
   // Check we don't have multiple entries for the same date.
-  let count = 0;
-  history.forEach(entry => { if (entry[0] === date_id) count++; });
-  if (count !== 1) {
-    console.warn(`Warning: metric ${metric_name} for file ${file_id} has ${count} entries for date ${date_id}`);
+  if (history.at(-1)?.[0] === date_id) {
+    console.warn(`Warning: metric ${metric_name} for file ${file_id} already has an entry for date ${date_id}`);
     console.warn(history);
     throw new Error("Duplicate entries for the same date");
   }
+
+  history.push([date_id, value]);
+  metrics_data[metric_name][file_id] = history;
 }
 
 
 const clone = async (repo, incremental) => {
   // If the repository is already cloned, we can skip this step.
-  try {
-    await fs.access(repo.dirname);
+  if (await pathExists(repo.dirname)) {
     return;
-  } catch (e) { }
+  }
 
-  await fs.writeFile("script.sh", `
-    git clone \
-    --progress \
-    --verbose \
-    ${incremental ? "--depth=1" : ""} \
-    https://github.com/${repo.owner}/${repo.repository} ${repo.dirname}
-    `)
-  const shell = spawn("sh", ["./script.sh"]);
-  shell.stdout.on("data", chunk => { console.log(chunk.toString()); });
-  shell.stderr.on("data", chunk => { console.log(chunk.toString()); });
-  await new Promise(r => shell.on("close", r));
+  const args = ["clone", "--progress", "--verbose"];
+  if (incremental) {
+    args.push("--depth=1");
+  }
+  args.push(`https://github.com/${repo.owner}/${repo.repository}`, repo.dirname);
+  execFileSync("git", args, { stdio: "inherit" });
 }
 
 // Entry layout:
@@ -160,10 +153,10 @@ function ApplyEntry(output, date_id, root, entry, metrics_data, id_counter) {
     // 2. <file>
     let filename;
     let occurrences;
-    const split = line.split(':');
-    if (split.length >= 2) {
-      filename = split[0];
-      occurrences = parseInt(split[1]) || 0;
+    const colon = line.lastIndexOf(':');
+    if (colon !== -1 && /^\d+$/.test(line.slice(colon + 1))) {
+      filename = line.slice(0, colon);
+      occurrences = parseInt(line.slice(colon + 1), 10) || 0;
     } else {
       filename = line;
       occurrences = 1;
@@ -226,10 +219,12 @@ async function Checkout(repo, date_string) {
   await timed(`Checking out at date ${date_string}`, async () => {
     const shell = spawn("sh", ["-c", `
       cd ./${repo.dirname}
-      COMMIT=$(git --no-pager log origin/main --until="${date_string}" --max-count=1 --pretty=format:"%H")
+      REF=$(git symbolic-ref -q --short refs/remotes/origin/HEAD || echo origin/main)
+      git rev-parse --verify -q "$REF" >/dev/null || REF=HEAD
+      COMMIT=$(git --no-pager log "$REF" --until="${date_string}" --max-count=1 --pretty=format:"%H")
       if [ -n "$COMMIT" ]; then
-        if git checkout --force $COMMIT > /dev/null 2>&1; then
-          echo $COMMIT
+        if git checkout --force "$COMMIT" > /dev/null 2>&1; then
+          echo "$COMMIT"
         fi
       fi
     `]);
@@ -405,6 +400,7 @@ const repositories = await parseFile(JSON5, repositories_file);
 
 // Gather all metrics to build a global entries.json for the frontend
 const all_metrics_map = new Map();
+const repo_entries = new Map();
 
 for (const repository of repositories) {
   if (repository.treemap === false) continue;
@@ -416,15 +412,28 @@ for (const repository of repositories) {
   }
 
   const entries = YAML.parse(await fs.readFile(entries_filename, "utf8"));
+  repo_entries.set(repository.dirname, entries);
+
   for (const metric of entries.metrics || []) {
-    if (!all_metrics_map.has(metric.name)) {
-      all_metrics_map.set(metric.name, {
-        ...metric,
-        aliases: metric.aliases ? [...metric.aliases] : [],
-      });
-    } else if (metric.aliases) {
-      const existing = all_metrics_map.get(metric.name);
-      existing.aliases = Array.from(new Set([...(existing.aliases || []), ...metric.aliases]));
+    if (!all_metrics_map.has(metric.file)) {
+      const entry = {
+        name: metric.name,
+        description: metric.description,
+        file: metric.file,
+      };
+      if (metric.tags) {
+        entry.tags = [...metric.tags];
+      }
+      entry.aliases = metric.aliases ? [...metric.aliases] : [];
+      all_metrics_map.set(metric.file, entry);
+    } else {
+      const existing = all_metrics_map.get(metric.file);
+      if (metric.tags && !existing.tags) {
+        existing.tags = [...metric.tags];
+      }
+      if (metric.aliases) {
+        existing.aliases = Array.from(new Set([...(existing.aliases || []), ...metric.aliases]));
+      }
     }
   }
 }
@@ -438,15 +447,9 @@ await fs.writeFile("../public/treemap/entries.json", JSON.stringify(global_entri
 const target_repo = process.argv[2];
 
 for (const repository of repositories) {
-  if (repository.treemap === false) continue;
+  const entries = repo_entries.get(repository.dirname);
+  if (!entries) continue;
   if (target_repo && repository.dirname !== target_repo) continue;
-
-  const entries_filename = `../treemap/${repository.dirname}.yaml`;
-  if (!(await pathExists(entries_filename))) {
-    continue;
-  }
-
-  const entries = YAML.parse(await fs.readFile(entries_filename, "utf8"));
 
   await timed(`Processing ${repository.owner}/${repository.repository}`, async () => {
     await processRepository(repository, entries);

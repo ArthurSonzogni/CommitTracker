@@ -2,21 +2,11 @@ import fs from "fs/promises";
 import os from "os";
 import path from "path";
 import JSON5 from "json5";
+import { readGithubToken } from "./octokit.mjs";
 
 const commit_stats = "third_party/blink/tools/commit_stats";
 const CACHE_DIR = path.join(os.tmpdir(), "commit-tracker-commit-stats");
 const CACHE_TTL_MS = 3600 * 1000;
-
-const readToken = async () => {
-  if (process.env.GITHUB_TOKEN || process.env.TOKEN) {
-    return (process.env.GITHUB_TOKEN || process.env.TOKEN).trim();
-  }
-  try {
-    return (await fs.readFile(".token", "utf8")).trim();
-  } catch {
-    return "";
-  }
-};
 
 // Both sources throttle the CI (429 from GitHub, 503 from Gitiles): try them
 // in turn, a few times. GitHub allows more to authenticated requests.
@@ -29,7 +19,7 @@ const fetchCommitStats = async file => {
     }
   } catch {}
 
-  const token = await readToken();
+  const token = await readGithubToken();
   const sources = [
     {
       url: `https://raw.githubusercontent.com/chromium/chromium/main/${commit_stats}/${file}`,

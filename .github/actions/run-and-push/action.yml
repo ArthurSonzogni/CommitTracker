@@ -1,0 +1,33 @@
+name: 'Run Importer Script and Push'
+description: 'Runs an importer npm script and pushes its output directory to a data branch'
+inputs:
+  github_token:
+    description: 'GitHub Token'
+    required: true
+  script:
+    description: 'npm script in importer/package.json to execute'
+    required: true
+  publish_dir:
+    description: 'Directory to publish'
+    required: true
+  publish_branch:
+    description: 'Target branch to force-push as orphan'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Run ${{ inputs.script }}
+      shell: bash
+      run: |
+        cd importer
+        npm run "${{ inputs.script }}"
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+
+    - name: Push ${{ inputs.publish_branch }} data
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ inputs.github_token }}
+        publish_dir: ${{ inputs.publish_dir }}
+        publish_branch: ${{ inputs.publish_branch }}
+        force_orphan: true

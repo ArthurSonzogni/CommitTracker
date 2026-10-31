@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Common utility functions for counting unsafe buffer usage lines.
+Common utility functions for counting C++ code lines and unsafe buffer usage.
 """
 
-import os
-import sys
-import subprocess
 import re
+import subprocess
+import sys
 
 # File extensions to consider for scanning.
 SOURCE_EXTENSIONS = {'.c', '.cc', '.cpp', '.h', '.hh', '.hpp'}
+
+_BLOCK_COMMENT_RE = re.compile(r'/\*.*?\*/', re.DOTALL)
+_ALLOW_UNSAFE_PRAGMA_RE = re.compile(r'#\s*pragma\s+allow_unsafe_buffers')
+
 
 def parse_config(config_path):
     """
@@ -28,10 +31,13 @@ def parse_config(config_path):
                     included_prefixes.append(line[1:])
                 elif line.startswith('-'):
                     excluded_prefixes.append(line[1:])
-    except IOError as e:
+    except OSError as e:
         print(f"Warning: Could not read config file {config_path}: {e}", file=sys.stderr)
-    return sorted(included_prefixes, key=len, reverse=True), \
-           sorted(excluded_prefixes, key=len, reverse=True)
+    return (
+        sorted(included_prefixes, key=len, reverse=True),
+        sorted(excluded_prefixes, key=len, reverse=True),
+    )
+
 
 def get_best_match(path, prefixes):
     """
@@ -41,6 +47,7 @@ def get_best_match(path, prefixes):
         if path.startswith(prefix):
             return prefix
     return None
+
 
 def is_path_covered(path, included_prefixes, excluded_prefixes):
     """
@@ -52,9 +59,19 @@ def is_path_covered(path, included_prefixes, excluded_prefixes):
     include_len = len(best_include) if best_include else 0
     exclude_len = len(best_exclude) if best_exclude else 0
 
-    if exclude_len > include_len:
-        return False
-    return True
+    return exclude_len <= include_len
+
+
+def iter_code_lines(content):
+    """
+    Yields non-blank, non-comment, non-preprocessor lines from C++ source text.
+    """
+    cleaned = _BLOCK_COMMENT_RE.sub('', content)
+    for line in cleaned.splitlines():
+        line = line.split('//', 1)[0].strip()
+        if line and not line.startswith('#'):
+            yield line
+
 
 def count_code_lines(file_path=None, content=None):
     """
@@ -66,41 +83,32 @@ def count_code_lines(file_path=None, content=None):
         try:
             with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
                 content = f.read()
-        except IOError:
+        except OSError:
             return 0
 
-    # Remove multi-line comments /* ... */
-    content = re.sub(r'/\*.*?\*/', '', content, flags=re.DOTALL)
+    return sum(1 for _ in iter_code_lines(content))
 
-    count = 0
-    for line in content.splitlines():
-        # Remove single-line comments that follow code
-        line = line.split('//', 1)[0]
-        line = line.strip()
-
-        # If anything is left and it's not a preprocessor macro, it's code.
-        if line and not line.startswith('#'):
-            count += 1
-    return count
 
 def get_git_files():
     """
-    Retrieves a list of all C++ source files tracked by git.
+    Retrieves a list of all tracked files in the current git checkout.
     """
     try:
-        result = subprocess.run(['git', 'ls-files'],
-                                capture_output=True,
-                                text=True,
-                                check=True,
-                                encoding='utf-8')
+        result = subprocess.run(
+            ['git', 'ls-files'],
+            capture_output=True,
+            text=True,
+            check=True,
+            encoding='utf-8',
+        )
         return result.stdout.splitlines()
     except (subprocess.CalledProcessError, FileNotFoundError) as e:
-        print("Error: Failed to run 'git ls-files'.", file=sys.stderr)
+        print(f"Error: Failed to run 'git ls-files': {e}", file=sys.stderr)
         sys.exit(1)
+
 
 def has_allow_unsafe_buffers_pragma(content):
     """
-    Checks if the content contains the allow_unsafe_buffers pragma.
-    Supports optional spaces, e.g., '#   pragma allow_unsafe_buffers'
+    Checks if the content contains '#pragma allow_unsafe_buffers'.
     """
-    return bool(re.search(r'#\s*pragma\s+allow_unsafe_buffers', content))
+    return bool(_ALLOW_UNSAFE_PRAGMA_RE.search(content))

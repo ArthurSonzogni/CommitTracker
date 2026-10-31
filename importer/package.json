@@ -6,13 +6,11 @@
   "main": "index.mjs",
   "scripts": {
     "fetch_data": "node fetch_data.mjs",
-    "derive_data": "node project_to_usernames.mjs && node project_to_organizations.mjs && node summary.mjs && node commit_per_hour.mjs && node badges.mjs && node cleanup_organizations.mjs",
+    "derive_data": "node derive_data.mjs && node badges.mjs",
     "treemap": "node treemap.mjs",
     "graph": "node graph.mjs",
     "fixmailmap": "node fixmailmap.mjs",
-    "commit_per_hour": "node commit_per_hour.mjs",
     "commit_rates": "node commit_rates.mjs",
-    "cleanup_organizations": "node cleanup_organizations.mjs",
     "fuzztest": "node fuzz-test.mjs",
     "cve": "node cve.mjs",
     "accretion": "node --max-old-space-size=8192 accretion.mjs chromium"

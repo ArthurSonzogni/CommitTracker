@@ -5,25 +5,24 @@ import {promises as fs} from 'fs';
 
 const MyOctokit = Octokit.plugin(throttling);
 
-const AuthToken = async () => {
+export const readGithubToken = async () => {
   try {
-    const token = await fs.readFile('.token', 'utf8');
-    console.log("Using token from .token file");
-    return token;
-  } catch (e) {}
+    const token = (await fs.readFile('.token', 'utf8')).trim();
+    if (token) {
+      return token;
+    }
+  } catch {}
 
   if (process.env.GITHUB_TOKEN) {
-    return process.env.GITHUB_TOKEN;
+    return process.env.GITHUB_TOKEN.trim();
   }
 
   if (process.env.TOKEN) {
-    return process.env.TOKEN;
+    return process.env.TOKEN.trim();
   }
 
-  throw new Error("No token found");
+  return '';
 };
-
-AuthToken();
 
 const showRateLimitProgress = async (retryAfter) => {
   let current = retryAfter;
@@ -33,10 +32,12 @@ const showRateLimitProgress = async (retryAfter) => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
     current -= 1;
   }
-}
+};
+
+const token = await readGithubToken();
 
 const octokit = new MyOctokit({
-  auth: await AuthToken(),
+  auth: token || undefined,
   throttle: {
     onRateLimit: (retryAfter, options, octokit, retryCount) => {
       statusLine.error(

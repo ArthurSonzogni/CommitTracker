@@ -1,18 +1,6 @@
 #!/bin/bash
-cd "$(dirname "$0")"
+set -euo pipefail
+cd "$(dirname "$0")/public/data"
 
-work_dir=`mktemp -d -p "$DIR"`;
-echo ${work_dir}
-
-cd public/data
-mv * ${work_dir};
-mv ${work_dir}/repositories.json .
-for dir in ${work_dir}/*/
-do
-  repository=$(basename $(dirname ${dir}/xxx))
-  mkdir ${repository}
-  cd ${repository}
-  mv ${dir}/emails .
-  mv ${dir}/emails.json .
-  cd ..
-done
+find . -mindepth 2 -maxdepth 2 ! -name 'emails' ! -name 'emails.json' -exec rm -rf {} +
+find . -mindepth 1 -maxdepth 1 \( -type d -empty -o -type f ! -name 'repositories.json' ! -name '.nojekyll' \) -delete

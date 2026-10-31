@@ -100,8 +100,10 @@ const YEAR = 365.25 * DAY;
 {
   // A map collecting how many repositories each user has contributed to.
   const user_repo_count = new Map();
-  for (const repository of repositories_with_commit_count) {
-    for (const username of repository_usernames.get(repository)) {
+  for (const repository of repositories) {
+    if (!repositories_with_commit_count.includes(repository.dirname)) continue;
+    if (repository.cone) continue;
+    for (const username of repository_usernames.get(repository.dirname)) {
       user_repo_count.set(username, (user_repo_count.get(username) ?? 0) + 1);
     }
   }
@@ -734,6 +736,8 @@ for (const repository of repositories_with_commit_count) {
     repository === "chromium"
       ? [1, 25, 100, 500, 1000, 2000]
       : [1, 25, 100];
+  const data = await fs.readFile(`../public/data/${repository}/usernames_summary_commit_forever_author.json`, "utf-8");
+  const data_json = JSON.parse(data);
   for(let i = 0; i < badge_levels.length; i++) {
     statusLine.logString(`Processing ${repository} commit level ${i}...`);
     badges.push({
@@ -744,8 +748,6 @@ for (const repository of repositories_with_commit_count) {
       details: `I did $0 commits.`,
       image: `/img/badges/${repository.replace("-", "_")}_l${i+1}.webp`,
     });
-    const data = await fs.readFile(`../public/data/${repository}/usernames_summary_commit_forever_author.json`, "utf-8");
-    const data_json = JSON.parse(data);
     for(const username in data_json) {
       const count = parseInt(data_json[username].forever)
       if (count >= badge_levels[i]) {
@@ -760,14 +762,20 @@ await fs.writeFile("../public/badges.json", JSON.stringify(badges, null, 2));
 
 // Print the badges to the public directory.
 const badges_dir = "../public/badges";
+await fs.rm(badges_dir, { recursive: true, force: true });
 await fs.mkdir(badges_dir, { recursive: true });
 
-// Because there are 25k username, we need to group them into larger chunks to
-// avoid hitting the file descriptor limit.
-// We are grouping together usernames by the first 2 characters of the username.
+// Normalize shard filenames: lowercase alphanumeric, else '_'.
+const badgeShard = name => {
+  const c = name[0]?.toLowerCase() || "_";
+  return /^[a-z0-9]$/.test(c) ? c : "_";
+};
+
+// Because there are 25k usernames, we group them into chunks by normalized
+// first character to avoid hitting file descriptor or filesystem limits.
 const user_badges_chunks = new Map();
 for (const username of usernames) {
-  const chunk = username.substring(0, 1);
+  const chunk = badgeShard(username);
   if (!user_badges_chunks.has(chunk)) {
     user_badges_chunks.set(chunk, []);
   }
