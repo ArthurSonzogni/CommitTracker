@@ -66,6 +66,45 @@ metrics:
   file: raw_ref
   tags: ["MiraclePtr"]
 
+- name: RAW_PTR_EXCLUSION
+  description: The number of RAW_PTR_EXCLUSION
+  script: >-
+    git grep -c 'RAW_PTR_EXCLUSION ' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c' ':!tools/*'
+  file: raw_ptr_exclusion
+  tags: ["MiraclePtr"]
+
+- name: DanglingUntriaged
+  description: The number of DanglingUntriaged
+  script: >-
+    git grep -c 'DanglingUntriaged' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c' ':!tools/*'
+  file: dangling_untriaged
+  tags: ["MiraclePtr"]
+
+# Checks -----------------------------------------------------------------------
+
+- name: CHECK
+  description: The number of CHECK and its variants (CHECK_EQ, CHECK_NE, etc.)
+  script: >-
+    git grep -c -E '\bCHECK(_[A-Z0-9_]+)?\(' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c' ':!tools/*'
+  file: check
+  tags: ["Checks"]
+
+- name: DCHECK
+  description: The number of DCHECK and its variants (DCHECK_EQ, DCHECK_NE, etc.)
+  script: >-
+    git grep -c -E '\bDCHECK(_[A-Z0-9_]+)?\(' -- '*.h' '*.hpp' '*.cc' '*.cpp' '*.c' ':!tools/*'
+  file: dcheck
+  tags: ["Checks"]
+
+# Languages --------------------------------------------------------------------
+
+- name: "Rust file"
+  description: The number of Rust files.
+  script: >-
+    git ls-files -- '*.rs'
+  file: rust_file
+  tags: ["Languages"]
+
 # Tests ----------------------------------------------------------------------
 
 - name: "Tests"
