@@ -165,7 +165,6 @@ const MENU: Array<NavLeaf | NavGroup> = [
   pageItem("/individuals"),
   pageItem("/communities"),
   pageItem("/treemap"),
-  pageItem("/security"),
   {
     label: "Repositories",
     icon: "chart-bar",
@@ -183,7 +182,6 @@ const MENU: Array<NavLeaf | NavGroup> = [
     items: [
       pageItem("/organizations/commits", "Commits"),
       pageItem("/organizations/emails", "Emails"),
-      pageItem("/components", "Components & teams"),
     ],
   },
   {
@@ -202,6 +200,7 @@ const MENU: Array<NavLeaf | NavGroup> = [
     label: "More",
     icon: "dots-horizontal",
     items: [
+      pageItem("/security"),
       pageItem("/usernames"),
       pageItem("/leaderboard"),
       pageItem("/badges/list"),

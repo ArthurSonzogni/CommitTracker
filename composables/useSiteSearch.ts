@@ -78,6 +78,7 @@ const matching = (entries: IndexedSearchItem[], q: string, limit: number): Searc
   return hits.slice(0, limit).map(h => h.item);
 };
 
+const ENABLE_COMPONENTS_SEARCH = false;
 let usernamesRequest: Promise<string[]> | null = null;
 
 export const useSiteSearch = (options: { onSelect?: () => void; emptyResults?: number } = {}) => {
@@ -109,7 +110,7 @@ export const useSiteSearch = (options: { onSelect?: () => void; emptyResults?: n
       });
     }
 
-    if (q.length >= 2) {
+    if (ENABLE_COMPONENTS_SEARCH && q.length >= 2) {
       const qNormComp = q.replace(/\//g, ">");
       if (indexedComponents.value.length > 0) {
         out.push(...matching(indexedComponents.value, qNormComp, 5));
@@ -150,7 +151,7 @@ export const useSiteSearch = (options: { onSelect?: () => void; emptyResults?: n
   });
 
   const loadComponentsAndTeams = async () => {
-    if (indexedComponents.value.length > 0) return;
+    if (!ENABLE_COMPONENTS_SEARCH || indexedComponents.value.length > 0) return;
     try {
       const ds = await fetchComponentsDataset();
       indexedComponents.value = ds.components.map((c) => {

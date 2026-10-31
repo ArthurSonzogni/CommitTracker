@@ -17,7 +17,7 @@
             aria-expanded="true"
             aria-controls="palette-results"
             :aria-activedescendant="results.length ? `palette-results-${active}` : undefined"
-            placeholder="Search pages, components, teams, developers, CVE ids…"
+            placeholder="Search pages, repositories, developers, CVE ids…"
             autocomplete="off"
             spellcheck="false"
             @keydown="onPaletteKeydown"

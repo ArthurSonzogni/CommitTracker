@@ -510,34 +510,6 @@ const tests = [
     `,
   },
   {
-    name: 'components: directory, component dossier, team dossier, search, and icons',
-    url: 'components',
-    run: `
-      await __t.until(() => document.querySelectorAll('.spot-card').length >= 4 && document.querySelectorAll('.ui-table tbody tr').length >= 10, 25000);
-      const checkIcons = () => [...document.querySelectorAll('.mdi')].filter(el => {
-        const c = getComputedStyle(el, '::before').content;
-        return !c || c === 'none' || c === 'normal';
-      });
-      const missing1 = checkIcons();
-      document.querySelector('.spot-card').click();
-      const onComp = await __t.until(() => location.pathname.startsWith('/components/') && document.querySelectorAll('svg rect').length >= 5, 15000);
-      const missing2 = checkIcons();
-      const teamLink = [...document.querySelectorAll('a')].find(a => a.getAttribute('href')?.startsWith('/teams/'));
-      teamLink.click();
-      const onTeam = await __t.until(() => location.pathname.startsWith('/teams/') && document.querySelectorAll('.ui-table tbody tr').length >= 1, 15000);
-      const missing3 = checkIcons();
-      document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true }));
-      const input = await __t.until(() => document.querySelector('.palette input'));
-      input.value = 'WebAudio';
-      input.dispatchEvent(new Event('input', { bubbles: true }));
-      const foundComp = await __t.until(() => [...document.querySelectorAll('.palette .search-item')].find(e => e.textContent.includes('Blink>WebAudio')), 10000);
-      return {
-        ok: !!(onComp && onTeam && foundComp && missing1.length === 0 && missing2.length === 0 && missing3.length === 0),
-        detail: 'comp=' + !!onComp + ' team=' + !!onTeam + ' search=' + !!foundComp + ' missingIcons=' + (missing1.length + missing2.length + missing3.length),
-      };
-    `,
-  },
-  {
     name: 'treemap: click tile zooms in',
     url: 'treemap?field_color=todo&field_size=line',
     run: `

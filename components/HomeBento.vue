@@ -151,18 +151,6 @@ const latestYear = ref("");
 
 const moreLinks = [
   {
-    to: "/components",
-    label: "Components & teams",
-    icon: "sitemap",
-    description: "DIR_METADATA component and team dossiers across code, fuzzers, and CVEs.",
-  },
-  {
-    to: "/security",
-    label: "Security hardening",
-    icon: "shield-check",
-    description: "Spanification, MiraclePtr, dangling pointers, Rust, and CHECK hardening across 6 repos.",
-  },
-  {
     to: "/accretion",
     label: "Code accretion",
     icon: "layers",
