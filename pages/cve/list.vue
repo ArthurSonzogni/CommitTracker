@@ -1,5 +1,6 @@
 <template>
   <div>
+    <CveSubnav />
     <UiLoading v-if="loading" v-model="loading" :is-full-page="true"></UiLoading>
 
     <section class="section pb-2">

@@ -1,5 +1,6 @@
 <template>
   <div class="page-container">
+    <CveSubnav />
     <section class="section pb-2">
       <div class="container is-fluid">
         <h1 class="title">CVE money tree</h1>

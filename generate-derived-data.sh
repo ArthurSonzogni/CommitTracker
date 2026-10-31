@@ -9,3 +9,4 @@ cd ..
 node scripts/compact-treemap.mjs public/treemap
 node scripts/derive-developers.mjs public/data
 node scripts/derive-highlights.mjs public/data
+node scripts/derive-initiatives.mjs public

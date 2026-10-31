@@ -1,5 +1,6 @@
 <template>
   <div>
+    <CveSubnav />
     <section class="section">
       <h1 class="title">CVE pivot table</h1>
       <div class="mycolumns">

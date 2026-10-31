@@ -391,6 +391,55 @@ const tests = [
     `,
   },
   {
+    name: 'initiatives: scorecard blockers, trajectory chart, CWE ROI, and icons',
+    url: 'initiatives',
+    run: `
+      await __t.until(() => document.querySelectorAll('.scorecard-table tbody tr').length >= 10 && document.querySelectorAll('.roi-svg-wrap svg rect').length > 10, 25000);
+      const allRows = document.querySelectorAll('.scorecard-table tbody tr').length;
+      const beforeRects = document.querySelectorAll('.roi-svg-wrap svg rect').length;
+      // Collapse first default-expanded row or expand an unexpanded one
+      const unexpanded = [...document.querySelectorAll('.scorecard-table .expand-btn')].find(b => b.getAttribute('aria-expanded') === 'false');
+      unexpanded.click();
+      const expanded = await __t.until(() => document.querySelectorAll('.blocker-detail-row').length >= 2, 5000);
+      __t.byText('.segmented-option', 'Memory Safety').click();
+      const filtered = await __t.until(() => location.search.includes('category=') && document.querySelectorAll('.scorecard-table tbody tr').length < allRows, 5000);
+      __t.byText('.segmented-option', 'Quarterly').click();
+      const quarterly = await __t.until(() => location.search.includes('roiGranularity=quarterly') && document.querySelectorAll('.roi-svg-wrap svg rect').length > beforeRects, 5000);
+      const missing = [...document.querySelectorAll('.mdi')].filter(el => {
+        const c = getComputedStyle(el, '::before').content;
+        return !c || c === 'none' || c === 'normal';
+      });
+      return {
+        ok: !!(expanded && filtered && quarterly && missing.length === 0),
+        detail: 'rows=' + allRows + ' roiRects=' + beforeRects + '->' + document.querySelectorAll('.roi-svg-wrap svg rect').length + ' missingIcons=' + missing.length,
+      };
+    `,
+  },
+  {
+    name: 'cve lifespan: dwell histogram, pipeline breakdown, SLA table, and icons',
+    url: 'cve/lifespan',
+    run: `
+      await __t.until(() => document.querySelectorAll('.svg-box svg rect').length > 10 && document.querySelectorAll('.pipe-svg-box svg rect').length > 5 && document.querySelectorAll('.ui-table tbody tr').length >= 10, 25000);
+      const beforePipe = document.querySelectorAll('.pipe-svg-box svg rect').length;
+      __t.byText('.segmented-option', 'Days').click();
+      const daysOk = await __t.until(() => location.search.includes('dwellUnit=days'), 5000);
+      __t.byText('.segmented-option', 'Top Components').click();
+      const compOk = await __t.until(() => location.search.includes('pipelineGroup=component') && document.querySelectorAll('.pipe-svg-box svg rect').length > beforePipe, 5000);
+      const filterInput = document.querySelector('.comp-filter-box input');
+      filterInput.value = 'Network';
+      filterInput.dispatchEvent(new Event('input', { bubbles: true }));
+      const tableFiltered = await __t.until(() => document.querySelectorAll('.ui-table tbody tr').length > 0 && document.querySelectorAll('.ui-table tbody tr').length < 15, 5000);
+      const missing = [...document.querySelectorAll('.mdi')].filter(el => {
+        const c = getComputedStyle(el, '::before').content;
+        return !c || c === 'none' || c === 'normal';
+      });
+      return {
+        ok: !!(daysOk && compOk && tableFiltered && missing.length === 0),
+        detail: 'pipeRects=' + beforePipe + '->' + document.querySelectorAll('.pipe-svg-box svg rect').length + ' missingIcons=' + missing.length,
+      };
+    `,
+  },
+  {
     name: 'treemap: click tile zooms in',
     url: 'treemap?field_color=todo&field_size=line',
     run: `

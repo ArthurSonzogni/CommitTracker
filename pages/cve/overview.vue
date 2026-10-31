@@ -1,5 +1,6 @@
 <template>
   <div>
+    <CveSubnav />
     <section class="section container">
       <h1 class="title">CVE overview</h1>
       <p>

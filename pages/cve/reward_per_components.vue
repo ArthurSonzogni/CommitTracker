@@ -1,5 +1,6 @@
 <template>
   <div>
+    <CveSubnav />
     <section class="section">
       <div class="container">
         <h1 class="title">CVE reward per component</h1>

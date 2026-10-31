@@ -151,6 +151,12 @@ const latestYear = ref("");
 
 const moreLinks = [
   {
+    to: "/initiatives",
+    label: "Strategic initiatives",
+    icon: "bullseye-arrow",
+    description: "Migration burn-down velocity, ETAs, blocker directories, and CWE ROI.",
+  },
+  {
     to: "/accretion",
     label: "Code accretion",
     icon: "layers",

@@ -1,8 +1,15 @@
 <template>
   <div class="treemap-presets">
-    <p class="intro">
-      Pick a view, or choose your own metrics above.
-    </p>
+    <div class="intro-row">
+      <p class="intro">
+        Pick a view, or choose your own metrics above.
+      </p>
+      <NuxtLink v-if="repository === 'chromium'" to="/initiatives" class="initiatives-cta">
+        <UiIcon name="bullseye-arrow" size="small" />
+        <span>Strategic initiatives scorecard &amp; ETAs</span>
+        <UiIcon name="arrow-right" size="small" />
+      </NuxtLink>
+    </div>
 
     <div class="bento">
       <section v-for="category in categories" :key="category.name" class="bento-tile">
@@ -171,10 +178,39 @@ watch(() => props.repository, async (repository) => {
   padding: 0 1.5rem 2rem;
 }
 
+.intro-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+}
+
 .intro {
   color: var(--muted);
   font-size: 0.9rem;
-  margin-bottom: 0.85rem;
+  margin-bottom: 0;
+}
+
+.initiatives-cta {
+  align-items: center;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-line);
+  border-radius: 999px;
+  color: var(--accent-ink);
+  display: inline-flex;
+  font-size: 0.82rem;
+  font-weight: 560;
+  gap: 0.35rem;
+  padding: 0.25rem 0.75rem;
+  text-decoration: none;
+}
+
+.initiatives-cta:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
 }
 
 .bento {
