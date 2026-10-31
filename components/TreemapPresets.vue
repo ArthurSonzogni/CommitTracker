@@ -4,9 +4,12 @@
       <p class="intro">
         Pick a view, or choose your own metrics above.
       </p>
-      <NuxtLink v-if="repository === 'chromium'" to="/initiatives" class="initiatives-cta">
-        <UiIcon name="bullseye-arrow" size="small" />
-        <span>Strategic initiatives scorecard &amp; ETAs</span>
+      <NuxtLink
+        v-if="['chromium', 'angle', 'pdfium', 'dawn', 'skia', 'webrtc'].includes(repository)"
+        to="/security"
+        class="security-cta">
+        <UiIcon name="shield-check" size="small" />
+        <span>Security hardening across 6 repos</span>
         <UiIcon name="arrow-right" size="small" />
       </NuxtLink>
     </div>
@@ -193,7 +196,7 @@ watch(() => props.repository, async (repository) => {
   margin-bottom: 0;
 }
 
-.initiatives-cta {
+.security-cta {
   align-items: center;
   background: var(--accent-soft);
   border: 1px solid var(--accent-line);
@@ -207,7 +210,7 @@ watch(() => props.repository, async (repository) => {
   text-decoration: none;
 }
 
-.initiatives-cta:hover {
+.security-cta:hover {
   background: var(--accent);
   border-color: var(--accent);
   color: #fff;

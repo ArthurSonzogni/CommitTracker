@@ -157,10 +157,10 @@ const moreLinks = [
     description: "DIR_METADATA component and team dossiers across code, fuzzers, and CVEs.",
   },
   {
-    to: "/initiatives",
-    label: "Strategic initiatives",
-    icon: "bullseye-arrow",
-    description: "Migration burn-down velocity, ETAs, blocker directories, and CWE ROI.",
+    to: "/security",
+    label: "Security hardening",
+    icon: "shield-check",
+    description: "Spanification, MiraclePtr, dangling pointers, Rust, and CHECK hardening across 6 repos.",
   },
   {
     to: "/accretion",

@@ -391,27 +391,36 @@ const tests = [
     `,
   },
   {
-    name: 'initiatives: scorecard blockers, trajectory chart, CWE ROI, and icons',
-    url: 'initiatives',
+    name: 'security: 6-repo spanification, MiraclePtr UAF & raw_ptr, dangling, Rust, CHECKs, and icons',
+    url: 'security',
     run: `
-      await __t.until(() => document.querySelectorAll('.scorecard-table tbody tr').length >= 10 && document.querySelectorAll('.roi-svg-wrap svg rect').length > 10, 25000);
-      const allRows = document.querySelectorAll('.scorecard-table tbody tr').length;
+      await __t.until(() =>
+        document.querySelectorAll('.span-repo-table tbody tr').length === 6 &&
+        document.querySelectorAll('.roi-svg-wrap svg rect').length > 10 &&
+        document.querySelector('#checks'), 25000);
+      const repoRows = document.querySelectorAll('.span-repo-table tbody tr').length;
       const beforeRects = document.querySelectorAll('.roi-svg-wrap svg rect').length;
-      // Collapse first default-expanded row or expand an unexpanded one
-      const unexpanded = [...document.querySelectorAll('.scorecard-table .expand-btn')].find(b => b.getAttribute('aria-expanded') === 'false');
-      unexpanded.click();
-      const expanded = await __t.until(() => document.querySelectorAll('.blocker-detail-row').length >= 2, 5000);
-      __t.byText('.segmented-option', 'Memory Safety').click();
-      const filtered = await __t.until(() => location.search.includes('category=') && document.querySelectorAll('.scorecard-table tbody tr').length < allRows, 5000);
+      const firstCov = document.querySelector('.span-repo-table .progress-pct')?.textContent.trim();
+      const expandBtn = document.querySelector('.span-repo-table .expand-btn');
+      expandBtn.click();
+      const expanded = await __t.until(() => document.querySelectorAll('.blocker-detail-row').length >= 1, 5000);
+      __t.byText('.segmented-option', 'All code (incl. third_party)').click();
+      const scopedAll = await __t.until(() =>
+        location.search.includes('spanScope=all') &&
+        document.querySelector('.span-repo-table .progress-pct')?.textContent.trim() !== firstCov, 5000);
       __t.byText('.segmented-option', 'Quarterly').click();
-      const quarterly = await __t.until(() => location.search.includes('roiGranularity=quarterly') && document.querySelectorAll('.roi-svg-wrap svg rect').length > beforeRects, 5000);
+      const quarterly = await __t.until(() =>
+        location.search.includes('uafGranularity=quarterly') &&
+        document.querySelectorAll('.roi-svg-wrap svg rect').length > beforeRects, 5000);
+      __t.byText('.segmented-option', 'CHECK hardening %').click();
+      const checkShare = await __t.until(() => location.search.includes('checksChartMode=share'), 5000);
       const missing = [...document.querySelectorAll('.mdi')].filter(el => {
         const c = getComputedStyle(el, '::before').content;
         return !c || c === 'none' || c === 'normal';
       });
       return {
-        ok: !!(expanded && filtered && quarterly && missing.length === 0),
-        detail: 'rows=' + allRows + ' roiRects=' + beforeRects + '->' + document.querySelectorAll('.roi-svg-wrap svg rect').length + ' missingIcons=' + missing.length,
+        ok: !!(expanded && scopedAll && quarterly && checkShare && missing.length === 0),
+        detail: 'repos=' + repoRows + ' cov1P=' + firstCov + ' uafRects=' + beforeRects + '->' + document.querySelectorAll('.roi-svg-wrap svg rect').length + ' missingIcons=' + missing.length,
       };
     `,
   },

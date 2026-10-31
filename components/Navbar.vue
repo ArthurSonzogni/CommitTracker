@@ -165,6 +165,7 @@ const MENU: Array<NavLeaf | NavGroup> = [
   pageItem("/individuals"),
   pageItem("/communities"),
   pageItem("/treemap"),
+  pageItem("/security"),
   {
     label: "Repositories",
     icon: "chart-bar",
@@ -174,7 +175,6 @@ const MENU: Array<NavLeaf | NavGroup> = [
       pageItem("/commit-rates"),
       pageItem("/commit-rates-sankey"),
       pageItem("/accretion"),
-      pageItem("/initiatives", "Initiatives"),
     ],
   },
   {
