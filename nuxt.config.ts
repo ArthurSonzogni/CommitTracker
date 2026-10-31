@@ -1,24 +1,32 @@
 import fs from 'fs'
 import path from 'path'
-import { defineEventHandler, proxyRequest } from 'h3'
+import { defineEventHandler, sendStream, setResponseHeader, setResponseStatus } from 'h3'
 
 const isDev = process.env.NODE_ENV === 'development'
+const publicRoot = path.resolve('public')
 
-console.log('--- NUXT CONFIG LOADED ---')
-console.log('NODE_ENV:', process.env.NODE_ENV)
-console.log('isDev:', isDev)
-console.log('Public dir:', isDev ? 'public_dev' : 'public')
-console.log('--------------------------')
+const DEV_CONTENT_TYPES: Record<string, string> = {
+  '.css': 'text/css; charset=utf-8',
+  '.html': 'text/html; charset=utf-8',
+  '.ico': 'image/x-icon',
+  '.jpeg': 'image/jpeg',
+  '.jpg': 'image/jpeg',
+  '.js': 'application/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.png': 'image/png',
+  '.svg': 'image/svg+xml',
+  '.webp': 'image/webp',
+  '.woff2': 'font/woff2',
+}
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
   devtools: { enabled: true },
-  target: 'static',
   ssr: false,
 
   dir: {
-    public: isDev ? 'public_dev' : 'public'
+    public: isDev ? 'public_dev' : 'public',
   },
 
   // Avoid watching the heavy data directories in dev. Patterns without a
@@ -33,25 +41,19 @@ export default defineNuxtConfig({
   app: {
     viewTransition: true,
     head: {
-      // Apply the theme chosen with the navbar toggle, before rendering.
+      htmlAttrs: {
+        lang: 'en',
+      },
+      meta: [
+        { charset: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { name: 'format-detection', content: 'telephone=no' },
+      ],
+      // Resolve initial theme before first paint and track system changes unless overridden.
       script: [{
-        innerHTML: "try{var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t}catch(e){}",
+        innerHTML: "try{var d=document.documentElement,t=localStorage.getItem('theme'),m=matchMedia('(prefers-color-scheme: dark)');d.dataset.theme=t||(m.matches?'dark':'light');m.addEventListener('change',function(e){if(!localStorage.getItem('theme'))d.dataset.theme=e.matches?'dark':'light'})}catch(e){}",
       }],
     },
-  },
-
-  // Global page headers: https://go.nuxtjs.dev/config-head
-  head: {
-    title: 'chrome-commit-tracker',
-    htmlAttrs: {
-      lang: 'en'
-    },
-    meta: [
-      { charset: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { hid: 'description', name: 'description', content: '' },
-      { name: 'format-detection', content: 'telephone=no' }
-    ],
   },
 
   css: [
@@ -60,15 +62,6 @@ export default defineNuxtConfig({
     // Last, to override the above.
     '~/assets/css/theme.css',
   ],
-
-  // Build Configuration: https://go.nuxtjs.dev/config-build
-  build: {
-    extend(config, { isClient }) {
-      if (isClient) {
-        config.externals = ['d3-transition']; // Exclude d3-transition from tree-shaking
-      }
-    }
-  },
 
   vite: {
     server: {
@@ -81,14 +74,14 @@ export default defineNuxtConfig({
           '**/public/fuzz-test/**',
           '**/public/cve/**',
           '**/public/accretion/**',
-          '**/importer/**'
-        ]
-      }
-    }
+          '**/importer/**',
+        ],
+      },
+    },
   },
 
   modules: [
-    "@nuxtjs/sitemap",
+    '@nuxtjs/sitemap',
   ],
 
   nitro: {
@@ -100,8 +93,8 @@ export default defineNuxtConfig({
     noPublicDir: isDev,
     publicAssets: isDev ? [
       {
-        dir: 'public_dev'
-      }
+        dir: 'public_dev',
+      },
     ] : [],
     // Nitro's default dev storage watches the whole project recursively. Skip
     // the heavy data directories to avoid exhausting the inotify watchers.
@@ -112,19 +105,36 @@ export default defineNuxtConfig({
       ignore: ['**/node_modules/**', '**/.git/**', '**/public/**', '**/importer/**', '**/dist/**', '**/.output/**'],
     }])) : {},
 
-    // Proxy requests for files in public/ to the data server. Matching on
-    // file existence rather than prefix, because some pages share their name
-    // with a data directory (e.g. /treemap, /cve/list).
+    // Serve files from public/ directly in dev. Matching on file existence
+    // rather than prefix, because some pages share their name with a data
+    // directory (e.g. /treemap, /cve/list).
     devHandlers: isDev ? [{
       route: '/',
       handler: defineEventHandler(event => {
-        const pathname = decodeURIComponent(event.path.split('?')[0]);
-        const file = path.join('public', pathname);
+        let pathname: string
+        try {
+          pathname = decodeURIComponent(event.path.split('?')[0])
+        } catch {
+          setResponseStatus(event, 400)
+          return 'Bad Request'
+        }
+
+        const file = path.resolve(publicRoot, '.' + (pathname.startsWith('/') ? pathname : '/' + pathname))
+        if (file === publicRoot) {
+          return
+        }
+        if (!file.startsWith(publicRoot + path.sep)) {
+          setResponseStatus(event, 403)
+          return 'Forbidden'
+        }
+
         if (fs.statSync(file, { throwIfNoEntry: false })?.isFile()) {
-          return proxyRequest(event, `http://localhost:3001${event.path}`);
+          const ext = path.extname(file).toLowerCase()
+          setResponseHeader(event, 'Content-Type', DEV_CONTENT_TYPES[ext] || 'application/octet-stream')
+          setResponseHeader(event, 'Cache-Control', 'no-cache')
+          return sendStream(event, fs.createReadStream(file))
         }
       }),
-    }] : []
-  }
+    }] : [],
+  },
 })
-

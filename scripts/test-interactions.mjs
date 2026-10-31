@@ -27,6 +27,7 @@ const contentTypes = {
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
+  '.webp': 'image/webp',
   '.woff2': 'font/woff2',
   '.ico': 'image/x-icon',
 };
@@ -34,8 +35,15 @@ const contentTypes = {
 // Static server, resolving /foo to /foo/index.html like GitHub Pages.
 const serve = () => new Promise(resolve => {
   const server = http.createServer((req, res) => {
-    let file = path.join(dir, decodeURIComponent(req.url.split('?')[0]));
-    if (!file.startsWith(dir)) {
+    let pathname;
+    try {
+      pathname = decodeURIComponent(req.url.split('?')[0]);
+    } catch {
+      res.writeHead(400).end('Bad Request');
+      return;
+    }
+    let file = path.resolve(dir, '.' + (pathname.startsWith('/') ? pathname : '/' + pathname));
+    if (file !== dir && !file.startsWith(dir + path.sep)) {
       res.writeHead(403).end();
       return;
     }
@@ -81,6 +89,7 @@ await new Promise(resolve => ws.addEventListener('open', resolve));
 let id = 0;
 const pending = new Map();
 const errors = new Map();
+const loadWaiters = new Map();
 const send = (method, params = {}, sessionId) => new Promise(resolve => {
   const i = ++id;
   pending.set(i, resolve);
@@ -91,6 +100,11 @@ ws.addEventListener('message', event => {
   if (message.id && pending.has(message.id)) {
     pending.get(message.id)(message);
     pending.delete(message.id);
+    return;
+  }
+  if (message.method === 'Page.loadEventFired' && loadWaiters.has(message.sessionId)) {
+    loadWaiters.get(message.sessionId)();
+    loadWaiters.delete(message.sessionId);
     return;
   }
   if (message.method === 'Runtime.exceptionThrown') {
@@ -107,7 +121,7 @@ const helpers = `
       const end = Date.now() + ms;
       while (Date.now() < end) {
         try { const v = fn(); if (v) return v; } catch (e) {}
-        await new Promise(r => setTimeout(r, 200));
+        await new Promise(r => setTimeout(r, 50));
       }
       return null;
     },
@@ -837,12 +851,32 @@ for (const test of tests) {
   const { result: { sessionId } } = await send('Target.attachToTarget', { targetId, flatten: true });
   errors.set(sessionId, []);
   await send('Runtime.enable', {}, sessionId);
+  await send('Page.enable', {}, sessionId);
+  await send('Page.addScriptToEvaluateOnNewDocument', { source: helpers }, sessionId);
   await send('Emulation.setDeviceMetricsOverride', test.mobile
     ? { width: 412, height: 900, deviceScaleFactor: 1, mobile: true }
     : { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false }, sessionId);
+  const loaded = new Promise(resolve => {
+    const timer = setTimeout(() => {
+      loadWaiters.delete(sessionId);
+      resolve();
+    }, 15000);
+    loadWaiters.set(sessionId, () => {
+      clearTimeout(timer);
+      resolve();
+    });
+  });
   await send('Page.navigate', { url: base + test.url }, sessionId);
-  await new Promise(resolve => setTimeout(resolve, 4000));
+  await loaded;
   await send('Runtime.evaluate', { expression: helpers }, sessionId);
+  await send('Runtime.evaluate', {
+    expression: `(async () => {
+      await __t.until(() => document.querySelector('.navbar') && document.querySelector('#__nuxt > div')?.children.length >= 2, 15000);
+      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    })()`,
+    awaitPromise: true,
+    timeout: 20000,
+  }, sessionId);
   const response = await send('Runtime.evaluate', {
     expression: `(async () => { ${test.run} })()`,
     awaitPromise: true,

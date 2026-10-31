@@ -12,16 +12,17 @@ import { createRequire } from 'module'
 import { defineNuxtModule } from '@nuxt/kit'
 
 const MDI_CSS = '@mdi/font/css/materialdesignicons.min.css'
-const ICON_RULE_RE = /\.mdi-([a-z0-9-]+)::before\{content:"\\([0-9A-F]+)"\}/g
+const ICON_RULE_RE = /\.mdi-([a-z0-9-]+)::before\{content:"\\([0-9a-fA-F]+)"\}/g
 const TOKEN_RE = /[a-z0-9]+(?:-[a-z0-9]+)*/g
 const SOURCE_DIRS = ['app.vue', 'components', 'composables', 'layouts', 'pages', 'plugins', 'utils']
+const SOURCE_EXTENSIONS = new Set(['.vue', '.ts', '.js', '.mjs'])
 
 const listFiles = (entry: string): string[] => {
   if (!fs.existsSync(entry)) {
     return []
   }
   if (!fs.statSync(entry).isDirectory()) {
-    return [entry]
+    return SOURCE_EXTENSIONS.has(path.extname(entry)) ? [entry] : []
   }
   return fs.readdirSync(entry).flatMap(name => listFiles(path.join(entry, name)))
 }
@@ -42,9 +43,17 @@ export default defineNuxtModule({
     for (const [, name, codepoint] of css.matchAll(ICON_RULE_RE)) {
       glyphs.set(name, codepoint)
     }
+    if (glyphs.size === 0) {
+      throw new Error(`[mdi-subset] Parsed 0 icon rules from ${cssFile}; check ICON_RULE_RE against @mdi/font CSS format.`)
+    }
 
-    // Collect the icon names used by the sources.
-    const files = SOURCE_DIRS.flatMap(entry => listFiles(path.join(nuxt.options.rootDir, entry)))
+    // Collect the icon names used by code sources plus utils/site-pages.json
+    // (skipping data JSONs such as utils/cwe.json).
+    const sitePagesFile = path.join(nuxt.options.rootDir, 'utils', 'site-pages.json')
+    const files = [
+      ...SOURCE_DIRS.flatMap(entry => listFiles(path.join(nuxt.options.rootDir, entry))),
+      ...(fs.existsSync(sitePagesFile) ? [sitePagesFile] : []),
+    ]
     const used = new Set<string>()
     for (const file of files) {
       for (const [token] of fs.readFileSync(file, 'utf8').matchAll(TOKEN_RE)) {

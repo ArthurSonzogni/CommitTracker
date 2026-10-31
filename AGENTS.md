@@ -16,7 +16,7 @@ and the UI kit lives in `components/ui/` (no Bulma/Buefy any more).
 npm install
 npm run pull-data              # Clone the data branches into public/ (needed before anything else)
 npm run generate-derived-data  # Derive usernames/organizations/summaries/badges/... from public/data
-npm run dev                    # Dev server (Nuxt + data server on :3001)
+npm run dev                    # Dev server (Nuxt + direct public/ handler)
 npm run generate               # Production static build -> .output/public
 npm run test:interactions      # E2E tests against .output/public (needs google-chrome or CHROME_PATH)
 ```
@@ -54,10 +54,9 @@ Pages fetch JSON at runtime from these paths, e.g.
 scans. So in dev (`scripts/dev.mjs`):
 - Nuxt uses `public_dev/` (recreated each run with a few symlinks into
   `public/`) as its public dir.
-- `scripts/data-server.mjs` serves `public/` on port 3001, and a Nitro dev
-  handler in `nuxt.config.ts` proxies any request whose path exists as a file
-  in `public/`. Matching is by file existence, not prefix, because some pages
-  share names with data dirs (`/treemap`, `/cve/list`).
+- A Nitro dev handler in `nuxt.config.ts` streams any request whose path exists
+  as a file in `public/` directly. Matching is by file existence, not prefix,
+  because some pages share names with data dirs (`/treemap`, `/cve/list`).
 - Heavy dirs are excluded from watchers in `nuxt.config.ts`. Keep these
   exclusions when touching the config.
 
@@ -94,8 +93,8 @@ dirname, color, GitHub owner/repo, optional `cone` subdirectory + `parent`,
 
 - `importer.yaml` — weekday cron; commits daily, and one other module per
   weekday (treemap Mon, fuzz Tue, commit rates Wed, CVE Thu, graph Fri).
-  Each module is a composite action in `.github/actions/<module>/` that
-  pushes its data branch.
+  Simple single-script modules share `.github/actions/run-and-push/`, while
+  `commits`, `accretion`, and `graph` have dedicated composite actions.
 - `cd.yaml` — on push to `main` or importer completion: pull data, derive,
   `generate`, run interaction tests, deploy `.output/public` to GitHub Pages
   as an artifact (the `gh-pages` branch is no longer used).

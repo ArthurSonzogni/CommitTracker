@@ -5,7 +5,7 @@
 // Usage, after `nuxt generate`:
 //   node scripts/static-meta.mjs [output=.output/public] [data=public/data]
 //
-// - Pages: from utils/site-pages.json, the same metadata app.vue uses.
+// - Pages: from utils/site-pages.json, shared with utils/pageMeta.ts & app.vue.
 // - Developer profiles: one page per developer with at least
 //   MIN_CONTRIBUTIONS commits and reviews, from scripts/derive-developers.mjs.
 //   The others are still served by the 404.html fallback.
@@ -18,7 +18,10 @@ import path from 'path';
 
 const output = process.argv[2] || '.output/public';
 const dataDir = process.argv[3] || 'public/data';
-const SITE = 'https://chrome-commit-tracker.arthursonzogni.com';
+const SITE_URL = 'https://chrome-commit-tracker.arthursonzogni.com';
+const SITE_NAME = 'CommitTracker';
+const SITE_OG_IMAGE = `${SITE_URL}/og-image.png`;
+const SITE_TWITTER = '@arthursonzogni';
 const MIN_CONTRIBUTIONS = 10;
 const MIN_YEAR_CONTRIBUTIONS = 25;
 
@@ -37,13 +40,15 @@ const render = (html, { title, description, url }) => {
     `<meta property="og:title" content="${escape(title)}">`,
     `<meta property="og:description" content="${escape(description)}">`,
     `<meta property="og:url" content="${escape(url)}">`,
-    `<meta property="og:image" content="${SITE}/og-image.png">`,
+    `<meta property="og:image" content="${SITE_OG_IMAGE}">`,
     `<meta property="og:type" content="website">`,
-    `<meta property="og:site_name" content="CommitTracker">`,
+    `<meta property="og:site_name" content="${SITE_NAME}">`,
     `<meta name="twitter:card" content="summary_large_image">`,
-    `<meta name="twitter:site" content="@arthursonzogni">`,
+    `<meta name="twitter:site" content="${SITE_TWITTER}">`,
   ].join('');
-  return html.replace('<head>', '<head>' + tags);
+  return html
+    .replace(/<title>[^<]*<\/title>/, '')
+    .replace('<head>', '<head>' + tags);
 };
 
 // Pages.
@@ -56,22 +61,26 @@ for (const page of pages) {
     continue;
   }
   fs.writeFileSync(file, render(fs.readFileSync(file, 'utf8'), {
-    title: page.title ?? `${page.label} · CommitTracker`,
+    title: page.title ?? `${page.label} · ${SITE_NAME}`,
     description: page.description,
-    url: SITE + page.path,
+    url: SITE_URL + page.path,
   }));
   pageCount++;
 }
 
-// Developer profiles. Kept in sync with pages/developers/[name]/index.vue.
+// Developer profiles. Kept in sync with utils/pageMeta.ts and pages/developers/[name]/index.vue.
 const number = new Intl.NumberFormat('en').format;
+const plural = (count, word, words = `${word}s`) =>
+  `${number(count)} ${count === 1 ? word : words}`;
 
 // Repositories that are a directory of another one (e.g. blink in chromium):
 // their commits are also counted in the parent.
+const allRepositories = JSON.parse(fs.readFileSync(path.join(dataDir, 'repositories.json'), 'utf8'));
 const subdirectories = new Set(
-  JSON.parse(fs.readFileSync(path.join(dataDir, 'repositories.json'), 'utf8'))
+  allRepositories
     .filter(repository => repository.parent)
     .map(repository => repository.dirname));
+
 let developerCount = 0;
 const developersDir = path.join(dataDir, 'developers');
 for (const shard of fs.existsSync(developersDir) ? fs.readdirSync(developersDir) : []) {
@@ -84,7 +93,7 @@ for (const shard of fs.existsSync(developersDir) ? fs.readdirSync(developersDir)
       continue;
     }
     const author = counts.reduce((sum, [a]) => sum + a, 0);
-    const review = counts.reduce((sum, [, r]) => sum + r, 0);
+    const review = counts.reduce((sum, [, r]) => r + sum, 0);
     // Skip names that can't be a single path segment.
     if (author + review < MIN_CONTRIBUTIONS || !/^[\w.@+-]+$/.test(name) || name.startsWith('.')) {
       continue;
@@ -93,10 +102,10 @@ for (const shard of fs.existsSync(developersDir) ? fs.readdirSync(developersDir)
     const dir = path.join(output, 'developers', name);
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(path.join(dir, 'index.html'), render(shell, {
-      title: `${name} · CommitTracker`,
+      title: `${name} · ${SITE_NAME}`,
       description: `${name}: ${number(author)} commits and ${number(review)} reviews ` +
         `across ${counts.length} web platform repositories, since ${firstYear}.`,
-      url: `${SITE}/developers/${name}`,
+      url: `${SITE_URL}/developers/${name}`,
     }));
     developerCount++;
   }
@@ -105,7 +114,7 @@ for (const shard of fs.existsSync(developersDir) ? fs.readdirSync(developersDir)
 // Years in review: {name: {year: {author, review, repositories}}}, over the
 // top-level repositories.
 const years = new Map();
-for (const repository of JSON.parse(fs.readFileSync(path.join(dataDir, 'repositories.json'), 'utf8'))) {
+for (const repository of allRepositories) {
   if (subdirectories.has(repository.dirname)) {
     continue;
   }
@@ -126,8 +135,7 @@ for (const repository of JSON.parse(fs.readFileSync(path.join(dataDir, 'reposito
     }
   }
 }
-const plural = (count, word, words = `${word}s`) =>
-  `${number(count)} ${count === 1 ? word : words}`;
+
 let yearCount = 0;
 for (const [name, entries] of years) {
   if (!/^[\w.@+-]+$/.test(name) || name.startsWith('.')) {
@@ -140,10 +148,10 @@ for (const [name, entries] of years) {
     const dir = path.join(output, 'developers', name, year);
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(path.join(dir, 'index.html'), render(shell, {
-      title: `${name} in ${year} · CommitTracker`,
+      title: `${name} in ${year} · ${SITE_NAME}`,
       description: `${name} in ${year}: ${plural(author, 'commit')} and ${plural(review, 'review')} ` +
         `across ${plural(repositories.size, 'web platform repository', 'web platform repositories')}.`,
-      url: `${SITE}/developers/${name}/${year}`,
+      url: `${SITE_URL}/developers/${name}/${year}`,
     }));
     yearCount++;
   }
