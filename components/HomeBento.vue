@@ -151,6 +151,12 @@ const latestYear = ref("");
 
 const moreLinks = [
   {
+    to: "/components",
+    label: "Components & teams",
+    icon: "sitemap",
+    description: "DIR_METADATA component and team dossiers across code, fuzzers, and CVEs.",
+  },
+  {
     to: "/initiatives",
     label: "Strategic initiatives",
     icon: "bullseye-arrow",

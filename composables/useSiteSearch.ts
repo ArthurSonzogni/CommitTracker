@@ -1,8 +1,13 @@
 import repositories_json from "../public/data/repositories.json";
 import site_pages from "../utils/site-pages.json";
+import {
+  componentPath,
+  fetchComponentsDataset,
+  teamPath,
+} from "../utils/componentsData";
 
-// Search over the site's pages, repositories, Chromium developers and CVE ids.
-// Shared by the command palette and the home page search bar.
+// Search over the site's pages, repositories, Chromium components & teams,
+// developers and CVE ids. Shared by the command palette and the home page search bar.
 
 export type SearchItem = {
   group: string;
@@ -16,6 +21,7 @@ export type SearchItem = {
 type IndexedSearchItem = {
   item: SearchItem;
   lower: string;
+  altLower?: string;
 };
 
 const indexedPages: IndexedSearchItem[] = site_pages.map(page => {
@@ -44,22 +50,31 @@ const indexedRepositories: IndexedSearchItem[] = repositories_json.map(repo => {
 
 const defaultPages: SearchItem[] = indexedPages.map(({ item }) => item);
 
-// Lower is better. Prefix matches rank above substring matches.
+// Lower is better. Prefix matches rank above segment-boundary matches and substring matches.
 const scoreLower = (lowerText: string, q: string): number => {
   const index = lowerText.indexOf(q);
   if (index === -1) return -1;
-  return index === 0 ? 0 : 1 + index / 100;
+  if (index === 0) return 0;
+  const prev = lowerText[index - 1];
+  if (prev === ">" || prev === "/" || prev === "-" || prev === "_" || prev === "@") {
+    return 0.4 + index / 200;
+  }
+  return 1 + index / 100;
 };
 
 const matching = (entries: IndexedSearchItem[], q: string, limit: number): SearchItem[] => {
   const hits: { item: SearchItem; s: number }[] = [];
   for (let i = 0; i < entries.length; i++) {
-    const s = scoreLower(entries[i].lower, q);
+    let s = scoreLower(entries[i].lower, q);
+    if (entries[i].altLower) {
+      const sAlt = scoreLower(entries[i].altLower!, q);
+      if (sAlt >= 0 && (s < 0 || sAlt < s)) s = sAlt;
+    }
     if (s >= 0) {
       hits.push({ item: entries[i].item, s });
     }
   }
-  hits.sort((a, b) => a.s - b.s);
+  hits.sort((a, b) => a.s - b.s || a.item.label.length - b.item.label.length);
   return hits.slice(0, limit).map(h => h.item);
 };
 
@@ -69,6 +84,8 @@ export const useSiteSearch = (options: { onSelect?: () => void; emptyResults?: n
   const query = ref("");
   const active = ref(0);
   const usernames = useState<string[]>("search-usernames", () => []);
+  const indexedComponents = useState<IndexedSearchItem[]>("search-components", () => []);
+  const indexedTeams = useState<IndexedSearchItem[]>("search-teams", () => []);
 
   const results = computed<SearchItem[]>(() => {
     const q = query.value.trim().toLowerCase();
@@ -77,8 +94,8 @@ export const useSiteSearch = (options: { onSelect?: () => void; emptyResults?: n
     }
 
     const out = [
-      ...matching(indexedPages, q, 6),
-      ...matching(indexedRepositories, q, 4),
+      ...matching(indexedPages, q, 5),
+      ...matching(indexedRepositories, q, 3),
     ];
 
     const cve = q.replace(/^cve-/, "").match(/^\d{4}-\d+$/);
@@ -92,6 +109,16 @@ export const useSiteSearch = (options: { onSelect?: () => void; emptyResults?: n
       });
     }
 
+    if (q.length >= 2) {
+      const qNormComp = q.replace(/\//g, ">");
+      if (indexedComponents.value.length > 0) {
+        out.push(...matching(indexedComponents.value, qNormComp, 5));
+      }
+      if (indexedTeams.value.length > 0) {
+        out.push(...matching(indexedTeams.value, q, 4));
+      }
+    }
+
     if (q.length >= 2 && usernames.value.length > 0) {
       const scoredDevs: { name: string; s: number }[] = [];
       const list = usernames.value;
@@ -103,7 +130,7 @@ export const useSiteSearch = (options: { onSelect?: () => void; emptyResults?: n
         }
       }
       scoredDevs.sort((a, b) => a.s - b.s || a.name.length - b.name.length);
-      const topDevs = scoredDevs.slice(0, 6);
+      const topDevs = scoredDevs.slice(0, 5);
       for (const { name } of topDevs) {
         out.push({
           group: "Developers",
@@ -122,8 +149,54 @@ export const useSiteSearch = (options: { onSelect?: () => void; emptyResults?: n
     active.value = 0;
   });
 
-  // The developers list is fetched once and deduplicated across concurrent callers.
+  const loadComponentsAndTeams = async () => {
+    if (indexedComponents.value.length > 0) return;
+    try {
+      const ds = await fetchComponentsDataset();
+      indexedComponents.value = ds.components.map((c) => {
+        const leaf = c.name.split(">").pop() || c.name;
+        const hintParts: string[] = [];
+        if (c.lines > 0) {
+          hintParts.push(
+            c.lines >= 1e6
+              ? `${(c.lines / 1e6).toFixed(1)}M LoC`
+              : `${Math.max(1, Math.round(c.lines / 1e3))}k LoC`,
+          );
+        }
+        if (c.cveTotal > 0) hintParts.push(`${c.cveTotal} CVEs`);
+        else if (c.primaryTeam) hintParts.push(c.primaryTeam);
+
+        return {
+          item: {
+            group: "Components",
+            key: "comp:" + c.name,
+            label: c.name,
+            hint: hintParts.join(" · ") || "Component dossier",
+            icon: "sitemap",
+            path: componentPath(c.name),
+          },
+          lower: leaf.toLowerCase(),
+          altLower: c.name.toLowerCase(),
+        };
+      });
+
+      indexedTeams.value = ds.teams.map((t) => ({
+        item: {
+          group: "Teams",
+          key: "team:" + t.email,
+          label: t.email,
+          hint: `${t.componentCount} ${t.componentCount === 1 ? "component" : "components"}`,
+          icon: "account-group",
+          path: teamPath(t.email),
+        },
+        lower: t.email.toLowerCase(),
+      }));
+    } catch {}
+  };
+
+  // Lazy-loads developers plus DIR_METADATA components and teams on search focus.
   const loadUsernames = async () => {
+    loadComponentsAndTeams();
     if (usernames.value.length > 0) return;
     if (!usernamesRequest) {
       usernamesRequest = (async () => {
@@ -166,5 +239,5 @@ export const useSiteSearch = (options: { onSelect?: () => void; emptyResults?: n
     return true;
   };
 
-  return { query, active, results, loadUsernames, select, onKeydown };
+  return { query, active, results, loadUsernames, loadComponentsAndTeams, select, onKeydown };
 };

@@ -10,3 +10,6 @@ node scripts/compact-treemap.mjs public/treemap
 node scripts/derive-developers.mjs public/data
 node scripts/derive-highlights.mjs public/data
 node scripts/derive-initiatives.mjs public
+if [ -d importer/chromium ]; then
+  node importer/dir_metadata.mjs
+fi

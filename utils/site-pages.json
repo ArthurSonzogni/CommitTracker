@@ -20,6 +20,8 @@
     "description": "Contributions of the organizations to the web platform repositories." },
   { "path": "/organizations/emails", "label": "Organizations emails", "icon": "email",
     "description": "The email domains of the contributors of each organization." },
+  { "path": "/components", "label": "Components & teams", "icon": "sitemap", "hint": "DIR_METADATA executive dossiers",
+    "description": "Chromium DIR_METADATA components and team dossiers joining code size, commit velocity, fuzzers, memory safety, and CVE rewards." },
   { "path": "/cve/overview", "label": "CVE overview", "icon": "chart-pie",
     "description": "Chromium CVEs per year, severity and component." },
   { "path": "/cve/list", "label": "CVE list", "icon": "format-list-bulleted",

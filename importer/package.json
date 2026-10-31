@@ -13,7 +13,8 @@
     "commit_rates": "node commit_rates.mjs",
     "fuzztest": "node fuzz-test.mjs",
     "cve": "node cve.mjs",
-    "accretion": "node --max-old-space-size=8192 accretion.mjs chromium"
+    "accretion": "node --max-old-space-size=8192 accretion.mjs chromium",
+    "dir_metadata": "node dir_metadata.mjs"
   },
   "repository": {
     "type": "git",

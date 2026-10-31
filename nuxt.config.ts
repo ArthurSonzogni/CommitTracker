@@ -65,6 +65,12 @@ export default defineNuxtConfig({
 
   vite: {
     server: {
+      fs: {
+        allow: [
+          path.resolve(),
+          ...(fs.existsSync('node_modules') ? [fs.realpathSync('node_modules')] : []),
+        ],
+      },
       watch: {
         ignored: [
           '**/public/data/**',

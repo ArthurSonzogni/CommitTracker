@@ -183,6 +183,7 @@ const MENU: Array<NavLeaf | NavGroup> = [
     items: [
       pageItem("/organizations/commits", "Commits"),
       pageItem("/organizations/emails", "Emails"),
+      pageItem("/components", "Components & teams"),
     ],
   },
   {
