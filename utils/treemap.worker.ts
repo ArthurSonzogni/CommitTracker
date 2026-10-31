@@ -27,33 +27,73 @@ interface TreeIndex {
 }
 
 interface MetricStore {
-  kind: 'latest' | 'compact' | 'legacy';
+  kind: "latest" | "compact" | "legacy";
   rows?: number[][];
   legacy?: Record<string, [number, number][]>;
 }
 
 const TEST_NAME_RE = /test|mock|example/i;
+const MAX_FULL_TREE_CACHE = 2;
+const MAX_FULL_METRIC_CACHE = 12;
 
 const datesCache = new Map<string, Promise<number[]>>();
 const latestTreeCache = new Map<string, Promise<TreeIndex | null>>();
 const fullTreeCache = new Map<string, Promise<TreeIndex | null>>();
+const resolvedFullTreeRepos = new Set<string>();
 const latestMetricCache = new Map<string, Promise<MetricStore | null>>();
 const fullMetricCache = new Map<string, Promise<MetricStore | null>>();
 const historySeriesCache = new Map<string, number[]>();
 
 let activeTreeIndex: TreeIndex | null = null;
-let activeDatesMs: number[] = [];
-let activeMetrics: Record<string, MetricStore> = {};
-let metricsAccumulation: Record<string, Float64Array> = {};
+let accumScopeKey = "";
+const metricsAccumulation = new Map<string, Float64Array>();
 let areaById = new Float64Array(0);
 let colorById = new Float64Array(0);
-let lastAccumKey = '';
+let areaColorKey = "";
+
+function lruGetOrSet<T>(
+  cache: Map<string, Promise<T | null>>,
+  key: string,
+  maxEntries: number,
+  factory: () => Promise<T | null>,
+): Promise<T | null> {
+  const existing = cache.get(key);
+  if (existing) {
+    cache.delete(key);
+    cache.set(key, existing);
+    return existing;
+  }
+  while (cache.size >= maxEntries) {
+    const oldest = cache.keys().next().value;
+    if (oldest === undefined) break;
+    cache.delete(oldest);
+  }
+  const pending = factory().then((val) => {
+    if (val === null) cache.delete(key);
+    return val;
+  }).catch((err) => {
+    cache.delete(key);
+    throw err;
+  });
+  cache.set(key, pending);
+  return pending;
+}
+
+function evictLatestRepoCaches(repo: string) {
+  latestTreeCache.delete(repo);
+  const prefix = `${repo}/`;
+  for (const key of Array.from(latestMetricCache.keys())) {
+    if (key.startsWith(prefix)) {
+      latestMetricCache.delete(key);
+    }
+  }
+}
 
 async function fetchJson(url: string) {
   try {
     const response = await fetch(url);
-    const contentType = response.headers.get('content-type');
-    if (response.ok && contentType && contentType.includes('application/json')) {
+    const contentType = response.headers.get("content-type");
+    if (response.ok && contentType && contentType.includes("application/json")) {
       return await response.json();
     }
   } catch (e) {
@@ -67,7 +107,11 @@ function getDatesMs(repo: string): Promise<number[]> {
   if (!pending) {
     pending = (async () => {
       const json = await fetchJson(`/treemap/${repo}/dates.json`);
-      return Array.isArray(json) ? json.map((d: string) => new Date(d).getTime()) : [];
+      if (!Array.isArray(json)) {
+        datesCache.delete(repo);
+        return [];
+      }
+      return json.map((d: string) => new Date(d).getTime());
     })();
     datesCache.set(repo, pending);
   }
@@ -107,13 +151,13 @@ function buildTreeIndexFromCompact(compact: any): TreeIndex {
     const id = nextId++;
     if (id >= cap) grow();
     parentId[id] = pId;
-    if (typeof node === 'string') {
+    if (typeof node === "string") {
       subtreeEnd[id] = id + 1;
       return;
     }
     for (let i = 1; i < node.length; i++) {
       const c = node[i];
-      if (typeof c === 'string') {
+      if (typeof c === "string") {
         const cid = nextId++;
         if (cid >= cap) grow();
         parentId[cid] = id;
@@ -127,7 +171,7 @@ function buildTreeIndexFromCompact(compact: any): TreeIndex {
 
   indexWalk(compact, -1);
 
-  const root: InternalTreeNode = typeof compact === 'string'
+  const root: InternalTreeNode = typeof compact === "string"
     ? { name: compact, id: 0, subtreeEnd: 1 }
     : { name: compact[0], id: 0, subtreeEnd: nextId, raw: compact };
 
@@ -152,16 +196,19 @@ function buildTreeIndexFromLegacy(rawRoot: any): TreeIndex {
   const numNodes = maxId + 1;
   const parentId = new Int32Array(numNodes).fill(-1);
   const subtreeEnd = new Int32Array(numNodes);
+  let nextId = 0;
 
   const convert = (n: any, pId: number): InternalTreeNode => {
     const id = n.id;
+    if (id + 1 > nextId) nextId = id + 1;
     parentId[id] = pId;
-    subtreeEnd[id] = id + 1;
     if (!n.children || n.children.length === 0) {
-      return { name: n.name, id, subtreeEnd: id + 1 };
+      subtreeEnd[id] = nextId;
+      return { name: n.name, id, subtreeEnd: nextId };
     }
     const children = n.children.map((c: any) => convert(c, id));
-    return { name: n.name, id, subtreeEnd: id + 1, children };
+    subtreeEnd[id] = nextId;
+    return { name: n.name, id, subtreeEnd: nextId, children };
   };
 
   const root = convert(rawRoot, -1);
@@ -186,7 +233,7 @@ function ensureChildren(treeIndex: TreeIndex, node: InternalTreeNode): InternalT
   for (let i = 0; i < len; i++) {
     const item = raw[i + 1];
     const end = se[childId];
-    children[i] = typeof item === 'string'
+    children[i] = typeof item === "string"
       ? { name: item, id: childId, subtreeEnd: end }
       : { name: item[0], id: childId, subtreeEnd: end, raw: item };
     childId = end;
@@ -196,6 +243,13 @@ function ensureChildren(treeIndex: TreeIndex, node: InternalTreeNode): InternalT
   return children;
 }
 
+// Blink lives in third_party/blink (and third_party/WebKit before April 2018),
+// so excluding third-party code keeps both.
+function isBlinkDir(name: string): boolean {
+  const lower = name.toLowerCase();
+  return lower === "blink" || lower === "webkit";
+}
+
 function ensureExcludeFlags(treeIndex: TreeIndex) {
   if (treeIndex.excludeFlags) return;
   const flags = new Uint8Array(treeIndex.numNodes);
@@ -203,13 +257,13 @@ function ensureExcludeFlags(treeIndex: TreeIndex) {
   if (treeIndex.isCompact && treeIndex.rawRoot) {
     const se = treeIndex.subtreeEnd;
     const walkCompact = (node: any, id: number, tpParent: boolean, inh: number) => {
-      const name: string = typeof node === 'string' ? node : node[0];
+      const name: string = typeof node === "string" ? node : node[0];
       let f = inh;
       if (id > 0 && name) {
         if ((f & 1) === 0 && TEST_NAME_RE.test(name)) f |= 1;
-        if (tpParent && (name.length !== 5 || name.toLowerCase() !== 'blink')) f |= 2;
+        if (tpParent && !isBlinkDir(name)) f |= 2;
       }
-      if (typeof node === 'string') {
+      if (typeof node === "string") {
         flags[id] = f;
         return;
       }
@@ -219,15 +273,15 @@ function ensureExcludeFlags(treeIndex: TreeIndex) {
         return;
       }
       flags[id] = f;
-      const nextTp = name.length === 11 && name.toLowerCase() === 'third_party';
+      const nextTp = name.length === 11 && name.toLowerCase() === "third_party";
       let cid = id + 1;
       for (let i = 1; i < node.length; i++) {
         const c = node[i];
         const cEnd = se[cid];
-        if (typeof c === 'string') {
+        if (typeof c === "string") {
           let cf = f;
           if ((cf & 1) === 0 && TEST_NAME_RE.test(c)) cf |= 1;
-          if (nextTp && (c.length !== 5 || c.toLowerCase() !== 'blink')) cf |= 2;
+          if (nextTp && !isBlinkDir(c)) cf |= 2;
           flags[cid] = cf;
         } else {
           walkCompact(c, cid, nextTp, f);
@@ -241,11 +295,11 @@ function ensureExcludeFlags(treeIndex: TreeIndex) {
       let f = inh;
       if (node.id > 0 && node.name) {
         if ((f & 1) === 0 && TEST_NAME_RE.test(node.name)) f |= 1;
-        if (tpParent && node.name.toLowerCase() !== 'blink') f |= 2;
+        if (tpParent && !isBlinkDir(node.name)) f |= 2;
       }
       flags[node.id] = f;
       if (node.children) {
-        const nextTp = node.name?.toLowerCase() === 'third_party';
+        const nextTp = node.name?.toLowerCase() === "third_party";
         for (let i = 0; i < node.children.length; i++) {
           walkLegacy(node.children[i], nextTp, f);
         }
@@ -258,51 +312,71 @@ function ensureExcludeFlags(treeIndex: TreeIndex) {
 }
 
 function getLatestTreeIndex(repo: string): Promise<TreeIndex | null> {
-  if (!latestTreeCache.has(repo)) {
-    latestTreeCache.set(repo, (async () => {
-      const index = await fetchJson(`/treemap/${repo}/file_index.latest.json`);
-      return index ? buildTreeIndexFromCompact(index) : null;
-    })());
-  }
-  return latestTreeCache.get(repo)!;
+  return lruGetOrSet(latestTreeCache, repo, 4, async () => {
+    const index = await fetchJson(`/treemap/${repo}/file_index.latest.json`);
+    return index ? buildTreeIndexFromCompact(index) : null;
+  });
 }
 
 function getFullTreeIndex(repo: string): Promise<TreeIndex | null> {
-  if (!fullTreeCache.has(repo)) {
-    fullTreeCache.set(repo, (async () => {
-      const compact = await fetchJson(`/treemap/${repo}/file_index.compact.json`);
-      if (compact) return buildTreeIndexFromCompact(compact);
-      const legacy = await fetchJson(`/treemap/${repo}/file_index.json`);
-      return legacy ? buildTreeIndexFromLegacy(legacy) : null;
-    })());
+  const existing = fullTreeCache.get(repo);
+  if (existing) {
+    fullTreeCache.delete(repo);
+    fullTreeCache.set(repo, existing);
+    return existing;
   }
-  return fullTreeCache.get(repo)!;
+  while (fullTreeCache.size >= MAX_FULL_TREE_CACHE) {
+    const oldest = fullTreeCache.keys().next().value;
+    if (oldest === undefined) break;
+    fullTreeCache.delete(oldest);
+    resolvedFullTreeRepos.delete(oldest);
+  }
+  const pending = (async () => {
+    const compact = await fetchJson(`/treemap/${repo}/file_index.compact.json`);
+    const tree = compact
+      ? buildTreeIndexFromCompact(compact)
+      : (() => null)();
+    if (tree) {
+      resolvedFullTreeRepos.add(repo);
+      evictLatestRepoCaches(repo);
+      return tree;
+    }
+    const legacy = await fetchJson(`/treemap/${repo}/file_index.json`);
+    if (legacy) {
+      const legacyTree = buildTreeIndexFromLegacy(legacy);
+      resolvedFullTreeRepos.add(repo);
+      evictLatestRepoCaches(repo);
+      return legacyTree;
+    }
+    fullTreeCache.delete(repo);
+    return null;
+  })().catch((err) => {
+    fullTreeCache.delete(repo);
+    resolvedFullTreeRepos.delete(repo);
+    throw err;
+  });
+  fullTreeCache.set(repo, pending);
+  return pending;
 }
 
 function getLatestMetric(repo: string, field: string): Promise<MetricStore | null> {
   const key = `${repo}/${field}`;
-  if (!latestMetricCache.has(key)) {
-    latestMetricCache.set(key, (async () => {
-      const rows = await fetchJson(`/treemap/${repo}/metrics/${field}.latest.json`);
-      return rows ? { kind: 'latest', rows } : null;
-    })());
-  }
-  return latestMetricCache.get(key)!;
+  return lruGetOrSet(latestMetricCache, key, 16, async () => {
+    const rows = await fetchJson(`/treemap/${repo}/metrics/${field}.latest.json`);
+    return rows ? { kind: "latest", rows } : null;
+  });
 }
 
 function getFullMetric(repo: string, field: string, isCompact: boolean): Promise<MetricStore | null> {
-  const key = `${repo}/${field}/${isCompact ? 'c' : 'l'}`;
-  if (!fullMetricCache.has(key)) {
-    fullMetricCache.set(key, (async () => {
-      if (isCompact) {
-        const rows = await fetchJson(`/treemap/${repo}/metrics/${field}.compact.json`);
-        return rows ? { kind: 'compact', rows } : null;
-      }
-      const legacy = await fetchJson(`/treemap/${repo}/metrics/${field}.json`);
-      return legacy ? { kind: 'legacy', legacy } : null;
-    })());
-  }
-  return fullMetricCache.get(key)!;
+  const key = `${repo}/${field}/${isCompact ? "c" : "l"}`;
+  return lruGetOrSet(fullMetricCache, key, MAX_FULL_METRIC_CACHE, async () => {
+    if (isCompact) {
+      const rows = await fetchJson(`/treemap/${repo}/metrics/${field}.compact.json`);
+      return rows ? { kind: "compact", rows } : null;
+    }
+    const legacy = await fetchJson(`/treemap/${repo}/metrics/${field}.json`);
+    return legacy ? { kind: "legacy", legacy } : null;
+  });
 }
 
 function isExcluded(treeIndex: TreeIndex, id: number, mask: number): boolean {
@@ -341,7 +415,8 @@ function getTreeNodeFromPath(treeIndex: TreeIndex, pathArr: string[], mask: numb
   return cur;
 }
 
-function accumulateAll(
+function accumulateFields(
+  scopeKey: string,
   treeIndex: TreeIndex,
   metrics: Record<string, MetricStore>,
   dateId: number,
@@ -354,17 +429,20 @@ function accumulateAll(
   if (mask) ensureExcludeFlags(treeIndex);
   const flags = treeIndex.excludeFlags;
 
-  for (const field in metrics) {
-    const store = metrics[field];
-    let acc = metricsAccumulation[field];
-    if (!acc || acc.length !== numNodes) {
-      acc = new Float64Array(numNodes);
-      metricsAccumulation[field] = acc;
-    } else {
-      acc.fill(0);
-    }
+  if (activeTreeIndex !== treeIndex || accumScopeKey !== scopeKey) {
+    activeTreeIndex = treeIndex;
+    accumScopeKey = scopeKey;
+    metricsAccumulation.clear();
+    areaColorKey = "";
+  }
 
-    if (store.kind === 'latest' && store.rows) {
+  for (const field in metrics) {
+    if (metricsAccumulation.has(field)) continue;
+
+    const store = metrics[field];
+    const acc = new Float64Array(numNodes);
+
+    if (store.kind === "latest" && store.rows) {
       const rows = store.rows;
       let id = 0;
       for (let r = 0; r < rows.length; r++) {
@@ -373,7 +451,7 @@ function accumulateAll(
         if (mask && flags && (flags[id] & mask) !== 0) continue;
         acc[id] = row[1];
       }
-    } else if (store.kind === 'compact' && store.rows) {
+    } else if (store.kind === "compact" && store.rows) {
       const rows = store.rows;
       let id = 0;
       for (let r = 0; r < rows.length; r++) {
@@ -389,7 +467,7 @@ function accumulateAll(
         }
         acc[id] = val;
       }
-    } else if (store.kind === 'legacy' && store.legacy) {
+    } else if (store.kind === "legacy" && store.legacy) {
       for (const fileId in store.legacy) {
         const id = Number(fileId);
         if (mask && flags && (flags[id] & mask) !== 0) continue;
@@ -420,27 +498,33 @@ function accumulateAll(
       };
       accWalk(treeIndex.root);
     }
+
+    metricsAccumulation.set(field, acc);
   }
 
-  if (areaById.length !== numNodes) areaById = new Float64Array(numNodes);
-  else areaById.fill(0);
-  if (colorById.length !== numNodes) colorById = new Float64Array(numNodes);
-  else colorById.fill(0);
+  const nextAreaColorKey = `${scopeKey}|${fieldSize.join(",")}|${fieldColor.join(",")}`;
+  if (areaColorKey !== nextAreaColorKey || areaById.length !== numNodes) {
+    if (areaById.length !== numNodes) areaById = new Float64Array(numNodes);
+    else areaById.fill(0);
+    if (colorById.length !== numNodes) colorById = new Float64Array(numNodes);
+    else colorById.fill(0);
 
-  const effSize = fieldSize.length ? fieldSize : fieldColor;
-  const effColor = fieldColor.length ? fieldColor : fieldSize;
+    const effSize = fieldSize.length ? fieldSize : fieldColor;
+    const effColor = fieldColor.length ? fieldColor : fieldSize;
 
-  for (const field of effSize) {
-    const acc = metricsAccumulation[field];
-    if (acc) {
-      for (let i = 0; i < numNodes; i++) areaById[i] += acc[i];
+    for (const field of effSize) {
+      const acc = metricsAccumulation.get(field);
+      if (acc) {
+        for (let i = 0; i < numNodes; i++) areaById[i] += acc[i];
+      }
     }
-  }
-  for (const field of effColor) {
-    const acc = metricsAccumulation[field];
-    if (acc) {
-      for (let i = 0; i < numNodes; i++) colorById[i] += acc[i];
+    for (const field of effColor) {
+      const acc = metricsAccumulation.get(field);
+      if (acc) {
+        for (let i = 0; i < numNodes; i++) colorById[i] += acc[i];
+      }
     }
+    areaColorKey = nextAreaColorKey;
   }
 }
 
@@ -469,7 +553,7 @@ function buildPrunedSubtree(
     const m: Record<string, number> = {};
     for (let i = 0; i < allFields.length; i++) {
       const f = allFields[i];
-      m[f] = metricsAccumulation[f]?.[node.id] || 0;
+      m[f] = metricsAccumulation.get(f)?.[node.id] || 0;
     }
     const pruned: PrunedTreemapNode = {
       name: node.name,
@@ -521,7 +605,7 @@ function computeHistoryForField(
   const flags = treeIndex.excludeFlags;
   const diff = new Float64Array(numDates);
 
-  if (store.kind === 'compact' && store.rows) {
+  if (store.kind === "compact" && store.rows) {
     const rows = store.rows;
     const startId = dirNode.id;
     const endId = dirNode.subtreeEnd;
@@ -538,7 +622,7 @@ function computeHistoryForField(
         if (d < numDates) diff[d] += row[i + 1];
       }
     }
-  } else if (store.kind === 'legacy' && store.legacy) {
+  } else if (store.kind === "legacy" && store.legacy) {
     const legacy = store.legacy;
     const walk = (entry: InternalTreeNode) => {
       if (mask && flags && (flags[entry.id] & mask) !== 0) return;
@@ -590,24 +674,17 @@ async function ensureFullState(
   }));
 
   const dateId = datesMs.length ? formatDateIdx(datesMs, dateEndMs) : 0;
-  const accumKey = `full|${repo}|${dateId}|${excludeMask}|${fieldSize.join(',')}|${fieldColor.join(',')}|${allFields.join(',')}`;
-  if (lastAccumKey !== accumKey || activeTreeIndex !== treeIdx) {
-    activeTreeIndex = treeIdx;
-    activeDatesMs = datesMs;
-    activeMetrics = metricsMap;
-    accumulateAll(treeIdx, metricsMap, dateId, excludeMask, fieldSize, fieldColor);
-    lastAccumKey = accumKey;
-  }
+  const scopeKey = `full|${repo}|${dateId}|${excludeMask}`;
+  accumulateFields(scopeKey, treeIdx, metricsMap, dateId, excludeMask, fieldSize, fieldColor);
 
   return { treeIdx, datesMs, metricsMap, dateId, allFields };
 }
 
-self.onmessage = async (event: MessageEvent) => {
-  const msg = event.data;
+async function processMessage(msg: any) {
   const { id, type } = msg;
 
   try {
-    if (type === 'query') {
+    if (type === "query") {
       const {
         repo,
         mode,
@@ -620,7 +697,11 @@ self.onmessage = async (event: MessageEvent) => {
         path = [],
       } = msg;
 
-      if (mode === 'latest') {
+      if (mode === "latest") {
+        if (resolvedFullTreeRepos.has(repo)) {
+          self.postMessage({ id, result: { ok: false } });
+          return;
+        }
         const datesMs = await getDatesMs(repo);
         if (datesMs.length === 0 || formatDateIdx(datesMs, dateEndMs) !== datesMs.length - 1) {
           self.postMessage({ id, result: { ok: false } });
@@ -639,15 +720,12 @@ self.onmessage = async (event: MessageEvent) => {
         }));
 
         // Start prefetching full tree and metrics in the worker right away.
-        getFullTreeIndex(repo);
-        for (const f of allFields) getFullMetric(repo, f, true);
+        getFullTreeIndex(repo).catch(() => {});
+        for (const f of allFields) getFullMetric(repo, f, true).catch(() => {});
 
         const dateId = datesMs.length - 1;
-        activeTreeIndex = treeIdx;
-        activeDatesMs = datesMs;
-        activeMetrics = metricsMap;
-        accumulateAll(treeIdx, metricsMap, dateId, excludeMask, fieldSize, fieldColor);
-        lastAccumKey = `latest|${repo}|${dateId}|${excludeMask}|${fieldSize.join(',')}|${fieldColor.join(',')}|${allFields.join(',')}`;
+        const scopeKey = `latest|${repo}|${dateId}|${excludeMask}`;
+        accumulateFields(scopeKey, treeIdx, metricsMap, dateId, excludeMask, fieldSize, fieldColor);
 
         const root = pathsToExpand
           ? buildPrunedSubtree(treeIdx, pathsToExpand, excludeMask, allFields)
@@ -679,9 +757,9 @@ self.onmessage = async (event: MessageEvent) => {
       return;
     }
 
-    if (type === 'download') {
+    if (type === "download") {
       const { repo, kind, fieldSize = [], fieldColor = [], path = [], excludeMask = 0, dateEndMs = Date.now() } = msg;
-      const fields = [...fieldSize, ...fieldColor];
+      const fields = [...new Set([...fieldSize, ...fieldColor].filter(Boolean))];
       const state = await ensureFullState(repo, fieldSize, fieldColor, [], dateEndMs, excludeMask);
       if (!state) {
         self.postMessage({ id, result: null });
@@ -689,7 +767,7 @@ self.onmessage = async (event: MessageEvent) => {
       }
       const { treeIdx, datesMs, metricsMap } = state;
 
-      if (kind === 'temporal_json') {
+      if (kind === "temporal_json") {
         const out = fields.map((field: string) => {
           const series = computeHistoryForField(repo, treeIdx, metricsMap, datesMs.length, field, path, excludeMask);
           return {
@@ -702,36 +780,36 @@ self.onmessage = async (event: MessageEvent) => {
         });
         self.postMessage({
           id,
-          result: { content: JSON.stringify(out, null, 2), filename: 'temporal.json', contentType: 'application/json' },
+          result: { content: JSON.stringify(out, null, 2), filename: "temporal.json", contentType: "application/json" },
         });
         return;
       }
 
-      if (kind === 'temporal_csv') {
+      if (kind === "temporal_csv") {
         const seriesByField = fields.map((field: string) =>
-          computeHistoryForField(repo, treeIdx, metricsMap, datesMs.length, field, path, excludeMask)
+          computeHistoryForField(repo, treeIdx, metricsMap, datesMs.length, field, path, excludeMask),
         );
-        let out = 'date,' + fields.join(',') + '\n';
+        let out = "date," + fields.join(",") + "\n";
         for (let i = 0; i < datesMs.length; i++) {
-          const row: (string | number)[] = [new Date(datesMs[i]).toISOString().split('T')[0]];
+          const row: (string | number)[] = [new Date(datesMs[i]).toISOString().split("T")[0]];
           for (let f = 0; f < fields.length; f++) row.push(seriesByField[f][i]);
-          out += row.join(',') + '\n';
+          out += row.join(",") + "\n";
         }
         self.postMessage({
           id,
-          result: { content: out, filename: 'temporal.csv', contentType: 'text/csv' },
+          result: { content: out, filename: "temporal.csv", contentType: "text/csv" },
         });
         return;
       }
 
       const startNode = getTreeNodeFromPath(treeIdx, path, excludeMask);
-      if (kind === 'spatial_json') {
+      if (kind === "spatial_json") {
         const get = (file: InternalTreeNode): any => {
           if (isExcluded(treeIdx, file.id, excludeMask)) return null;
           const out: any = {};
           let allZero = true;
           for (const field of fields) {
-            const v = metricsAccumulation[field]?.[file.id] || 0;
+            const v = metricsAccumulation.get(field)?.[file.id] || 0;
             out[field] = v;
             if (v !== 0) allZero = false;
           }
@@ -749,23 +827,23 @@ self.onmessage = async (event: MessageEvent) => {
         };
         self.postMessage({
           id,
-          result: { content: JSON.stringify(get(startNode), null, 2), filename: 'spatial.json', contentType: 'application/json' },
+          result: { content: JSON.stringify(get(startNode), null, 2), filename: "spatial.json", contentType: "application/json" },
         });
         return;
       }
 
-      if (kind === 'spatial_csv') {
-        let out = 'path,' + fields.join(',') + '\n';
+      if (kind === "spatial_csv") {
+        let out = "path," + fields.join(",") + "\n";
         const get = (file: InternalTreeNode, p: string[]) => {
           if (isExcluded(treeIdx, file.id, excludeMask)) return;
-          const row: (string | number)[] = [p.join('/') || '/'];
+          const row: (string | number)[] = [p.join("/") || "/"];
           let allZero = true;
           for (const field of fields) {
-            const value = metricsAccumulation[field]?.[file.id] || 0;
+            const value = metricsAccumulation.get(field)?.[file.id] || 0;
             row.push(value);
             if (value !== 0) allZero = false;
           }
-          if (!allZero) out += row.join(',') + '\n';
+          if (!allZero) out += row.join(",") + "\n";
           const children = ensureChildren(treeIdx, file);
           for (const child of children || []) {
             get(child, p.concat([child.name]));
@@ -774,7 +852,7 @@ self.onmessage = async (event: MessageEvent) => {
         get(startNode, path || []);
         self.postMessage({
           id,
-          result: { content: out, filename: 'spatial.csv', contentType: 'text/csv' },
+          result: { content: out, filename: "spatial.csv", contentType: "text/csv" },
         });
         return;
       }
@@ -784,4 +862,11 @@ self.onmessage = async (event: MessageEvent) => {
   } catch (err: any) {
     self.postMessage({ id, error: String(err?.message || err) });
   }
+}
+
+let messageQueue = Promise.resolve();
+
+self.onmessage = (event: MessageEvent) => {
+  const msg = event.data;
+  messageQueue = messageQueue.then(() => processMessage(msg));
 };

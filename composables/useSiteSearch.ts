@@ -1,5 +1,5 @@
-import repositories_json from '../public/data/repositories.json'
-import site_pages from '../utils/site-pages.json'
+import repositories_json from "../public/data/repositories.json";
+import site_pages from "../utils/site-pages.json";
 
 // Search over the site's pages, repositories, Chromium developers and CVE ids.
 // Shared by the command palette and the home page search bar.
@@ -13,40 +13,59 @@ export type SearchItem = {
   path: string;
 };
 
-const pages: SearchItem[] = site_pages.map(page => ({
-  group: "Pages",
-  key: "page:" + page.path,
-  label: page.label,
-  hint: page.hint,
-  icon: page.icon,
-  path: page.path,
-}));
-
-const repositories: SearchItem[] = repositories_json.map(repo => ({
-  group: "Repositories",
-  key: "repo:" + repo.dirname,
-  label: repo.name,
-  hint: "Contributions",
-  icon: "source-repository",
-  path: `/repositories?repositories=${repo.dirname}`,
-}));
-
-// Lower is better. Prefix matches rank above substring matches.
-const score = (text: string, q: string) => {
-  const t = text.toLowerCase();
-  if (t.startsWith(q)) return 0;
-  const index = t.indexOf(q);
-  return index === -1 ? -1 : 1 + index / 100;
+type IndexedSearchItem = {
+  item: SearchItem;
+  lower: string;
 };
 
-const matching = (items: SearchItem[], q: string, limit: number) => items
-  .map(item => ({ item, s: score(item.label, q) }))
-  .filter(({ s }) => s >= 0)
-  .sort((a, b) => a.s - b.s)
-  .slice(0, limit)
-  .map(({ item }) => item);
+const indexedPages: IndexedSearchItem[] = site_pages.map(page => {
+  const item: SearchItem = {
+    group: "Pages",
+    key: "page:" + page.path,
+    label: page.label,
+    hint: page.hint,
+    icon: page.icon,
+    path: page.path,
+  };
+  return { item, lower: page.label.toLowerCase() };
+});
 
-export const useSiteSearch = (options: { onSelect?: () => void, emptyResults?: number } = {}) => {
+const indexedRepositories: IndexedSearchItem[] = repositories_json.map(repo => {
+  const item: SearchItem = {
+    group: "Repositories",
+    key: "repo:" + repo.dirname,
+    label: repo.name,
+    hint: "Contributions",
+    icon: "source-repository",
+    path: `/repositories?repositories=${repo.dirname}`,
+  };
+  return { item, lower: repo.name.toLowerCase() };
+});
+
+const defaultPages: SearchItem[] = indexedPages.map(({ item }) => item);
+
+// Lower is better. Prefix matches rank above substring matches.
+const scoreLower = (lowerText: string, q: string): number => {
+  const index = lowerText.indexOf(q);
+  if (index === -1) return -1;
+  return index === 0 ? 0 : 1 + index / 100;
+};
+
+const matching = (entries: IndexedSearchItem[], q: string, limit: number): SearchItem[] => {
+  const hits: { item: SearchItem; s: number }[] = [];
+  for (let i = 0; i < entries.length; i++) {
+    const s = scoreLower(entries[i].lower, q);
+    if (s >= 0) {
+      hits.push({ item: entries[i].item, s });
+    }
+  }
+  hits.sort((a, b) => a.s - b.s);
+  return hits.slice(0, limit).map(h => h.item);
+};
+
+let usernamesRequest: Promise<string[]> | null = null;
+
+export const useSiteSearch = (options: { onSelect?: () => void; emptyResults?: number } = {}) => {
   const query = ref("");
   const active = ref(0);
   const usernames = useState<string[]>("search-usernames", () => []);
@@ -54,12 +73,12 @@ export const useSiteSearch = (options: { onSelect?: () => void, emptyResults?: n
   const results = computed<SearchItem[]>(() => {
     const q = query.value.trim().toLowerCase();
     if (!q) {
-      return pages.slice(0, options.emptyResults ?? 9);
+      return defaultPages.slice(0, options.emptyResults ?? 9);
     }
 
     const out = [
-      ...matching(pages, q, 6),
-      ...matching(repositories, q, 4),
+      ...matching(indexedPages, q, 6),
+      ...matching(indexedRepositories, q, 4),
     ];
 
     const cve = q.replace(/^cve-/, "").match(/^\d{4}-\d+$/);
@@ -73,12 +92,19 @@ export const useSiteSearch = (options: { onSelect?: () => void, emptyResults?: n
       });
     }
 
-    if (q.length >= 2) {
-      const developers = usernames.value
-        .filter(name => name.toLowerCase().includes(q))
-        .sort((a, b) => score(a, q) - score(b, q) || a.length - b.length)
-        .slice(0, 6);
-      for (const name of developers) {
+    if (q.length >= 2 && usernames.value.length > 0) {
+      const scoredDevs: { name: string; s: number }[] = [];
+      const list = usernames.value;
+      for (let i = 0; i < list.length; i++) {
+        const name = list[i];
+        const s = scoreLower(name.toLowerCase(), q);
+        if (s >= 0) {
+          scoredDevs.push({ name, s });
+        }
+      }
+      scoredDevs.sort((a, b) => a.s - b.s || a.name.length - b.name.length);
+      const topDevs = scoredDevs.slice(0, 6);
+      for (const { name } of topDevs) {
         out.push({
           group: "Developers",
           key: "dev:" + name,
@@ -96,12 +122,27 @@ export const useSiteSearch = (options: { onSelect?: () => void, emptyResults?: n
     active.value = 0;
   });
 
-  // The developers list is fetched on first use.
+  // The developers list is fetched once and deduplicated across concurrent callers.
   const loadUsernames = async () => {
-    if (usernames.value.length === 0) {
-      const response = await fetch("/data/chromium/usernames.json");
-      usernames.value = await response.json();
+    if (usernames.value.length > 0) return;
+    if (!usernamesRequest) {
+      usernamesRequest = (async () => {
+        const response = await fetch("/data/chromium/usernames.json");
+        if (!response.ok) {
+          throw new Error(`Failed to fetch usernames: ${response.status}`);
+        }
+        return await response.json();
+      })().catch((err) => {
+        usernamesRequest = null;
+        throw err;
+      });
     }
+    try {
+      const loaded = await usernamesRequest;
+      if (Array.isArray(loaded)) {
+        usernames.value = loaded;
+      }
+    } catch {}
   };
 
   const select = (item: SearchItem) => {

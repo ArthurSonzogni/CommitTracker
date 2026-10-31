@@ -1,7 +1,5 @@
 <template>
   <div class="page-container">
-    <Navbar/>
-
     <section class="section pb-2">
       <div class="container is-fluid">
         <h1 class="title">CVE money tree</h1>
@@ -81,12 +79,12 @@
 </template>
 
 <script setup lang="ts">
-import { fetchCveData } from '~/utils/cve'
-import { ref, onMounted, computed, watch, shallowRef } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { fetchCveData } from '~/utils/cve';
+import { ref, onMounted, onBeforeUnmount, computed, watch, shallowRef, type Ref } from 'vue';
 import { format } from 'd3-format';
 import { interpolate } from 'd3-interpolate';
 import humanizeDuration from 'humanize-duration';
+import { useUrlState, urlCodecs } from '~/composables/useUrlState';
 import MoneyTreeNode from '~/components/MoneyTreeNode.vue';
 import Timeline from '~/components/Timeline.vue';
 import cweTitle from '~/utils/cwe.json';
@@ -209,15 +207,52 @@ const isIgnoredRepo = (repo: string) => {
 
 // --- Setup ---
 
-const route = useRoute();
-const router = useRouter();
-
 const formatter = format("$,.0f");
 
 const loading = ref(true);
 const rawData = shallowRef<any[]>([]);
 const treeData = shallowRef<any>(null);
 const cvesCount = ref(0);
+
+const minDataDate = ref<Date>(new Date('2008-01-01'));
+const defaultEndDate = new Date();
+
+const { groupBy, startDateStr, endDateStr } = useUrlState({
+  groupBy: {
+    ...urlCodecs.enum(
+      ['none', 'cwe', 'component', 'fixed-by', 'reviewer'] as const,
+      'none',
+    ),
+    key: 'group_by',
+  },
+  startDateStr: {
+    ...urlCodecs.string(''),
+    key: 'start',
+  },
+  endDateStr: {
+    ...urlCodecs.string(''),
+    key: 'end',
+  },
+});
+
+const dates = computed<[Date, Date]>({
+  get: () => {
+    const d0 = startDateStr.value ? new Date(startDateStr.value) : minDataDate.value;
+    const d1 = endDateStr.value ? new Date(endDateStr.value) : defaultEndDate;
+    return [
+      Number.isNaN(d0.getTime()) ? minDataDate.value : d0,
+      Number.isNaN(d1.getTime()) ? defaultEndDate : d1,
+    ];
+  },
+  set: ([d0, d1]) => {
+    if (d0 instanceof Date && !Number.isNaN(d0.getTime())) {
+      startDateStr.value = d0.toISOString().split('T')[0];
+    }
+    if (d1 instanceof Date && !Number.isNaN(d1.getTime())) {
+      endDateStr.value = d1.toISOString().split('T')[0];
+    }
+  },
+});
 
 const missingBugLinkCount = computed(() => {
   return rawData.value.filter(cve => !cve.bug || cve.bug === 'n/a').length;
@@ -264,18 +299,35 @@ const restrictedOldCount = computed(() => {
 
 const displayCvesCount = ref(0);
 const displayTotalReward = ref(0);
+const activeRafIds = new Map<Ref<number>, number>();
 
-const animateValue = (refVar: any, targetValue: number) => {
-  const i = interpolate(refVar.value, targetValue);
+const animateValue = (refVar: Ref<number>, targetValue: number) => {
+  const prevRaf = activeRafIds.get(refVar);
+  if (prevRaf !== undefined) {
+    cancelAnimationFrame(prevRaf);
+    activeRafIds.delete(refVar);
+  }
+  const interp = interpolate(refVar.value, targetValue);
   const duration = 500;
   const start = performance.now();
   const step = (now: number) => {
     const t = Math.min(1, (now - start) / duration);
-    refVar.value = i(t);
-    if (t < 1) requestAnimationFrame(step);
+    refVar.value = interp(t);
+    if (t < 1) {
+      activeRafIds.set(refVar, requestAnimationFrame(step));
+    } else {
+      activeRafIds.delete(refVar);
+    }
   };
-  requestAnimationFrame(step);
+  activeRafIds.set(refVar, requestAnimationFrame(step));
 };
+
+onBeforeUnmount(() => {
+  for (const rafId of activeRafIds.values()) {
+    cancelAnimationFrame(rafId);
+  }
+  activeRafIds.clear();
+});
 
 watch(cvesCount, (val) => animateValue(displayCvesCount, val));
 watch(() => treeData.value?.value, (val) => animateValue(displayTotalReward, val || 0));
@@ -284,56 +336,6 @@ onMounted(() => {
   if (cvesCount.value) animateValue(displayCvesCount, cvesCount.value);
   if (treeData.value?.value) animateValue(displayTotalReward, treeData.value.value);
 });
-
-const groupBy = ref("none");
-
-const dates = ref([
-  new Date('2008-01-01'),
-  new Date(),
-]);
-
-// Initialize from URL
-const initFromUrl = () => {
-  const qGroupBy = route.query.group_by as string;
-  if (qGroupBy && qGroupBy !== groupBy.value) {
-    groupBy.value = qGroupBy;
-  }
-  const qStart = route.query.start as string;
-  if (qStart) {
-    const d = new Date(qStart);
-    if (!isNaN(d.getTime()) && d.getTime() !== dates.value[0].getTime()) {
-      dates.value[0] = d;
-    }
-  }
-  const qEnd = route.query.end as string;
-  if (qEnd) {
-    const d = new Date(qEnd);
-    if (!isNaN(d.getTime()) && d.getTime() !== dates.value[1].getTime()) {
-      dates.value[1] = d;
-    }
-  }
-};
-initFromUrl();
-
-const updateUrl = () => {
-  const query = {
-    ...route.query,
-    group_by: groupBy.value,
-    start: dates.value[0].toISOString().split("T")[0],
-    end: dates.value[1].toISOString().split("T")[0],
-  };
-  // Only push if different from current query
-  if (query.group_by !== route.query.group_by ||
-      query.start !== route.query.start ||
-      query.end !== route.query.end) {
-    router.replace({ query });
-  }
-};
-
-// Watch for URL changes (e.g. back button)
-watch(() => route.query, () => {
-  initFromUrl();
-}, { deep: true });
 
 // --- Pre-processing & Reactive Optimization ---
 
@@ -517,12 +519,7 @@ const buildTree = (cves: any[]) => {
 
 // --- Watchers ---
 
-watch(dates, () => {
-  updateUrl();
-}, { deep: true });
-
 watch(groupBy, () => {
-  updateUrl();
   treeData.value = buildTree(filteredData.value);
 });
 
@@ -535,17 +532,17 @@ onMounted(async () => {
     rawData.value = await fetchCveData();
     processedData.value = processRawData(rawData.value);
 
-    // If no start date in URL, ensure we span everything
-    if (!route.query.start && rawData.value.length > 0) {
+    // Compute dataset minDate for default unbounded start date.
+    if (rawData.value.length > 0) {
       let minDate = new Date();
+      const minFloor = new Date('2008-01-01');
       for (const cve of rawData.value) {
         const d = new Date(cve.bug_date || cve.published);
-        if (!isNaN(d.getTime()) && d < minDate && d > new Date('2008-01-01')) {
+        if (!isNaN(d.getTime()) && d < minDate && d > minFloor) {
           minDate = d;
         }
       }
-      dates.value[0] = minDate;
-      dates.value[1] = new Date();
+      minDataDate.value = minDate;
     }
 
     treeData.value = buildTree(filteredData.value);
@@ -561,7 +558,7 @@ onMounted(async () => {
 .tree-container {
   max-height: 800px;
   overflow-y: auto;
-  border: 1px solid #ddd;
+  border: 1px solid var(--line);
   padding: 10px;
   border-radius: 4px;
 }
@@ -570,7 +567,7 @@ onMounted(async () => {
   display: flex;
   font-weight: bold;
   padding: 8px;
-  background-color: #f8f9fa;
+  background-color: var(--surface-sunken);
   border-radius: 4px;
   font-family: monospace;
   font-size: 14px;
@@ -601,7 +598,7 @@ onMounted(async () => {
   width: 100%;
   padding-top: 0.75rem;
   padding-bottom: 0.25rem;
-  border-top: 1px solid #eaeaea;
+  border-top: 1px solid var(--line);
   position: fixed;
   left: 0;
   bottom: 0;

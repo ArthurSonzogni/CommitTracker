@@ -163,15 +163,30 @@ const toScreen = (x: number, y: number) =>
 
 // The edge curve of the SVG output: a quadratic curve, bent to the left from
 // the author to the reviewer. The SVG computes it before stretching x by 2.
-const edgeControl = (a: number, b: number) => {
-  const [, ax, ay, as] = props.graph.nodes[a];
-  const [, bx, by, bs] = props.graph.nodes[b];
-  const x1 = ax / 2, y1 = ay + as / 2;
-  const x2 = bx / 2, y2 = by + bs / 2;
-  const mx = (x1 + x2) / 2 - 0.4 * (y2 - y1);
-  const my = (y1 + y2) / 2 + 0.4 * (x2 - x1);
-  return [2 * x1, y1, 2 * mx, my, 2 * x2, y2];
-};
+// Precomputed in world coordinates to avoid per-frame array allocations.
+const edgeControls = computed(() => {
+  const { nodes, edges } = props.graph;
+  const out = new Float32Array(edges.length * 6);
+  for (let i = 0; i < edges.length; ++i) {
+    const [a, b] = edges[i];
+    const [, ax, ay, as] = nodes[a];
+    const [, bx, by, bs] = nodes[b];
+    const x1 = ax / 2;
+    const y1 = ay + as / 2;
+    const x2 = bx / 2;
+    const y2 = by + bs / 2;
+    const mx = (x1 + x2) / 2 - 0.4 * (y2 - y1);
+    const my = (y1 + y2) / 2 + 0.4 * (x2 - x1);
+    const base = i * 6;
+    out[base] = 2 * x1;
+    out[base + 1] = y1;
+    out[base + 2] = 2 * mx;
+    out[base + 3] = my;
+    out[base + 4] = 2 * x2;
+    out[base + 5] = y2;
+  }
+  return out;
+});
 
 let frame_request = 0;
 const draw = () => {
@@ -242,8 +257,13 @@ const render = () => {
 
   // Edges.
   context.lineCap = "round";
-  for (const [a, b, thickness] of edges) {
-    const normal = dark ? 0.22 : 0.16;
+  const controls = edgeControls.value;
+  const vx = view.x;
+  const vy = view.y;
+  const vs = view.scale;
+  const normal = dark ? 0.22 : 0.16;
+  for (let i = 0; i < edges.length; ++i) {
+    const [a, b, thickness] = edges[i];
     if (filtering) {
       const highlighted = isHighlighted(a) && isHighlighted(b) &&
         (shown_node < 0 || a === shown_node || b === shown_node);
@@ -252,11 +272,14 @@ const render = () => {
       context.globalAlpha = normal;
     }
     context.strokeStyle = communityColor(nodes[a][4]);
-    context.lineWidth = Math.max(0.3, thickness * view.scale);
-    const [x1, y1, mx, my, x2, y2] = edgeControl(a, b);
-    const [sx1, sy1] = toScreen(x1, y1);
-    const [smx, smy] = toScreen(mx, my);
-    const [sx2, sy2] = toScreen(x2, y2);
+    context.lineWidth = Math.max(0.3, thickness * vs);
+    const base = i * 6;
+    const sx1 = (controls[base] - vx) * vs;
+    const sy1 = (controls[base + 1] - vy) * vs;
+    const smx = (controls[base + 2] - vx) * vs;
+    const smy = (controls[base + 3] - vy) * vs;
+    const sx2 = (controls[base + 4] - vx) * vs;
+    const sy2 = (controls[base + 5] - vy) * vs;
     context.beginPath();
     context.moveTo(sx1, sy1);
     context.quadraticCurveTo(smx, smy, sx2, sy2);
@@ -270,14 +293,15 @@ const render = () => {
   let readable = 0;
   for (let i = 0; i < nodes.length; ++i) {
     const [label, x, y, size, community] = nodes[i];
-    const font_size = size * view.scale;
+    const font_size = size * vs;
     if (font_size >= 9) {
       readable++;
     }
     if (font_size < 3.5 && i !== shown_node) {
       continue;
     }
-    const [sx, sy] = toScreen(x, y);
+    const sx = (x - vx) * vs;
+    const sy = (y - vy) * vs;
     if (sx < -500 || sx > width + 500 || sy < -100 || sy > height + 100) {
       continue;
     }
@@ -317,7 +341,6 @@ const render = () => {
       placed.push(box);
       context.globalAlpha = names_visibility *
         (shown_community < 0 || shown_community === community.id ? 1 : lerp(1, 0.25, mix));
-      context.font = `650 ${font_size}px Geist, sans-serif`;
       context.lineWidth = 4;
       context.strokeStyle = colors.surface;
       context.strokeText(community.name, sx, sy);

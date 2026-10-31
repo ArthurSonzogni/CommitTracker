@@ -1,7 +1,5 @@
 <template>
   <div>
-    <Navbar/>
-
     <section class="section">
       <div class="container">
         <h1 class="title">Repositories charts</h1>
@@ -39,7 +37,7 @@
           </UiField>
 
           <UiField v-if="what == 'per_contributor' && display == 'individual'">
-            <UiSlider v-model="individual" v-if="display == 'individual'" :min="1" :max="1000" :step="1" :tooltip="false" lazy indicator></UiSlider>
+            <UiSlider v-model="individual" :min="1" :max="1000" :step="1" :tooltip="false" lazy indicator></UiSlider>
           </UiField>
 
           <UiField v-if="what == 'per_contributor' && display.startsWith('someone')" expanded>
@@ -122,11 +120,10 @@
 </template>
 
 <script setup lang="ts">
+import { useUrlState, urlCodecs } from "~/composables/useUrlState";
+import { capitalize, listSummary, repositoryNames } from "~/utils/filter-summary";
 
-const route = useRoute();
-const router = useRouter();
-
-const repositories = ref([
+const DEFAULT_REPOSITORIES = [
   "angle",
   "chromeos",
   "chromium",
@@ -138,44 +135,9 @@ const repositories = ref([
   "swiftshader",
   "v8",
   "webrtc",
-]);
-if (route.query.repositories) {
-  repositories.value = route.query.repositories.split(",");
-}
-const what = ref("commit");
-if (route.query.what) {
-  what.value = route.query.what;
-}
-const grouping = ref("yearly");
-if (route.query.grouping) {
-  grouping.value = route.query.grouping;
-}
-const display = ref("average");
-if (route.query.display) {
-  display.value = route.query.display;
-}
-const kind = ref("author");
-if (route.query.kind) {
-  kind.value = route.query.kind;
-}
-const percentile = ref(0.7071);
-if (route.query.percentile) {
-  percentile.value = parseFloat(route.query.percentile);
-}
-const individual = ref(300);
-if (route.query.individual) {
-  individual.value = parseInt(route.query.individual);
-}
-const developers = ref([]);
-if (route.query.developers) {
-  developers.value = route.query.developers.split(",");
-}
-const min_contributions = ref(0);
-if (route.query.min_contributions) {
-  min_contributions.value = parseInt(route.query.min_contributions);
-}
+] as const;
 
-watch([
+const {
   repositories,
   what,
   grouping,
@@ -184,21 +146,26 @@ watch([
   percentile,
   individual,
   developers,
-  min_contributions
-], () => {
-  router.replace({
-    query: {
-      repositories: repositories.value.join(","),
-      what: what.value,
-      grouping: grouping.value,
-      display: display.value,
-      kind: kind.value,
-      percentile: percentile.value,
-      individual: individual.value,
-      developers: developers.value.join(","),
-      min_contributions: min_contributions.value,
-    }
-  });
+  min_contributions,
+} = useUrlState({
+  repositories: urlCodecs.csv(DEFAULT_REPOSITORIES),
+  what: urlCodecs.enum(
+    ["commit", "contributors", "first_commit", "last_commit", "per_contributor"] as const,
+    "commit",
+  ),
+  grouping: urlCodecs.enum(
+    ["forever", "decennial", "yearly", "quarterly", "monthly"] as const,
+    "yearly",
+  ),
+  display: urlCodecs.enum(
+    ["average", "percentile", "individual", "someone", "someone_rank", "someone_rank_percent"] as const,
+    "average",
+  ),
+  kind: urlCodecs.enum(["author", "review", "both"] as const, "author"),
+  percentile: urlCodecs.number(0.7071, { min: 0, max: 1 }),
+  individual: urlCodecs.number(300, { min: 1, max: 1000, integer: true }),
+  developers: urlCodecs.csv([]),
+  min_contributions: urlCodecs.number(0, { min: 0, integer: true }),
 });
 
 const what_options = [
@@ -212,7 +179,7 @@ const what_options = [
 const summary = computed(() => [
   listSummary(repositoryNames(repositories.value), "repositories"),
   what_options.find(option => option.value == what.value)?.label,
-  grouping.value[0].toUpperCase() + grouping.value.slice(1),
+  capitalize(grouping.value),
 ].join(" · "));
 
 const sliderTransform = (value: number) => {

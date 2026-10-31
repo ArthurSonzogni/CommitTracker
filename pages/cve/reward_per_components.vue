@@ -1,7 +1,5 @@
 <template>
   <div>
-    <Navbar/>
-
     <section class="section">
       <div class="container">
         <h1 class="title">CVE reward per component</h1>
@@ -38,7 +36,7 @@
       <g ref="svg_nodes" />
       <g ref="svg_links" />
 
-      <g class="tooltip" style="display: none;">
+      <g ref="svg_tooltip" class="tooltip" style="display: none;">
         <rect/>
         <text/>
       </g>
@@ -56,132 +54,139 @@
 </template>
 
 <script setup lang="ts">
-import { fetchCveData } from '~/utils/cve'
-
-import { select } from "d3-selection";
-import { sankey } from "d3-sankey";
-import { sankeyLeft } from "d3-sankey";
+import { select, pointer } from "d3-selection";
+import { sankey, sankeyLeft } from "d3-sankey";
 import { scaleOrdinal } from "d3-scale";
-import { categoricalPalette } from "~/utils/palette";
 import { format } from "d3-format";
 import { path } from "d3-path";
-import { pointer } from "d3-selection";
 import "d3-transition";
 import { transition } from "d3-transition";
 import { easeQuadInOut } from "d3-ease";
+import { useUrlState, urlCodecs } from "~/composables/useUrlState";
+import { fetchCveData, type CveRecord } from "~/utils/cve";
+import { categoricalPalette } from "~/utils/palette";
 
 const dollars_formatter = format("$,.0f");
 const percent_formatter = format(".2%");
 
-const route = useRoute();
-const router = useRouter();
-
 const cve_count = ref(0);
-const ranking = ref([]);
+const ranking = ref<{ component: string; reward: number }[]>([]);
 const total_reward = ref(0);
 
-const svg_nodes = ref(null);
-const svg_links = ref(null);
-const svg_labels = ref(null);
-const svg_link_labels = ref(null);
+const svg_nodes = ref<SVGGElement | null>(null);
+const svg_links = ref<SVGGElement | null>(null);
+const svg_labels = ref<SVGGElement | null>(null);
+const svg_link_labels = ref<SVGGElement | null>(null);
+const svg_tooltip = ref<SVGGElement | null>(null);
 
 const width = ref(2000);
 const height = ref(2000);
 
-const dates = ref([
-  new Date(new Date().setDate(new Date().getDate() - 365)),
-  new Date(),
-]);
-if (route.query.start) {
-  dates.value[0] = new Date(route.query.start);
-}
-if (route.query.end) {
-  dates.value[1] = new Date(route.query.end);
-}
+const defaultStartDate = new Date();
+defaultStartDate.setDate(defaultStartDate.getDate() - 365);
+const defaultStartIso = defaultStartDate.toISOString().split("T")[0];
+const defaultEndIso = new Date().toISOString().split("T")[0];
 
-const updateUrl = () => {
-  router.push({
-    query: {
-      start: dates.value[0].toISOString().split("T")[0],
-      end: dates.value[1].toISOString().split("T")[0],
+const { startDateStr, endDateStr } = useUrlState({
+  startDateStr: { ...urlCodecs.string(defaultStartIso), key: "start" },
+  endDateStr: { ...urlCodecs.string(defaultEndIso), key: "end" },
+});
+
+const dates = computed<[Date, Date]>({
+  get: () => {
+    const d0 = new Date(startDateStr.value);
+    const d1 = new Date(endDateStr.value);
+    return [
+      Number.isNaN(d0.getTime()) ? new Date(defaultStartIso) : d0,
+      Number.isNaN(d1.getTime()) ? new Date() : d1,
+    ];
+  },
+  set: ([d0, d1]) => {
+    if (d0 instanceof Date && !Number.isNaN(d0.getTime())) {
+      startDateStr.value = d0.toISOString().split("T")[0];
     }
-  });
-};
+    if (d1 instanceof Date && !Number.isNaN(d1.getTime())) {
+      endDateStr.value = d1.toISOString().split("T")[0];
+    }
+  },
+});
 
 const color = scaleOrdinal(categoricalPalette);
 
-let data = {}
+let data: CveRecord[] = [];
 
-onMounted(async () => {
-  data = await fetchCveData();
-  render();
-})
-
-const render = (() => {
-  const graph = {
-    nodes: [],
-    links: []
+const render = () => {
+  if (
+    !svg_nodes.value ||
+    !svg_links.value ||
+    !svg_labels.value ||
+    !svg_link_labels.value
+  ) {
+    return;
   }
-  const component_index = {};
-  const linksIndex = {};
 
-  const componentIndex = (component) => {
+  const graph: { nodes: any[]; links: any[] } = {
+    nodes: [],
+    links: [],
+  };
+  const component_index: Record<string, number> = {};
+  const linksIndex: Record<string, number> = {};
+
+  const componentIndex = (component: string) => {
     if (component_index[component] === undefined) {
       component_index[component] = graph.nodes.length;
       graph.nodes.push({
-        "node": component_index[component],
-        "name": component
+        node: component_index[component],
+        name: component,
       });
     }
     return component_index[component];
-  }
+  };
 
-  const addLink = (source, target, value) => {
+  const addLink = (source: number, target: number, value: number) => {
     const key = `${source}-${target}`;
     if (linksIndex[key] === undefined) {
       linksIndex[key] = graph.links.length;
       graph.links.push({
-        "source": source,
-        "target": target,
-        "value": 0
+        source,
+        target,
+        value: 0,
       });
     }
-
     graph.links[linksIndex[key]].value += value;
-  }
+  };
 
   let cve_count_partial = 0;
   let total_reward_partial = 0;
 
-  const component_vrp_reward = { }
+  const [startBound, endBound] = dates.value;
+  const component_vrp_reward: Record<string, number> = {};
+
   for (const cve of data) {
+    if (!cve.bug_date) continue;
     const date = new Date(cve.bug_date);
-    if (date < dates.value[0] || date > dates.value[1]) {
+    if (date < startBound || date > endBound) {
       continue;
     }
 
-    total_reward_partial += isNaN(parseInt(cve.vrp_reward))
-      ? 0
-      : parseInt(cve.vrp_reward);
+    const parsedReward = parseInt(String(cve.vrp_reward ?? ""));
+    const cveReward = isNaN(parsedReward) ? 0 : parsedReward;
+    total_reward_partial += cveReward;
     cve_count_partial += 1;
 
-    for (const component of cve.components || []) {
-      let reward = isNaN(parseInt(cve.vrp_reward))
-        ? 0
-        : parseInt(cve.vrp_reward);
-      reward /= cve.components.length;
-      component_vrp_reward[component] ||= 0;
-      component_vrp_reward[component] += reward;
+    if (cve.components?.length && cveReward > 0) {
+      const share = cveReward / cve.components.length;
+      for (const component of cve.components) {
+        component_vrp_reward[component] = (component_vrp_reward[component] || 0) + share;
+      }
     }
   }
 
   cve_count.value = cve_count_partial;
   total_reward.value = total_reward_partial;
 
-  // Remove components with no reward.
   for (const component in component_vrp_reward) {
-    if (component_vrp_reward[component] == 0) {
-
+    if (component_vrp_reward[component] === 0) {
       delete component_vrp_reward[component];
     }
   }
@@ -209,6 +214,14 @@ const render = (() => {
       }
     });
 
+  if (graph.nodes.length === 0 || graph.links.length === 0) {
+    select(svg_nodes.value).selectAll("rect").remove();
+    select(svg_links.value).selectAll("path").remove();
+    select(svg_labels.value).selectAll("text").remove();
+    select(svg_link_labels.value).selectAll("text").remove();
+    return;
+  }
+
   // Remove the prefix from all nodes.
   for (const node of graph.nodes) {
     node.component = node.name;
@@ -216,17 +229,15 @@ const render = (() => {
     node.name = parts[parts.length - 1];
   }
 
-  // const nodeWidth = graph.nodes.map(d => d.name.length * 20).reduce((a, b) => a + b) / graph.nodes.length;
-
   const nodeWidth = 6;
 
-  const sankey_generator = sankey(graph)
-    .nodeId(d => d.node)
+  const sankey_generator = (sankey as any)(graph)
+    .nodeId((d: any) => d.node)
     .nodeWidth(nodeWidth)
     .nodePadding(7)
     .nodeAlign(sankeyLeft)
-    .size([width.value-200, height.value-100])
-    .nodeSort(null)
+    .size([width.value - 200, height.value - 100])
+    .nodeSort(null);
 
   const sankey_graph = sankey_generator(graph);
 
@@ -243,157 +254,162 @@ const render = (() => {
     .duration(200)
     .ease(easeQuadInOut);
 
-
-  const update_node = (update) => {
+  const update_node = (update: any) => {
     update
-      .attr("x", d => d.x0)
-      .attr("y", d => d.y0)
-      .attr("height", d => d.y1 - d.y0)
-      .attr("width", d => d.x1 - d.x0)
-  }
+      .attr("x", (d: any) => d.x0)
+      .attr("y", (d: any) => d.y0)
+      .attr("height", (d: any) => d.y1 - d.y0)
+      .attr("width", (d: any) => d.x1 - d.x0);
+  };
 
   select(svg_nodes.value)
     .attr("transform", "translate(100,50)")
     .selectAll("rect")
-    .data(sankey_graph.nodes, d => d.component)
+    .data(sankey_graph.nodes, (d: any) => d.component)
     .join(
       enter => {
         const node = enter.append("rect");
         update_node(node);
         node
-          .attr("fill", d => color(d.component))
+          .attr("fill", (d: any) => color(d.component))
           .attr("opacity", 0.0)
           .attr("transform", "translate(30,0)")
-          .transition(transition_enter)
+          .transition(transition_enter as any)
           .attr("opacity", 1.0)
-          .attr("transform", "translate(0,0)")
+          .attr("transform", "translate(0,0)");
         return node;
       },
       update => {
-        update = update.transition(transition_update);
-        update_node(update);
-        return update;
+        const u = update.transition(transition_update as any);
+        update_node(u);
+        return u;
       },
       exit => {
-        exit = exit.transition(transition_exit);
-        exit.attr("opacity", 0)
-        exit.remove();
-      }
-    )
+        return exit
+          .transition(transition_exit as any)
+          .attr("opacity", 0)
+          .remove();
+      },
+    );
 
-  const update_link = (update) => {
-    update
-      .attr("d", d => {
-        const w = (d.target.x0 - d.source.x1) * 0.3;
-        const p = path();
-        p.moveTo(d.source.x1, d.y0 - d.width /2)
-        p.bezierCurveTo(
-          d.source.x1 + w , d.y0 - d.width / 2   ,
-          d.target.x0 - w , d.y1 - d.width / 2   ,
-          d.target.x0     , d.y1 - d.width / 2);
-        p.lineTo(
-          d.target.x0, d.y1 + d.width / 2);
-        p.bezierCurveTo(
-          d.target.x0 - w , d.y1 + d.width / 2,
-          d.source.x1 + w , d.y0 + d.width / 2,
-          d.source.x1     , d.y0 + d.width / 2);
-        p.closePath();
-        return p.toString();
-      })
-  }
+  const update_link = (update: any) => {
+    update.attr("d", (d: any) => {
+      const w = (d.target.x0 - d.source.x1) * 0.3;
+      const p = path();
+      p.moveTo(d.source.x1, d.y0 - d.width / 2);
+      p.bezierCurveTo(
+        d.source.x1 + w, d.y0 - d.width / 2,
+        d.target.x0 - w, d.y1 - d.width / 2,
+        d.target.x0, d.y1 - d.width / 2,
+      );
+      p.lineTo(d.target.x0, d.y1 + d.width / 2);
+      p.bezierCurveTo(
+        d.target.x0 - w, d.y1 + d.width / 2,
+        d.source.x1 + w, d.y0 + d.width / 2,
+        d.source.x1, d.y0 + d.width / 2,
+      );
+      p.closePath();
+      return p.toString();
+    });
+  };
 
   select(svg_links.value)
     .attr("opacity", 0.2)
     .attr("transform", "translate(100,50)")
     .selectAll("path")
-    .data(sankey_graph.links, d => d.source.component + d.target.name)
+    .data(sankey_graph.links, (d: any) => d.source.component + d.target.name)
     .join(
       enter => {
         const link = enter.append("path");
         update_link(link);
         link
-          .attr("fill", d => color(d.source.component))
+          .attr("fill", (d: any) => color(d.source.component))
           .attr("opacity", 0.0)
           .attr("transform", "translate(30,0)")
-          .transition(transition_enter)
+          .transition(transition_enter as any)
           .attr("opacity", 1.0)
           .attr("transform", "translate(0,0)");
         return link;
       },
       update => {
-        update = update.transition(transition_update);
-        update_link(update);
-        return update;
+        const u = update.transition(transition_update as any);
+        update_link(u);
+        return u;
       },
       exit => {
-        exit = exit.transition(transition_exit);
-        exit.attr("opacity", 0)
-        exit.remove();
-      }
+        return exit
+          .transition(transition_exit as any)
+          .attr("opacity", 0)
+          .remove();
+      },
     )
-    // On hover, highlight the link, and show the tooltip.
-    .on("mouseover", function(event, d) {
+    .on("mouseover", function (event, d: any) {
+      if (!svg_tooltip.value) return;
       const [mouse_x, mouse_y] = pointer(event);
-      const mouse = pointer(event);
 
-      select(this)
-        .attr("opacity", 0.5)
+      select(this).attr("opacity", 0.5);
 
-      const tooltip = select(".tooltip")
+      const tooltip = select(svg_tooltip.value)
         .style("display", "block")
         .style("position", "absolute")
         .attr("transform", `translate(${mouse_x},${mouse_y})`)
-        .attr("pointer-events", "none")
+        .attr("pointer-events", "none");
 
       const text = tooltip
-        .select("text")
+        .select<SVGTextElement>("text")
         .attr("font-size", 20)
         .attr("fill", "black")
         .attr("pointer-events", "none")
-        .text(d.target.name + ": " + dollars_formatter(d.value) + `
-          (${percent_formatter(d.value / total_reward.value)})`);
+        .text(
+          `${d.target.name}: ${dollars_formatter(d.value)} (${percent_formatter(
+            total_reward.value ? d.value / total_reward.value : 0,
+          )})`,
+        );
 
-
-      const rect = tooltip
-        .select("rect")
-        .attr("x", -10)
-        .attr("y", -30)
-        .attr("width", text.node().getBBox().width + 20)
-        .attr("height", text.node().getBBox().height + 20)
-        .attr("fill", color(d.source.component))
-        .attr("rx", 5)
-        .attr("ry", 5)
-        .attr("pointer-events", "none")
-        .attr("stroke", "black")
-        .attr("stroke-width", 1)
-
+      const bbox = text.node()?.getBBox();
+      if (bbox) {
+        tooltip
+          .select("rect")
+          .attr("x", -10)
+          .attr("y", -30)
+          .attr("width", bbox.width + 20)
+          .attr("height", bbox.height + 20)
+          .attr("fill", color(d.source.component))
+          .attr("rx", 5)
+          .attr("ry", 5)
+          .attr("pointer-events", "none")
+          .attr("stroke", "black")
+          .attr("stroke-width", 1);
+      }
     })
-    .on("mousemove", function(event) {
+    .on("mousemove", function (event) {
+      if (!svg_tooltip.value) return;
       const [mouse_x, mouse_y] = pointer(event);
-      select(".tooltip")
-        .attr("transform", `translate(${mouse_x},${mouse_y})`)
+      select(svg_tooltip.value).attr("transform", `translate(${mouse_x},${mouse_y})`);
     })
-    .on("mouseout", function(event, d) {
-      select(".tooltip").style("display", "none");
-      select(this).attr("fill", color(d.source.component));
+    .on("mouseout", function (_event, d: any) {
+      if (svg_tooltip.value) {
+        select(svg_tooltip.value).style("display", "none");
+      }
       select(this)
-        .attr("opacity", 1.0)
+        .attr("fill", color(d.source.component))
+        .attr("opacity", 1.0);
     });
 
-  const update_label = (update) => {
+  const update_label = (update: any) => {
     update
-      .attr("x", d => d.x0 + 10)
-      .attr("y", d => (d.y1 + d.y0) / 2)
+      .attr("x", (d: any) => d.x0 + 10)
+      .attr("y", (d: any) => (d.y1 + d.y0) / 2)
       .attr("text-anchor", "start")
       .attr("alignment-baseline", "middle")
-      .text(d => d.name)
-      .attr("font-size", d => Math.max(Math.pow(d.y1 - d.y0, 0.2) * 5, 10));
-  }
+      .text((d: any) => d.name)
+      .attr("font-size", (d: any) => Math.max(Math.pow(d.y1 - d.y0, 0.2) * 5, 10));
+  };
 
   select(svg_labels.value)
     .attr("transform", "translate(100,50)")
     .selectAll("text")
-    .data(sankey_graph.nodes, d => d.component)
+    .data(sankey_graph.nodes, (d: any) => d.component)
     .join(
       enter => {
         const label = enter.append("text");
@@ -401,72 +417,77 @@ const render = (() => {
         label
           .attr("opacity", 0.0)
           .attr("transform", "translate(30,0)")
-          .transition(transition_enter)
+          .transition(transition_enter as any)
           .attr("opacity", 1.0)
           .attr("transform", "translate(0,0)");
         return label;
       },
       update => {
-        update = update.transition(transition_update);
-        update_label(update);
-        return update;
+        const u = update.transition(transition_update as any);
+        update_label(u);
+        return u;
       },
       exit => {
-        exit = exit.transition(transition_exit);
-        exit.attr("opacity", 0)
-        exit.remove();
-      }
-    )
+        return exit
+          .transition(transition_exit as any)
+          .attr("opacity", 0)
+          .remove();
+      },
+    );
 
-
-  // Add labels to the links.
-
-  const update_link_label = (update) => {
+  const update_link_label = (update: any) => {
     update
-      .attr("transform", d => `translate(${d.target.x0 - 10}, ${(d.target.y1 + d.target.y0) / 2})`)
-      .attr("font-size", d => Math.max(Math.pow(d.target.y1 - d.target.y0, 0.2) * 5, 10))
-      .text(d => dollars_formatter(d.value));
-  }
+      .attr(
+        "transform",
+        (d: any) => `translate(${d.target.x0 - 10}, ${(d.target.y1 + d.target.y0) / 2})`,
+      )
+      .attr("font-size", (d: any) =>
+        Math.max(Math.pow(d.target.y1 - d.target.y0, 0.2) * 5, 10),
+      )
+      .text((d: any) => dollars_formatter(d.value));
+  };
 
   select(svg_link_labels.value)
     .attr("transform", "translate(100,50)")
     .selectAll("text")
-    .data(sankey_graph.links, d => d.source.component + d.target.component)
+    .data(sankey_graph.links, (d: any) => d.source.component + d.target.component)
     .join(
       enter => {
         const label = enter.append("text");
-        label.attr("text-anchor", "end")
-        label.attr("alignment-baseline", "middle")
+        label.attr("text-anchor", "end");
+        label.attr("alignment-baseline", "middle");
         update_link_label(label);
         label
           .attr("opacity", 0.0)
-          .transition(transition_enter)
+          .transition(transition_enter as any)
           .attr("opacity", 1.0);
         return label;
       },
       update => {
-        update = update.transition(transition_update);
-        update_link_label(update);
-        return update;
+        const u = update.transition(transition_update as any);
+        update_link_label(u);
+        return u;
       },
       exit => {
-        exit = exit.transition(transition_exit);
-        exit.attr("opacity", 0)
-        exit.remove();
-      }
-    )
-})
+        return exit
+          .transition(transition_exit as any)
+          .attr("opacity", 0)
+          .remove();
+      },
+    );
+};
 
-watch(dates, () => {
-  updateUrl();
+watch(dates, render);
+
+onMounted(async () => {
+  window.addEventListener("resize", render);
+  data = await fetchCveData();
   render();
 });
 
-// On resize, re-render the graph.
-window.addEventListener("resize", () => {
-  render();
+onBeforeUnmount(() => {
+  window.removeEventListener("resize", render);
 });
-
 </script>
 
 <style scoped>

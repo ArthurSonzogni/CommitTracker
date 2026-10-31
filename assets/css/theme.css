@@ -1,6 +1,6 @@
 /*
  * Site-wide theme, layered on top of Bulma. The form components are in
- * components/b/. Loaded last (see nuxt.config.ts) so it can override Bulma.
+ * components/ui/. Loaded last (see nuxt.config.ts) so it can override Bulma.
  */
 
 :root {
@@ -74,57 +74,8 @@
   color-scheme: light;
 }
 
-/* Dark theme: follows the system, unless overridden by the navbar toggle
- * (data-theme on <html>). The two blocks below must stay identical. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0e0e11;
-    --surface: #16161a;
-    --surface-sunken: #202027;
-    --ink: #ededf2;
-    --ink-2: #c9c9d3;
-    --muted: #9a9aa8;
-    --faint: #6e6e7c;
-    --line: #2a2a32;
-    --line-strong: #3b3b45;
-
-    --accent: #8b78e6;
-    --accent-hover: #9d8cf0;
-    --accent-ink: #c6bbff;
-    --accent-soft: color-mix(in srgb, var(--accent) 16%, transparent);
-    --accent-line: color-mix(in srgb, var(--accent) 40%, transparent);
-    --ring: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
-    --nav-bg: color-mix(in srgb, var(--accent) 45%, var(--bg));
-    --severity-high: #d95926;
-    --severity-critical: #ff8fb8;
-
-    --shadow-xs: 0 1px 1px rgba(0, 0, 0, 0.3);
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
-    --shadow-lg: 0 16px 40px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06);
-
-    --series-1: #3987e5;
-    --series-2: #d95926;
-    --series-3: #199e70;
-    --series-4: #c98500;
-    --series-5: #d55181;
-    --series-6: #008300;
-    --series-7: #9085e9;
-    --series-8: #e66767;
-
-    --tag-danger-bg: rgba(230, 103, 103, 0.16);
-    --tag-danger-ink: #f19999;
-    --tag-warning-bg: rgba(237, 161, 0, 0.16);
-    --tag-warning-ink: #f0c060;
-    --tag-success-bg: rgba(27, 175, 122, 0.16);
-    --tag-success-ink: #6fd3a8;
-    --illustration-filter: invert(1) hue-rotate(180deg);
-    --heat-high: #86b6ef;
-    --tooltip-bg: #2a2a32;
-
-    color-scheme: dark;
-  }
-}
-
+/* Dark theme: data-theme on <html> is resolved before first paint in
+ * nuxt.config.ts (following localStorage or prefers-color-scheme). */
 :root[data-theme="dark"] {
   --bg: #0e0e11;
   --surface: #16161a;
@@ -1038,23 +989,6 @@ svg [stroke="black"], svg [stroke="#000"], svg [stroke="#000000"] { stroke: var(
 svg [fill="white"], svg [fill="#fff"], svg [fill="#ffffff"] { fill: var(--surface); }
 svg [stroke="white"], svg [stroke="#fff"], svg [stroke="#ffffff"] { stroke: var(--surface); }
 svg [fill="gray"], svg [fill="grey"] { fill: var(--muted); }
-
-svg [fill="#2a78d6"] { fill: var(--series-1); }
-svg [fill="#eb6834"] { fill: var(--series-2); }
-svg [fill="#1baf7a"] { fill: var(--series-3); }
-svg [fill="#eda100"] { fill: var(--series-4); }
-svg [fill="#e87ba4"] { fill: var(--series-5); }
-svg [fill="#008300"] { fill: var(--series-6); }
-svg [fill="#6250d6"] { fill: var(--series-7); }
-svg [fill="#e34948"] { fill: var(--series-8); }
-svg [stroke="#2a78d6"] { stroke: var(--series-1); }
-svg [stroke="#eb6834"] { stroke: var(--series-2); }
-svg [stroke="#1baf7a"] { stroke: var(--series-3); }
-svg [stroke="#eda100"] { stroke: var(--series-4); }
-svg [stroke="#e87ba4"] { stroke: var(--series-5); }
-svg [stroke="#008300"] { stroke: var(--series-6); }
-svg [stroke="#6250d6"] { stroke: var(--series-7); }
-svg [stroke="#e34948"] { stroke: var(--series-8); }
 
 /* Toasts (utils/toast.ts) ---------------------------------------------------- */
 

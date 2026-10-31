@@ -1,7 +1,5 @@
 <template>
   <div>
-    <Navbar/>
-
     <section class="section">
       <div class="container">
 
@@ -109,12 +107,16 @@
 </template>
 
 <script setup lang="ts">
-import repositories_json from '../../../public/data/repositories.json'
+import repositories_json from '../../../public/data/repositories.json';
+import { shardOf } from '~/utils/badges';
+import { formatDeveloperYearDescription, formatDeveloperYearTitle } from '~/utils/pageMeta';
+import { fetchUsernamesSummary } from '~/utils/usernamesSummary';
 
 // A developer's year: computed from their commits and reviews in each
 // repository (/data/<repository>/usernames/<name>.json).
 
 const route = useRoute();
+const { $chromiumData } = useNuxtApp();
 const name = computed(() => String(route.params.name));
 const year = computed(() => Number(route.params.year));
 const isCurrentYear = computed(() => year.value === new Date().getUTCFullYear());
@@ -130,22 +132,21 @@ const plural = (count: number, word: string, words = `${word}s`) =>
 const formatDay = (date: Date) =>
   date.toLocaleDateString("en", { month: "long", day: "numeric", timeZone: "UTC" });
 
-type Record = {
-  date: string, kind: "author" | "review", peers: string[],
-  additions: number, deletions: number, files: number, repository: string,
+type YearRecord = {
+  date: string;
+  kind: "author" | "review";
+  peers: string[];
+  additions: number;
+  deletions: number;
+  files: number;
+  repository: string;
 };
 
 // scripts/derive-developers.mjs: {repository: [authored, reviews, first year, last year]}
-const entry = shallowRef<{ [repository: string]: number[] } | null>(null);
-const records = shallowRef<Record[]>([]);
-const rank = shallowRef<{ position: number, total: number, repository: string } | null>(null);
+const entry = shallowRef<Record<string, number[]> | null>(null);
+const records = shallowRef<YearRecord[]>([]);
+const rank = shallowRef<{ position: number; total: number; repository: string } | null>(null);
 const loaded = ref(false);
-
-// The shard of a username. Kept in sync with scripts/derive-developers.mjs.
-const shardOf = (username: string) => {
-  const c = username[0].toLowerCase();
-  return /[a-z0-9]/.test(c) ? c : "_";
-};
 
 const fetchJson = async (url: string) => {
   const response = await fetch(url);
@@ -154,31 +155,54 @@ const fetchJson = async (url: string) => {
 
 // The repositories, without the directories of another one (e.g. blink in
 // chromium): their commits are also counted in the parent.
-const topLevel = (repositories: { [repository: string]: number[] }) =>
+const topLevel = (repositories: Record<string, number[]>) =>
   Object.keys(repositories).filter(dirname => {
     const parent = repositories_json.find(repo => repo.dirname === dirname)?.parent?.toLowerCase();
     return !parent || !repositories[parent];
   });
 
+let requestId = 0;
+
 const load = async () => {
+  const id = ++requestId;
+  const devName = name.value;
+  const targetYear = year.value;
+
   loaded.value = false;
   rank.value = null;
-  const shard = await fetchJson(`/data/developers/${shardOf(name.value)}.json`);
-  entry.value = shard?.[name.value] ?? null;
+
+  const shard = await fetchJson(`/data/developers/${shardOf(devName)}.json`);
+  if (id !== requestId) return;
+  entry.value = shard?.[devName] ?? null;
   records.value = [];
+
   if (entry.value) {
     // The previous year too, for the comparison.
     const active = topLevel(entry.value).filter(dirname => {
       const [, , first, last] = entry.value![dirname];
-      return first <= year.value && year.value - 1 <= last;
+      return first <= targetYear && targetYear - 1 <= last;
     });
-    const lists = await Promise.all(active.map(async dirname =>
-      ((await fetchJson(`/data/${dirname}/usernames/${encodeURIComponent(name.value)}.json`)) ?? [])
-        .filter((record: Record) => {
-          const y = Number(record.date.slice(0, 4));
-          return y === year.value || y === year.value - 1;
-        })
-        .map((record: Record) => ({ ...record, repository: dirname }))));
+    const lists = await Promise.all(
+      active.map(async dirname => {
+        const result = await $chromiumData(dirname, devName);
+        return result.data
+          .filter(record => {
+            if (record.kind !== "author" && record.kind !== "review") return false;
+            const y = Number(record.date.slice(0, 4));
+            return y === targetYear || y === targetYear - 1;
+          })
+          .map(record => ({
+            date: record.date,
+            kind: record.kind as "author" | "review",
+            peers: record.peers,
+            additions: record.additions ?? 0,
+            deletions: record.deletions ?? 0,
+            files: record.files ?? 0,
+            repository: dirname,
+          }));
+      }),
+    );
+    if (id !== requestId) return;
     records.value = lists.flat();
   }
   loaded.value = true;
@@ -186,9 +210,10 @@ const load = async () => {
   // The rank among the authors of the main repository of the year.
   const primary = yearRepositories.value[0];
   if (primary?.author) {
-    const summary = await fetchJson(`/data/${primary.dirname}/usernames_summary_commit_yearly_author.json`);
-    const counts = Object.values(summary ?? {})
-      .map((years: any) => years[year.value] ?? 0)
+    const summary = await fetchUsernamesSummary(primary.dirname, "commit", "yearly", "author");
+    if (id !== requestId) return;
+    const counts = Object.values(summary)
+      .map(years => years[targetYear] ?? 0)
       .filter(count => count > 0);
     rank.value = {
       position: 1 + counts.filter(count => count > primary.author).length,
@@ -207,7 +232,7 @@ const total = computed(() => inYear.value.length);
 const firstYear = computed(() => Math.min(...Object.values(entry.value ?? {}).map(r => r[2])));
 const lastYear = computed(() => Math.max(...Object.values(entry.value ?? {}).map(r => r[3])));
 
-const sum = (list: Record[], key: "additions" | "deletions" | "files") =>
+const sum = (list: YearRecord[], key: "additions" | "deletions" | "files") =>
   list.reduce((acc, r) => acc + (r[key] ?? 0), 0);
 
 // The change from the previous year, in percent, when it had some.
@@ -305,7 +330,7 @@ const first = computed(() => new Date(days.value[0]));
 const last = computed(() => new Date(days.value.at(-1)!));
 
 // The peers of a list of records, most frequent first.
-const topPeers = (list: Record[]) => {
+const topPeers = (list: YearRecord[]) => {
   const counts = new Map<string, number>();
   list.forEach(r => r.peers.forEach(peer => counts.set(peer, (counts.get(peer) ?? 0) + 1)));
   return [...counts]
@@ -338,10 +363,16 @@ const individualsLink = (repository: string) =>
 
 // Also written into the generated HTML by scripts/static-meta.mjs.
 useSeoMeta({
-  title: () => `${name.value} in ${year.value} · CommitTracker`,
-  ogTitle: () => `${name.value} in ${year.value} · CommitTracker`,
+  title: () => formatDeveloperYearTitle(name.value, year.value),
+  ogTitle: () => formatDeveloperYearTitle(name.value, year.value),
   description: () => total.value
-    ? `${name.value} in ${year.value}: ${plural(authored.value.length, "commit")} and ${plural(reviewed.value.length, "review")} across ${plural(yearRepositories.value.length, "web platform repository", "web platform repositories")}.`
+    ? formatDeveloperYearDescription(
+        name.value,
+        year.value,
+        authored.value.length,
+        reviewed.value.length,
+        yearRepositories.value.length,
+      )
     : `The year ${year.value} of ${name.value} in the web platform.`,
 });
 </script>

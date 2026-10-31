@@ -2,12 +2,12 @@
 // A table, with sorting, pagination, sticky header/column and detail rows.
 // The columns come from the `columns` prop, or from <UiTableColumn> children,
 // whose default slot renders the cells.
-import { Comment, Fragment, defineComponent, h, ref, computed, watch, type PropType, type VNode } from 'vue'
+import { Fragment, defineComponent, h, ref, computed, watch, type PropType, type VNode } from 'vue'
 import UiTableColumn from './TableColumn.vue'
 import UiIcon from './Icon.vue'
 import UiTooltip from './Tooltip.vue'
 
-type Column = {
+export type Column = {
   field?: string;
   label?: string;
   sortable?: boolean;
@@ -15,6 +15,7 @@ type Column = {
   numeric?: boolean;
   visible?: boolean;
   tdAttrs?: (row: any, column: Column) => Record<string, any>;
+  formatter?: (value: any, row: any) => any;
   cellClass?: string;
   headerClass?: string;
   // Explains the column, in a tooltip over its label.
@@ -44,6 +45,7 @@ export default defineComponent({
   props: {
     data: { type: Array as PropType<any[]>, default: () => [] },
     columns: { type: Array as PropType<Column[]>, default: () => [] },
+    rowKey: { type: [String, Function] as PropType<string | ((row: any) => string | number)>, default: undefined },
     striped: Boolean,
     hoverable: Boolean,
     bordered: Boolean,
@@ -64,6 +66,16 @@ export default defineComponent({
       page.value = 1;
       openedDetails.value = new Set();
     });
+
+    const getRowKey = (row: any, index: number): string | number => {
+      if (typeof props.rowKey === 'function') {
+        return props.rowKey(row);
+      }
+      if (typeof props.rowKey === 'string' && row != null && row[props.rowKey] !== undefined) {
+        return row[props.rowKey];
+      }
+      return index;
+    };
 
     const sorted = computed(() => {
       if (!sortField.value) {
@@ -157,17 +169,25 @@ export default defineComponent({
 
       const body = h('tbody', rows.value.flatMap((row, index) => {
         const opened = openedDetails.value.has(row);
-        const cells = columns.map(column => h('td', {
-          ...(column.tdAttrs?.(row, column) ?? {}),
-          class: [column.cellClass, column.tdAttrs?.(row, column)?.class, {
-            'is-sticky': column.sticky,
-            'has-text-right': column.numeric,
-          }],
-          'data-label': column.label,
-        }, column.cell
-          ? column.cell({ row, index, column })
-          : String(row[column.field ?? ''] ?? '')));
-        const tr = h('tr', { key: index, class: { 'is-detail-open': opened } }, [
+        const key = getRowKey(row, index);
+        const cells = columns.map(column => {
+          const extraAttrs = column.tdAttrs?.(row, column) ?? {};
+          const rawValue = column.field ? row[column.field] : undefined;
+          const content = column.cell
+            ? column.cell({ row, index, column })
+            : column.formatter
+              ? String(column.formatter(rawValue, row) ?? '')
+              : String(rawValue ?? '');
+          return h('td', {
+            ...extraAttrs,
+            class: [column.cellClass, extraAttrs.class, {
+              'is-sticky': column.sticky,
+              'has-text-right': column.numeric,
+            }],
+            'data-label': column.label,
+          }, content);
+        });
+        const tr = h('tr', { key, class: { 'is-detail-open': opened } }, [
           props.detailed
             ? h('td', { class: 'ui-table-detail-toggle' }, [h('button', {
                 type: 'button',
@@ -182,7 +202,7 @@ export default defineComponent({
         if (!opened || !slots.detail) {
           return [tr];
         }
-        return [tr, h('tr', { class: 'detail' }, [
+        return [tr, h('tr', { key: `${key}-detail`, class: 'detail' }, [
           h('td', { colspan: columns.length + 1 }, slots.detail({ row, index })),
         ])];
       }));

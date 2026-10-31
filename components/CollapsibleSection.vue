@@ -3,14 +3,21 @@
        copying the link to it when clicked. -->
   <section :id="id" class="collapsible-section">
     <h2 class="title is-4">
-      <button type="button" class="collapsible-toggle" :aria-expanded="!collapsed"
+      <button
+        type="button"
+        class="collapsible-toggle"
+        :aria-expanded="!collapsed"
         @click="emit('toggle')">
         <UiIcon :name="collapsed ? 'chevron-right' : 'chevron-down'" size="small" />
         <span>{{ title }}</span>
       </button>
       <span v-if="note" class="section-note">{{ note }}</span>
-      <a class="section-link" :href="`#${id}`" :title="`Copy the link to ${title}`"
-        :aria-label="`Copy the link to ${title}`" @click.prevent="copy">
+      <a
+        class="section-link"
+        :href="`#${id}`"
+        :title="`Copy the link to ${title}`"
+        :aria-label="`Copy the link to ${title}`"
+        @click.prevent="share()">
         <UiIcon :name="copied ? 'check' : 'link-variant'" size="small" />
       </a>
     </h2>
@@ -21,6 +28,8 @@
 </template>
 
 <script setup lang="ts">
+import { useShareLink } from "~/composables/useShareLink";
+
 const props = defineProps<{
   id: string;
   title: string;
@@ -32,25 +41,10 @@ const emit = defineEmits(["toggle"]);
 
 // Copies the current page, with its state, scrolled to this section. Like the
 // share button of the navbar: shared on touch devices, copied elsewhere.
-const copied = ref(false);
-let copiedTimer: ReturnType<typeof setTimeout> | undefined;
-const copy = async () => {
-  const url = `${location.origin}${location.pathname}${location.search}#${props.id}`;
-  if (navigator.share && matchMedia("(pointer: coarse)").matches) {
-    try {
-      await navigator.share({ title: `${props.title} - ${document.title}`, url });
-    } catch (e) {}
-    return;
-  }
-  try {
-    await navigator.clipboard.writeText(url);
-    copied.value = true;
-    clearTimeout(copiedTimer);
-    copiedTimer = setTimeout(() => copied.value = false, 1600);
-  } catch (e) {
-    showToast({ message: "Could not copy the link", type: "is-danger" });
-  }
-};
+const { copied, share } = useShareLink({
+  url: () => `${location.origin}${location.pathname}${location.search}#${props.id}`,
+  title: () => `${props.title} - ${document.title}`,
+});
 </script>
 
 <style scoped>

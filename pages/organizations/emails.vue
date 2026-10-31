@@ -1,6 +1,5 @@
 <template>
   <div>
-    <Navbar></Navbar>
     <section class="section">
       <div class="container">
         <h1 class="title">Organizations emails</h1>
@@ -17,7 +16,7 @@
     </section>
 
     <section class="container">
-      <div class="card box" v-for="o in data" :key="o.organization">
+      <div class="card box" v-for="o in data" :key="o.org">
         <div class="card-header"
              style="background-color: var(--surface-sunken);">
 
@@ -43,7 +42,7 @@
           </div>
 
           <div class="content" v-if="!o.collapsed">
-            <ul v-if="!o.collapsed">
+            <ul>
               <li v-for="email in o.emails" :key="email">
                 {{ email }}
               </li>
@@ -56,66 +55,71 @@
 </template>
 
 <script setup lang="ts">
+import { useUrlState, urlCodecs } from "~/composables/useUrlState";
+import { listSummary, repositoryNames } from "~/utils/filter-summary";
 
-const route = useRoute();
-const router = useRouter();
-
-const repositories = ref<string[]>(["chromium"]);
-if (route.query.repositories) {
-  repositories.value = route.query.repositories.split(",");
+interface OrganizationEmailsEntry {
+  org: string;
+  emails: string[];
+  emails_short: string[];
+  emails_size: number;
+  username_size: number;
+  collapsed: boolean;
 }
 
-const data = ref([]);
+const { repositories } = useUrlState({
+  repositories: urlCodecs.csv(["chromium"]),
+});
+
+const data = ref<OrganizationEmailsEntry[]>([]);
+let requestId = 0;
 
 const refresh = async () => {
-  router.push({
-    query: {
-      repositories: repositories.value.join(",")
-    }
-  });
+  const id = ++requestId;
+  const repos = [...repositories.value];
+  if (repos.length === 0) {
+    data.value = [];
+    return;
+  }
 
-  const responses = await Promise.all(repositories.value.map(repo =>
-    fetch(`/data/${repo}/organizations_emails.json`)
-  ))
+  const responses = await Promise.all(
+    repos.map(repo => fetch(`/data/${repo}/organizations_emails.json`)),
+  );
+  const json_data: Record<string, string[]>[] = await Promise.all(
+    responses.map(r => r.json()),
+  );
+  if (id !== requestId) return;
 
-  const json_data = await Promise.all(responses.map(r => r.json()))
-
-  const emails = {}
-  for(const d of json_data) {
-    for(const org in d) {
-      if(!emails[org]) {
+  const emails: Record<string, Set<string>> = {};
+  for (const d of json_data) {
+    for (const org in d) {
+      if (!emails[org]) {
         emails[org] = new Set();
       }
-      for(const email of d[org]) {
+      for (const email of d[org]) {
         emails[org].add(email);
       }
     }
   }
 
-  const new_data = []
-  for(const [org, emails_data] of Object.entries(emails)) {
-    const emails= Array.from(emails_data).sort();
+  const new_data: OrganizationEmailsEntry[] = [];
+  for (const [org, emails_data] of Object.entries(emails)) {
+    const sortedEmails = Array.from(emails_data).sort();
     new_data.push({
       org,
-      emails,
-      emails_short: Array.from(emails).slice(0, 5),
-      emails_size: emails.length,
-      username_size: new Set(emails.map(e => e.split("@")[0])).size,
-      collapsed: emails.length > 6,
-    })
+      emails: sortedEmails,
+      emails_short: sortedEmails.slice(0, 5),
+      emails_size: sortedEmails.length,
+      username_size: new Set(sortedEmails.map(e => e.split("@")[0])).size,
+      collapsed: sortedEmails.length > 6,
+    });
   }
   new_data.sort((a, b) => b.emails.length - a.emails.length);
 
   data.value = new_data;
-}
+};
 
-onMounted(() => {
-  refresh();
-});
-
-watch(repositories, () => {
-  refresh();
-});
-
+onMounted(refresh);
+watch(repositories, refresh);
 </script>
 

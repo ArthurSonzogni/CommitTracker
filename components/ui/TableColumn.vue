@@ -14,6 +14,8 @@ export default defineComponent({
     visible: { type: Boolean, default: true },
     // (row, column) => attributes of the cell.
     tdAttrs: Function,
+    // (value, row) => formatted cell content when no default slot is given.
+    formatter: Function,
     cellClass: String,
     headerClass: String,
     // Explains the column, in a tooltip over its label.

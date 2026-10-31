@@ -1,123 +1,143 @@
 <template>
-    <UiTagInput ref="input" v-model="developers" @typing="computeDevelopersListFiltered" :suggestions="developerListFiltered" :allow-new="false" icon="label" field="this" placeholder="developer username" open-on-focus>
-        <template v-slot="props">
-            <!-- Split the tag in 2-3 parts. The part that matches the input is
-                highlighted. The rest isn't. The email domain is yellow. -->
-            <span v-for="(part, index) in props.option.split('@')" :key="index">
-                <span v-if="index == 0">
-                    {{part}}
-                </span>
-                <strong v-else style="color: var(--accent)">
-                    (@{{ part }})
-                </strong>
-            </span>
-        </template>
-    </UiTagInput>
+  <UiTagInput
+    v-model="developers"
+    :suggestions="developerListFiltered"
+    :allow-new="false"
+    :tag-style="tagChipStyle"
+    icon="label"
+    field="this"
+    placeholder="developer username"
+    open-on-focus
+    @focus="ensureLoaded"
+    @typing="onTyping">
+    <template #default="{ option }">
+      <span v-for="(part, index) in String(option).split('@')" :key="index">
+        <span v-if="index === 0">{{ part }}</span>
+        <strong v-else style="color: var(--accent)">(@{{ part }})</strong>
+      </span>
+    </template>
+  </UiTagInput>
 </template>
 
 <script setup lang="ts">
+import repositories from "../public/data/repositories.json";
+import { tagChipStyle } from "~/utils/palette";
 
-import repositories from '../public/data/repositories.json'
+let usernamesPromise: Promise<string[]> | null = null;
+let emailsPromise: Promise<string[]> | null = null;
 
-const input = ref(null);
+const fetchAcrossRepositories = (filename: string): Promise<string[]> =>
+  Promise.all(
+    repositories.map(async (repo) => {
+      try {
+        const res = await fetch(`/data/${repo.dirname}/${filename}`);
+        return res.ok ? ((await res.json()) as string[]) : [];
+      } catch {
+        return [];
+      }
+    }),
+  ).then((lists) => Array.from(new Set(lists.flat())));
 
-const developers = defineModel();
+const getUsernames = () =>
+  (usernamesPromise ??= fetchAcrossRepositories("usernames.json"));
+const getEmails = () =>
+  (emailsPromise ??= fetchAcrossRepositories("emails.json"));
+
+const developers = defineModel<string[]>({ default: () => [] });
 
 const props = defineProps({
-    size: {
-        type: String,
-        required: false,
-    },
-
-    allowUsername: {
-        type: Boolean,
-        default: true,
-    },
-
-    allowEmail: {
-        type: Boolean,
-        default: false,
-    },
+  size: {
+    type: String,
+    default: undefined,
+  },
+  allowUsername: {
+    type: Boolean,
+    default: true,
+  },
+  allowEmail: {
+    type: Boolean,
+    default: false,
+  },
 });
 
-const developerList = shallowRef([]);
-const developerListFiltered = shallowRef([]);
+const developerList = shallowRef<string[]>([]);
+const developerListFiltered = shallowRef<string[]>([]);
+const currentQuery = ref("");
 
-const FetchData = (filename) => async () => {
-    const fetch_json = x => fetch(x).then(j => j.json());
-    const fetch_this = x => fetch_json(`/data/${x.dirname}/${filename}`);
-    const jsons  = await Promise.all(repositories.map(fetch_this));
-    const merged = jsons.reduce((acc, json) => acc.concat(json), []);
-    return new Set(merged);
-}
+let loadedKey = "";
+let activeLoad: Promise<void> | null = null;
 
-const FetchUsernames = FetchData("usernames.json");
-const FetchEmails = FetchData("emails.json");
+const updateSuggestions = (rawQuery: string) => {
+  const q = (rawQuery ?? "").trim().toLowerCase();
+  if (q.length <= 2) {
+    developerListFiltered.value = [];
+    return;
+  }
 
-new Promise(async () => {
-    let set = new Set();
-    if (props.allowUsername) {
-        const usernames = await FetchUsernames();
-        set = set.union(usernames);
+  const prefixMatches: string[] = [];
+  const substringMatches: string[] = [];
+
+  for (const candidate of developerList.value) {
+    const idx = candidate.toLowerCase().indexOf(q);
+    if (idx === 0) {
+      prefixMatches.push(candidate);
+    } else if (idx > 0) {
+      substringMatches.push(candidate);
     }
-    if (props.allowEmail) {
-        const emails = await FetchEmails();
-        set = set.union(emails);
-    }
-    const array = Array.from(set);
+  }
 
-    developerList.value = array
-    // Remove developers that are not in the list.
-    developers.value.filter(v => array.includes(v));
-});
+  prefixMatches.sort((a, b) => a.length - b.length || a.localeCompare(b));
+  substringMatches.sort((a, b) => {
+    const diff = a.toLowerCase().indexOf(q) - b.toLowerCase().indexOf(q);
+    return diff !== 0 ? diff : a.localeCompare(b);
+  });
 
-const computeDevelopersListFiltered = (developer) => {
-    if (developer == null || developer.length <= 2) {
-        developerListFiltered.value = [];
-        return;
-    }
-
-    developer = developer.trim().toLowerCase();
-
-    const filter = option => option.toLowerCase().indexOf(developer) == 0;
-    const sorter = (a, b) => a.toLowerCase().indexOf(developer) - b.toLowerCase().indexOf(developer);
-
-    developerListFiltered.value =
-        developerList.value
-            .filter(filter)
-            .slice(0, 1000)
-            .sort(sorter)
-            .slice(0, 10);
+  developerListFiltered.value = [...prefixMatches, ...substringMatches].slice(0, 10);
 };
 
-const { $color } = useNuxtApp();
+const ensureLoaded = (): Promise<void> => {
+  const targetKey = `${props.allowUsername ? 1 : 0}:${props.allowEmail ? 1 : 0}`;
+  if (loadedKey === targetKey) {
+    return Promise.resolve();
+  }
+  if (activeLoad) {
+    return activeLoad;
+  }
 
-const colorizeDevelopers = async () => {
-    await new Promise(r => setTimeout(r, 100));
-    let i = 0;
-    for(const element of input.value.$el.querySelectorAll(".tag")) {
-        element.style.backgroundColor = $color(developers.value[i]);
-        ++i;
+  activeLoad = (async () => {
+    try {
+      const [usernames, emails] = await Promise.all([
+        props.allowUsername ? getUsernames() : Promise.resolve([]),
+        props.allowEmail ? getEmails() : Promise.resolve([]),
+      ]);
+      developerList.value = Array.from(new Set([...usernames, ...emails]));
+      loadedKey = targetKey;
+      if (currentQuery.value) {
+        updateSuggestions(currentQuery.value);
+      }
+    } finally {
+      activeLoad = null;
     }
-}
+  })();
 
-// When the user click on "enter", the first suggestion is selected.
-const installInputHandler = async () => {
-    while (input.value == null) {
-        await new Promise(r => setTimeout(r, 100));
-    }
-    input.value.$el.querySelector("input").addEventListener("keydown", (e) => {
-        if (e.key == "Enter") {
-            const first = input.value.$el.querySelector(".dropdown-item");
-            if (first) {
-                first.click();
-            }
-        }
-    });
-
+  return activeLoad;
 };
-watch(developers, colorizeDevelopers);
-colorizeDevelopers();
-installInputHandler();
 
+const onTyping = (text: string) => {
+  currentQuery.value = text ?? "";
+  if (currentQuery.value.length > 0 && loadedKey === "") {
+    ensureLoaded();
+  }
+  updateSuggestions(currentQuery.value);
+};
+
+watch(
+  () => [props.allowUsername, props.allowEmail],
+  () => {
+    if (loadedKey !== "") {
+      loadedKey = "";
+      ensureLoaded();
+    }
+  },
+);
 </script>

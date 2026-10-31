@@ -1,54 +1,122 @@
 <template>
-  <div>
-    <UiField>
+  <div class="timeline-count">
+    <UiField v-if="!basic">
       <UiSwitch v-model="full">Full</UiSwitch>
     </UiField>
     <div align="center">
-      <UiTable :data="filteredData" :columns="columns" sticky-header striped hoverable>
-      </UiTable>
+      <UiTable
+        :data="filteredData"
+        :columns="columns"
+        row-key="developer"
+        :sticky-header="!basic"
+        :height="basic ? '100%' : undefined"
+        striped
+        :hoverable="!basic" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-
-import { format } from 'd3-format'
-const { $chromiumDataAll } = useNuxtApp();
+import { format } from "d3-format";
+import type { PropType } from "vue";
+import type { Column } from "./ui/Table.vue";
+import {
+  useDeveloperCommits,
+  type DeveloperCommitsEntry,
+} from "~/composables/useDeveloperCommits";
 
 const props = defineProps({
-  repositories: { type:Array[String], default: () => ["chromium"],},
-  developers: { type: Array },
-  dates: { type: Array[Date] },
-  author: { type: Boolean },
-  review: { type: Boolean },
-})
+  repositories: {
+    type: Array as PropType<string[]>,
+    default: () => ["chromium"],
+  },
+  developers: {
+    type: Array as PropType<string[]>,
+    default: () => [],
+  },
+  dates: {
+    type: Array as PropType<Date[]>,
+    default: undefined,
+  },
+  author: { type: Boolean, default: true },
+  review: { type: Boolean, default: true },
+  basic: { type: Boolean, default: false },
+  commits: {
+    type: Array as PropType<DeveloperCommitsEntry[]>,
+    default: undefined,
+  },
+});
 
-const data = shallowRef([])
-const filteredData = shallowRef([])
-const columns = shallowRef([])
-const full = ref<boolean>(false)
+const full = ref(false);
 
-const refreshFilteredData = async () => {
-  const new_filtered_data = [];
+const intFormat = format(",d");
+const floatFormat = format(",.2f");
+const formatInt = (v: unknown) => intFormat(typeof v === "number" && Number.isFinite(v) ? v : 0);
+const formatFloat = (v: unknown) => floatFormat(typeof v === "number" && Number.isFinite(v) ? v : 0);
 
-  for(const d of data.value) {
+const { filtered: fetchedFiltered } = useDeveloperCommits({
+  repo: () => (props.commits !== undefined ? "" : props.repositories),
+  developers: () => (props.commits !== undefined ? [] : props.developers),
+  dates: () => props.dates,
+  author: () => props.author,
+  review: () => props.review,
+});
 
-    let commit = d.commits
-      .filter(commit => {
-        const date = new Date(commit.date)
-        return date >= props.dates[0] && date <= props.dates[1]
-      })
+const entries = computed<DeveloperCommitsEntry[]>(() => {
+  if (props.commits === undefined) {
+    return fetchedFiltered.value;
+  }
+  const hasDateBounds =
+    Array.isArray(props.dates) &&
+    props.dates.length >= 2 &&
+    props.dates[0] instanceof Date &&
+    props.dates[1] instanceof Date;
+  const startMs = hasDateBounds ? props.dates![0].getTime() : -Infinity;
+  const endMs = hasDateBounds ? props.dates![1].getTime() : Infinity;
 
-    if (!props.author) {
-      commit = commit.filter(c => c.kind != "author")
+  return props.commits.map((entry) => {
+    if (!props.author && !props.review) {
+      return { developer: entry.developer, data: [] };
     }
+    const data = entry.data.filter((commit) => {
+      if (!props.author && commit.kind === "author") return false;
+      if (!props.review && commit.kind === "review") return false;
+      const t = commit.timeMs ?? Date.parse(commit.date);
+      return t >= startMs && t <= endMs;
+    });
+    return { developer: entry.developer, data };
+  });
+});
 
-    if (!props.review) {
-      commit = commit.filter(c => c.kind != "review")
-    }
+const STAT_TYPES = ["Additions", "Deletions", "Net", "Modified", "Files"] as const;
 
-    const new_columns = [];
-    new_columns.push({
+const columns = computed<Column[]>(() => {
+  if (props.basic) {
+    return [
+      {
+        field: "developer",
+        label: "Developer",
+        sortable: true,
+      },
+      {
+        field: "author",
+        label: "Author",
+        sortable: true,
+        numeric: true,
+        formatter: formatInt,
+      },
+      {
+        field: "review",
+        label: "Review",
+        sortable: true,
+        numeric: true,
+        formatter: formatInt,
+      },
+    ];
+  }
+
+  const cols: Column[] = [
+    {
       field: "developer",
       label: "Developer",
       sortable: true,
@@ -56,151 +124,158 @@ const refreshFilteredData = async () => {
       visible: true,
       numeric: false,
       headerClass: "table-style-header",
-    });
-
-    new_columns.push({
+    },
+    {
       field: "commit",
       label: "Σ(Commits)",
       sortable: true,
       visible: true,
       numeric: true,
+      formatter: formatInt,
       cellClass: "table-style-commits",
       headerClass: "table-style-header",
-    });
+    },
+  ];
 
-    const stats = [];
-    stats.push(["", (x:string) => `Σ(${x})`])
-    if (full.value) {
-      stats.push(["_mean", (x:string) => `Mean(${x})`])
-      stats.push(["_median", (x:string) => `Median(${x})`])
-      stats.push(["_min", (x:string) => `Min(${x})`])
-      stats.push(["_max", (x:string) => `Max(${x})`])
+  const stats: Array<[string, (x: string) => string, (v: unknown) => string]> = [
+    ["", (x: string) => `Σ(${x})`, formatInt],
+  ];
+  if (full.value) {
+    stats.push(["_mean", (x: string) => `Mean(${x})`, formatFloat]);
+    stats.push(["_median", (x: string) => `Median(${x})`, formatInt]);
+    stats.push(["_min", (x: string) => `Min(${x})`, formatInt]);
+    stats.push(["_max", (x: string) => `Max(${x})`, formatInt]);
+  }
+
+  for (const type of STAT_TYPES) {
+    const lower = type.toLowerCase();
+    for (const [suffix, labelFn, formatter] of stats) {
+      cols.push({
+        field: `${lower}${suffix}`,
+        label: labelFn(type),
+        sortable: true,
+        visible: true,
+        numeric: true,
+        formatter,
+        cellClass: `table-style-${lower}`,
+        headerClass: "table-style-header",
+      });
     }
+  }
 
-    for(const type of ["Additions", "Deletions", "Net", "Modified", "Files"]) {
-      for(const stat of stats) {
-        const field = `${type.toLowerCase()}${stat[0]}`
-        new_columns.push({
-          field: field,
-          label: stat[1](type),
-          sortable: true,
-          visible: true,
-          numeric: true,
-          cellClass: `table-style-${type.toLowerCase()}`,
-          headerClass: "table-style-header",
-        })
-      }
-    }
-    columns.value = new_columns;
+  return cols;
+});
 
-    // Collect additions, deletions, net, and files. Sort and calculate the sum,
-    // mean, median, min, and max.
-    const additions = commit.map(c => c.additions).sort((a,b) => a-b)
-    const deletions = commit.map(c => c.deletions).sort((a,b) => a-b)
-    const net = commit.map(c => c.additions - c.deletions).sort((a,b) => a-b)
-    const modified = commit.map(c => c.additions + c.deletions).sort((a,b) => a-b)
-    const files = commit.map(c => c.files).sort((a,b) => a-b)
-
-    const int_format = format(",d")
-    const float_format = format(".2f")
-
-    const sum = array => array.reduce((a,b) => a+b , 0)
-
-    const sum_additions = sum(additions)
-    const sum_deletions = sum(deletions)
-    const sum_net = sum(net)
-    const sum_modified = sum(modified)
-    const sum_files = sum(files)
-
-    const out = {
-      developer: d.developer,
-
-      commit: format(",")(commit.length),
-
-      additions: int_format(sum_additions),
-      additions_mean: float_format(sum_additions / commit.length),
-      additions_median: int_format(additions[Math.floor(additions.length/2)]),
-      additions_min: int_format(additions[0]),
-      additions_max: int_format(additions[additions.length-1]),
-
-      deletions: int_format(sum_deletions),
-      deletions_mean: float_format(sum_deletions / commit.length),
-      deletions_median: int_format(deletions[Math.floor(deletions.length/2)]),
-      deletions_min: int_format(deletions[0]),
-      deletions_max: int_format(deletions[deletions.length-1]),
-
-      net: int_format(sum_net),
-      net_mean: float_format(sum_net / commit.length),
-      net_median: int_format(net[Math.floor(net.length/2)]),
-      net_min: int_format(net[0]),
-      net_max: int_format(net[net.length-1]),
-
-      modified: int_format(sum_modified),
-      modified_mean: float_format(sum_modified / commit.length),
-      modified_median: int_format(modified[Math.floor(modified.length/2)]),
-      modified_min: int_format(modified[0]),
-      modified_max: int_format(modified[modified.length-1]),
-
-      files: int_format(sum_files),
-      files_mean: float_format(sum_files / commit.length),
-      files_median: int_format(files[Math.floor(files.length/2)]),
-      files_min: int_format(files[0]),
-      files_max: int_format(files[files.length-1]),
-
-    };
-
-    new_filtered_data.push(out);
+const calcStats = (values: number[]) => {
+  const n = values.length;
+  if (n === 0) {
+    return { sum: 0, mean: 0, median: 0, min: 0, max: 0 };
+  }
+  const sorted = [...values].sort((a, b) => a - b);
+  let sum = 0;
+  for (let i = 0; i < n; i++) {
+    sum += sorted[i];
+  }
+  return {
+    sum,
+    mean: sum / n,
+    median: sorted[Math.floor(n / 2)],
+    min: sorted[0],
+    max: sorted[n - 1],
   };
-
-  filteredData.value = new_filtered_data;
 };
 
-const refresh = async () => {
-  const d = await $chromiumDataAll(props.repositories[0], props.developers)
-  data.value = d.map(d => {
+const filteredData = computed(() => {
+  if (props.basic) {
+    return entries.value.map((entry) => {
+      let authorCount = 0;
+      let reviewCount = 0;
+      for (const c of entry.data) {
+        if (props.author && c.kind === "author") authorCount++;
+        else if (props.review && c.kind === "review") reviewCount++;
+      }
+      return {
+        developer: entry.developer,
+        author: authorCount,
+        review: reviewCount,
+      };
+    });
+  }
+
+  return entries.value.map((entry) => {
+    const commits = entry.data;
+    const additions = calcStats(commits.map((c) => c.additions ?? 0));
+    const deletions = calcStats(commits.map((c) => c.deletions ?? 0));
+    const net = calcStats(commits.map((c) => (c.additions ?? 0) - (c.deletions ?? 0)));
+    const modified = calcStats(commits.map((c) => (c.additions ?? 0) + (c.deletions ?? 0)));
+    const files = calcStats(commits.map((c) => c.files ?? 0));
+
     return {
-      developer: d.developer,
-      commits: d.data
-    }
-  })
-  refreshFilteredData()
-}
+      developer: entry.developer,
+      commit: commits.length,
 
-refresh();
+      additions: additions.sum,
+      additions_mean: additions.mean,
+      additions_median: additions.median,
+      additions_min: additions.min,
+      additions_max: additions.max,
 
-watch(() => props.repositories, refresh)
-watch(() => props.developers, refresh)
-watch(() => props.dates, refresh)
-watch(() => props.author, refreshFilteredData)
-watch(() => props.review, refreshFilteredData)
-watch(full, refreshFilteredData)
+      deletions: deletions.sum,
+      deletions_mean: deletions.mean,
+      deletions_median: deletions.median,
+      deletions_min: deletions.min,
+      deletions_max: deletions.max,
 
+      net: net.sum,
+      net_mean: net.mean,
+      net_median: net.median,
+      net_min: net.min,
+      net_max: net.max,
 
+      modified: modified.sum,
+      modified_mean: modified.mean,
+      modified_median: modified.median,
+      modified_min: modified.min,
+      modified_max: modified.max,
+
+      files: files.sum,
+      files_mean: files.mean,
+      files_median: files.median,
+      files_min: files.min,
+      files_max: files.max,
+    };
+  });
+});
 </script>
 
-<style>
-.table-style-commits {
-  font-family: monospace;
-  background-color: rgba(255,255,0,0.1);
+<style scoped>
+.timeline-count :deep(.table-style-commits) {
+  font-family: var(--font-mono);
+  background-color: rgba(255, 255, 0, 0.1);
 }
-.table-style-additions {
-  font-family: monospace;
+
+.timeline-count :deep(.table-style-additions) {
+  font-family: var(--font-mono);
   background-color: rgba(0, 255, 0, 0.1);
 }
-.table-style-deletions {
-  font-family: monospace;
+
+.timeline-count :deep(.table-style-deletions) {
+  font-family: var(--font-mono);
   background-color: rgba(255, 0, 0, 0.1);
 }
-.table-style-net {
-  font-family: monospace;
+
+.timeline-count :deep(.table-style-net) {
+  font-family: var(--font-mono);
   background-color: rgba(0, 0, 255, 0.1);
 }
-.table-style-modified {
-  font-family: monospace;
+
+.timeline-count :deep(.table-style-modified) {
+  font-family: var(--font-mono);
   background-color: rgba(255, 0, 255, 0.1);
 }
-.table-style-files {
-  font-family: monospace;
-  background-color: rgba(0, 0, 0, 0.1);
+
+.timeline-count :deep(.table-style-files) {
+  font-family: var(--font-mono);
+  background-color: rgba(128, 128, 128, 0.12);
 }
 </style>

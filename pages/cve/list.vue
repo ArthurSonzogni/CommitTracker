@@ -1,7 +1,5 @@
 <template>
   <div>
-    <Navbar/>
-
     <UiLoading v-if="loading" v-model="loading" :is-full-page="true"></UiLoading>
 
     <section class="section pb-2">
@@ -29,7 +27,7 @@
         <FilterPanel :summary="summary">
           <div class="form-row">
             <UiField label="Year">
-              <UiSelect v-model="filter_date" placeholder="All" @change="updateUrl">
+              <UiSelect v-model="filter_date" placeholder="All">
                 <option value="All">All</option>
                 <option v-for="year in all_years" :key="year" :value="year">
                 {{ year }}
@@ -38,7 +36,7 @@
             </UiField>
 
             <UiField label="Component" v-if="!filter_component">
-              <UiSelect v-model="filter_component" placeholder="All" @change="updateUrl">
+              <UiSelect v-model="filter_component" placeholder="All">
                 <option v-for="component in all_components" :key="component" :value="component">
                 {{ component }}
                 </option>
@@ -57,10 +55,10 @@
             </UiField>
 
             <UiField label="Private bugs">
-              <UiSwitch v-model="hide_private" @change="updateUrl">Hide</UiSwitch>
+              <UiSwitch v-model="hide_private">Hide</UiSwitch>
             </UiField>
             <UiField label="Description">
-              <UiSwitch v-model="show_description" @change="updateUrl">Show</UiSwitch>
+              <UiSwitch v-model="show_description">Show</UiSwitch>
             </UiField>
           </div>
 
@@ -79,7 +77,7 @@
           <div style="display: inline-block;" class="tags has-addons mr-2
           is-pulled-right">
             <span class="tag is-dark is-medium">
-              {{ formatter(group.cves.total_reward) }}
+              {{ formatter(group.total_reward) }}
             </span>
             <span class="tag is-info is-medium">
               {{ group.cves.length }} CVEs
@@ -88,7 +86,7 @@
         </h3>
 
         <div class="grid">
-          <template v-for="cve in group.shown">
+          <template v-for="cve in group.shown" :key="cve.id">
             <NuxtLink :to="'/cve?id='+cve.id" class="cve-link">
             {{ cve.id }}
             </NuxtLink>
@@ -100,11 +98,11 @@
               </div>
               <div class="taglist">
                 <span class="tag is-info is-small" v-if="cve.vrp_reward">
-                  {{ formatter(cve.vrp_reward) }}
+                  {{ formatter(Number(cve.vrp_reward)) }}
                 </span>
               </div>
               <div class="taglist">
-                <span v-for="repo in cve.repos" class="tag ml-2" :style="
+                <span v-for="repo in cve.repos" :key="repo" class="tag ml-2" :style="
                                                  {
                                                  backgroundColor: repo_color.get(repo) || 'black',
                                                  color: 'white',
@@ -124,7 +122,7 @@
                 </span>
               </div>
               <div class="taglist">
-                <span v-for="component in cve.components" class="tag is-warning ml-2">
+                <span v-for="component in cve.components" :key="component" class="tag is-warning ml-2">
                   {{ component }}
                 </span>
               </div>
@@ -149,11 +147,17 @@
 </template>
 
 <script setup lang="ts">
-import { fetchCveData } from '~/utils/cve'
-
 import humanizeDuration from "humanize-duration";
 import { format } from "d3-format";
+import { useUrlState, urlCodecs, type UrlCodec } from "~/composables/useUrlState";
+import { fetchCveData, type CveRecord } from "~/utils/cve";
 import cweTitle from "~/utils/cwe.json";
+
+interface CveGroup {
+  key: string;
+  cves: CveRecord[];
+  total_reward: number;
+}
 
 const formatter = format("$,.0f");
 // Dark enough for white text (contrast >= 4.5).
@@ -169,49 +173,94 @@ const repo_color = new Map([
   ["swiftshader", "#15803d"],
 ]);
 
-const router = useRouter();
-const route = useRoute();
+const nullableStringCodec = (emptyAliases: readonly string[] = []): UrlCodec<string | null> => ({
+  parse: (raw) => {
+    if (typeof raw !== "string" || raw === "" || emptyAliases.includes(raw)) {
+      return null;
+    }
+    return raw;
+  },
+  serialize: (val) => (!val || emptyAliases.includes(val) ? undefined : val),
+  equals: (a, b) => a === b,
+});
 
+const group_by_options = [
+  { value: "version", label: "Version" },
+  { value: "version_major", label: "Version major" },
+  { value: "year", label: "Year" },
+  { value: "month", label: "Month" },
+  { value: "vrp_reward", label: "Reward" },
+  { value: "severity", label: "Severity" },
+  { value: "component", label: "Component" },
+  { value: "cwe", label: "CWE" },
+  { value: "authors", label: "Authors" },
+  { value: "reviewers", label: "Reviewers" },
+];
 
-const data = ref([]);
+const {
+  group_by,
+  filter_component,
+  filter_date,
+  filter_repo,
+  hide_private,
+  show_description,
+} = useUrlState({
+  group_by: urlCodecs.enum(
+    [
+      "version",
+      "version_major",
+      "year",
+      "month",
+      "vrp_reward",
+      "severity",
+      "component",
+      "cwe",
+      "authors",
+      "reviewers",
+    ] as const,
+    "version",
+  ),
+  filter_component: {
+    ...nullableStringCodec(["All"]),
+    key: "component",
+  },
+  filter_date: {
+    ...nullableStringCodec(["All"]),
+    key: "date",
+  },
+  filter_repo: {
+    ...nullableStringCodec(),
+    key: "repo",
+  },
+  hide_private: urlCodecs.boolean(false),
+  show_description: urlCodecs.boolean(true),
+});
+
+const data = shallowRef<CveRecord[]>([]);
 
 const all_components = computed(() => {
-  const all_components = new Set();
-  for(const cve of data.value) {
+  const set = new Set<string>();
+  for (const cve of data.value) {
     if (cve.components) {
-      for(const component of cve.components) {
-        all_components.add(component);
+      for (const component of cve.components) {
+        set.add(component);
       }
     }
   }
-  return Array.from(all_components).sort();
+  return Array.from(set).sort();
 });
 
 const all_years = computed(() => {
-  const all_years = new Set();
-  for(const cve of data.value) {
-    const year = cve.published.split("-")[0];
-    all_years.add(year);
+  const set = new Set<string>();
+  for (const cve of data.value) {
+    if (cve.year) {
+      set.add(cve.year);
+    }
   }
-  return Array.from(all_years).sort().reverse();
+  return Array.from(set).sort().reverse();
 });
 
-const years = ref([]);
-
-const group_by = ref("version");
-const group_by_options = [
-  { value: 'version', label: 'Version' },
-  { value: 'version_major', label: 'Version major' },
-  { value: 'year', label: 'Year' },
-  { value: 'month', label: 'Month' },
-  { value: 'vrp_reward', label: 'Reward' },
-  { value: 'severity', label: 'Severity' },
-  { value: 'component', label: 'Component' },
-  { value: 'cwe', label: 'CWE' },
-  { value: 'authors', label: 'Authors' },
-  { value: 'reviewers', label: 'Reviewers' },
-];
-const grouped = ref([]);
+const grouped = shallowRef<CveGroup[]>([]);
 
 // Render the CVEs progressively, as building the whole list at once is slow.
 const PAGE = 150;
@@ -221,10 +270,11 @@ watch(grouped, () => {
 });
 
 const total_cves = computed(() =>
-  grouped.value.reduce((sum, group) => sum + group.cves.length, 0));
+  grouped.value.reduce((sum, group) => sum + group.cves.length, 0),
+);
 
 const visible_groups = computed(() => {
-  const out = [];
+  const out: (CveGroup & { shown: CveRecord[] })[] = [];
   let budget = limit.value;
   for (const group of grouped.value) {
     if (budget <= 0) {
@@ -255,91 +305,34 @@ watch(more, (element, previous) => {
     observer?.observe(element);
   }
 });
-onUnmounted(() => observer?.disconnect());
+
+let refreshGen = 0;
+let activeRafId: number | null = null;
+
+onUnmounted(() => {
+  observer?.disconnect();
+  refreshGen++;
+  if (activeRafId !== null) {
+    cancelAnimationFrame(activeRafId);
+    activeRafId = null;
+  }
+});
 
 const data_size = ref(0);
 const latest_cve_duration = ref("n/a");
 const latest_public_cve_duration = ref("n/a");
-
 const loading = ref(false);
 
-if (route.query.group_by) {
-  group_by.value = route.query.group_by;
-}
-
-const filter_component = ref(null);
-if (route.query.component) {
-  filter_component.value = route.query.component;
-}
-if (filter_component.value == "All") {
-  filter_component.value = null;
-}
-
-const filter_date = ref(null);
-if (route.query.date) {
-  filter_date.value = route.query.date;
-}
-
 const summary = computed(() => [
-  filter_date.value && filter_date.value != "All" ? filter_date.value : "All years",
+  filter_date.value && filter_date.value !== "All" ? filter_date.value : "All years",
   filter_component.value ?? "All components",
-  "By " + group_by_options.find(o => o.value == group_by.value)?.label,
+  "By " + group_by_options.find(o => o.value === group_by.value)?.label,
 ].join(" · "));
-
-const filter_repo = ref(null);
-if (route.query.repo) {
-  filter_repo.value = route.query.repo;
-}
-
-const hide_private = ref(false);
-if (route.query.hide_private) {
-  hide_private.value = route.query.hide_private == "true";
-}
-
-const show_description = ref(true);
-if (route.query.show_description) {
-  show_description.value = route.query.show_description == "true";
-}
-
-const updateUrl = () => {
-  const query = {
-    group_by: group_by.value,
-  };
-  if (filter_component.value) {
-    query.component = filter_component.value;
-  }
-  if (filter_date.value && filter_date.value != "All") {
-    query.date = filter_date.value;
-  }
-  if (filter_repo.value) {
-    query.repo = filter_repo.value;
-  }
-  if (hide_private.value) {
-    query.hide_private = "true";
-  }
-  if (!show_description.value) {
-    query.show_description = "false";
-  }
-
-  router.push({query})
-};
-watch(
-  [
-    group_by,
-    filter_component,
-    filter_repo,
-    filter_date,
-    hide_private,
-    show_description,
-  ],
-  updateUrl,
-);
-
 
 onMounted(async () => {
   data.value = await fetchCveData();
 
-  data_size.value = Object.keys(data.value).length;
+  data_size.value = data.value.length;
 
   const max_date = data.value.reduce((max, cve) => {
     return Math.max(max, new Date(cve.published).getTime());
@@ -352,7 +345,7 @@ onMounted(async () => {
   const max_public_date = data.value
     .filter(cve => cve.bug_date)
     .reduce((max, cve) => {
-      return Math.max(max, new Date(cve.bug_date).getTime());
+      return Math.max(max, new Date(cve.bug_date!).getTime());
     }, 0);
   latest_public_cve_duration.value = humanizeDuration(Date.now() - max_public_date, {
     largest: 2,
@@ -362,15 +355,15 @@ onMounted(async () => {
 });
 
 // Move filtered elements to the end of the array.
-const moveToEnd = (array, filter) => {
-  const out = [];
+const moveToEnd = (array: string[], keepFirst: (el: string) => boolean) => {
+  const out: string[] = [];
   for (const element of array) {
-    if (filter(element)) {
+    if (keepFirst(element)) {
       out.push(element);
     }
   }
   for (const element of array) {
-    if (!filter(element)) {
+    if (!keepFirst(element)) {
       out.push(element);
     }
   }
@@ -378,49 +371,59 @@ const moveToEnd = (array, filter) => {
 };
 
 const refresh = async () => {
+  const gen = ++refreshGen;
+  if (activeRafId !== null) {
+    cancelAnimationFrame(activeRafId);
+    activeRafId = null;
+  }
   loading.value = true;
 
-  // Wait for 5 frames to allow the UI to update.
-  for(let index = 0; index < 5; index++) {
-    await new Promise(resolve => {
-      const id = requestAnimationFrame(() => {
-        cancelAnimationFrame(id);
+  // Yield frames to allow the loading indicator to paint; abort if superseded.
+  for (let index = 0; index < 2; index++) {
+    await new Promise<void>(resolve => {
+      activeRafId = requestAnimationFrame(() => {
+        activeRafId = null;
         resolve();
       });
     });
+    if (gen !== refreshGen) return;
   }
 
-  let date_filter_start = new Date("2000-01-01");
-  let date_filter_end = new Date("2030-01-01");
+  let date_filter_start = new Date(Date.UTC(2000, 0, 1));
+  let date_filter_end = new Date(Date.UTC(2099, 11, 31, 23, 59, 59, 999));
 
   const date_filter_regex_year = /^\d{4}$/;
-  const date_filter_regex_quarter = /^\d{4}Q\d$/;
+  const date_filter_regex_quarter = /^\d{4}Q[1-4]$/;
   const date_filter_regex_month = /^\d{4}M\d{2}$/;
 
-  if (filter_date.value && filter_date.value != "All") {
+  if (filter_date.value && filter_date.value !== "All") {
     if (date_filter_regex_year.test(filter_date.value)) {
-      date_filter_start = new Date(`${filter_date.value}-01-01`);
-      date_filter_end = new Date(`${filter_date.value}-12-31`);
+      const y = Number(filter_date.value);
+      date_filter_start = new Date(Date.UTC(y, 0, 1));
+      date_filter_end = new Date(Date.UTC(y, 12, 0, 23, 59, 59, 999));
     } else if (date_filter_regex_quarter.test(filter_date.value)) {
-      const year = filter_date.value.substring(0, 4);
-      const quarter = filter_date.value.substring(5, 6);
+      const y = Number(filter_date.value.slice(0, 4));
+      const quarter = Number(filter_date.value.slice(5, 6));
       const month = (quarter - 1) * 3 + 1;
-      date_filter_start = new Date(`${year}-${month}-01`);
-      date_filter_end = new Date(`${year}-${month + 2}-31`);
+      date_filter_start = new Date(Date.UTC(y, month - 1, 1));
+      date_filter_end = new Date(Date.UTC(y, month - 1 + 3, 0, 23, 59, 59, 999));
     } else if (date_filter_regex_month.test(filter_date.value)) {
-      const year = filter_date.value.substring(0, 4);
-      const month = filter_date.value.substring(5, 7);
-      date_filter_start = new Date(`${year}-${month}-01`);
-      date_filter_end = new Date(`${year}-${month}-31`);
+      const y = Number(filter_date.value.slice(0, 4));
+      const month = Number(filter_date.value.slice(5, 7));
+      date_filter_start = new Date(Date.UTC(y, month - 1, 1));
+      date_filter_end = new Date(Date.UTC(y, month - 1 + 1, 0, 23, 59, 59, 999));
     }
   }
 
+  const startMs = date_filter_start.getTime();
+  const endMs = date_filter_end.getTime();
+
   const filtered_data = data.value.filter(cve => {
-    const date = new Date(cve.published);
+    const dateMs = new Date(cve.published).getTime();
 
     if (filter_component.value) {
       let found = false;
-      for(const component of cve.components || []) {
+      for (const component of cve.components || []) {
         if (component.startsWith(filter_component.value)) {
           found = true;
           break;
@@ -433,9 +436,9 @@ const refresh = async () => {
 
     if (filter_repo.value) {
       let found = false;
-      for(const sha in cve.commits) {
+      for (const sha in cve.commits) {
         const commit = cve.commits[sha];
-        if (commit.repo == filter_repo.value) {
+        if (commit?.repo === filter_repo.value) {
           found = true;
           break;
         }
@@ -449,209 +452,146 @@ const refresh = async () => {
       return false;
     }
 
-    if (date < date_filter_start || date > date_filter_end) {
+    if (dateMs < startMs || dateMs > endMs) {
       return false;
     }
 
     return true;
   });
 
-  let out = {};
-  let keys = [];
-  switch(group_by.value) {
+  const out: Record<string, CveRecord[]> = {};
+  switch (group_by.value) {
     case "version":
-      for(const cve of filtered_data) {
+      for (const cve of filtered_data) {
         const key = cve.version_fixed || "unknown";
-        out[key] ||= [];
-        out[key].push(cve);
+        (out[key] ||= []).push(cve);
       }
       break;
 
     case "version_major":
-      for(const cve of filtered_data) {
+      for (const cve of filtered_data) {
         const key = cve.version_fixed?.split(".")[0] || "unknown";
-        out[key] ||= [];
-        out[key].push(cve);
+        (out[key] ||= []).push(cve);
       }
       break;
 
     case "year":
-      for(const cve of filtered_data) {
-        const key = cve.published.split("-")[0]
-        out[key] ||= [];
-        out[key].push(cve);
+      for (const cve of filtered_data) {
+        const key = cve.year || "unknown";
+        (out[key] ||= []).push(cve);
       }
       break;
 
     case "month":
-      for(const cve of filtered_data) {
+      for (const cve of filtered_data) {
         const key = cve.published.split("-").slice(0, 2).join("-");
-        out[key] ||= [];
-        out[key].push(cve);
+        (out[key] ||= []).push(cve);
       }
       break;
 
     case "vrp_reward":
-      for(const cve of filtered_data) {
-        const reward = cve.vrp_reward ?
-          `${formatter(cve.vrp_reward)}` : "unknown";
-        out[reward] ||= [];
-        out[reward].push(cve);
+      for (const cve of filtered_data) {
+        const rewardNum = Number(cve.vrp_reward);
+        const reward = Number.isFinite(rewardNum) && rewardNum > 0
+          ? formatter(rewardNum)
+          : "unknown";
+        (out[reward] ||= []).push(cve);
       }
       break;
 
     case "severity":
-      for(const cve of filtered_data) {
+      for (const cve of filtered_data) {
         const severity = cve.severity || "unknown";
-        out[severity] ||= [];
-        out[severity].push(cve);
+        (out[severity] ||= []).push(cve);
       }
       break;
 
     case "component":
-      for(const cve of filtered_data) {
+      for (const cve of filtered_data) {
         if (!cve.components) {
-          out["<Private bug>"] ||= [];
-          out["<Private bug>"].push(cve);
+          (out["<Private bug>"] ||= []).push(cve);
           continue;
         }
 
-        for(const component of cve.components) {
+        for (const component of cve.components) {
           if (filter_component.value && !component.startsWith(filter_component.value)) {
             continue;
           }
-
-          out[component] ||= [];
-          out[component].push(cve);
+          (out[component] ||= []).push(cve);
         }
       }
       break;
 
     case "cwe":
-      for(const cve of filtered_data) {
-        const cwe = cve.cweId ? `${cve.cweId} - ${(cweTitle as Record<string, string>)[cve.cweId]}` : "n/a";
-        out[cwe] ||= [];
-        out[cwe].push(cve);
+      for (const cve of filtered_data) {
+        const cwe = cve.cweId
+          ? `${cve.cweId} - ${(cweTitle as Record<string, string>)[cve.cweId]}`
+          : "n/a";
+        (out[cwe] ||= []).push(cve);
       }
       break;
+
     case "authors":
-      for(const cve of filtered_data) {
-        if (!cve.commits) {
-          continue;
-        }
-        const authors = new Set();
-        for(const sha in cve.commits) {
+      for (const cve of filtered_data) {
+        if (!cve.commits) continue;
+        const authors = new Set<string>();
+        for (const sha in cve.commits) {
           const commit = cve.commits[sha];
-          if (commit.type != "commit") {
-            continue;
-          }
-          const author = commit.author.split("@")[0] + "@";
-          authors.add(author);
+          if (commit?.type !== "commit" || !commit.author) continue;
+          authors.add(commit.author.split("@")[0] + "@");
         }
-        for(const author of authors) {
-          out[author] ||= [];
-          out[author].push(cve);
+        for (const author of authors) {
+          (out[author] ||= []).push(cve);
         }
       }
       break;
 
     case "reviewers":
-      for(const cve of filtered_data) {
-        if (!cve.commits) {
-          continue;
-        }
-        const reviewers = new Set();
-        for(const sha in cve.commits) {
+      for (const cve of filtered_data) {
+        if (!cve.commits) continue;
+        const reviewers = new Set<string>();
+        for (const sha in cve.commits) {
           const commit = cve.commits[sha];
-          if (commit.type != "commit") {
-            continue;
-          }
+          if (commit?.type !== "commit" || !Array.isArray(commit.reviewers)) continue;
           for (const reviewer of commit.reviewers) {
             reviewers.add(reviewer.split("@")[0] + "@");
           }
         }
-        for(const reviewer of reviewers) {
-          out[reviewer] ||= [];
-          out[reviewer].push(cve);
+        for (const reviewer of reviewers) {
+          (out[reviewer] ||= []).push(cve);
         }
       }
       break;
   }
 
-  // Add the Set(...cve.commit.repo) to the out[key]
-  for (const key in out) {
-    const cves = out[key];
-    for (const cve of cves) {
-      const repos = new Set();
-      for (const sha in cve.commits) {
-        const commit = cve.commits[sha];
-        if (commit.type != "commit") {
-          continue;
-        }
-        repos.add(commit.repo);
-      }
-      cve.repos = Array.from(repos);
-    }
-  }
-
-  // Add the total reward to the out[key]
-  for (const key in out) {
-    const cves = out[key];
-    let total_reward = 0;
-    const repos = new Set();
-    for (const cve of cves) {
-      total_reward += parseInt(cve.vrp_reward) || 0;
-      for (const repo of cve.repos) {
-        repos.add(repo);
-      }
-    }
-    out[key].total_reward = total_reward;
-    out[key].repos = Array.from(repos).sort();
-  }
-
-  switch(group_by.value) {
+  let keys: string[] = [];
+  switch (group_by.value) {
     case "version":
-      // Sort numerically:
       keys = Object.keys(out).sort((a, b) => {
         const aParts = a.split(".");
         const bParts = b.split(".");
 
-        const aValid = aParts.every(part => !isNaN(part));
-        const bValid = bParts.every(part => !isNaN(part));
+        const aValid = aParts.every(part => !isNaN(Number(part)));
+        const bValid = bParts.every(part => !isNaN(Number(part)));
 
-        if (aValid && !bValid) {
-          return -1;
-        }
-        if (!aValid && bValid) {
-          return 1;
-        }
-
-        if (!aValid && !bValid) {
-          return a.localeCompare(b);
-        }
+        if (aValid && !bValid) return -1;
+        if (!aValid && bValid) return 1;
+        if (!aValid && !bValid) return a.localeCompare(b);
 
         for (let i = 0; i < Math.min(aParts.length, bParts.length); i++) {
           const aPart = parseInt(aParts[i]);
           const bPart = parseInt(bParts[i]);
-          if (aPart == bPart) {
-            continue;
-          }
+          if (aPart === bPart) continue;
           return bPart - aPart;
         }
-
-        return b-a;
+        return Number(b) - Number(a);
       });
-
       break;
+
     case "version_major":
     case "year":
-      keys = Object.keys(out).sort((a, b) => {
-        return parseInt(b) - parseInt(a);
-      });
-      keys = moveToEnd(keys, key => {
-        return !isNaN(key);
-      });
-
+      keys = Object.keys(out).sort((a, b) => parseInt(b) - parseInt(a));
+      keys = moveToEnd(keys, key => !isNaN(Number(key)));
       break;
 
     case "month":
@@ -660,80 +600,65 @@ const refresh = async () => {
       break;
 
     case "vrp_reward":
-      keys = Object.keys(out)
-        .sort((a, b) => {
-          const a_value = a.substring(1).replace(",", "");
-          const b_value = b.substring(1).replace(",", "");
-          return parseInt(b_value) - parseInt(a_value);
-        })
-
-      keys = moveToEnd(keys, key => {
-        return key != '$NaN' && key != 'unknown';
-      });
-
-      break;
-
-    case "severity":
       keys = Object.keys(out).sort((a, b) => {
-        return a.localeCompare(b);
+        const aVal = parseInt(a.slice(1).replaceAll(",", "")) || 0;
+        const bVal = parseInt(b.slice(1).replaceAll(",", "")) || 0;
+        return bVal - aVal;
       });
-
-      keys = [
-        "Critical",
-        "High",
-        "Medium",
-        "Low",
-        "unknown"
-      ];
-
+      keys = moveToEnd(keys, key => key !== "$NaN" && key !== "unknown");
       break;
+
+    case "severity": {
+      const ordered = ["Critical", "High", "Medium", "Low", "unknown"];
+      const extra = Object.keys(out)
+        .filter(k => !ordered.includes(k))
+        .sort((a, b) => a.localeCompare(b));
+      keys = [...ordered, ...extra].filter(k => out[k]?.length);
+      break;
+    }
 
     case "component":
-
-      keys = Object.keys(out).sort((a, b) => {
-        return a.localeCompare(b);
-      });
-
-      keys = moveToEnd(keys, key => key != "<Private bug>");
-
+      keys = Object.keys(out).sort((a, b) => a.localeCompare(b));
+      keys = moveToEnd(keys, key => key !== "<Private bug>");
       break;
 
     case "cwe":
-      keys = Object.keys(out).sort((a, b) => {
-        return a.localeCompare(b);
-      });
-
-      keys = moveToEnd(keys, key => key != "unknown");
-
-      break;
-
     case "authors":
     case "reviewers":
-      keys = Object.keys(out).sort((a, b) => {
-        return a.localeCompare(b);
-      });
-      keys = moveToEnd(keys, key => key != "unknown")
-
+      keys = Object.keys(out).sort((a, b) => a.localeCompare(b));
+      keys = moveToEnd(keys, key => key !== "unknown" && key !== "n/a");
       break;
   }
 
+  if (gen !== refreshGen) return;
   loading.value = false;
-  grouped.value = keys.map(key => ({
-    key,
-    cves: out[key]?.reverse() || [],
-  }));
+  grouped.value = keys
+    .filter(key => out[key]?.length)
+    .map(key => {
+      const cves = [...out[key]].reverse();
+      let total_reward = 0;
+      for (const cve of cves) {
+        total_reward += parseInt(String(cve.vrp_reward ?? "")) || 0;
+      }
+      return {
+        key,
+        cves,
+        total_reward,
+      };
+    });
 };
 
-watch([
-  data,
-  group_by,
-  filter_component,
-  filter_date,
-  hide_private,
-  show_description,
-], refresh);
-
-
+watch(
+  [
+    data,
+    group_by,
+    filter_component,
+    filter_repo,
+    filter_date,
+    hide_private,
+  ],
+  refresh,
+);
 </script>
 
 <style scoped>

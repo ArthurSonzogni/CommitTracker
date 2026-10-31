@@ -1,6 +1,5 @@
 <template>
   <div>
-    <Navbar/>
     <section class="section">
       <div class="container">
         <h1 class="title">Organizations commits</h1>
@@ -137,88 +136,29 @@
 </template>
 
 <script setup lang="ts">
+import all_organizations from "../../public/data/organizations.json";
+import { useUrlState, urlCodecs, type UrlCodec } from "~/composables/useUrlState";
+import { capitalize, listSummary, repositoryNames } from "~/utils/filter-summary";
 
-import all_organizations from '../../public/data/organizations.json'
+const DEFAULT_ORGANIZATIONS = [
+  "ARM", "Adobe", "Apple", "ByteDance", "Google", "Igalia", "Individuals", "Intel",
+  "LGE", "Microsoft", "Nokia", "Opera", "Samsung", "Unknown", "WebKit", "Yandex",
+] as const;
 
-const route = useRoute();
-const router = useRouter();
+const baseOrganizationsCodec = urlCodecs.csv(DEFAULT_ORGANIZATIONS);
+const organizationsCodec: UrlCodec<string[]> = {
+  parse: (raw) => {
+    if (raw === "all") return [...all_organizations];
+    return baseOrganizationsCodec.parse(raw);
+  },
+  serialize: (val) => {
+    if (val.length === all_organizations.length) return "all";
+    return baseOrganizationsCodec.serialize(val);
+  },
+  equals: baseOrganizationsCodec.equals,
+};
 
-const repositories = ref<string[]>(["chromium"]);
-if (route.query.repositories) {
-  repositories.value = route.query.repositories.split(",");
-}
-
-const organizations = ref<string[]>([
-  "ARM","Adobe","Apple","ByteDance","Google","Igalia","Individuals","Intel",
-  "LGE","Microsoft","Nokia","Opera","Samsung","Unknown","WebKit","Yandex"
-])
-if (route.query.organizations) {
-  if (route.query.organizations === "all") {
-    organizations.value = all_organizations;
-  } else {
-    organizations.value = route.query.organizations.split(",");
-  }
-}
-
-const grouping = ref<string>("yearly");
-if (route.query.grouping) {
-  grouping.value = route.query.grouping as string;
-}
-
-const colors = ref<string>("organizations");
-if (route.query.colors) {
-  colors.value = route.query.colors as string;
-}
-
-const kind = ref<string>("author");
-if (route.query.kind) {
-  kind.value = route.query.kind as string;
-}
-
-const metric = ref<string>("commit");
-if (route.query.metric) {
-  metric.value = route.query.metric as string;
-}
-
-const chart = ref<string>("bar");
-if (route.query.chart) {
-  chart.value = route.query.chart as string;
-}
-
-const dates = ref<Date[]>([new Date("2000-01-01"), new Date()]);
-if (route.query.dates) {
-  dates.value = route.query.dates.split(',').map(d => new Date(d));
-}
-
-const others = ref(route.query.others === null);
-const display = ref(
-  route.query.percent === null ? 'percent' :
-  route.query.accu === null ? 'accumulative' :
-  'absolute'
-);
-
-
-const updateUrl = () => {
-  router.push({
-    query: {
-      repositories: repositories.value.join(","),
-      organizations: organizations.value.length === all_organizations.length
-        ? "all"
-        : organizations.value.join(","),
-      grouping: grouping.value,
-      colors: colors.value,
-      kind: kind.value,
-      metric: metric.value,
-      chart: chart.value,
-      dates: dates.value.map(d => d.toISOString().split("T")[0]).join(','),
-      others: others.value ? null : undefined,
-      percent: display.value === "percent" ? null : undefined,
-      accu: display.value === "accumulative" ? null : undefined,
-    },
-  });
-}
-
-watch([
+const {
   repositories,
   organizations,
   grouping,
@@ -228,15 +168,39 @@ watch([
   chart,
   dates,
   others,
-  display,
-], updateUrl);
+  percent,
+  accu,
+} = useUrlState({
+  repositories: urlCodecs.csv(["chromium"]),
+  organizations: organizationsCodec,
+  grouping: urlCodecs.enum(
+    ["forever", "decennial", "yearly", "quarterly", "monthly"] as const,
+    "yearly",
+  ),
+  colors: urlCodecs.enum(["repositories", "organizations"] as const, "organizations"),
+  kind: urlCodecs.enum(["author", "review", "both"] as const, "author"),
+  metric: urlCodecs.enum(["commit", "contributor"] as const, "commit"),
+  chart: urlCodecs.enum(["line", "bar"] as const, "bar"),
+  dates: urlCodecs.dateRange("2000-01-01"),
+  others: urlCodecs.flag(),
+  percent: urlCodecs.flag(),
+  accu: urlCodecs.flag(),
+});
+
+const display = computed<"percent" | "accumulative" | "absolute">({
+  get: () => (percent.value ? "percent" : accu.value ? "accumulative" : "absolute"),
+  set: (val) => {
+    percent.value = val === "percent";
+    accu.value = val === "accumulative";
+  },
+});
 
 const summary = computed(() => [
   listSummary(repositoryNames(repositories.value), "repositories"),
   organizations.value.length === all_organizations.length
     ? "All organizations"
     : listSummary(organizations.value, "organizations"),
-  grouping.value[0].toUpperCase() + grouping.value.slice(1),
+  capitalize(grouping.value),
 ].join(" · "));
 
 // Avoid unsupported combinations:
@@ -245,6 +209,5 @@ watch(metric, () => {
     display.value = "absolute";
   }
 });
-
 </script>
 

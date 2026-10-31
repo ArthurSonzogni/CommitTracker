@@ -2,6 +2,7 @@
   <div class="site-header">
     <img
       v-if="countVisit"
+      :key="route.path"
       async
       style="position: absolute; top: 0; left: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none;"
       alt=""
@@ -31,7 +32,7 @@
           tabindex="0"
           class="navbar-item share-button is-hidden-desktop"
           aria-label="Share this page"
-          @click="share">
+          @click="share()">
           <UiIcon :key="String(copied)" :name="copied ? 'check' : 'share-variant'" :class="{ 'share-icon': copied }" />
         </a>
         <a
@@ -100,7 +101,7 @@
             class="navbar-item share-button is-hidden-touch"
             aria-label="Copy the link to this page"
             title="Copy the link"
-            @click="share">
+            @click="share()">
             <UiIcon :key="String(copied)" :name="copied ? 'check' : 'share-variant'" :class="{ 'share-icon': copied }" />
           </a>
           <a
@@ -127,43 +128,86 @@
 </template>
 
 <script setup lang="ts">
-import { showToast } from "~/utils/toast";
+import { useShareLink } from "~/composables/useShareLink";
+import { findSitePage } from "~/utils/pageMeta";
+
+const route = useRoute();
 
 // Count the visits of the deployed website only, not the dev server's or the
 // interaction tests'.
-const countVisit = location.hostname === "chrome-commit-tracker.arthursonzogni.com";
+const countVisit =
+  typeof location !== "undefined" &&
+  location.hostname === "chrome-commit-tracker.arthursonzogni.com";
 
-const MENU = [
-  { label: "Individuals", to: "/individuals", icon: "account" },
-  { label: "Community graph", to: "/communities", icon: "account-group" },
-  { label: "Treemap", to: "/treemap", icon: "chart-tree" },
-  { label: "Repositories", icon: "chart-bar", items: [
-    { label: "Charts", to: "/repositories", icon: "format-list-bulleted" },
-    { label: "Heatmap", to: "/pulse", icon: "pulse" },
-    { label: "Commit rates", to: "/commit-rates", icon: "chart-line" },
-    { label: "Commit rates sankey", to: "/commit-rates-sankey", icon: "chart-sankey" },
-    { label: "Code accretion", to: "/accretion", icon: "layers" },
-  ] },
-  { label: "Organizations", icon: "domain", items: [
-    { label: "Commits", to: "/organizations/commits", icon: "source-branch" },
-    { label: "Emails", to: "/organizations/emails", icon: "email" },
-  ] },
-  { label: "CVE", icon: "shield-bug", items: [
-    { label: "Overview", to: "/cve/overview", icon: "chart-pie" },
-    { label: "List", to: "/cve/list", icon: "format-list-bulleted" },
-    { label: "Pivot table", to: "/cve/pivot-table", icon: "table" },
-    { label: "Reward per component", to: "/cve/reward_per_components", icon: "chart-sankey" },
-    { label: "Money tree", to: "/cve/money-tree", icon: "currency-usd" },
-  ] },
-  { label: "More", icon: "dots-horizontal", items: [
-    { label: "Usernames distribution", to: "/usernames", icon: "email" },
-    { label: "Leaderboard", to: "/leaderboard", icon: "trophy" },
-    { label: "Badges", to: "/badges/list", icon: "certificate" },
-    { label: "Fuzz test", to: "/fuzz-test", icon: "bug" },
-    { label: "API", to: "/api", icon: "code-json" },
-    { label: "Repositories tracking info", to: "/repo-info", icon: "source-branch" },
-    { label: "Page view", to: "/page-view", icon: "eye" },
-  ] },
+const pageItem = (to: string, labelOverride?: string) => {
+  const page = findSitePage(to);
+  return {
+    to,
+    label: labelOverride ?? page?.label ?? to,
+    icon: page?.icon ?? "circle-small",
+  };
+};
+
+interface NavLeaf {
+  to: string;
+  label: string;
+  icon: string;
+}
+
+interface NavGroup {
+  label: string;
+  icon: string;
+  to?: undefined;
+  items: NavLeaf[];
+}
+
+const MENU: Array<NavLeaf | NavGroup> = [
+  pageItem("/individuals"),
+  pageItem("/communities"),
+  pageItem("/treemap"),
+  {
+    label: "Repositories",
+    icon: "chart-bar",
+    items: [
+      pageItem("/repositories", "Charts"),
+      pageItem("/pulse", "Heatmap"),
+      pageItem("/commit-rates"),
+      pageItem("/commit-rates-sankey"),
+      pageItem("/accretion"),
+    ],
+  },
+  {
+    label: "Organizations",
+    icon: "domain",
+    items: [
+      pageItem("/organizations/commits", "Commits"),
+      pageItem("/organizations/emails", "Emails"),
+    ],
+  },
+  {
+    label: "CVE",
+    icon: "shield-bug",
+    items: [
+      pageItem("/cve/overview", "Overview"),
+      pageItem("/cve/list", "List"),
+      pageItem("/cve/pivot-table", "Pivot table"),
+      pageItem("/cve/reward_per_components", "Reward per component"),
+      pageItem("/cve/money-tree", "Money tree"),
+    ],
+  },
+  {
+    label: "More",
+    icon: "dots-horizontal",
+    items: [
+      pageItem("/usernames"),
+      pageItem("/leaderboard"),
+      pageItem("/badges/list"),
+      pageItem("/fuzz-test"),
+      pageItem("/api"),
+      pageItem("/repo-info"),
+      pageItem("/page-view"),
+    ],
+  },
 ];
 
 // The mobile menu, and the dropdown opened by click (they also open on hover
@@ -174,11 +218,15 @@ const start = ref<HTMLElement | null>(null);
 const toggleDropdown = (label: string) => {
   openDropdown.value = openDropdown.value === label ? null : label;
 };
-const route = useRoute();
-watch(() => route.fullPath, () => {
-  menuOpen.value = false;
-  openDropdown.value = null;
-});
+
+watch(
+  () => route.fullPath,
+  () => {
+    menuOpen.value = false;
+    openDropdown.value = null;
+  },
+);
+
 const onDocumentClick = (event: MouseEvent) => {
   if (!start.value?.contains(event.target as Node)) {
     openDropdown.value = null;
@@ -195,28 +243,8 @@ onMounted(() => {
   }
 });
 
-// The URL holds the state of every page, so sharing it shares the view. Use
-// the share sheet of phones, and copy the link elsewhere. A copy is confirmed
-// by the button itself, turning into a check mark.
-const copied = ref(false);
-let copiedTimer: ReturnType<typeof setTimeout> | undefined;
-const share = async () => {
-  const url = location.href;
-  if (navigator.share && matchMedia("(pointer: coarse)").matches) {
-    try {
-      await navigator.share({ title: document.title, url });
-    } catch (e) {}
-    return;
-  }
-  try {
-    await navigator.clipboard.writeText(url);
-    copied.value = true;
-    clearTimeout(copiedTimer);
-    copiedTimer = setTimeout(() => copied.value = false, 1600);
-  } catch (e) {
-    showToast({ message: "Could not copy the link", type: "is-danger" });
-  }
-};
+// The URL holds the state of every page, so sharing it shares the view.
+const { copied, share } = useShareLink();
 
 // The theme follows the system, unless chosen here. The choice is stored, and
 // applied early by app.vue.
@@ -233,7 +261,7 @@ const toggleTheme = () => {
   document.documentElement.dataset.theme = theme;
   try {
     localStorage.setItem("theme", theme);
-  } catch (e) {}
+  } catch {}
 };
 </script>
 
@@ -251,11 +279,6 @@ const toggleTheme = () => {
   color: var(--nav-ink);
   height: 1.4rem;
   width: 1.4rem;
-}
-
-/* Some pages inline SVGs with global styles, e.g. the community graph. */
-.brand-mark path {
-  stroke-opacity: 1;
 }
 
 .brand-name {

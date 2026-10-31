@@ -1,7 +1,5 @@
 <template>
   <div>
-    <Navbar/>
-
     <section class="section">
       <div class="container is-fluid">
         <h1 class="title">Repositories tracking info</h1>
@@ -186,13 +184,22 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import repositories_raw from '../public/data/repositories.json'
+import repositories_raw from '../public/data/repositories.json';
+import { useUrlState, urlCodecs } from '~/composables/useUrlState';
 
 const repositories = ref(structuredClone(repositories_raw));
 const stats = ref<Record<string, any>>({});
 
-const sortKey = ref<string | null>(null);
-const sortOrder = ref('asc');
+const { sortKey, sortOrder } = useUrlState({
+  sortKey: {
+    ...urlCodecs.string(''),
+    key: 'sort',
+  },
+  sortOrder: {
+    ...urlCodecs.enum(['asc', 'desc'] as const, 'asc'),
+    key: 'order',
+  },
+});
 
 const sortedRepositories = computed(() => {
   if (!sortKey.value) return repositories.value;

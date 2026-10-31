@@ -1,6 +1,5 @@
 <template>
   <div>
-    <Navbar/>
     <section class="section container">
       <h1 class="title">CVE overview</h1>
       <p>
@@ -156,41 +155,24 @@
 </template>
 
 <script lang="ts" setup>
-import { fetchCveData } from '~/utils/cve'
-
 import { format } from "d3-format";
 import { jStat } from "jstat";
+import { useUrlState, urlCodecs } from "~/composables/useUrlState";
+import { fetchCveData, type CveRecord } from "~/utils/cve";
 
-interface Cve { id: string; published: string; year: number; project: string; [key: string]: any; }
-
-const getCveYear = (cve: Cve): number => {
-  return new Date(cve.published).getFullYear();
-};
-
-const cve_count_format = format("+,d");
-const cve_percent_format = format("+.1f");
-
-const router = useRouter();
-const route = useRoute();
-
-const severities = ref(["High", "Critical"]);
-
-if (route.query.severities) {
-  severities.value = (route.query.severities as string).split(",");
+interface Cve extends Omit<CveRecord, "year"> {
+  year: number;
+  project: string;
 }
 
-watch(severities, () => {
-  const has_default_severities =
-    severities.value.length === 2 &&
-    severities.value.includes("High") &&
-    severities.value.includes("Critical");
+const getCveYear = (cve: { published: string; year?: string | number }): number => {
+  return Number(cve.year) || new Date(cve.published).getFullYear();
+};
 
-  router.push({
-    query: {
-      severities: has_default_severities ? undefined :
-      severities.value.join(","),
-    }
-  });
+const cve_percent_format = format("+.1f");
+
+const { severities } = useUrlState({
+  severities: urlCodecs.csv(["High", "Critical"]),
 });
 
 const all_cve_data = shallowRef<Cve[]>([]);
@@ -273,7 +255,7 @@ function calculateProjectedInterval(count, timeFraction, confidence = 0.9) {
 
 onMounted(async () => {
   const data = await fetchCveData();
-  all_cve_data.value = data.map((cve: any) => ({
+  all_cve_data.value = data.map(cve => ({
     ...cve,
     year: getCveYear(cve),
     project: cve_project(cve),
@@ -295,6 +277,9 @@ const severity_map = new Map([
 ]);
 
 const cve_by_year = computed(() => {
+  if (all_cve_data.value.length === 0) {
+    return [];
+  }
   const repo_data = filtered_cves.value;
   
   const year_list = Array

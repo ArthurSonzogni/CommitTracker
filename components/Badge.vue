@@ -69,7 +69,7 @@ const handleMouseLeave = () => {
   transform.value = default_transform;
 };
 
-const handleMouseMove = (event) => {
+const handleMouseMove = (event: MouseEvent) => {
   mouse_position.value = {
     x: event.clientX,
     y: event.clientY,
@@ -83,9 +83,11 @@ const handleMouseMove = (event) => {
   // - calculate the distance from the center of the image
   // - use it to scale the image
   const { x, y } = mouse_position.value;
-  // Use reference to the parent.
-  const { width, height, left, top } =
-    event.target.getBoundingClientRect();
+  const target = event.currentTarget as HTMLElement | null;
+  if (!target) {
+    return;
+  }
+  const { width, height, left, top } = target.getBoundingClientRect();
   const center_x = left + width / 2;
   const center_y = top + height / 2;
   const dx = x - center_x;
@@ -108,20 +110,16 @@ const handleMouseMove = (event) => {
   margin: 6px;
   z-index: 0;
   perspective: 2100px;
-
-  transition:
-  filter 0.1s,
+  transition: filter 0.1s;
 }
 
 .card_wrapper.is-hovered {
   z-index: 10;
-  transition:
-  filter 2.0s;
-
+  transition: filter 2.0s;
 }
 
 .card_inner {
-  transform-origin: 50%  51%;
+  transform-origin: 50% 51%;
   overflow: hidden;
   perspective: 10000px;
   backface-visibility: hidden;
@@ -131,26 +129,20 @@ const handleMouseMove = (event) => {
   width: 140px;
   height: 140px;
   filter: drop-shadow(0 8px 8px rgba(0, 0, 0, 0.5));
-
   transition:
-  transform 0.2s,
-  height 0.1s,
-  filter 0.2s,
-  ;
-
+    transform 0.2s,
+    height 0.1s,
+    filter 0.2s;
 }
 
 .card_inner.is-hovered {
   filter:
-  drop-shadow(0 0 3px rgba(255,255,0,1))
-  drop-shadow(0 20px 30px rgba(0, 0, 0, 0.3))
-  ;
-
+    drop-shadow(0 0 3px rgba(255, 255, 0, 1))
+    drop-shadow(0 20px 30px rgba(0, 0, 0, 0.3));
   transition:
-  transform 0.2s,
-  height 0.6s ease-in-out 0.5s,
-  filter 0.2s,
-  ;
+    transform 0.2s,
+    height 0.6s ease-in-out 0.5s,
+    filter 0.2s;
 }
 
 
@@ -167,11 +159,10 @@ const handleMouseMove = (event) => {
 
 .disabled:not(.is-hovered) .card_inner {
   filter:
-  contrast(0.5)
-  brightness(1.5)
-  blur(10px)
-  grayscale(100%)
-  ;
+    contrast(0.5)
+    brightness(1.5)
+    blur(10px)
+    grayscale(100%);
 }
 
 .disabled:not(.is-hovered) .badge-name {
@@ -183,18 +174,6 @@ const handleMouseMove = (event) => {
   line-height: 1.2;
   text-align: center;
   padding-top: 6px;
-}
-
-@keyframes glow {
-  0% {
-    filter: drop-shadow(0 0 10px rgba(255,255,0,1));
-  }
-  50% {
-    filter: drop-shadow(0 0 20px rgba(255,255,0,1));
-  }
-  100% {
-    filter: drop-shadow(0 0 10px rgba(255,255,0,1));
-  }
 }
 
 </style>

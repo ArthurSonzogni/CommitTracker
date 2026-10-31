@@ -42,12 +42,12 @@ import {hsl} from "d3-color";
 import "d3-transition";
 import {transition} from "d3-transition";
 import {format} from "d3-format";
+import type { PropType } from "vue";
 import repositories_json from '../public/data/repositories.json'
 import MILESTONES from '../utils/milestones.json'
+import { getColormap } from '~/utils/colormap'
 import { callTreemapWorker } from '~/utils/treemapWorkerClient'
 import type { PrunedTreemapNode } from '~/utils/treemap.worker'
-
-const { $color_map } = useNuxtApp();
 
 const container = ref<HTMLElement|null>(null);
 const content = ref<HTMLElement|null>(null);
@@ -68,20 +68,20 @@ const history = shallowRef<any[]>([]);
 const milestones = shallowRef<any[]>([]);
 const sourceNote = ref("");
 
-let colormapFunc = $color_map[0];
+let colormapFunc = getColormap("Oranges");
 
 const number_format = format(",d");
 const percent_format = format(".1%");
 
 const props = defineProps({
-  repositories: { type: Array[String], default: () => [repositories_json[0]?.dirname || "chromium"] },
-  path: {},
-  field_color: {},
-  field_size: {},
-  colormap: {},
-  colormapMin: {},
-  colormapMax: {},
-  dates: {},
+  repositories: { type: Array as PropType<string[]>, default: () => [repositories_json[0]?.dirname || "chromium"] },
+  path: { type: Array as PropType<string[]>, default: () => [] },
+  field_color: { type: Array as PropType<string[]>, default: () => [] },
+  field_size: { type: Array as PropType<string[]>, default: () => [] },
+  colormap: { type: String, default: "Oranges" },
+  colormapMin: { type: [String, Number], default: "" },
+  colormapMax: { type: [String, Number], default: "" },
+  dates: { type: Array as PropType<Date[]>, default: () => [] },
   animate: { type: Boolean, default: false },
   history_color: { type: Boolean, default: true },
   history_size: { type: Boolean, default: false },
@@ -694,7 +694,7 @@ async function refresh(options: { withHistory?: boolean; emitEnd?: boolean; anim
     emitEnd = true,
     animateTransition = Boolean(props.animate),
   } = options;
-  colormapFunc = $color_map[props.colormap as string];
+  colormapFunc = getColormap(String(props.colormap || "Oranges"));
 
   if (!content.value) return;
   const w = Math.max(0, svgWidth() - 20);
@@ -884,7 +884,7 @@ onBeforeUnmount(() => {
 
 </script>
 
-<style lang="scss">
+<style scoped>
 .source-note {
   color: var(--muted);
   font-size: 0.75rem;
@@ -892,7 +892,6 @@ onBeforeUnmount(() => {
   margin-top: 0.25rem;
   text-align: right;
 }
-
 
 .treemap-container {
   position: relative;
@@ -905,7 +904,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
 }
 
-.treemap-layer {
+.treemap-stage :deep(.treemap-layer) {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -914,17 +913,17 @@ onBeforeUnmount(() => {
   will-change: transform, opacity;
 }
 
-.treemap-tile rect {
+.treemap-stage :deep(.treemap-tile rect) {
   stroke: var(--surface);
   stroke-width: 5px;
   fill-opacity: 0.9;
 }
 
-.treemap-tile.is-clickable {
+.treemap-stage :deep(.treemap-tile.is-clickable) {
   cursor: pointer;
 }
 
-.treemap-tile text {
+.treemap-stage :deep(.treemap-tile text) {
   dominant-baseline: central;
   fill: #000;
   pointer-events: none;
@@ -932,16 +931,16 @@ onBeforeUnmount(() => {
   user-select: none;
 }
 
-.treemap-tile.is-dark-tile text {
+.treemap-stage :deep(.treemap-tile.is-dark-tile text) {
   fill: #fff;
 }
 
-.treemap-tile text.text-1 {
+.treemap-stage :deep(.treemap-tile text.text-1) {
   font-weight: bold;
   opacity: 0.5;
 }
 
-.treemap-tile text.text-2 {
+.treemap-stage :deep(.treemap-tile text.text-2) {
   font-weight: normal;
   opacity: 0.3;
 }
@@ -957,29 +956,27 @@ onBeforeUnmount(() => {
   opacity: 0;
   will-change: transform, opacity;
   box-shadow:
-  0 2px 10px rgba(0, 0, 0, 0.5),
-  inset 0 2px 10px color-mix(in srgb, var(--surface) 90%, transparent);
+    0 2px 10px rgba(0, 0, 0, 0.5),
+    inset 0 2px 10px color-mix(in srgb, var(--surface) 90%, transparent);
 
   thead {
     font-weight: bold;
-    background-color:rgba(255, 128, 0, 0.35);
+    background-color: rgba(255, 128, 0, 0.35);
   }
+}
 
-  td {
-    border: 1px solid black;
-    padding: 5px;
-    text-align: left;
-  }
+.treemap-tooltip :deep(td) {
+  border: 1px solid var(--line-strong);
+  padding: 5px;
+  text-align: left;
+}
 
-  tbody {
-    tr:nth-child(even) {
-      background-color:color-mix(in srgb, var(--surface) 35%, transparent);
-    }
+.treemap-tooltip tbody :deep(tr:nth-child(even)) {
+  background-color: color-mix(in srgb, var(--surface) 35%, transparent);
+}
 
-    tr:nth-child(odd) {
-      background-color:rgba(128, 128, 128, 0.35);
-    }
-  }
+.treemap-tooltip tbody :deep(tr:nth-child(odd)) {
+  background-color: rgba(128, 128, 128, 0.35);
 }
 
 .split-view {
@@ -1003,6 +1000,4 @@ onBeforeUnmount(() => {
     height: 150vh;
   }
 }
-
-
 </style>

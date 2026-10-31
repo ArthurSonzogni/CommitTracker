@@ -1,7 +1,5 @@
 <template>
   <div>
-    <Navbar/>
-
     <section class="section">
       <div class="container">
         <h1 class="title">Fuzz test</h1>
@@ -29,15 +27,15 @@
           </UiTableColumn>
 
           <UiTableColumn field="author" label="Author" v-slot="props" sortable>
-            <router-link :to="{
-            name: 'individuals',
-            query: {
-            developers: props.row.author,
-            repositories: 'chromium',
-            }
+            <NuxtLink :to="{
+              path: '/individuals',
+              query: {
+                developers: props.row.author,
+                repositories: 'chromium',
+              },
             }">
               {{ props.row.author }}
-            </router-link>
+            </NuxtLink>
           </UiTableColumn>
 
           <UiTableColumn field="suite_name" label="Name" v-slot="props" sortable>
@@ -68,15 +66,15 @@
           <template #detail="props">
             <UiField label="Date"> {{ props.row.date }} </UiField>
             <UiField label="Author">
-              <router-link :to="{
-              name: 'individuals',
-              query: {
-              developers: props.row.author,
-              repositories: 'chromium',
-              }
+              <NuxtLink :to="{
+                path: '/individuals',
+                query: {
+                  developers: props.row.author,
+                  repositories: 'chromium',
+                },
               }">
                 {{ props.row.author }}
-              </router-link>
+              </NuxtLink>
             </UiField>
             <UiField label="File">
               <a :href="'https://cs.chromium.org/chromium/src/' + props.row.file
@@ -122,19 +120,20 @@
 
           <UiTableColumn field="author" label="Authors" v-slot="props">
             <div class="leaderboard-authors">
-              <router-link
+              <NuxtLink
                 v-for="author in props.row.authors"
+                :key="author"
                 class="leaderboard-author"
                 :to="{
-                name: 'individuals',
-                query: {
-                developers: author,
-                repositories: 'chromium',
-                }
+                  path: '/individuals',
+                  query: {
+                    developers: author,
+                    repositories: 'chromium',
+                  },
                 }">
                 <span v-if="props.row.icon">{{ props.row.icon }}</span>
                 {{ author }}
-              </router-link>
+              </NuxtLink>
               <div class="flex-end"></div>
             </div>
           </UiTableColumn>
@@ -152,218 +151,169 @@
 </template>
 
 <script setup lang="ts">
+import { useUrlState, urlCodecs } from "~/composables/useUrlState";
 
-const route = useRoute();
-const router = useRouter();
+interface RawFuzzerEntry {
+  date: string;
+  author: string;
+  suite_name: string;
+  file: string;
+  line: number;
+  sha: string;
+  type: string;
+}
+
+interface NormalizedFuzzer extends RawFuzzerEntry {
+  timeMs: number;
+  dateObj: Date;
+}
+
+interface HierarchyNode {
+  name: string;
+  authors: string[];
+  children: HierarchyNode[];
+}
+
+interface LeaderboardRow {
+  count: number;
+  authors: string[];
+  icon?: string;
+}
 
 // The first fuzzer was added in December 2015.
-const dates = ref<Date[]>([
-  new Date("2015-12-01"),
-  new Date(),
-]);
-if (route.query.dates) {
-  dates.value = route.query.dates.split(',').map(d => new Date(d));
-}
-
-const type = ref<[string]>(['fuzzer_test', 'FUZZ_TEST']);
-if (route.query.type) {
-  type.value = route.query.type.split(',');
-}
-
-const data = shallowRef([]);
-const leaderboard = shallowRef([]);
-const graph = shallowRef([]);
-
-const total = ref(0);
-
-const hierarchy = shallowRef({
-  name: 'root',
-  authors: [],
-  children: [],
+const { dates, type } = useUrlState({
+  dates: urlCodecs.dateRange("2015-12-01"),
+  type: urlCodecs.csv(["fuzzer_test", "FUZZ_TEST"]),
 });
 
-const updateUrl = () => {
-  const query = {
-    dates: dates.value.map(d => d.toISOString().split('T')[0]).join(','),
-    type: type.value.join(','),
-  };
-  router.push({ query });
-}
+const allFuzzers = shallowRef<NormalizedFuzzer[]>([]);
 
-const getData = async function() {
-  const response = await fetch(`/fuzz-test/data.json`);
-  let response_json = await response.json();
+onMounted(async () => {
+  try {
+    const response = await fetch("/fuzz-test/data.json");
+    if (!response.ok) return;
+    const raw: RawFuzzerEntry[] = await response.json();
+    const normalized: NormalizedFuzzer[] = raw.map(d => {
+      const parsed = new Date(d.date);
+      const timeMs = parsed.getTime();
+      const isoDate = parsed.toISOString().split("T")[0];
+      return {
+        ...d,
+        date: isoDate,
+        author: String(d.author ?? "").split("@")[0],
+        timeMs,
+        dateObj: new Date(isoDate),
+      };
+    });
+    normalized.sort((a, b) => a.timeMs - b.timeMs);
+    allFuzzers.value = normalized;
+  } catch (error) {
+    console.error("Failed to fetch fuzz-test data:", error);
+  }
+});
 
-  // Filter by date:
-  response_json = response_json.filter(d => {
-    const date = new Date(d.date);
-    return date >= dates.value[0] && date <= dates.value[1];
-  });
+const filteredAsc = computed(() => {
+  const startMs = dates.value[0].getTime();
+  const endMs = dates.value[1].getTime();
+  const allowedTypes = new Set(type.value);
+  return allFuzzers.value.filter(
+    d => d.timeMs >= startMs && d.timeMs <= endMs && allowedTypes.has(d.type),
+  );
+});
 
-  // Filter by type:
-  response_json = response_json.filter(d => {
-    return type.value.includes(d.type);
-  });
+const data = computed(() => [...filteredAsc.value].reverse());
 
-  // Sort by date
-  response_json.sort((a, b) => new Date(b.date) - new Date(a.date));
+const total = computed(() => filteredAsc.value.length);
 
-  // Format date to YYYY-MM-DD
-  response_json.forEach(d => {
-    d.date = new Date(d.date).toISOString().split('T')[0];
-  });
-
-  // Format the author to @author
-  response_json.forEach(d => {
-    d.author = d.author.split('@')[0];
-  });
-
-  await new Promise(r => setTimeout(r, 1));
-  data.value = structuredClone(response_json);
-  await new Promise(r => setTimeout(r, 1));
-  response_json.reverse();
-
-  // Compute the "graph" value. Format should be:
-  // [
-  //   {
-  //     label = type
-  //     values = [
-  //       {
-  //         x = "2021-01-01",
-  //         y = 10
-  //       },
-  //       ...
-  //     ]
-  const new_values = {}
-  let accu = {}
-  response_json.forEach(d => {
-    accu[d.type] ||= 0;
-    accu[d.type]++;
-    new_values[d.type] ||= [];
-    new_values[d.type].push({
-      x: new Date(d.date),
+const graph = computed(() => {
+  const newValues: Record<string, { x: Date; y: number }[]> = {};
+  const accu: Record<string, number> = {};
+  for (const d of filteredAsc.value) {
+    accu[d.type] = (accu[d.type] || 0) + 1;
+    (newValues[d.type] ||= []).push({
+      x: d.dateObj,
       y: accu[d.type],
     });
-  });
-  graph.value = Object.entries(new_values).map(([label, values]) => {
-    return {
-      label: label,
-      extra_label: " = " + accu[label],
-      values: values,
-    };
-  });
+  }
+  return Object.entries(newValues).map(([label, values]) => ({
+    label,
+    extra_label: " = " + accu[label],
+    values,
+  }));
+});
 
-  // Compute the total number of fuzzers
-  total.value = Object.values(accu).reduce((a, b) => a + b, 0);
-
-  // Compute the leaderboard
-  const author_count = {}
-  for(const d of response_json) {
-    author_count[d.author] ||= 0;
-    author_count[d.author]++;
+const leaderboard = computed<LeaderboardRow[]>(() => {
+  const authorCount: Record<string, number> = {};
+  for (const d of filteredAsc.value) {
+    authorCount[d.author] = (authorCount[d.author] || 0) + 1;
   }
 
-  // Invert the map:
-  const count_author = {}
-  for(const [author, count] of Object.entries(author_count)) {
-    count_author[count] ||= [];
-    count_author[count].push(author);
+  const countAuthors: Record<number, string[]> = {};
+  for (const [author, count] of Object.entries(authorCount)) {
+    (countAuthors[count] ||= []).push(author);
   }
 
-  const count_author_array = Object
-    .entries(count_author)
-    .map(([count, authors]) => {
-      return {count, authors}
-    })
+  const rows: LeaderboardRow[] = Object.entries(countAuthors)
+    .map(([count, authors]) => ({ count: Number(count), authors }))
     .sort((a, b) => b.count - a.count);
 
-
-  // Add icon to each groups.
-  const add_icon = (i, icon) => {
-    if (count_author_array[i]) {
-      count_author_array[i].icon = icon;
-    }
+  const medals = ["🥇", "🥈", "🥉"];
+  for (let i = 0; i < medals.length; i++) {
+    if (rows[i]) rows[i].icon = medals[i];
   }
+  return rows;
+});
 
-  add_icon(0, '🥇');
-  add_icon(1, '🥈');
-  add_icon(2, '🥉');
-
-
-  await new Promise(r => setTimeout(r, 1));
-  leaderboard.value = count_author_array;
-  await new Promise(r => setTimeout(r, 1));
-
-  // Compute a hierarchy from the file names.
-  const new_hierarchy = {
-    name: 'root',
+const hierarchy = computed<HierarchyNode>(() => {
+  const root: HierarchyNode = {
+    name: "root",
     authors: [],
     children: [],
-  }
-  for(const d of response_json) {
-    let current = new_hierarchy;
-    const parts = d.file.split('/');
-    parts.push("   " +d.suite_name);
+  };
+
+  for (const d of filteredAsc.value) {
+    let current = root;
+    const parts = d.file.split("/");
+    parts.push("   " + d.suite_name);
     current.authors.push(d.author);
-    for(const part of parts) {
-      let next = current.children.find(c => c.name == part);
+    for (const part of parts) {
+      let next = current.children.find(c => c.name === part);
       if (!next) {
         next = {
           name: part,
           children: [],
           authors: [],
-        }
+        };
         current.children.push(next);
       }
       current = next;
       current.authors.push(d.author);
     }
-
-    current
   }
 
-  // Collapse children with only one child.
-  const collapse = (node) => {
-    for(const child of node.children) {
+  const collapse = (node: HierarchyNode) => {
+    for (const child of node.children) {
       collapse(child);
     }
-
-    if (node.children.length == 1 && node.children[0].children.length) {
+    if (node.children.length === 1 && node.children[0].children.length > 0) {
       const child = node.children[0];
-      node.name += '/' + child.name;
+      node.name += "/" + child.name;
       node.children = child.children;
       node.authors = child.authors;
     }
-  }
-  collapse(new_hierarchy);
+  };
+  collapse(root);
 
-  // Sort children alphabetically.
-  const sort = (node) => {
+  const sortTree = (node: HierarchyNode) => {
     node.children.sort((a, b) => a.name.localeCompare(b.name));
-    for(const child of node.children) {
-      sort(child);
+    for (const child of node.children) {
+      sortTree(child);
     }
-  }
-  sort(new_hierarchy);
+  };
+  sortTree(root);
 
-  hierarchy.value = new_hierarchy;
-};
-
-onMounted(() => {
-  updateUrl();
-  getData();
+  return root;
 });
-
-watch(dates, () => {
-  updateUrl();
-  getData();
-});
-
-watch(type, () => {
-  updateUrl();
-  getData();
-});
-
 </script>
 
 <style scoped>

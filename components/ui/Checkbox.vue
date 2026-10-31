@@ -1,8 +1,13 @@
 <template>
-  <label class="ui-checkbox" :class="{ 'is-disabled': disabled }">
+  <label
+    :class="[
+      variant === 'switch' ? 'ui-switch' : 'ui-checkbox',
+      { 'is-disabled': disabled },
+    ]">
     <input
       v-model="model"
       type="checkbox"
+      :role="variant === 'switch' ? 'switch' : undefined"
       :value="value"
       :name="name"
       :disabled="disabled" />
@@ -12,20 +17,24 @@
 </template>
 
 <script setup lang="ts">
-// A checkbox. Its v-model is a boolean, or an array containing `value` when
-// checked.
+// A checkbox or switch. Its v-model is a boolean, or an array containing
+// `value` when checked.
 
-defineProps<{
+withDefaults(defineProps<{
   value?: any;
   name?: string;
   disabled?: boolean;
-}>();
+  variant?: "checkbox" | "switch";
+}>(), {
+  variant: "checkbox",
+});
 
 const model = defineModel<any>();
 </script>
 
 <style scoped>
-.ui-checkbox {
+.ui-checkbox,
+.ui-switch {
   align-items: center;
   cursor: pointer;
   display: inline-flex;
@@ -43,7 +52,7 @@ input {
   width: 1px;
 }
 
-.check {
+.ui-checkbox .check {
   align-items: center;
   background: var(--surface);
   border: 1.5px solid var(--line-strong);
@@ -58,7 +67,7 @@ input {
 }
 
 /* The check mark. */
-.check::after {
+.ui-checkbox .check::after {
   border: solid #fff;
   border-width: 0 2px 2px 0;
   content: "";
@@ -69,13 +78,45 @@ input {
   width: 0.3em;
 }
 
-input:checked + .check {
+.ui-checkbox input:checked + .check {
   background: var(--accent);
   border-color: var(--accent);
 }
 
-input:checked + .check::after {
+.ui-checkbox input:checked + .check::after {
   opacity: 1;
+}
+
+.ui-switch .check {
+  background: var(--line-strong);
+  border-radius: 999px;
+  flex-shrink: 0;
+  height: 1.25em;
+  position: relative;
+  transition: background 0.15s;
+  width: 2.25em;
+}
+
+/* The knob. */
+.ui-switch .check::before {
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  content: "";
+  height: 1em;
+  left: 0.125em;
+  position: absolute;
+  top: 0.125em;
+  transition: transform 0.15s cubic-bezier(0.2, 0, 0, 1);
+  width: 1em;
+}
+
+.ui-switch input:checked + .check {
+  background: var(--accent);
+}
+
+.ui-switch input:checked + .check::before {
+  transform: translateX(1em);
 }
 
 input:focus-visible + .check {
@@ -86,5 +127,4 @@ input:focus-visible + .check {
   cursor: not-allowed;
   opacity: 0.5;
 }
-
 </style>

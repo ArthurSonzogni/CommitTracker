@@ -1123,7 +1123,7 @@ svg :deep(.commit) {
 }
 
 svg :deep(.axis-grid .tick line) {
-  stroke: white;
+  stroke: var(--bg);
 }
 
 .sticky-top {

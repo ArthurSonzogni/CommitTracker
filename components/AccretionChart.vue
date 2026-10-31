@@ -25,6 +25,8 @@ import { scaleLinear, scaleTime } from "d3-scale";
 import { pointer, select } from "d3-selection";
 import { area, stack, stackOffsetExpand, stackOffsetNone } from "d3-shape";
 import "d3-transition";
+import { useElementSize } from "~/composables/useElementSize";
+import { seriesColor } from "~/utils/palette";
 
 const props = defineProps({
   // { dates: string[], years: string[], lines: number[][] }
@@ -36,6 +38,7 @@ const props = defineProps({
 });
 
 const container = ref<HTMLElement | null>(null);
+const { width: containerWidth, height: containerHeight } = useElementSize(container);
 const content = ref<SVGGElement | null>(null);
 const areas = ref<SVGGElement | null>(null);
 const labels = ref<SVGGElement | null>(null);
@@ -44,12 +47,15 @@ const tooltip = ref<SVGGElement | null>(null);
 const xAxis = ref<SVGGElement | null>(null);
 const yAxis = ref<SVGGElement | null>(null);
 
-// The site's series colors, rotating every 8 years, for the neighbor years to
-// differ clearly.
-const color = (year: string, years: string[]) => {
+// Deterministic cohort colors: numeric years map to var(--series-1..8) by year,
+// so the same cohort year keeps its color across subdirectories.
+const color = (year: string) => {
   if (year === "unknown") return "var(--faint)";
-  const known = years.filter(y => y !== "unknown");
-  return `var(--series-${known.indexOf(year) % 8 + 1})`;
+  const num = Number(year);
+  if (Number.isFinite(num)) {
+    return `var(--series-${(((num % 8) + 8) % 8) + 1})`;
+  }
+  return seriesColor(year);
 };
 
 const lines = format(".3~s");
@@ -143,7 +149,7 @@ const render = () => {
     .selectAll("path")
     .data(series, s => s.key)
     .join("path")
-    .attr("fill", s => color(s.key, years))
+    .attr("fill", s => color(s.key))
     .transition().duration(500)
     .attr("d", shape);
 
@@ -265,7 +271,7 @@ const render = () => {
           ...entries.map(e => ({
             label: e.year,
             value: props.share ? percent(e.value / total) : lines(e.value),
-            color: color(e.year, years),
+            color: color(e.year),
           })),
         ])
         .join("text")
@@ -287,7 +293,7 @@ const render = () => {
         .attr("cx", 50)
         .attr("cy", (_, i) => 26 + 14 * i)
         .attr("r", 4)
-        .style("fill", e => color(e.year, years));
+        .style("fill", e => color(e.year));
     })
     .on("pointerleave", event => {
       // On touch screens, keep the tooltip of the last tap.
@@ -296,11 +302,8 @@ const render = () => {
     });
 };
 
-onMounted(() => {
-  render();
-  (new ResizeObserver(render)).observe(container.value);
-});
-watch(() => [props.data, props.share, props.milestones], render);
+onMounted(render);
+watch(() => [props.data, props.share, props.milestones, containerWidth.value, containerHeight.value], render);
 </script>
 
 <style scoped>

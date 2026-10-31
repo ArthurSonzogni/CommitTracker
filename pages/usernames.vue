@@ -1,6 +1,5 @@
 <template>
   <div>
-    <Navbar/>
     <section class="section">
       <div class="container">
         <h1 class="title">Usernames distribution</h1>
@@ -31,69 +30,73 @@
 </template>
 
 <script setup lang="ts">
-
-import {select} from "d3-selection";
-import {interpolate} from "d3-interpolate";
-import {easeBackOut} from "d3-ease";
+import { select } from "d3-selection";
+import { interpolate } from "d3-interpolate";
+import { easeBackOut } from "d3-ease";
 import "d3-transition";
+import { useUrlState, urlCodecs } from "~/composables/useUrlState";
+import { listSummary, repositoryNames } from "~/utils/filter-summary";
 
-const route = useRoute()
-const router = useRouter()
+const router = useRouter();
+const { repositories } = useUrlState({
+  repositories: urlCodecs.csv(["chromium"]),
+});
 
-const repositories = ref(["chromium"]);
-if (route.query.repositories) {
-  repositories.value = route.query.repositories.split(",");
-}
 const sum = ref(0);
-const distribution = ref([]);
+const distribution = ref<number[]>([]);
+const histogram = ref<HTMLElement | null>(null);
 
-const histogram = ref(null);
+let requestId = 0;
 
 const refresh = async () => {
-  router.push({
-    query: {
-      repositories: repositories.value.join(",")
+  const id = ++requestId;
+  const repos = [...repositories.value];
+  if (repos.length === 0) {
+    sum.value = 0;
+    distribution.value = [];
+    if (histogram.value) {
+      select(histogram.value).selectAll(".group").remove();
     }
-  });
+    return;
+  }
 
-  const responses = await Promise.all(repositories.value.map(repo =>
-    fetch(`/data/${repo}/usernames.json`)
-  ))
-  const arrays = await Promise.all(responses.map(r => r.json()))
-  const data= [... new Set(arrays.flat())];
+  const responses = await Promise.all(
+    repos.map(repo => fetch(`/data/${repo}/usernames.json`)),
+  );
+  const arrays: string[][] = await Promise.all(responses.map(r => r.json()));
+  if (id !== requestId || !histogram.value) return;
+
+  const data = [...new Set(arrays.flat())];
 
   sum.value = data.length;
-  distribution.value = [];
-  for(const developer of data) {
+  const dist: number[] = [];
+  for (const developer of data) {
     const size = developer.length;
-    distribution.value[size] ||= 0;
-    distribution.value[size]++;
+    dist[size] = (dist[size] || 0) + 1;
   }
-
-  for(let i = 0; i<distribution.value.length; ++i) {
-    distribution.value[i] ||= 0;
+  for (let i = 0; i < dist.length; ++i) {
+    dist[i] ||= 0;
   }
+  distribution.value = dist;
 
-  const max = Math.max(...distribution.value);
+  const max = Math.max(1, ...dist);
 
-  const updateCenter = center => {
+  const updateCenter = (center: any) => {
     center
       .transition()
-      .duration(d => 450)
+      .duration(() => 450)
       .ease(easeBackOut)
-      .style("width", d => (2 * (d != 0) + 79 * d / max) + "%")
+      .style("width", (d: number) => (2 * Number(d !== 0) + (79 * d) / max) + "%");
   };
 
-  const updateRight = right => {
+  const updateRight = (right: any) => {
     right
       .transition()
-      .duration(d => 450)
-      .textTween((d, i, nodes) => {
-        const previous = select(nodes[i]).text();
+      .duration(() => 450)
+      .textTween((d: number, i: number, nodes: Element[]) => {
+        const previous = Number(select(nodes[i]).text()) || 0;
         const interpolator = interpolate(previous, d);
-        return t => {
-          return Math.round(interpolator(t));
-        }
+        return (t: number) => String(Math.round(interpolator(t)));
       });
   };
 
@@ -108,27 +111,28 @@ const refresh = async () => {
         const div = group.append("div");
         div.classed("line", true);
 
-        const left = div.append("div")
-        left.classed("left", true)
-        left.text((d,i) => i);
+        const left = div.append("div");
+        left.classed("left", true);
+        left.text((_d, i) => i);
 
-        const center = div.append("div")
-        center.classed("center", true)
-        center.style("width", 0)
+        const center = div.append("div");
+        center.classed("center", true);
+        center.style("width", 0);
         updateCenter(center);
 
-        const right = div.append("div")
-        right.classed("right", true)
-        right.text(0)
+        const right = div.append("div");
+        right.classed("right", true);
+        right.text(0);
         updateRight(right);
 
-        center.on("click", function() {
-          this.parentNode.parentNode.lastChild.classList.toggle("hidden")
+        center.on("click", function (this: HTMLElement) {
+          const list = this.parentElement?.parentElement?.lastElementChild;
+          list?.classList.toggle("hidden");
         });
 
         const ul = group.append("ul");
         ul.classed("usernameList", true);
-        ul.classed("hidden", true)
+        ul.classed("hidden", true);
 
         return group;
       },
@@ -144,65 +148,78 @@ const refresh = async () => {
     )
     .select("ul")
     .selectAll("li")
-    .data((d,i) => data.filter(e => e.length === i), d => d)
+    .data((_d, i) => data.filter(e => e.length === i), (d: any) => d)
     .join(
       enter => {
         const li = enter.append("li");
         const a = li.append("a");
-        a.text(d => d);
-        a.attr("href", d => `/individuals?developers=${d}`);
+        a.text((d: string) => d);
+        a.attr("href", (d: string) => `/individuals?developers=${encodeURIComponent(d)}`);
+        a.on("click", (event: MouseEvent, d: string) => {
+          if (
+            event.metaKey ||
+            event.ctrlKey ||
+            event.shiftKey ||
+            event.altKey ||
+            event.button !== 0
+          ) {
+            return;
+          }
+          event.preventDefault();
+          router.push({ path: "/individuals", query: { developers: d } });
+        });
         return li;
       },
       update => update,
       exit => exit.remove(),
-    )
+    );
 };
 
 watch(repositories, refresh);
 onMounted(refresh);
-
 </script>
 
-<style>
+<style scoped>
+.line,
+:deep(.line) {
+  display: flex;
+  margin: 1px;
+}
 
-  .line {
-    display:flex;
-    margin:1px;
-  }
+.left,
+:deep(.left) {
+  text-align: right;
+  margin-right: 10px;
+  width: 48px;
+}
 
-  .left {
-    text-align:right;
-    margin-right:10px;
-    width:48px;
-  }
+:deep(.center) {
+  color: var(--ink);
+  background: rgb(0, 128, 255);
+  opacity: 0.2;
+  margin: 0 10px 0 0;
+  border-radius: 5px;
+  cursor: pointer;
+}
 
-  .center {
-    color: var(--ink);
-    background: rgba(0,128,255);
-    opacity: 0.2;
-    margin: 0px 10px 0px 0px;
-    border-radius: 5px;
-  }
+:deep(.center:hover) {
+  opacity: 0.4;
+}
 
-  .center:hover {
-    opacity: 0.4;
-  }
+:deep(.usernameList) {
+  color: var(--ink);
+  list-style-type: square;
+  list-style-position: inside;
+  display: flex;
+  flex-wrap: wrap;
+  padding-left: 100px;
+}
 
-  .usernameList {
-    color: var(--ink);
-    list-style-type: square;
-    list-style-position: inside;
-    display:flex;
-    flex-wrap: wrap;
-    padding-left:100px;
-  }
+:deep(.usernameList.hidden) {
+  display: none;
+}
 
-  .usernameList.hidden {
-    display:none;
-  }
-
-  .usernameList>* {
-    flex: 1 1 160px;
-  }
-
+:deep(.usernameList > *) {
+  flex: 1 1 160px;
+}
 </style>

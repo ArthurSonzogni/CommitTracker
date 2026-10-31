@@ -1,5 +1,4 @@
-const MAX_CACHE_ENTRIES = 24;
-const repoCache = new Map<string, Promise<Record<string, Record<string, number>>>>();
+import { fetchUsernamesSummary, type UsernamesSummary } from "./usernamesSummary";
 
 const CANDIDATE_LIMIT = 150; // take_n (100) + 50
 
@@ -7,45 +6,11 @@ let currentByDate = new Map<string, [string, number][]>();
 let currentDatesDesc: string[] = [];
 let currentFramesUsersDesc: [string, number][][] = [];
 
-async function fetchRepoSummary(
-  repo: string,
-  type: string,
-  grouping: string,
-  kind: string
-): Promise<Record<string, Record<string, number>>> {
-  const key = `${repo}/${type}/${grouping}/${kind}`;
-  if (repoCache.has(key)) {
-    const promise = repoCache.get(key)!;
-    repoCache.delete(key);
-    repoCache.set(key, promise);
-    return promise;
-  }
-  if (repoCache.size >= MAX_CACHE_ENTRIES) {
-    const oldestKey = repoCache.keys().next().value;
-    if (oldestKey !== undefined) {
-      repoCache.delete(oldestKey);
-    }
-  }
-  const promise = (async () => {
-    try {
-      const response = await fetch(`/data/${repo}/usernames_summary_${type}_${grouping}_${kind}.json`);
-      if (response.status !== 200) return {};
-      return await response.json();
-    } catch {
-      return {};
-    }
-  })();
-  repoCache.set(key, promise);
-  return promise;
-}
-
-function mergeRepositories(
-  repositoriesData: Record<string, Record<string, number>>[]
-): Record<string, Record<string, number>> {
+function mergeRepositories(repositoriesData: UsernamesSummary[]): UsernamesSummary {
   if (repositoriesData.length === 0) return {};
   if (repositoriesData.length === 1) return repositoriesData[0];
 
-  const out: Record<string, Record<string, number>> = Object.create(null);
+  const out: UsernamesSummary = Object.create(null);
   for (const data of repositoriesData) {
     for (const [developer, timevalue] of Object.entries(data)) {
       let devMap = out[developer];
@@ -68,7 +33,7 @@ async function handleLoad(msg: {
   kind: string;
 }) {
   const repoData = await Promise.all(
-    msg.repositories.map(repo => fetchRepoSummary(repo, msg.type, msg.grouping, msg.kind))
+    msg.repositories.map(repo => fetchUsernamesSummary(repo, msg.type, msg.grouping, msg.kind)),
   );
   const merged = mergeRepositories(repoData);
 
@@ -192,17 +157,25 @@ function handlePreparePlayback(msg: {
   };
 }
 
-self.onmessage = async (event: MessageEvent) => {
-  const msg = event.data;
+let messageQueue = Promise.resolve();
+
+async function processMessage(msg: any) {
   try {
-    if (msg.action === 'load') {
+    if (msg.action === "load") {
       const result = await handleLoad(msg);
       (self as unknown as Worker).postMessage({ id: msg.id, result });
-    } else if (msg.action === 'preparePlayback') {
+    } else if (msg.action === "preparePlayback") {
       const { transfer, ...result } = handlePreparePlayback(msg);
       (self as unknown as Worker).postMessage({ id: msg.id, result }, transfer);
+    } else {
+      (self as unknown as Worker).postMessage({ id: msg.id, result: null });
     }
   } catch (err: any) {
     (self as unknown as Worker).postMessage({ id: msg.id, error: String(err?.message || err) });
   }
+}
+
+self.onmessage = (event: MessageEvent) => {
+  const msg = event.data;
+  messageQueue = messageQueue.then(() => processMessage(msg));
 };

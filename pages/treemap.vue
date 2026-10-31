@@ -1,6 +1,5 @@
 <template>
   <div>
-    <Navbar/>
     <div class="m-5">
       <UiField class="mb-4">
         <RepositorySelector
@@ -168,12 +167,12 @@
 
         <ul class="download-list">
           <li><span>Temporal data:</span>
-            <button type="button" class="button is-small" @click="treemap.download('temporal_json')">JSON</button>
-            <button type="button" class="button is-small" @click="treemap.download('temporal_csv')">CSV</button>
+            <button type="button" class="button is-small" @click="treemap?.download('temporal_json')">JSON</button>
+            <button type="button" class="button is-small" @click="treemap?.download('temporal_csv')">CSV</button>
           </li>
           <li><span>Spatial data:</span>
-            <button type="button" class="button is-small" @click="treemap.download('spatial_json')">JSON</button>
-            <button type="button" class="button is-small" @click="treemap.download('spatial_csv')">CSV</button>
+            <button type="button" class="button is-small" @click="treemap?.download('spatial_json')">JSON</button>
+            <button type="button" class="button is-small" @click="treemap?.download('spatial_csv')">CSV</button>
           </li>
         </ul>
       </section>
@@ -213,32 +212,34 @@
 </template>
 
 <script setup lang="ts">
+import { format } from "d3-format";
+import type { LocationQuery, LocationQueryRaw } from "vue-router";
+import repositories_json from "../public/data/repositories.json";
+import { allTreemapMetrics, findTreemapMetric, type TreemapMetricEntry } from "~/utils/treemapMetrics";
+import { colormapNames, GetColormapGradient } from "~/utils/colormap";
+import { sameQuery } from "~/composables/useUrlState";
 
-import {format} from "d3-format";
-import repositories_json from '../public/data/repositories.json'
-import { allTreemapMetrics, findTreemapMetric } from '~/utils/treemapMetrics'
+const treemap = ref<any>(null);
 
-const treemap = ref(null);
-
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 
 const findMetric = findTreemapMetric;
 
 // Empty by default: the page then proposes some views.
-const field_color = ref([]);
-const field_color_value = computed(() => {
-  return field_color.value?.filter(f => f).map(f => f.file) || [];
-})
+const field_color = ref<TreemapMetricEntry[]>([]);
+const field_color_value = computed(() =>
+  field_color.value?.filter(Boolean).map(f => f.file) || [],
+);
 
-const field_size = ref([]);
-const field_size_value = computed(() => {
-  return field_size.value?.filter(f => f).map(f => f.file) || [];
-})
+const field_size = ref<TreemapMetricEntry[]>([]);
+const field_size_value = computed(() =>
+  field_size.value?.filter(Boolean).map(f => f.file) || [],
+);
 
-const dates = ref([]);
+const dates = ref<[Date, Date]>([new Date("2020-01-01"), new Date()]);
 const colormap = ref("Red");
-const path = ref([]);
+const path = ref<string[]>([]);
 
 // Empty bounds fit the displayed data.
 const colormapMin = ref("");
@@ -248,36 +249,57 @@ const color_domain = computed(() => treemap.value?.color_domain ?? [0, 1]);
 const percent = format(".2~%");
 const formatBound = format(".3~r");
 
-const default_repo = repositories_json?.find?.(repo => repo.treemap)?.dirname || repositories_json?.[0]?.dirname || "chromium";
+const default_repo =
+  repositories_json?.find?.(repo => repo.treemap)?.dirname ||
+  repositories_json?.[0]?.dirname ||
+  "chromium";
 
-const repositories = ref([]);
+const repositories = ref<string[]>([default_repo]);
 const history_color = ref(true);
 const history_size = ref(false);
 const exclude_test = ref(false);
 const exclude_third_party = ref(false);
 
+const firstQueryString = (val: LocationQuery[string]): string | undefined => {
+  const v = Array.isArray(val) ? val[0] : val;
+  return typeof v === "string" ? v : undefined;
+};
+
 // Set the state from the URL. Missing parameters reset to their defaults.
-const applyQuery = (query) => {
-  field_color.value = query.field_color
-    ? (query.field_color as string).split(",").map(findMetric).filter(f => f)
+const applyQuery = (query: LocationQuery) => {
+  const rawColor = firstQueryString(query.field_color);
+  field_color.value = rawColor
+    ? rawColor.split(",").map(findMetric).filter((f): f is TreemapMetricEntry => Boolean(f))
     : [];
-  field_size.value = query.field_size
-    ? (query.field_size as string).split(",").map(findMetric).filter(f => f)
-    : [findMetric('line') || allTreemapMetrics[0]];
-  dates.value = query.dates
-    ? query.dates.split(',').map(d => new Date(d))
-    : [new Date("2020-01-01"), new Date()];
-  colormap.value = query.colormap || "Red";
-  path.value = query.path ? query.path.split(",") : [];
-  colormapMin.value = query.colormapMin || "";
-  colormapMax.value = query.colormapMax || "";
-  repositories.value = query.repositories
-    ? query.repositories.split(",")
-    : [default_repo];
-  history_color.value = query.history_color != "0";
-  history_size.value = query.history_size == "1";
-  exclude_test.value = query.exclude_test !== undefined;
-  exclude_third_party.value = query.exclude_third_party !== undefined;
+
+  const rawSize = firstQueryString(query.field_size);
+  field_size.value = rawSize
+    ? rawSize.split(",").map(findMetric).filter((f): f is TreemapMetricEntry => Boolean(f))
+    : [findMetric("line") || allTreemapMetrics[0]].filter(Boolean);
+
+  const rawDates = firstQueryString(query.dates);
+  if (rawDates && rawDates.includes(",")) {
+    const parsed = rawDates.split(",").map(d => new Date(d));
+    dates.value =
+      parsed.length >= 2 && !Number.isNaN(parsed[0].getTime()) && !Number.isNaN(parsed[1].getTime())
+        ? [parsed[0], parsed[1]]
+        : [new Date("2020-01-01"), new Date()];
+  } else {
+    dates.value = [new Date("2020-01-01"), new Date()];
+  }
+
+  colormap.value = firstQueryString(query.colormap) || "Red";
+  const rawPath = firstQueryString(query.path);
+  path.value = rawPath ? rawPath.split(",").filter(Boolean) : [];
+  colormapMin.value = firstQueryString(query.colormapMin) || "";
+  colormapMax.value = firstQueryString(query.colormapMax) || "";
+  const rawRepos = firstQueryString(query.repositories);
+  repositories.value = rawRepos ? rawRepos.split(",").filter(Boolean) : [default_repo];
+  history_color.value = firstQueryString(query.history_color) !== "0";
+  history_size.value = firstQueryString(query.history_size) === "1";
+  exclude_test.value = query.exclude_test !== undefined && firstQueryString(query.exclude_test) !== "0";
+  exclude_third_party.value =
+    query.exclude_third_party !== undefined && firstQueryString(query.exclude_third_party) !== "0";
 };
 applyQuery(route.query);
 
@@ -293,41 +315,51 @@ onUnmounted(() => window.removeEventListener("keydown", exitFullscreenOnEscape))
 const animate = ref(false);
 const animate_speed = ref(1);
 
-const {
-  $color_map,
-  $GetColormapGradient
-} = useNuxtApp();
-const colormap_list = ref(Object.keys($color_map));
+const colormap_list = colormapNames;
 const colormapSwatches = Object.fromEntries(
-  Object.keys($color_map).map(option => [option, $GetColormapGradient(option, 10)])
+  colormapNames.map(option => [option, GetColormapGradient(option, 10)]),
 );
-const activeColormapGradient = computed(() => $GetColormapGradient(colormap.value));
+const activeColormapGradient = computed(() => GetColormapGradient(colormap.value));
 
 const increaseAnimateSpeed = () => {
-  switch(animate_speed.value) {
+  switch (animate_speed.value) {
     case 1: animate_speed.value = 2; break;
     case 2: animate_speed.value = 5; break;
     case 5: animate_speed.value = 10; break;
     case 10: animate_speed.value = 1; break;
   }
-}
+};
 
-const updateUrl = (old_value, new_value) => {
-  const query = {
-    colormap: colormap.value,
+let restoring = false;
+let lastPathSerialized = path.value.join(",");
+
+const buildQuery = (): LocationQueryRaw => {
+  const colorStr = field_color_value.value.join(",");
+  const sizeStr = field_size_value.value.join(",");
+  const pathStr = path.value.join(",");
+  const repoStr = repositories.value.join(",");
+  const defaultEnd = new Date().toISOString().split("T")[0];
+  const datesArr = dates.value.map(d => d.toISOString().split("T")[0]);
+  const datesStr =
+    datesArr[0] === "2020-01-01" && datesArr[1] === defaultEnd
+      ? undefined
+      : datesArr.join(",");
+
+  const query: LocationQueryRaw = {
+    colormap: colormap.value !== "Red" || route.query.colormap ? colormap.value : undefined,
     colormapMax: colormapMax.value || undefined,
     colormapMin: colormapMin.value || undefined,
-    field_color: field_color.value.map(f => f.file).join(","),
-    field_size: field_size.value.map(f => f.file).join(","),
-    path: path.value.join(","),
-    repositories: repositories.value.join(","),
-    dates: dates.value.map(d => d.toISOString().split("T")[0]).join(","),
-  }
+    field_color: colorStr || undefined,
+    field_size: sizeStr && (colorStr || sizeStr !== "line") ? sizeStr : undefined,
+    path: pathStr || undefined,
+    repositories: repoStr && (repoStr !== default_repo || route.query.repositories) ? repoStr : undefined,
+    dates: datesStr,
+  };
   if (history_color.value === false) {
-    query.history_color = "0"
+    query.history_color = "0";
   }
   if (history_size.value === true) {
-    query.history_size = "1"
+    query.history_size = "1";
   }
   if (exclude_test.value === true) {
     query.exclude_test = null;
@@ -335,43 +367,58 @@ const updateUrl = (old_value, new_value) => {
   if (exclude_third_party.value === true) {
     query.exclude_third_party = null;
   }
+  return query;
+};
 
+const updateUrl = () => {
   if (restoring) {
     return;
   }
-  last_full_path = router.resolve({ query }).fullPath;
-  router.replace({ query });
-}
+  const query = buildQuery();
+  const nextPathSerialized = path.value.join(",");
+  const shouldPush = nextPathSerialized !== lastPathSerialized;
+  lastPathSerialized = nextPathSerialized;
+
+  if (sameQuery(route.query, query)) {
+    return;
+  }
+  if (shouldPush) {
+    router.push({ query });
+  } else {
+    router.replace({ query });
+  }
+};
 
 // Back/forward navigation: restore the state from the new URL, without
 // pushing it again.
-let restoring = false;
-let last_full_path = route.fullPath;
-watch(() => route.fullPath, async (full_path) => {
-  if (full_path === last_full_path) {
-    return;
-  }
-  last_full_path = full_path;
+watch(() => route.query, async (newQuery) => {
   restoring = true;
-  applyQuery(route.query);
-  await nextTick();
-  restoring = false;
+  try {
+    applyQuery(newQuery);
+    lastPathSerialized = path.value.join(",");
+  } finally {
+    await nextTick();
+    restoring = false;
+  }
 });
 
 const selectPreset = (preset: {
-  color: string[], size: string[], start?: string, history_size?: boolean,
+  color: string[];
+  size: string[];
+  start?: string;
+  history_size?: boolean;
 }) => {
-  field_size.value = preset.size.map(findMetric).filter(f => f);
-  field_color.value = preset.color.map(findMetric).filter(f => f);
+  field_size.value = preset.size.map(findMetric).filter((f): f is TreemapMetricEntry => Boolean(f));
+  field_color.value = preset.color.map(findMetric).filter((f): f is TreemapMetricEntry => Boolean(f));
   history_size.value = !!preset.history_size;
   if (preset.start) {
     dates.value = [new Date(preset.start), dates.value[1]];
   }
 };
 
-const truncate = (str, n) => {
+const truncate = (str: string, n: number) => {
   if (str.length <= n) return str;
-  return str.slice(0, n - 1) + '…';
+  return str.slice(0, n - 1) + "…";
 };
 
 watch([
@@ -394,9 +441,11 @@ watch([
 }, { deep: true, flush: "post" });
 
 onMounted(() => {
+  const rawColor = firstQueryString(route.query.field_color);
+  const rawSize = firstQueryString(route.query.field_size);
   if (
-    (route.query.field_color && route.query.field_color !== field_color_value.value.join(",")) ||
-    (route.query.field_size && route.query.field_size !== field_size_value.value.join(","))
+    (rawColor && rawColor !== field_color_value.value.join(",")) ||
+    (rawSize && rawSize !== field_size_value.value.join(","))
   ) {
     updateUrl();
   }
@@ -408,11 +457,10 @@ const animationEnd = async () => {
   }
 
   if (animate.value) {
-    const next = dates.value[1].getTime() + animate_speed.value *
-      7 * 24 * 60 * 60 * 1000;
+    const next = dates.value[1].getTime() + animate_speed.value * 7 * 24 * 60 * 60 * 1000;
     dates.value = [dates.value[0], new Date(next)];
   }
-}
+};
 
 watch(animate, () => {
   if (animate.value) {
@@ -420,12 +468,11 @@ watch(animate, () => {
   } else {
     updateUrl();
   }
-})
+});
 
 const toggleAnimate = () => {
   animate.value = !animate.value;
-}
-
+};
 </script>
 
 <style scoped>

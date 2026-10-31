@@ -1,9 +1,16 @@
 <template>
   <div
     class="ui-slider"
-    :class="{ 'is-disabled': disabled, 'has-ticks': !!$slots.default }">
+    :class="{ 'is-disabled': disabled, 'has-ticks': !!(ticks?.length || $slots.default) }">
     <div ref="track" class="ui-slider-track" @pointerdown="onTrackPointerDown">
       <div class="ui-slider-fill" :style="fillStyle" />
+      <div
+        v-for="tick in ticks"
+        :key="tick.value"
+        class="ui-slider-tick"
+        :style="{ left: percent(tick.value) + '%' }">
+        <span v-if="tick.label" class="ui-slider-tick-label">{{ tick.label }}</span>
+      </div>
       <slot />
       <div
         v-for="(thumb, index) in values"
@@ -38,13 +45,18 @@
 </template>
 
 <script setup lang="ts">
-// A slider, for a number, or a range [a, b] with two thumbs. <UiSliderTick>
-// children add labeled ticks.
+// A slider, for a number, or a range [a, b] with two thumbs.
+
+export interface SliderTickItem {
+  value: number;
+  label?: string;
+}
 
 const props = withDefaults(defineProps<{
   min?: number;
   max?: number;
   step?: number;
+  ticks?: SliderTickItem[];
   // Show the value above the thumb while dragging or focused.
   tooltip?: boolean;
   tooltipAlways?: boolean;
@@ -78,8 +90,6 @@ watch(model, value => {
     values.value = Array.isArray(value) ? [...value] : [value ?? props.min];
   }
 }, { immediate: true });
-
-provide("slider", { min: toRef(props, "min"), max: toRef(props, "max") });
 
 const percent = (value: number) =>
   100 * (value - props.min) / ((props.max - props.min) || 1);
@@ -127,22 +137,38 @@ const commit = (final: boolean) => {
   }
 };
 
+let cleanupDrag: (() => void) | null = null;
+
+onBeforeUnmount(() => {
+  cleanupDrag?.();
+  cleanupDrag = null;
+});
+
 const startDrag = (index: number, event: PointerEvent) => {
   if (props.disabled) {
     return;
   }
+  cleanupDrag?.();
   dragging.value = index;
   const move = (e: PointerEvent) => {
+    if (!track.value) return;
     values.value[index] = valueAt(e.clientX);
     commit(false);
   };
-  const end = () => {
+  const removeListeners = () => {
     window.removeEventListener("pointermove", move);
     window.removeEventListener("pointerup", end);
     window.removeEventListener("pointercancel", end);
+    if (cleanupDrag === removeListeners) {
+      cleanupDrag = null;
+    }
+  };
+  const end = () => {
+    removeListeners();
     dragging.value = null;
     commit(true);
   };
+  cleanupDrag = removeListeners;
   window.addEventListener("pointermove", move);
   window.addEventListener("pointerup", end);
   window.addEventListener("pointercancel", end);
@@ -225,6 +251,27 @@ const onKeydown = (index: number, event: KeyboardEvent) => {
   height: 100%;
   position: absolute;
   top: 0;
+}
+
+.ui-slider-tick {
+  background: var(--line-strong);
+  border-radius: 1px;
+  height: 0.35rem;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  width: 2px;
+}
+
+.ui-slider-tick-label {
+  color: var(--muted);
+  font-size: 0.7rem;
+  left: 50%;
+  position: absolute;
+  top: 0.75rem;
+  transform: translateX(-50%);
+  white-space: nowrap;
 }
 
 .ui-slider-thumb-wrapper {

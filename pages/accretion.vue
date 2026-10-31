@@ -1,6 +1,5 @@
 <template>
   <div>
-    <Navbar />
     <section class="section">
       <div class="container">
         <h1 class="title">Code accretion</h1>
@@ -401,7 +400,7 @@
               Lines changed per year in {{ directory || name }}<template v-if="activitySummary">
                 ({{ activitySummary }})</template>.
             </p>
-            <StackedBars :years="scope.activity.years" :series="activitySeries" />
+            <StackedBars :years="scope!.activity!.years" :series="activitySeries" />
           </CollapsibleSection>
 
           <CollapsibleSection v-if="contributorSeries.length" title="Contributors"
@@ -410,7 +409,7 @@
               Developers committing each year in {{ directory || name }}, by
               commit frequency.
             </p>
-            <StackedBars :years="scope.contributors.years" :series="contributorSeries" />
+            <StackedBars :years="scope!.contributors!.years" :series="contributorSeries" />
           </CollapsibleSection>
         </div>
 
@@ -488,7 +487,7 @@
                 {{ languageLabel ? `${languageLabel} ` : "" }}lines
                 are in {{ directory || name }} (click to open):
               </p>
-              <OwnershipTreemap :tree="entry.tree" :color="$color(entry.name)"
+              <OwnershipTreemap :tree="entry.tree"
                 :verb="knowledgeVerb" @select="path => directory = path" />
             </div>
           </div>
@@ -584,128 +583,179 @@
 
 <script setup lang="ts">
 import { format } from "d3-format";
-import repositories_json from '../public/data/repositories.json'
+import type { LocationQuery, LocationQueryRaw } from "vue-router";
+import repositories_json from "../public/data/repositories.json";
 // Short explanations of the largest events, by commit hash prefix.
-import eventLabels from '../utils/accretion-events.json'
+import eventLabels from "../utils/accretion-events.json";
+import { shardOf } from "~/utils/badges";
+import { sameQuery } from "~/composables/useUrlState";
+import {
+  REPO_EXCLUSIONS,
+  buildBreadcrumbs,
+  directoryPack,
+  isUntrackedBelow,
+  unpackDirectory,
+  indexDirectoriesByParent,
+  sumRow,
+  oldCodeRewritten,
+  estimateRecentActivity,
+  computeCohortReduction,
+  computeHalfLife,
+  buildOwnershipTree,
+  type CohortData,
+  type DirectorySummaryEntry,
+} from "~/utils/accretion";
 
 const route = useRoute();
 const { $color } = useNuxtApp();
 const router = useRouter();
 
-
 const lines = format(",");
 const compact = format(".3~s");
-const percent = value => value === null || isNaN(value) ? "" : format(".1%")(value);
+const percent = (value: number | null | undefined) =>
+  value === null || value === undefined || isNaN(value) ? "" : format(".1%")(value);
 const signedCompact = format("+.2~s");
-const truncate = (text, length) => text.length > length ? `${text.slice(0, length - 1)}…` : text;
+const truncate = (text: string, length: number) =>
+  text.length > length ? `${text.slice(0, length - 1)}…` : text;
 // A share authored: most developers write less than 1% of a directory, shown
 // with two decimals, and never as 0.00% when there is something.
-const ownedShare = value => !value ? "" : value < 0.00005 ? "<0.01%"
-  : format(value < 0.01 ? ".2%" : ".1%")(value);
-const signedPercent = value => value === null || isNaN(value) ? "" : format("+.1%")(value);
-const years = value => value === null ? "" : `${value.toFixed(1)} y`;
+const ownedShare = (value: number | null | undefined) =>
+  !value ? "" : value < 0.00005 ? "<0.01%" : format(value < 0.01 ? ".2%" : ".1%")(value);
+const signedPercent = (value: number | null | undefined) =>
+  value === null || value === undefined || isNaN(value) ? "" : format("+.1%")(value);
+const years = (value: number | null | undefined) =>
+  value === null || value === undefined ? "" : `${value.toFixed(1)} y`;
 
-const chartView = ref(route.query.share === "fresh"
-  ? "fresh"
-  : route.query.share === "true" ? "share" : "lines");
+const firstStr = (val: LocationQuery[string]): string => {
+  const v = Array.isArray(val) ? val[0] : val;
+  return typeof v === "string" ? v : "";
+};
+
+const chartView = ref<"lines" | "share" | "fresh">(
+  firstStr(route.query.share) === "fresh"
+    ? "fresh"
+    : firstStr(route.query.share) === "true"
+      ? "share"
+      : "lines",
+);
 const leaderboardView = ref("table");
-const repository = ref(route.query.repository || "chromium");
-const directory = ref(route.query.dir || "");
-const language = ref((route.query.lang as string) || "");
+const repository = ref(firstStr(route.query.repository) || "chromium");
+const directory = ref(firstStr(route.query.dir));
+const language = ref(firstStr(route.query.lang));
 // The folded sections, one letter each: c(hart), d(irectories),
 // y(early reduction), a(ctivity), (c)o(ntributors), (de)v(elopers).
-const hidden = ref(route.query.hide || "");
-const isHidden = code => hidden.value.includes(code);
-const toggleHidden = code => {
+const hidden = ref(firstStr(route.query.hide));
+const isHidden = (code: string) => hidden.value.includes(code);
+const toggleHidden = (code: string) => {
   hidden.value = (isHidden(code)
     ? hidden.value.replace(code, "")
     : hidden.value + code).split("").sort().join("");
 };
-const developers = ref(route.query.developers
-  ? (route.query.developers as string).split(",")
-  : []);
-const organizations = ref(route.query.organizations
-  ? (route.query.organizations as string).split(",")
-  : []);
-const defaultOwnerKind = (devs: string[], orgs: string[]) =>
+const developers = ref<string[]>(
+  firstStr(route.query.developers) ? firstStr(route.query.developers).split(",").filter(Boolean) : [],
+);
+const organizations = ref<string[]>(
+  firstStr(route.query.organizations) ? firstStr(route.query.organizations).split(",").filter(Boolean) : [],
+);
+const defaultOwnerKind = (devs: string[], orgs: string[]): "developers" | "organizations" =>
   orgs.length && !devs.length ? "organizations" : "developers";
-const kindFromQuery = (q: Record<string, any>, devs: string[], orgs: string[]) =>
-  q.by === "organizations" ? "organizations"
-    : q.by === "developers" ? "developers"
-    : defaultOwnerKind(devs, orgs);
-const ownerKind = ref(kindFromQuery(route.query, developers.value, organizations.value));
+const kindFromQuery = (
+  q: LocationQuery,
+  devs: string[],
+  orgs: string[],
+): "developers" | "organizations" => {
+  const by = firstStr(q.by);
+  return by === "organizations"
+    ? "organizations"
+    : by === "developers"
+      ? "developers"
+      : defaultOwnerKind(devs, orgs);
+};
+const ownerKind = ref<"developers" | "organizations">(
+  kindFromQuery(route.query, developers.value, organizations.value),
+);
 const isOrganizations = computed(() => ownerKind.value === "organizations");
-const ownerLabel = computed(() => isOrganizations.value ? "Organization" : "Developer");
+const ownerLabel = computed(() => (isOrganizations.value ? "Organization" : "Developer"));
 // The lines of the developers or organizations shown: those they authored, or reviewed.
-const knowledge = ref(route.query.lines === "reviewed" ? "reviewed" : "authored");
+const knowledge = ref<"authored" | "reviewed">(
+  firstStr(route.query.lines) === "reviewed" ? "reviewed" : "authored",
+);
 
-const repoCohorts = shallowRef(null);   // Root cohorts of the repository (all languages).
-const repoDirectories = shallowRef([]); // Root directories summary (all languages).
-const cohorts = shallowRef(null);       // Active scope root cohorts (all or selected language).
-const directories = shallowRef([]);     // The summary of every directory in active language scope.
-const directoryData = shallowRef(null); // The selected directory.
+const repoCohorts = shallowRef<CohortData | null>(null);
+const repoDirectories = shallowRef<DirectorySummaryEntry[]>([]);
+const cohorts = shallowRef<CohortData | null>(null);
+const directories = shallowRef<DirectorySummaryEntry[]>([]);
+const directoryData = shallowRef<CohortData | null>(null);
 const directoryLoading = ref(false);
-const leaderboard = shallowRef([]);
-const leaderboardReviewed = shallowRef([]);
-const organizationsBundle = shallowRef(null);
+const leaderboard = shallowRef<any[]>([]);
+const leaderboardReviewed = shallowRef<any[]>([]);
+const organizationsBundle = shallowRef<any>(null);
 
 const missing = ref(false);
 
-const fetchJson = url => fetch(url)
-  .then(response => response.ok ? response.json() : null)
-  .catch(() => null);
-const files = new Map();
-const fetchFile = url => {
-  if (!files.has(url)) files.set(url, fetchJson(url));
-  return files.get(url);
+// Cache successful JSON fetches; evict transient null failures so retries can succeed.
+const files = new Map<string, Promise<any>>();
+const fetchFile = (url: string): Promise<any> => {
+  const cached = files.get(url);
+  if (cached) return cached;
+  const pending = fetch(url)
+    .then(response => (response.ok ? response.json() : null))
+    .catch(() => null)
+    .then(data => {
+      if (data === null) {
+        files.delete(url);
+      }
+      return data;
+    });
+  files.set(url, pending);
+  return pending;
 };
 
-const repoMeta = computed(() => repositories_json
-  .find(repo => repo.dirname === repository.value));
+const repoMeta = computed(() =>
+  repositories_json.find(repo => repo.dirname === repository.value),
+);
 const name = computed(() => repoMeta.value?.name || repository.value);
-
-const REPO_EXCLUSIONS: Record<string, string> = {
-  chromium: "WPT_BASE_MANIFEST*.json, testing/buildbot/*.json (except trybot_analyze_config.json), third_party/blink/perf_tests/{speedometer*,MotionMark}/, and chrome/test/data/dromaeo/.",
-  firefox: "intl/icu/, js/src/tests/test262/, js/src/octane/, testing/web-platform/tests/, testing/web-platform/mozilla/tests/webgpu/, dom/webgpu/tests/cts/, security/nss/, modules/freetype2/, gfx/harfbuzz/, media/lib*/, and ipc/chromium/src/{base,third_party}/.",
-  webkit: "LayoutTests/{imported,webgl,platform}/, JSTests/{test262,ChakraCore,wasm/spec-tests,es6,mozilla}/, PerformanceTests/{JetStream*,JSBench,Speedometer*,MotionMark*,ARES-6,SunSpider,Octane,Kraken,Dromaeo}/, and Websites/browserbench.org/.",
-  servo: "tests/wpt/{tests,webgl,webgpu,meta,meta-legacy}/ (while Servo's own tests in tests/wpt/mozilla/ are kept) and tests/blink_perf_tests/.",
-  ladybird: "wpt-import/ directories.",
-  v8: "test/webkit/ and test/unittests/gay-*.cc.",
-  skia: "modules/canvaskit/npm_build/ and resources/skottie/.",
-  swiftshader: "Khronos and system headers in include/{vulkan,vk_video,KHR,EGL,GLES*,Wayland,xcb}/ and tests/regres/testlists/.",
-  angle: "Khronos headers in include/{GLES*,EGL,KHR,CL,vulkan,vk_video}/ and src/tests/gl_tests/media/.",
-  webrtc: "rtc_tools/rtc_event_log_visualizer/conversational_speech_en.h.",
-  llvm: "libc/test/src/math/exhaustive/*.wc (plus LLVM test files whose assertions are auto-generated in their first 40 lines).",
-  chromeos: "TPM specification files in trunks/generator/raw_*.",
-};
 const repoSpecificExclusions = computed(() => REPO_EXCLUSIONS[repository.value] || "");
 
+// O(1) directory indices for active language scope and repository-wide scope.
+const directoriesByParent = computed(() => indexDirectoriesByParent(directories.value));
+const directoryByPath = computed(
+  () => new Map(directories.value.map(entry => [entry.path, entry])),
+);
+const repoDirectoryByPath = computed(
+  () => new Map(repoDirectories.value.map(entry => [entry.path, entry])),
+);
+
 // The markers explaining the largest steps of the chart: the commits adding
-// or removing the most lines at once. The smaller ones close to a larger one
-// are skipped, as they are often part of the same story, like a revert and
-// its reland.
-const events = shallowRef([]);
+// or removing the most lines at once.
+const events = shallowRef<any[]>([]);
 const repositoryMilestones = computed(() => {
   const start = cohorts.value?.dates[0];
-  if (!start) return [];
-  const span = new Date(cohorts.value.dates.at(-1)) - new Date(start);
+  const end = cohorts.value?.dates.at(-1);
+  if (!start || !end) return [];
+  const span = new Date(end).getTime() - new Date(start).getTime();
   const spacing = Math.max(3 * 86400e3, 0.03 * span);
-  const picked = [];
+  const picked: any[] = [];
   const sorted = events.value
     .filter(event => event.date >= start)
     .sort((a, b) => Math.abs(b.lines) - Math.abs(a.lines));
   for (const event of sorted) {
     if (picked.length === 6) break;
-    if (!picked.some(other => Math.abs(new Date(other.date) - new Date(event.date)) < spacing)) {
+    if (
+      !picked.some(
+        other => Math.abs(new Date(other.date).getTime() - new Date(event.date).getTime()) < spacing,
+      )
+    ) {
       picked.push(event);
     }
   }
   return picked
     .map(event => {
-      // Without an explanation: where the lines were added or removed.
-      const label = eventLabels[event.hash.slice(0, 12)] || (event.path
-        ? `${event.lines > 0 ? "Added" : "Removed"} ${event.path}/`
-        : truncate(event.subject, 50));
+      const label =
+        (eventLabels as Record<string, string>)[event.hash.slice(0, 12)] ||
+        (event.path
+          ? `${event.lines > 0 ? "Added" : "Removed"} ${event.path}/`
+          : truncate(event.subject, 50));
       return {
         date: event.date,
         lines: event.lines,
@@ -715,32 +765,38 @@ const repositoryMilestones = computed(() => {
     .sort((a, b) => a.date.localeCompare(b.date));
 });
 
-// The repositories defined as a directory of another one (cone) are shown as
-// this directory.
-const parentDirname = repo => repositories_json.find(parent =>
-  parent.dirname.toLowerCase() === repo.parent.toLowerCase())?.dirname;
+// Repositories defined as a directory of another one (cone) are shown as that directory.
+const parentDirname = (repo: any) =>
+  repositories_json.find(
+    parent => parent.dirname.toLowerCase() === repo.parent?.toLowerCase(),
+  )?.dirname;
+
 const selection = computed({
   get: () => {
-    const cone = repositories_json.find(repo => repo.cone &&
-      parentDirname(repo) === repository.value && repo.cone === directory.value);
+    const cone = repositories_json.find(
+      repo =>
+        repo.cone &&
+        parentDirname(repo) === repository.value &&
+        repo.cone === directory.value,
+    );
     return [cone ? cone.dirname : repository.value];
   },
-  set: value => {
-    // After a selection, the chips also send it with the previous one: the
-    // current selection is kept.
+  set: (value: string[]) => {
     const dirname = value.includes(selection.value[0]) ? selection.value[0] : value[0];
-    const repo = repositories_json.find(repo => repo.dirname === dirname);
+    const repo = repositories_json.find(r => r.dirname === dirname);
     if (!repo) return;
-    const next = repo.cone ? parentDirname(repo) : repo.dirname;
+    const next = (repo.cone ? parentDirname(repo) : repo.dirname) || repo.dirname;
     if (next !== repository.value) developers.value = [];
     repository.value = next;
     directory.value = repo.cone || "";
   },
 });
 
-const dataBase = computed(() => language.value
-  ? `/accretion/${repository.value}/languages/${language.value}`
-  : `/accretion/${repository.value}`);
+const dataBase = computed(() =>
+  language.value
+    ? `/accretion/${repository.value}/languages/${language.value}`
+    : `/accretion/${repository.value}`,
+);
 
 watch([repository, language], async () => {
   const repo = repository.value;
@@ -752,12 +808,19 @@ watch([repository, language], async () => {
   repoCohorts.value = rootCohorts;
   repoDirectories.value = rootDirs || [];
   missing.value = !rootCohorts;
-  if (language.value && !(rootCohorts?.languages || []).some(entry => entry.id === language.value)) {
+  if (language.value && !(rootCohorts?.languages || []).some((entry: any) => entry.id === language.value)) {
     language.value = "";
     return;
   }
   const base = dataBase.value;
-  const [cohortsJson, directoriesJson, leaderboardJson, leaderboardRevJson, eventsJson, organizationsJson] = await Promise.all([
+  const [
+    cohortsJson,
+    directoriesJson,
+    leaderboardJson,
+    leaderboardRevJson,
+    eventsJson,
+    organizationsJson,
+  ] = await Promise.all([
     language.value ? fetchFile(`${base}/cohorts.json`) : Promise.resolve(rootCohorts),
     language.value ? fetchFile(`${base}/directories.json`) : Promise.resolve(rootDirs),
     fetchFile(`${base}/leaderboard.json`),
@@ -770,54 +833,22 @@ watch([repository, language], async () => {
   cohorts.value = cohortsJson;
   events.value = eventsJson || [];
   directories.value = directoriesJson || [];
-  leaderboard.value = (leaderboardJson || []).map((entry, i) => ({ ...entry, rank: i + 1 }));
-  leaderboardReviewed.value = (leaderboardRevJson || []).map((entry, i) => ({ ...entry, rank: i + 1 }));
+  leaderboard.value = (leaderboardJson || []).map((entry: any, i: number) => ({ ...entry, rank: i + 1 }));
+  leaderboardReviewed.value = (leaderboardRevJson || []).map((entry: any, i: number) => ({
+    ...entry,
+    rank: i + 1,
+  }));
   organizationsBundle.value = organizationsJson;
 }, { immediate: true });
 
-// A link to a section scrolls to it once the data is loaded: the sections
-// aren't all there before.
+// A link to a section scrolls to it once the data is loaded.
 watch(cohorts, async () => {
   if (!location.hash) return;
   await nextTick();
   document.getElementById(location.hash.slice(1))?.scrollIntoView();
 }, { once: true });
 
-// Blink is a top-level directory.
-const parentOf = path => path === "third_party/blink" || !path.includes("/")
-  ? ""
-  : path.slice(0, path.lastIndexOf("/"));
-
-const breadcrumb = computed(() => {
-  const parts = [];
-  for (let path = directory.value; path; path = parentOf(path)) {
-    parts.unshift({ path, name: path.slice(parentOf(path).length).replace(/^\//, "") });
-  }
-  return parts;
-});
-
-// The directories and the developers are grouped in files, like the importer
-// does: per top-level directory, and per first letter.
-const directoryPack = path => path.startsWith("third_party/blink")
-  ? "third_party/blink"
-  : path.split("/")[0];
-const usernameBucket = username =>
-  /^[a-z0-9]/i.test(username) ? username[0].toLowerCase() : "_";
-
-const unpackDirectory = (pack, path) => {
-  if (!pack) return null;
-  const raw = pack.directories ? pack.directories[path] : pack[path];
-  if (!raw) return null;
-  if (!pack.directories) return raw;
-  const width = raw.years.length;
-  return {
-    ...raw,
-    dates: pack.dates.slice(raw.first),
-    lines: raw.lines.map(row => row.length === width
-      ? row
-      : [...row, ...new Array(width - row.length).fill(0)]),
-  };
-};
+const breadcrumb = computed(() => buildBreadcrumbs(directory.value));
 
 watch([dataBase, directory], async () => {
   const base = dataBase.value;
@@ -835,8 +866,9 @@ watch([dataBase, directory], async () => {
 }, { immediate: true });
 
 const availableLanguages = computed(() => repoCohorts.value?.languages || []);
-const languageMeta = computed(() =>
-  availableLanguages.value.find(entry => entry.id === language.value) || null);
+const languageMeta = computed(
+  () => availableLanguages.value.find(entry => entry.id === language.value) || null,
+);
 const languageLabel = computed(() => languageMeta.value?.label || "");
 const languageOptions = computed(() => [
   { value: "", label: "All languages" },
@@ -852,12 +884,12 @@ const filterSummary = computed(() => [
 ].join(" · "));
 
 // The data of the selected scope: the repository, or a directory.
-const scope = computed(() => directory.value ? directoryData.value : cohorts.value);
+const scope = computed(() => (directory.value ? directoryData.value : cohorts.value));
 const hasHistory = computed(() => (scope.value?.dates?.length || 0) > 1);
 // The summary of the selected scope: its label and bus factor.
-const scopeSummary = computed(() => directory.value
-  ? directories.value.find(entry => entry.path === directory.value)
-  : cohorts.value);
+const scopeSummary = computed(() =>
+  directory.value ? directoryByPath.value.get(directory.value) : cohorts.value,
+);
 
 // Single-sample fallback for repositories whose state has not been backfilled
 // to v2 language history yet.
@@ -871,64 +903,62 @@ const fallbackCohortPairs = computed(() => {
     .map(([year, count]) => [Number(year), count] as const);
 });
 const fallbackCohortYears = computed(() => fallbackCohortPairs.value.map(([year]) => year));
-const fallbackCohortSeries = computed(() => fallbackCohortPairs.value.length ? [{
-  key: "alive",
-  label: `${languageLabel.value || "Code"} lines alive`,
-  color: "var(--series-1)",
-  values: fallbackCohortPairs.value.map(([, count]) => count),
-}] : []);
+const fallbackCohortSeries = computed(() =>
+  fallbackCohortPairs.value.length
+    ? [
+        {
+          key: "alive",
+          label: `${languageLabel.value || "Code"} lines alive`,
+          color: "var(--series-1)",
+          values: fallbackCohortPairs.value.map(([, count]) => count),
+        },
+      ]
+    : [],
+);
 
-// The explanations of the labels and the bus factor, shown on hover.
-const labelHint = "What happened during the last 12 months. Growing: the lines alive grew by more than 5%. " +
+// Explanations of the labels and bus factor, shown on hover.
+const labelHint =
+  "What happened during the last 12 months. Growing: the lines alive grew by more than 5%. " +
   "Shrinking: they shrank by more than 5%. Otherwise, Refactored: rewriting older lines and mechanical " +
   "changes outweighed new code and recent iterations. Dormant: under 2% of the lines changed. " +
   "Maintained: the rest.";
-const busFactorHint = "The fewest authors who together wrote half of the lines alive, adding the authors " +
+const busFactorHint =
+  "The fewest authors who together wrote half of the lines alive, adding the authors " +
   "from the one who wrote the most. 1 means a single person wrote half of the code, which then depends on " +
   "very few people. Writing isn't the only way to know code: reviewers and owners know it too.";
-// The month since which the reviewers are known, like "July 2017".
-const reviewedSince = computed(() => cohorts.value?.reviewed_since
-  ? new Date(cohorts.value.reviewed_since).toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" })
-  : "");
-const reviewedBusFactorHint = computed(() => "How many people must leave for half of the lines alive to " +
-  "be known by nobody, a line being known by its author and the reviewers of its commit. They leave from " +
-  "the one knowing the most lines. Higher than the bus factor when the code was reviewed by others than its " +
-  "authors. From the Reviewed-by lines of the commits, recorded since " + reviewedSince.value + ": the older " +
-  "lines aren't counted, and the figure is left out when they are more than half of the lines alive.");
+const reviewedSince = computed(() =>
+  cohorts.value?.reviewed_since
+    ? new Date(cohorts.value.reviewed_since).toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric",
+        timeZone: "UTC",
+      })
+    : "",
+);
 
-const componentsHint = "A component is a directory two levels deep, like chrome/browser. " +
+const componentsHint =
+  "A component is a directory two levels deep, like chrome/browser. " +
   "The number is weighted by where the commits went: 100 commits spread evenly over 4 components " +
   "make 4, while 97 in one and 1 in each of 3 others make about 1.2.";
 
-// Of the lines a year ago, the share rewritten or removed in place since: the
-// rework of the last 12 months. Without the activity, from the lines older
-// than a year, which is wrong when old code was moved in: then unknown.
-const oldCodeRewritten = (reworked, old, year_ago) => {
-  if (!year_ago) return null;
-  if (reworked !== undefined) return reworked / year_ago;
-  return old <= year_ago ? 1 - old / year_ago : null;
-};
+const wholeRepository = computed(() => (directory.value ? `All of ${name.value}` : undefined));
+const untrackedBelow = computed(() => isUntrackedBelow(directory.value));
 
-// Shown next to what covers the whole repository, when a directory is
-// selected.
-const wholeRepository = computed(() => directory.value ? `All of ${name.value}` : undefined);
-// The selected directory is as deep as the directories are tracked.
-const untrackedBelow = computed(() => directory.value &&
-  directory.value.split("/").length -
-    (directory.value.startsWith("third_party/blink") ? 1 : 0) >= 3);
+const scopeAnchorDate = computed(() => {
+  const lastDate = scope.value?.dates?.at(-1);
+  return lastDate ? new Date(lastDate) : new Date();
+});
 
-// The contributors cover the last 365 days when the data has them, or else
-// the last complete year, and the last 3 calendar years for the top authors
-// and the breadth of developers.
+const lastYear = computed(() => scopeAnchorDate.value.getUTCFullYear() - 1);
 const recentContributors = computed(() => !!cohorts.value?.recent_contributors);
 const contributorsPeriod = computed(() =>
-  recentContributors.value ? "in the last 12 months" : `in ${lastYear}`);
+  recentContributors.value ? "in the last 12 months" : `in ${lastYear.value}`,
+);
 const breadthPeriod = computed(() =>
-  recentContributors.value ? "in the last 12 months" : `since ${lastYear - 1}`);
-
-// The last complete year, for the activity and the contributors.
-const lastYear = new Date().getUTCFullYear() - 1;
-const yearIndex = (data, year) => data ? data.years.indexOf(year) : -1;
+  recentContributors.value ? "in the last 12 months" : `since ${lastYear.value - 1}`,
+);
+const yearIndex = (data: { years: number[] } | undefined, year: number) =>
+  data ? data.years.indexOf(year) : -1;
 
 // The lines changed per year, by kind.
 const activitySeries = computed(() => {
@@ -942,25 +972,11 @@ const activitySeries = computed(() => {
     { key: "removed", label: "Removed (net)", color: "var(--series-8)", values: activity.removed, negative: true },
   ];
 });
-// The activity of the last 365 days, estimated from the yearly counts: the
-// current year, and the part of the previous one still in the window, as if
-// spread evenly over that year. Like the importer does for the labels.
-const recentActivity = activity => {
-  const now = new Date();
-  const year = now.getUTCFullYear();
-  const weight = Math.max(0, 1 - (now - Date.UTC(year, 0, 1)) / (365 * 86400e3));
-  const value = (kind, year) => {
-    const i = activity.years.indexOf(year);
-    return i === -1 ? 0 : activity[kind][i];
-  };
-  return Object.fromEntries(["new", "iteration", "rework", "mechanical", "removed"]
-    .map(kind => [kind, value(kind, year) + weight * value(kind, year - 1)]));
-};
 
 const activitySummary = computed(() => {
   const activity = scope.value?.activity;
   if (!activity) return "";
-  const recent = recentActivity(activity);
+  const recent = estimateRecentActivity(activity, scopeAnchorDate.value);
   const development = recent.new + recent.iteration;
   const refactoring = recent.rework + recent.mechanical;
   const changed = development + refactoring;
@@ -978,32 +994,102 @@ const contributorSeries = computed(() => {
     { key: "driveby", label: "Drive-by (1 or 2)", color: "var(--series-4)", values: contributors.driveby },
   ];
 });
-const topAuthors = computed(() => (scope.value?.top || [])
-  .map(([username, commits], i) => ({ rank: i + 1, name: username, commits })));
-const topOrganizations = computed(() => (scope.value?.top_organizations || [])
-  .map(([org, commits], i) => ({ rank: i + 1, name: org, commits })));
+const topAuthors = computed(() =>
+  (scope.value?.top || []).map(([username, commits], i) => ({ rank: i + 1, name: username, commits })),
+);
+const topOrganizations = computed(() =>
+  (scope.value?.top_organizations || []).map(([org, commits], i) => ({ rank: i + 1, name: org, commits })),
+);
 const activeTopCommits = computed(() =>
-  isOrganizations.value ? topOrganizations.value : topAuthors.value);
+  isOrganizations.value ? topOrganizations.value : topAuthors.value,
+);
 
-const peersOf = (pairs, self) => (pairs || [])
-  .filter(([name]) => name !== self)
-  .slice(0, 5);
-
-const total = row => row.reduce((a, b) => a + b, 0);
+const peersOf = (pairs: Array<[string, number]> | undefined, self: string) =>
+  (pairs || []).filter(([peerName]) => peerName !== self).slice(0, 5);
 
 const directoryFilter = ref("");
-watch([repository, directory], () => directoryFilter.value = "");
+watch([repository, directory], () => {
+  directoryFilter.value = "";
+});
 
 const selectedOwners = computed(() => [
-  ...organizations.value.map(name => ({ kind: "organization", key: `org:${name}`, name })),
-  ...developers.value.map(name => ({ kind: "developer", key: `dev:${name}`, name })),
+  ...organizations.value.map(orgName => ({
+    kind: "organization" as const,
+    key: `org:${orgName}`,
+    name: orgName,
+  })),
+  ...developers.value.map(devName => ({
+    kind: "developer" as const,
+    key: `dev:${devName}`,
+    name: devName,
+  })),
 ]);
 
-const denomOf = entry => reviewed.value ? entry.reviewed_lines : entry.lines;
+const hasReviewers = computed(() => !!cohorts.value?.reviewed_since);
+const reviewed = computed(() => hasReviewers.value && knowledge.value === "reviewed");
+const knowledgeVerb = computed(() => (reviewed.value ? "reviewed" : "authored"));
+const denomOf = (entry: DirectorySummaryEntry) =>
+  reviewed.value ? entry.reviewed_lines : entry.lines;
 
-const children = computed(() => directories.value
-  .filter(entry => entry.path !== directory.value && parentOf(entry.path) === directory.value)
-  .map(entry => {
+// Selected developers: { username, dates, user }.
+const developerUsers = shallowRef<any[]>([]);
+let devUsersReqId = 0;
+watch([developers, dataBase], async () => {
+  const reqId = ++devUsersReqId;
+  const base = dataBase.value;
+  const devs = [...developers.value];
+  const buckets = await Promise.all(
+    devs.map(username => fetchFile(`${base}/usernames/${shardOf(username)}.json`)),
+  );
+  if (reqId !== devUsersReqId) return;
+  developerUsers.value = devs
+    .map((username, i) =>
+      buckets[i]?.users[username] && {
+        username,
+        dates: buckets[i].dates,
+        user: buckets[i].users[username],
+      },
+    )
+    .filter(Boolean);
+}, { immediate: true });
+
+const developerData = computed(() =>
+  developerUsers.value
+    .filter(({ user }) => user.lines?.length > 1)
+    .map(({ username, dates, user }) => ({
+      label: username,
+      values: user.lines.map((count: number, j: number) => ({
+        x: new Date(dates[user.first + j]),
+        y: count,
+      })),
+    })),
+);
+
+const directoryMapOf = (entry: any): Map<string, number> => {
+  const owned = new Map<string, number>();
+  const list = (reviewed.value ? entry?.reviewed : entry?.directories) || [];
+  for (let i = 0; i < list.length; i += 2) {
+    const dir = directories.value[list[i]];
+    if (dir) owned.set(dir.path, list[i + 1]);
+  }
+  return owned;
+};
+const ownership = computed(
+  () => new Map(developerUsers.value.map(({ username, user }) => [username, directoryMapOf(user)])),
+);
+
+const activeOrgRecords = computed<Record<string, any>>(
+  () => organizationsBundle.value?.organizations || {},
+);
+
+const organizationOwnership = computed(() => {
+  const orgs = activeOrgRecords.value;
+  return new Map(Object.entries(orgs).map(([org, info]) => [org, directoryMapOf(info)]));
+});
+
+const children = computed(() => {
+  const directChildren = directoriesByParent.value.get(directory.value) || [];
+  return directChildren.map(entry => {
     const denom = denomOf(entry);
     return {
       ...entry,
@@ -1011,121 +1097,79 @@ const children = computed(() => directories.value
       growth: entry.year_ago ? entry.lines / entry.year_ago - 1 : null,
       fresh: entry.recent / entry.lines,
       rewritten: oldCodeRewritten(entry.reworked, entry.lines - entry.recent, entry.year_ago),
-      ...Object.fromEntries(selectedOwners.value.map((owner, i) => [`owned_${i}`,
-        denom
-          ? ((owner.kind === "organization"
-              ? organizationOwnership.value.get(owner.name)
-              : ownership.value.get(owner.name))?.get(entry.path) || 0) / denom
-          : 0])),
+      ...Object.fromEntries(
+        selectedOwners.value.map((owner, i) => [
+          `owned_${i}`,
+          denom
+            ? ((owner.kind === "organization"
+                ? organizationOwnership.value.get(owner.name)
+                : ownership.value.get(owner.name)
+              )?.get(entry.path) || 0) / denom
+            : 0,
+        ]),
+      ),
     };
-  }));
+  });
+});
 
 const filteredChildren = computed(() => {
   const q = directoryFilter.value.trim().toLowerCase();
   return q ? children.value.filter(row => row.name.toLowerCase().includes(q)) : children.value;
 });
 
-// For each year, the share of its lines removed during each following year,
-// measured at the sample closest to each January 1st.
-const reduction = computed(() => {
-  const data = scope.value;
-  if (!data) return { ages: [], rows: [] };
-  const { dates, years, lines } = data;
-  const january = {};
-  const distance = (i, year) => Math.abs(new Date(dates[i]) - new Date(`${year}-01-01`));
-  dates.forEach((date, i) => {
-    const year = Number(date.slice(0, 4)) + (date.slice(5) > "07" ? 1 : 0);
-    // Within 3 weeks, for the directories sampled every 4 weeks.
-    if (distance(i, year) > 21 * 86400e3) return;
-    if (january[year] === undefined || distance(i, year) < distance(january[year], year)) {
-      january[year] = i;
-    }
-  });
-  const rows = [];
-  for (const year of years.filter(year => year !== "unknown")) {
-    const column = years.indexOf(year);
-    const values = [];
-    for (let age = 1; ; age++) {
-      const start = january[Number(year) + age];
-      const end = january[Number(year) + age + 1];
-      if (start === undefined || end === undefined) break;
-      const before = lines[start][column];
-      values.push(before ? 1 - lines[end][column] / before : null);
-    }
-    if (values.length) rows.push({ label: year, values });
-  }
-  const ages = Array.from(
-    { length: Math.max(0, ...rows.map(row => row.values.length)) },
-    (_, i) => i + 1);
-  const median = ages.map((_, i) => {
-    const values = rows.map(row => row.values[i])
-      .filter(value => value !== null && value !== undefined)
-      .sort((a, b) => a - b);
-    return values.length ? values[Math.floor(values.length / 2)] : null;
-  });
-  return {
-    ages,
-    rows: [{ label: "Median", values: median }, ...rows.reverse().map(row => ({
-      ...row,
-      values: ages.map((_, i) => row.values[i] ?? null),
-    }))],
-  };
+const reduction = computed(() => computeCohortReduction(scope.value));
+
+const crossed = shallowRef<any>(null);
+watch(scope, () => {
+  crossed.value = null;
 });
+const reductionYears = computed(() =>
+  reduction.value.rows
+    .filter(row => row.label !== "Median")
+    .map(row => ({ written: Number(row.label), values: row.values })),
+);
+const medianForAge = (age: number) => reduction.value.rows[0]?.values?.[age - 1] ?? null;
 
-// The value selected on the hexagonal grid of the reductions.
-const crossed = shallowRef(null);
-watch(scope, () => crossed.value = null);
-const reductionYears = computed(() => reduction.value.rows
-  .filter(row => row.label !== "Median")
-  .map(row => ({ written: Number(row.label), values: row.values })));
-const medianForAge = age => reduction.value.rows[0]?.values?.[age - 1] ?? null;
+const halfLife = computed(() => computeHalfLife(reduction.value.rows[0]?.values || []));
 
-// The years for half of the lines of a year to be gone, with the median
-// reduction of each age.
-const halfLife = computed(() => {
-  const median = reduction.value.rows[0]?.values || [];
-  let alive = 1;
-  for (let age = 0; age < median.length; age++) {
-    if (median[age] === null) return null;
-    const next = alive * (1 - median[age]);
-    if (next <= 0.5) return age + (alive - 0.5) / (alive - next);
-    alive = next;
-  }
-  return null;
-});
-
-// The headline figures of the selected scope.
+// Headline figures of the selected scope.
 const figures = computed(() => {
   const data = scope.value;
   if (!data?.recent) return [];
   const last = data.dates.length - 1;
   const now = new Date(data.dates[last]);
-  // The last sample at least a year before.
   let before = last;
-  while (before > 0 && now - new Date(data.dates[before]) < 365 * 86400e3) before--;
-  const current = total(data.lines[last]);
+  while (before > 0 && now.getTime() - new Date(data.dates[before]).getTime() < 365 * 86400e3) {
+    before--;
+  }
+  const current = sumRow(data.lines[last]);
   const recent = data.recent[last];
-  const year_ago = hasHistory.value && before < last ? total(data.lines[before]) : null;
-  const entry = directories.value.find(entry => entry.path === directory.value);
+  const year_ago = hasHistory.value && before < last ? sumRow(data.lines[before]) : null;
+  const entry = directory.value ? directoryByPath.value.get(directory.value) : undefined;
   const median_age = directory.value
     ? entry?.median_age ?? null
-    : data.median_age !== null && data.median_age !== undefined ? data.median_age / 365.25 : null;
+    : data.median_age !== null && data.median_age !== undefined
+      ? data.median_age / 365.25
+      : null;
   const allLangLines = language.value
-    ? (directory.value
-        ? repoDirectories.value.find(item => item.path === directory.value)?.lines || 0
-        : (repoCohorts.value ? total(repoCohorts.value.lines.at(-1)) : 0))
+    ? directory.value
+      ? repoDirectoryByPath.value.get(directory.value)?.lines || 0
+      : repoCohorts.value
+        ? sumRow(repoCohorts.value.lines.at(-1) || [])
+        : 0
     : 0;
-  const shareText = allLangLines > 0
-    ? `${ownedShare(current / allLangLines) || "0%"} of ${directory.value || name.value}`
-    : "";
+  const shareText =
+    allLangLines > 0
+      ? `${ownedShare(current / allLangLines) || "0%"} of ${directory.value || name.value}`
+      : "";
   const growthText = year_ago ? `${signedPercent(current / year_ago - 1)} in a year` : "";
   const statusLabel = scopeSummary.value?.label;
-  const figures = [
+  const items = [
     {
       label: "Lines alive",
       hint: languageLabel.value
         ? `The ${languageLabel.value} lines in the repository or the directory today.`
-        : "The lines in the repository or the directory today, without the third-party code and the translations. See \"How is this computed?\".",
+        : 'The lines in the repository or the directory today, without the third-party code and the translations. See "How is this computed?".',
       value: compact(current),
       detail: [shareText, growthText, statusLabel].filter(Boolean).join(" · "),
     },
@@ -1143,26 +1187,34 @@ const figures = computed(() => {
     },
   ];
   if (hasHistory.value) {
-    figures.push({
+    items.push({
       label: "Old code rewritten",
       hint: "Of the lines a year ago, the share of those a year old or more removed or rewritten in place since. How fast the existing code is renewed. Moved files and mechanical changes don't count. Estimated from the yearly counts.",
-      value: percent(oldCodeRewritten(
-        data.activity ? recentActivity(data.activity).rework : undefined,
-        current - recent, year_ago)),
+      value: percent(
+        oldCodeRewritten(
+          data.activity ? estimateRecentActivity(data.activity, now).rework : undefined,
+          current - recent,
+          year_ago,
+        ),
+      ),
       detail: "of the lines a year ago, in 12 months",
     });
   }
-  let counts = data.recent_contributors;
+  let counts: any = data.recent_contributors;
   if (!counts && data.contributors) {
-    const i = yearIndex(data.contributors, lastYear);
+    const i = yearIndex(data.contributors, lastYear.value);
     if (i !== -1) {
-      counts = Object.fromEntries(["commits", "core", "regular", "driveby"]
-        .map(key => [key, data.contributors[key][i]]));
+      counts = Object.fromEntries(
+        (["commits", "core", "regular", "driveby"] as const).map(key => [
+          key,
+          data.contributors![key][i],
+        ]),
+      );
       counts.authors = counts.core + counts.regular + counts.driveby;
     }
   }
   if (counts) {
-    figures.push({
+    items.push({
       label: "Authors (12m)",
       hint: `The developers with at least one commit here ${contributorsPeriod.value} (and core authors with 12+ commits), bots aside.`,
       value: lines(counts.authors),
@@ -1171,87 +1223,42 @@ const figures = computed(() => {
   }
   if (scopeSummary.value?.bus_factor !== undefined) {
     const reviewedBus = scopeSummary.value.bus_factor_reviewed;
-    figures.push({
+    items.push({
       label: "Bus factor",
       hint: busFactorHint,
       value: String(scopeSummary.value.bus_factor),
-      detail: reviewedBus !== undefined
-        ? `${reviewedBus} with reviewers`
-        : "fewest authors for 50% of lines",
+      detail:
+        reviewedBus !== undefined
+          ? `${reviewedBus} with reviewers`
+          : "fewest authors for 50% of lines",
     });
   }
-  return figures;
+  return items;
 });
 
 // The first year is skipped: all its lines are less than a year old.
 const freshness = computed(() => {
-  const series = (label, data) => {
+  const series = (label: string, data: CohortData | null) => {
     if (!data?.recent) return null;
+    const recentArr = data.recent;
     const start = new Date(data.dates[0]).getTime() + 365 * 86400e3;
     return {
       label,
       values: data.dates
-        .map((date, i) => ({ x: new Date(date), y: data.recent[i] / total(data.lines[i]) }))
+        .map((date, i) => ({ x: new Date(date), y: recentArr[i] / sumRow(data.lines[i]) }))
         .filter(point => point.x.getTime() >= start),
     };
   };
   return [
     directory.value ? series(directory.value, directoryData.value) : null,
     series(name.value, cohorts.value),
-  ].filter(entry => entry);
-});
-
-// The selected developers: { username, dates, user } where user is
-// { first, lines, total, directories }.
-const developerUsers = shallowRef([]);
-watch([developers, dataBase], async () => {
-  const base = dataBase.value;
-  const devs = developers.value;
-  const buckets = await Promise.all(devs.map(username => fetchFile(
-    `${base}/usernames/${usernameBucket(username)}.json`)));
-  if (base !== dataBase.value) return;
-  developerUsers.value = devs
-    .map((username, i) => buckets[i]?.users[username] &&
-      { username, dates: buckets[i].dates, user: buckets[i].users[username] })
-    .filter(entry => entry);
-}, { immediate: true });
-
-const developerData = computed(() => developerUsers.value
-  .filter(({ user }) => user.lines?.length > 1)
-  .map(({ username, dates, user }) => ({
-    label: username,
-    values: user.lines.map((count, j) => ({ x: new Date(dates[user.first + j]), y: count })),
-  })));
-
-// The lines each selected developer or organization authored, or reviewed,
-// alive today: name -> Map(path -> lines).
-// The directories are referred to by their index in directories.json.
-const hasReviewers = computed(() => !!cohorts.value?.reviewed_since);
-const reviewed = computed(() => hasReviewers.value && knowledge.value === "reviewed");
-const knowledgeVerb = computed(() => reviewed.value ? "reviewed" : "authored");
-const directoryMapOf = entry => {
-  const owned = new Map();
-  const list = (reviewed.value ? entry?.reviewed : entry?.directories) || [];
-  for (let i = 0; i < list.length; i += 2) {
-    const dir = directories.value[list[i]];
-    if (dir) owned.set(dir.path, list[i + 1]);
-  }
-  return owned;
-};
-const ownership = computed(() => new Map(developerUsers.value.map(({ username, user }) =>
-  [username, directoryMapOf(user)])));
-
-const activeOrgRecords = computed(() => organizationsBundle.value?.organizations || {});
-
-const organizationOwnership = computed(() => {
-  const orgs = activeOrgRecords.value;
-  return new Map(Object.entries(orgs).map(([org, info]) => [org, directoryMapOf(info)]));
+  ].filter(Boolean);
 });
 
 const organizationNames = computed(() => {
   const orgs = activeOrgRecords.value;
   return Object.entries(orgs)
-    .sort((a, b) => ((b[1] as any).total || 0) - ((a[1] as any).total || 0) || a[0].localeCompare(b[0]))
+    .sort((a, b) => (b[1].total || 0) - (a[1].total || 0) || a[0].localeCompare(b[0]))
     .map(([org]) => org);
 });
 
@@ -1264,34 +1271,40 @@ const organizationData = computed(() => {
       if (!info?.lines || info.lines.length <= 1) return null;
       return {
         label: org,
-        values: info.lines.map((count, j) => ({ x: new Date(bundle.dates[info.first + j]), y: count })),
+        values: info.lines.map((count: number, j: number) => ({
+          x: new Date(bundle.dates[info.first + j]),
+          y: count,
+        })),
       };
     })
     .filter(Boolean);
 });
 
-const activeSelected = computed(() => isOrganizations.value ? organizations.value : developers.value);
-const activeLineData = computed(() => isOrganizations.value ? organizationData.value : developerData.value);
+const activeSelected = computed(() =>
+  isOrganizations.value ? organizations.value : developers.value,
+);
+const activeLineData = computed(() =>
+  isOrganizations.value ? organizationData.value : developerData.value,
+);
 
-// The denominator of ownership shares in the selected scope: all lines alive
-// when showing authored lines, or the lines with recorded human reviewers when
-// showing reviewed lines.
 const scopeTotalLines = computed(() => {
   if (directory.value) {
-    return scopeSummary.value?.lines ?? (scope.value ? total(scope.value.lines.at(-1)) : 0);
+    return (
+      scopeSummary.value?.lines ??
+      (scope.value ? sumRow(scope.value.lines.at(-1) || []) : 0)
+    );
   }
-  return languageMeta.value?.lines ?? (scope.value ? total(scope.value.lines.at(-1)) : 0);
+  return (
+    languageMeta.value?.lines ??
+    (scope.value ? sumRow(scope.value.lines.at(-1) || []) : 0)
+  );
 });
 
 const scopeDenominator = computed(() => {
   if (!scope.value) return 0;
-  return reviewed.value
-    ? scopeSummary.value?.reviewed_lines || 0
-    : scopeTotalLines.value;
+  return reviewed.value ? scopeSummary.value?.reviewed_lines || 0 : scopeTotalLines.value;
 });
 
-// The share of the selected scope each developer or organization authored or
-// reviewed, combined with their repo-wide breadth and removals.
 const developerCards = computed(() => {
   if (!scope.value) return [];
   const scopeLines = scopeTotalLines.value;
@@ -1308,6 +1321,7 @@ const developerCards = computed(() => {
       share: denom ? owned / denom : 0,
       allShare: scopeLines ? owned / scopeLines : 0,
       commits: user.commits,
+      authors: undefined,
       breadth: user.breadth,
       removals: user.removals,
     };
@@ -1323,7 +1337,9 @@ const organizationCards = computed(() => {
     const info = orgs[org];
     const owned = directory.value
       ? organizationOwnership.value.get(org)?.get(directory.value) || 0
-      : reviewed.value ? info?.reviewed_total || 0 : (info?.total ?? info?.lines?.at(-1) ?? 0);
+      : reviewed.value
+        ? info?.reviewed_total || 0
+        : (info?.total ?? info?.lines?.at(-1) ?? 0);
     return {
       name: org,
       owned,
@@ -1337,42 +1353,41 @@ const organizationCards = computed(() => {
   });
 });
 
-const activeCards = computed(() => isOrganizations.value ? organizationCards.value : developerCards.value);
+const activeCards = computed(() =>
+  isOrganizations.value ? organizationCards.value : developerCards.value,
+);
 
-// Where the lines each selected owner authored or reviewed are, under the
-// selected directory, as a tree for the treemaps. Each directory also holds
-// the lines outside of its listed subdirectories ("…").
 const activeTrees = computed(() => {
   if (!scope.value) return [];
   const rootLines = scopeDenominator.value || scopeTotalLines.value;
   const mapSource = isOrganizations.value ? organizationOwnership.value : ownership.value;
-  return activeCards.value.filter(entry => entry.owned > 0).map(({ name: ownerName, owned }) => {
-    const owner = mapSource.get(ownerName) || new Map();
-    const build = (path, label, lines, ownedHere) => {
-      const sub = directories.value
-        .filter(entry => entry.path !== path && parentOf(entry.path) === path &&
-          owner.get(entry.path))
-        .map(entry => build(entry.path, entry.path.slice(path.length).replace(/^\//, ""),
-          denomOf(entry) || entry.lines, owner.get(entry.path)));
-      const rest = ownedHere - sub.reduce((sum, child) => sum + child.owned, 0);
-      if (sub.length && rest > 0) {
-        sub.push({ key: `${path}/…`, name: "…", lines, owned: rest });
-      }
-      return { key: path || "/", path, name: label, lines, owned: ownedHere, children: sub };
-    };
-    return { name: ownerName, tree: build(directory.value, directory.value || name.value, rootLines, owned) };
-  });
+  return activeCards.value
+    .filter(entry => entry.owned > 0)
+    .map(({ name: ownerName, owned }) => ({
+      name: ownerName,
+      tree: buildOwnershipTree({
+        rootPath: directory.value,
+        rootLabel: directory.value || name.value,
+        rootLines,
+        rootOwned: owned,
+        ownerMap: mapSource.get(ownerName) || new Map(),
+        directoriesByParent: directoriesByParent.value,
+        denomOf,
+      }),
+    }));
 });
 
-const leaderboardShowsReviewed = computed(() =>
-  reviewed.value && (isOrganizations.value || leaderboardReviewed.value.length > 0));
+const leaderboardShowsReviewed = computed(
+  () => reviewed.value && (isOrganizations.value || leaderboardReviewed.value.length > 0),
+);
 
 const developerLeaderboard = computed(() => {
   const showRev = reviewed.value && leaderboardReviewed.value.length > 0;
   const list = showRev ? leaderboardReviewed.value : leaderboard.value;
   const denom = showRev
     ? cohorts.value?.reviewed_lines || 0
-    : (languageMeta.value?.lines ?? (cohorts.value ? total(cohorts.value.lines.at(-1)) : 0));
+    : (languageMeta.value?.lines ??
+      (cohorts.value ? sumRow(cohorts.value.lines.at(-1) || []) : 0));
   return list.map(entry => ({
     ...entry,
     name: entry.username,
@@ -1388,7 +1403,9 @@ const organizationLeaderboard = computed(() => {
     .map(([org, info]: [string, any]) => {
       const count = directory.value
         ? organizationOwnership.value.get(org)?.get(directory.value) || 0
-        : reviewed.value ? info.reviewed_total || 0 : (info.total ?? info.lines?.at(-1) ?? 0);
+        : reviewed.value
+          ? info.reviewed_total || 0
+          : (info.total ?? info.lines?.at(-1) ?? 0);
       return {
         name: org,
         lines: count,
@@ -1404,7 +1421,8 @@ const organizationLeaderboard = computed(() => {
 });
 
 const activeLeaderboard = computed(() =>
-  isOrganizations.value ? organizationLeaderboard.value : developerLeaderboard.value);
+  isOrganizations.value ? organizationLeaderboard.value : developerLeaderboard.value,
+);
 
 const activeScatterPoints = computed(() => {
   if (!isOrganizations.value) return leaderboard.value;
@@ -1424,7 +1442,9 @@ const leaderboardOptions = computed(() => [
     label: leaderboardShowsReviewed.value ? "Most lines reviewed" : "Most lines alive",
   },
   ...(activeTopCommits.value.length ? [{ value: "commits", label: "Most commits (12m)" }] : []),
-  ...(activeScatterPoints.value.some(entry => entry.breadth && entry.commits) ? [{ value: "scatter", label: "Specialists vs generalists" }] : []),
+  ...(activeScatterPoints.value.some(entry => entry.breadth && entry.commits)
+    ? [{ value: "scatter", label: "Specialists vs generalists" }]
+    : []),
 ]);
 
 watch(leaderboardOptions, options => {
@@ -1433,94 +1453,124 @@ watch(leaderboardOptions, options => {
   }
 });
 
-// Whether the leaderboard header needs the "All of <repo>" scope tag when a
-// subdirectory is selected.
-const leaderboardRepoWide = computed(() =>
-  leaderboardView.value === "scatter" || (!isOrganizations.value && leaderboardView.value === "table"));
+const leaderboardRepoWide = computed(
+  () =>
+    leaderboardView.value === "scatter" ||
+    (!isOrganizations.value && leaderboardView.value === "table"),
+);
 
-const ownerLink = (ownerName: string) => isOrganizations.value
-  ? { path: "/organizations/commits", query: { repositories: repository.value, organizations: ownerName } }
-  : `/developers/${ownerName}`;
+const ownerLink = (ownerName: string) =>
+  isOrganizations.value
+    ? {
+        path: "/organizations/commits",
+        query: { repositories: repository.value, organizations: ownerName },
+      }
+    : `/developers/${encodeURIComponent(ownerName)}`;
 
-// Whether the scope bar is stuck at the top: its sentinel, just above it, is
-// out of view.
+// Whether the scope bar is stuck at the top.
 const scopeSentinel = ref<HTMLElement | null>(null);
 const scopeStuck = ref(false);
 onMounted(() => {
-  const observer = new IntersectionObserver(([entry]) =>
-    scopeStuck.value = !entry.isIntersecting && entry.boundingClientRect.top < 0);
+  if (!scopeSentinel.value) return;
+  const observer = new IntersectionObserver(([entry]) => {
+    scopeStuck.value = !entry.isIntersecting && entry.boundingClientRect.top < 0;
+  });
   observer.observe(scopeSentinel.value);
   onBeforeUnmount(() => observer.disconnect());
 });
 
-const toggleDeveloper = username => {
+const toggleDeveloper = (username: string) => {
   developers.value = developers.value.includes(username)
     ? developers.value.filter(other => other !== username)
     : [...developers.value, username];
 };
 
-const toggleOrganization = org => {
+const toggleOrganization = (org: string) => {
   organizations.value = organizations.value.includes(org)
     ? organizations.value.filter(other => other !== org)
     : [...organizations.value, org];
 };
 
-const toggleActiveOwner = name => isOrganizations.value
-  ? toggleOrganization(name)
-  : toggleDeveloper(name);
+const toggleActiveOwner = (ownerName: string) =>
+  isOrganizations.value ? toggleOrganization(ownerName) : toggleDeveloper(ownerName);
 
-const removeOwner = owner => owner.kind === "organization"
-  ? toggleOrganization(owner.name)
-  : toggleDeveloper(owner.name);
+const removeOwner = (owner: { kind: "organization" | "developer"; name: string }) =>
+  owner.kind === "organization" ? toggleOrganization(owner.name) : toggleDeveloper(owner.name);
 
-// The background of a cell, painted with the color of a developer or
-// organization, darker for a larger share, on a logarithmic scale.
-const paint = (share, ownerName) => share > 0
-  ? { style: { background: `color-mix(in srgb, ${$color(ownerName)} ${Math.round(shareIntensity(share) * 70)}%, transparent)` } }
-  : {};
+const paint = (share: number, ownerName: string) =>
+  share > 0
+    ? {
+        style: {
+          background: `color-mix(in srgb, ${$color(ownerName)} ${Math.round(shareIntensity(share) * 70)}%, transparent)`,
+        },
+      }
+    : {};
 
-// The state is in the URL. Selecting a repository or a directory adds an
-// entry to the history, for the back and forward buttons. The other changes
-// replace it.
-const query = () => ({
+// URL synchronization: repository and directory push history entries; all other controls replace.
+const buildQuery = (): LocationQueryRaw => ({
   repository: repository.value === "chromium" ? undefined : repository.value,
-  share: chartView.value === "share" ? "true" : chartView.value === "fresh" ? "fresh" : undefined,
+  share:
+    chartView.value === "share"
+      ? "true"
+      : chartView.value === "fresh"
+        ? "fresh"
+        : undefined,
   dir: directory.value || undefined,
   lang: language.value || undefined,
   developers: developers.value.join(",") || undefined,
   organizations: organizations.value.join(",") || undefined,
-  by: ownerKind.value !== defaultOwnerKind(developers.value, organizations.value)
-    ? ownerKind.value
-    : undefined,
+  by:
+    ownerKind.value !== defaultOwnerKind(developers.value, organizations.value)
+      ? ownerKind.value
+      : undefined,
   hide: hidden.value || undefined,
   lines: knowledge.value === "reviewed" ? "reviewed" : undefined,
 });
-const sameQuery = (a, b) => {
-  const defined = q => JSON.stringify(Object.entries(q)
-    .filter(([, value]) => value !== undefined).sort());
-  return defined(a) === defined(b);
-};
-watch([chartView, repository, directory, language, developers, organizations, ownerKind, hidden, knowledge],
-  ([, newRepository, newDirectory], [, oldRepository, oldDirectory]) => {
-    if (sameQuery(query(), route.query)) return;
-    const navigation = newRepository !== oldRepository || newDirectory !== oldDirectory;
-    router[navigation ? "push" : "replace"]({ query: query(), hash: route.hash });
-  });
 
-// Back and forward.
-watch(() => route.query, value => {
-  chartView.value = value.share === "fresh" ? "fresh" : value.share === "true" ? "share" : "lines";
-  repository.value = value.repository || "chromium";
-  directory.value = value.dir || "";
-  language.value = (value.lang as string) || "";
-  hidden.value = value.hide || "";
-  knowledge.value = value.lines === "reviewed" ? "reviewed" : "authored";
-  const devList = value.developers ? (value.developers as string).split(",") : [];
-  if (devList.join(",") !== developers.value.join(",")) developers.value = devList;
-  const orgList = value.organizations ? (value.organizations as string).split(",") : [];
-  if (orgList.join(",") !== organizations.value.join(",")) organizations.value = orgList;
-  ownerKind.value = kindFromQuery(value, devList, orgList);
-});
+let restoringUrl = false;
+watch(
+  [chartView, repository, directory, language, developers, organizations, ownerKind, hidden, knowledge],
+  ([, newRepository, newDirectory], [, oldRepository, oldDirectory]) => {
+    if (restoringUrl) return;
+    const nextQuery = buildQuery();
+    if (sameQuery(nextQuery, route.query)) return;
+    const navigation = newRepository !== oldRepository || newDirectory !== oldDirectory;
+    router[navigation ? "push" : "replace"]({
+      query: nextQuery,
+      hash: route.hash || undefined,
+    });
+  },
+);
+
+// Back and forward navigation.
+watch(
+  () => route.query,
+  async value => {
+    restoringUrl = true;
+    try {
+      const shareStr = firstStr(value.share);
+      chartView.value =
+        shareStr === "fresh" ? "fresh" : shareStr === "true" ? "share" : "lines";
+      repository.value = firstStr(value.repository) || "chromium";
+      directory.value = firstStr(value.dir);
+      language.value = firstStr(value.lang);
+      hidden.value = firstStr(value.hide);
+      knowledge.value = firstStr(value.lines) === "reviewed" ? "reviewed" : "authored";
+      const devList = firstStr(value.developers)
+        ? firstStr(value.developers).split(",").filter(Boolean)
+        : [];
+      if (devList.join(",") !== developers.value.join(",")) developers.value = devList;
+      const orgList = firstStr(value.organizations)
+        ? firstStr(value.organizations).split(",").filter(Boolean)
+        : [];
+      if (orgList.join(",") !== organizations.value.join(",")) organizations.value = orgList;
+      ownerKind.value = kindFromQuery(value, devList, orgList);
+    } finally {
+      await nextTick();
+      restoringUrl = false;
+    }
+  },
+);
 </script>
 
 <style scoped>

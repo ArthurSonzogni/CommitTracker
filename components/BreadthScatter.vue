@@ -39,24 +39,27 @@
 
 <script setup lang="ts">
 import { scaleLog } from "d3-scale";
+import type { PropType } from "vue";
+import { useElementSize } from "~/composables/useElementSize";
+
+interface DeveloperBreadthPoint {
+  username: string;
+  breadth: number;
+  commits: number;
+}
 
 const props = defineProps({
   // [{ username, breadth, commits }]
-  developers: { type: Array, required: true },
-  selected: { type: Array, default: () => [] },
+  developers: { type: Array as PropType<DeveloperBreadthPoint[]>, required: true },
+  selected: { type: Array as PropType<string[]>, default: () => [] },
   height: { type: Number, default: 360 },
 });
 const emit = defineEmits(["select"]);
 const { $color } = useNuxtApp();
 
 const container = ref<HTMLElement | null>(null);
-const width = ref(0);
+const { width } = useElementSize(container);
 const hovered = ref<string | null>(null);
-onMounted(() => {
-  const observer = new ResizeObserver(() => width.value = container.value?.clientWidth || 0);
-  observer.observe(container.value);
-  onBeforeUnmount(() => observer.disconnect());
-});
 
 const margin = { top: 26, right: 80, bottom: 34, left: 50 };
 const inner = computed(() => ({

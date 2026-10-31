@@ -11,10 +11,10 @@
 
       <g>
         <rect x="45" y="10" width="10" height="10" fill="#2a78d6"></rect>
-        <text x="60" y="20">Historical</text>
+        <text x="60" y="20" fill="var(--ink)">Historical</text>
         <template v-if="projection">
           <rect x="45" y="30" width="10" height="10" fill="#eb6834"></rect>
-          <text x="60" y="40">Projection</text>
+          <text x="60" y="40" fill="var(--ink)">Projection</text>
         </template>
       </g>
 
@@ -22,7 +22,8 @@
         ref="svg_year_split_vertical_ref"
         y1="0"
         y2="380"
-        stroke="black"
+        stroke="var(--ink)"
+        stroke-opacity="0.45"
         stroke-width="1"
         stroke-dasharray="5,5"
       />
@@ -33,7 +34,8 @@
         x2="770"
         y1="190"
         y2="190"
-        stroke="black"
+        stroke="var(--ink)"
+        stroke-opacity="0.45"
         stroke-width="1"
         stroke-dasharray="5,5"
       />
@@ -45,7 +47,7 @@
         class="previous_year_label"
         font-size="19"
         font-weight="bold"
-        fill="black"
+        fill="var(--ink)"
         text-anchor="middle"
       >{{ year - 1 }}</text>
 
@@ -56,30 +58,30 @@
         class="current_year_label"
         font-size="19"
         font-weight="bold"
-        fill="black"
+        fill="var(--ink)"
         text-anchor="middle"
       >
         {{ year }}
       </text>
 
       <g ref="tooltip_indicators_group_ref" style="display: none; pointer-events: none;">
-        <line ref="tooltip_line_ref" stroke="black" stroke-width="1" stroke-dasharray="3,3" y1="0" y2="400"></line>
-        <circle ref="tooltip_circle_ref" r="4" fill="#2a78d6" stroke="white" stroke-width="2"></circle>
+        <line ref="tooltip_line_ref" stroke="var(--ink)" stroke-opacity="0.6" stroke-width="1" stroke-dasharray="3,3" y1="0" y2="400"></line>
+        <circle ref="tooltip_circle_ref" r="4" fill="#2a78d6" stroke="var(--bg)" stroke-width="2"></circle>
       </g>
 
       <g ref="tooltip_label_group_ref" style="display: none; pointer-events: none;">
-        <rect ref="tooltip_rect_bg_ref" fill="white" stroke="#ccc" rx="4" ry="4" fill-opacity="0.9"></rect>
-        <text ref="tooltip_text_ref" font-size="12" fill="black"></text>
+        <rect ref="tooltip_rect_bg_ref" fill="var(--surface)" stroke="var(--line-strong)" rx="4" ry="4" fill-opacity="0.95"></rect>
+        <text ref="tooltip_text_ref" font-size="12" fill="var(--ink)"></text>
       </g>
 
       <g ref="tooltip_indicators_group_ref_2" style="display: none; pointer-events: none;">
-        <line ref="tooltip_line_ref_2" stroke="black" stroke-width="1" stroke-dasharray="3,3" y1="0" y2="400"></line>
-        <circle ref="tooltip_circle_ref_2" r="4" fill="#2a78d6" stroke="white" stroke-width="2"></circle>
+        <line ref="tooltip_line_ref_2" stroke="var(--ink)" stroke-opacity="0.6" stroke-width="1" stroke-dasharray="3,3" y1="0" y2="400"></line>
+        <circle ref="tooltip_circle_ref_2" r="4" fill="#2a78d6" stroke="var(--bg)" stroke-width="2"></circle>
       </g>
 
       <g ref="tooltip_label_group_ref_2" style="display: none; pointer-events: none;">
-        <rect ref="tooltip_rect_bg_ref_2" fill="white" stroke="#ccc" rx="4" ry="4" fill-opacity="0.9"></rect>
-        <text ref="tooltip_text_ref_2" font-size="12" fill="black"></text>
+        <rect ref="tooltip_rect_bg_ref_2" fill="var(--surface)" stroke="var(--line-strong)" rx="4" ry="4" fill-opacity="0.95"></rect>
+        <text ref="tooltip_text_ref_2" font-size="12" fill="var(--ink)"></text>
       </g>
 
       <rect ref="overlay_rect_ref" fill="transparent" x="0" y="0" width="800" height="400"></rect>
@@ -112,7 +114,7 @@ import { format } from "d3-format";
 const props = defineProps<{
   year: number;
   data: any[];
-  totalPrevious: number;
+  totalPrevious?: number;
   projection?: { low: number; high: number };
 }>();
 
@@ -637,7 +639,7 @@ const render = () => {
   }
 };
 
-watch(() => [props.data, props.year, props.totalPrevious], () => {
+watch(() => [props.data, props.year, props.projection], () => {
     if (isVisible.value) {
         requestAnimationFrame(() => render());
     }
@@ -652,24 +654,43 @@ watch(isVisible, async (val) => {
     }
 });
 
+let observer: IntersectionObserver | null = null;
+
 onMounted(() => {
-    const observer = new IntersectionObserver((entries) => {
-        isVisible.value = entries[0].isIntersecting;
+    observer = new IntersectionObserver((entries) => {
+        if (entries[0]) {
+            isVisible.value = entries[0].isIntersecting;
+        }
     });
     if (container_ref.value) {
         observer.observe(container_ref.value);
     }
 });
+
+onBeforeUnmount(() => {
+    observer?.disconnect();
+    observer = null;
+});
 </script>
 
 <style scoped>
 .cve-progression-graph-container {
-  max-width: 800px; /* Or a suitable max-width */
+  max-width: 800px;
+  color: var(--ink);
+}
+
+.cve-progression-graph-container svg :deep(.domain),
+.cve-progression-graph-container svg :deep(.tick line) {
+  stroke: var(--line-strong);
+}
+
+.cve-progression-graph-container svg :deep(.tick text) {
+  fill: var(--muted);
 }
 
 .placeholder {
   width: 100%;
-  padding-bottom: 50%; /* 2:1 Aspect Ratio (height/width * 100) */
-  background-color: transparent; /* Or a subtle loading color like #f9f9f9 */
+  padding-bottom: 50%;
+  background-color: transparent;
 }
 </style>

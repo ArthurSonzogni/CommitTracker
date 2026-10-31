@@ -41,22 +41,27 @@
 <script setup lang="ts">
 import { format as d3format } from "d3-format";
 import { scaleLinear } from "d3-scale";
+import type { PropType } from "vue";
+import { useElementSize } from "~/composables/useElementSize";
+
+interface StackedSerie {
+  key: string;
+  label: string;
+  color: string;
+  values: number[];
+  negative?: boolean;
+}
 
 const props = defineProps({
-  years: { type: Array, required: true },
+  years: { type: Array as PropType<(string | number)[]>, required: true },
   // [{ key, label, color, values, negative }], stacked in this order.
-  series: { type: Array, required: true },
+  series: { type: Array as PropType<StackedSerie[]>, required: true },
   height: { type: Number, default: 300 },
 });
 
 const container = ref<HTMLElement | null>(null);
-const width = ref(0);
+const { width } = useElementSize(container);
 const hoveredIndex = ref<number | null>(null);
-onMounted(() => {
-  const observer = new ResizeObserver(() => width.value = container.value?.clientWidth || 0);
-  observer.observe(container.value);
-  onBeforeUnmount(() => observer.disconnect());
-});
 
 const margin = { top: 10, right: 10, bottom: 24, left: 50 };
 const inner = computed(() => ({

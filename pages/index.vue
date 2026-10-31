@@ -1,6 +1,5 @@
 <template>
   <div>
-    <Navbar/>
     <section class="home-hero">
       <div class="container">
         <!-- A transition for CommitTracker / {repository} -->
@@ -21,8 +20,10 @@
 
         <p class="hero-meta">
           <NuxtLink to="/repo-info">{{ repositoryCount }} repositories</NuxtLink>
-          <span aria-hidden="true">·</span>
-          <span>Updated {{ lastUpdate }}</span>
+          <template v-if="lastUpdate">
+            <span aria-hidden="true">·</span>
+            <span>Updated {{ lastUpdate }}</span>
+          </template>
         </p>
       </div>
     </section>
@@ -33,15 +34,37 @@
 
 <script setup lang="ts">
 import repositories_json from '../public/data/repositories.json'
-import repositories_stats from '../public/data/repositories_stats.json'
 
 const repository = ref("Chromium");
+const stats = shallowRef<Record<string, { last_commit?: string }>>({});
 
-const all_stats = Object.values(repositories_stats);
-const repositoryCount = all_stats.length;
-const lastUpdate = new Date(
-  Math.max(...all_stats.map(stat => new Date(stat.last_commit).getTime()))
-).toLocaleDateString("en", { month: "short", day: "numeric", year: "numeric" });
+const repositoryCount = computed(() => {
+  const count = Object.keys(stats.value).length;
+  return count > 0 ? count : repositories_json.length;
+});
+
+const lastUpdate = computed(() => {
+  const times = Object.values(stats.value)
+    .map(stat => (stat?.last_commit ? new Date(stat.last_commit).getTime() : NaN))
+    .filter(Number.isFinite);
+  if (times.length === 0) return "";
+  return new Date(Math.max(...times)).toLocaleDateString("en", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+});
+
+onMounted(async () => {
+  try {
+    const response = await fetch("/data/repositories_stats.json");
+    if (response.ok) {
+      stats.value = await response.json();
+    }
+  } catch (e) {
+    console.error("Failed to fetch stats:", e);
+  }
+});
 
 const title = ref<HTMLElement | null>(null);
 

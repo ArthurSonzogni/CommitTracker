@@ -1,7 +1,5 @@
 <template>
   <div>
-    <Navbar/>
-
     <section class="section">
       <div class="container">
 
@@ -117,7 +115,7 @@
 
           <h2 class="title">Timeline in {{ primaryRepository.name }}</h2>
           <div class="profile-chart">
-            <TimelineChart
+            <DeveloperTimelineChart
               chart="line"
               :repositories="[primaryRepository.dirname]"
               :developers="[name]"
@@ -165,10 +163,9 @@
 </template>
 
 <script setup lang="ts">
-// Explicit import: Nuxt 4's auto-import reads <TimelineChart> as the lazy
-// hydration modifier "Time" + "LineChart", and resolves it to LineChart.
-import TimelineChart from '~/components/TimelineChart.vue'
-import repositories_json from '../../../public/data/repositories.json'
+import repositories_json from '../../../public/data/repositories.json';
+import { fetchResolvedDeveloperBadges, shardOf } from '~/utils/badges';
+import { formatDeveloperDescription, formatDeveloperTitle } from '~/utils/pageMeta';
 
 const route = useRoute();
 const name = computed(() => String(route.params.name));
@@ -184,32 +181,27 @@ const number = new Intl.NumberFormat("en").format;
 const plural = (count: number, word: string) =>
   `${number(count)} ${word}${count === 1 ? "" : "s"}`;
 
-// The shard of a username. Kept in sync with scripts/derive-developers.mjs.
-const shardOf = (username: string) => {
-  const c = username[0].toLowerCase();
-  return /[a-z0-9]/.test(c) ? c : "_";
-};
-
 const fetchJson = async (url: string) => {
   const response = await fetch(url);
   return response.ok ? response.json() : null;
 };
 
+let requestId = 0;
+
 const load = async () => {
+  const id = ++requestId;
+  const devName = name.value;
   loaded.value = false;
-  const shard = await fetchJson(`/data/developers/${shardOf(name.value)}.json`);
-  entry.value = shard?.[name.value] ?? null;
+  badges.value = [];
+
+  const shard = await fetchJson(`/data/developers/${shardOf(devName)}.json`);
+  if (id !== requestId) return;
+  entry.value = shard?.[devName] ?? null;
   loaded.value = true;
 
-  // Badges: see pages/badges/list.vue.
-  badges.value = [];
-  const [allBadges, developerBadges] = await Promise.all([
-    fetchJson("/badges.json"),
-    fetchJson(`/badges/${name.value[0]}.json`),
-  ]);
-  badges.value = (developerBadges?.[name.value] ?? [])
-    .map(([index]: [number]) => allBadges?.[index])
-    .filter(Boolean);
+  const resolved = await fetchResolvedDeveloperBadges(devName);
+  if (id !== requestId) return;
+  badges.value = resolved;
 };
 watch(name, load, { immediate: true });
 
@@ -282,10 +274,16 @@ const individualsLink = (repository: string) =>
 
 // Also written into the generated HTML by scripts/static-meta.mjs.
 useSeoMeta({
-  title: () => `${name.value} · CommitTracker`,
-  ogTitle: () => `${name.value} · CommitTracker`,
+  title: () => formatDeveloperTitle(name.value),
+  ogTitle: () => formatDeveloperTitle(name.value),
   description: () => entry.value
-    ? `${name.value}: ${number(totalAuthor.value)} commits and ${number(totalReview.value)} reviews across ${repositories.value.length} web platform repositories, since ${firstYear.value}.`
+    ? formatDeveloperDescription(
+        name.value,
+        totalAuthor.value,
+        totalReview.value,
+        repositories.value.length,
+        firstYear.value,
+      )
     : `Contributions of ${name.value} to the web platform.`,
 });
 </script>

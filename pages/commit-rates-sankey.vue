@@ -1,7 +1,5 @@
 <template>
   <div>
-    <Navbar />
-
     <section class="section">
       <div class="container">
         <h1 class="title">Commit rates sankey</h1>
@@ -24,7 +22,7 @@
                     :key="crumb.path"
                     :class="{ 'is-active': index === breadcrumbs.length - 1 }">
                     <NuxtLink
-                      :to="{ query: { ...route.query, path: crumb.path } }"
+                      :to="{ query: { ...route.query, path: crumb.path === '.' ? undefined : crumb.path } }"
                       :aria-current="index === breadcrumbs.length - 1 ? 'page' : undefined">
                       <UiIcon v-if="index === 0" name="source-branch" size="small" class="mr-1" />
                       {{ crumb.label }}
@@ -40,14 +38,14 @@
           </div>
 
           <div class="level-right">
-             <div style="min-width: 250px;">
-                <div class="mb-1 is-size-7 has-text-weight-bold">
-                  Window: {{ smoothingWindow }} week{{ smoothingWindow === 1 ? '' : 's' }} ({{ smoothingWindow*7 }} days).
-                </div>
-                <UiField>
-                  <UiSlider v-model="smoothingWindow" :min="1" :max="300" :step="1" @change="onWindowChange" tooltip></UiSlider>
-                </UiField>
-             </div>
+            <div style="min-width: 250px;">
+              <div class="mb-1 is-size-7 has-text-weight-bold">
+                Window: {{ smoothingWindow }} week{{ smoothingWindow === 1 ? '' : 's' }} ({{ smoothingWindow * 7 }} days).
+              </div>
+              <UiField>
+                <UiSlider v-model="smoothingWindow" :min="1" :max="300" :step="1" tooltip></UiSlider>
+              </UiField>
+            </div>
           </div>
         </div>
 
@@ -114,8 +112,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
+import { useRoute } from "vue-router";
 import { select, pointer } from "d3-selection";
 import { sankey, sankeyLeft } from "d3-sankey";
 import { scaleOrdinal } from "d3-scale";
@@ -123,21 +121,21 @@ import { categoricalPalette } from "~/utils/palette";
 import { format } from "d3-format";
 import { transition } from "d3-transition";
 import { easeQuadInOut } from "d3-ease";
+import { useUrlState, urlCodecs } from "~/composables/useUrlState";
+import {
+  maxAvailableWeeks,
+  applyMovingSum,
+  prefetchBuckets,
+  fetchDirectoryRates,
+} from "~/utils/commitRates";
 
 // --- Types ---
-interface RateData {
-  name: string;
-  path: string;
-  rates: number[];
-  isDirectory: boolean;
-}
-
 interface GraphNode {
   node: number;
   name: string;
   path: string;
   activity: number;
-  height: number; // New field for visual calculation
+  height: number;
   depth: number;
   isDirectory: boolean;
   parent?: number;
@@ -146,8 +144,8 @@ interface GraphNode {
   x1?: number;
   y0?: number;
   y1?: number;
-  targetLinks?: any[]; // added by d3-sankey
-  sourceLinks?: any[]; // added by d3-sankey
+  targetLinks?: any[];
+  sourceLinks?: any[];
 }
 
 interface GraphLink {
@@ -160,18 +158,25 @@ interface GraphLink {
 }
 
 // --- Constants & Config ---
-const BASE_URL = '/commit_rates';
-const CONFIG_START_DATE = '2018-01-01';
 const MAX_NODES = 300;
 const DEFAULT_WINDOW = 40;
 
 // --- State ---
 const route = useRoute();
-const router = useRouter();
 
-const repository = ref<string>("chromium");
-const currentRootPath = ref<string>(".");
-const smoothingWindow = ref(DEFAULT_WINDOW);
+const {
+  repository,
+  currentRootPath,
+  smoothingWindow,
+} = useUrlState({
+  repository: { ...urlCodecs.string("chromium"), history: "push" },
+  currentRootPath: { ...urlCodecs.string("."), key: "path", history: "push" },
+  smoothingWindow: {
+    ...urlCodecs.number(DEFAULT_WINDOW, { min: 1, max: 300, integer: true }),
+    key: "window",
+  },
+});
+
 const width = ref(1200);
 const height = ref(800);
 const loading = ref(false);
@@ -184,48 +189,35 @@ const layerNodes = ref<SVGGElement | null>(null);
 const layerLabels = ref<SVGGElement | null>(null);
 const tooltipRef = ref<HTMLDivElement | null>(null);
 
-const tooltipData = ref({ name: '', value: 0, commit_per_day: '' });
-
-// Caching & Concurrency Control
-// 1. dirCache: Stores processed RateData[] for a specific path to avoid re-parsing
-const dirCache = new Map<string, RateData[]>();
-// 2. bucketCache: Stores the PROMISE of the raw JSON fetch. This prevents two requests
-//    for the same bucket file (which contains multiple paths) from firing simultaneously.
-const bucketCache = new Map<string, Promise<Record<string, any>>>();
+const tooltipData = ref({ name: "", value: 0, commit_per_day: "" });
 
 let renderRequestId = 0;
 
 // --- Computed Props ---
-const maxAvailableWeeks = computed(() => {
-  const start = new Date(CONFIG_START_DATE);
-  const now = new Date();
-  const diffTime = Math.abs(now.getTime() - start.getTime());
-  return Math.floor(Math.ceil(diffTime / (1000 * 60 * 60 * 24)) / 7);
-});
+const availableWeeks = computed(() => maxAvailableWeeks());
 
 // Handle v-model array for RepositorySelector
 const repoList = computed({
   get: () => [repository.value],
   set: (val: any[]) => {
     if (val && val.length > 0) {
-      // Support both object and string returns from selector
       const selected = val[0];
-      const name = typeof selected === 'object' ? selected.name : selected;
+      const name = typeof selected === "object" ? selected.name : selected;
       if (name && name !== repository.value) {
-        // Reset path to root when repo changes
-        router.push({ query: { ...route.query, repository: name, path: '.' } });
+        repository.value = name;
+        currentRootPath.value = ".";
       }
     }
-  }
+  },
 });
 
 const breadcrumbs = computed(() => {
   const repoName = repository.value;
-  const items = [{ label: repoName, path: '.' }];
+  const items = [{ label: repoName, path: "." }];
 
-  if (currentRootPath.value && currentRootPath.value !== '.') {
-    const parts = currentRootPath.value.split('/');
-    let currentPath = '';
+  if (currentRootPath.value && currentRootPath.value !== ".") {
+    const parts = currentRootPath.value.split("/");
+    let currentPath = "";
     parts.forEach(part => {
       currentPath = currentPath ? `${currentPath}/${part}` : part;
       items.push({ label: part, path: currentPath });
@@ -236,79 +228,29 @@ const breadcrumbs = computed(() => {
 
 const repoFilter = (repo: any) => !repo.cone;
 
-function navigateTo(path: string) {
-  router.push({ query: { ...route.query, path } });
+function openPath(path: string) {
+  currentRootPath.value = path;
 }
 
 function parentPath(path: string): string {
-  return path.split('/').slice(0, -1).join('/') || '.';
+  return path.split("/").slice(0, -1).join("/") || ".";
 }
 
 // Where clicking a node leads: the root goes back to its parent, a directory
 // opens, and a file leads nowhere.
 function nodeTarget(d: GraphNode): string | null {
   if (d.node === 0) {
-    return currentRootPath.value === '.' ? null : parentPath(currentRootPath.value);
+    return currentRootPath.value === "." ? null : parentPath(currentRootPath.value);
   }
   return d.isDirectory ? d.path : null;
 }
 
 // --- Helpers ---
 const intFormatter = format(",");
-function formatNumber(n: number) { return intFormatter(Math.round(n)); }
-
-function getBucketId(filepath: string): number {
-  let hash = 5381;
-  for (let i = 0; i < filepath.length; i++) {
-    hash = ((hash << 5) + hash) ^ filepath.charCodeAt(i);
-    hash = hash | 0;
-  }
-  return (hash >>> 0) % 2048;
+function formatNumber(n: number) {
+  return intFormatter(Math.round(n));
 }
 
-function decompressRates(compressed: any[]): number[] {
-  if (!compressed || compressed.length === 0) return [];
-  let maxLen = 0;
-  for (let i = 0; i < compressed.length; i += 2) {
-    const start = compressed[i];
-    const data = compressed[i+1];
-    if (data && data.length) {
-      const end = start + data.length;
-      if (end > maxLen) maxLen = end;
-    }
-  }
-  const rates = new Array(maxLen).fill(0);
-  for (let i = 0; i < compressed.length; i += 2) {
-    const start = compressed[i];
-    const data = compressed[i+1];
-    if (data) {
-      for (let j = 0; j < data.length; j++) {
-        rates[start + j] = data[j];
-      }
-    }
-  }
-
-  // Fill to maxAvailableWeeks with 0s if needed
-  while (rates.length < maxAvailableWeeks.value) {
-    rates.push(0);
-  }
-
-  return rates;
-}
-
-function applyMovingSum(data: number[], windowSize: number): number[] {
-  if (windowSize <= 1) return data;
-  const smoothed: number[] = [];
-  let currentSum = 0;
-  for (let i = 0; i < data.length; i++) {
-    currentSum += data[i];
-    if (i >= windowSize) currentSum -= data[i - windowSize];
-    smoothed.push(currentSum);
-  }
-  return smoothed;
-}
-
-// --- Custom Link Generator (Reduced Curvature + Offset Fix) ---
 function getCustomSankeyPath(d: any) {
   const source = d.source as GraphNode;
   const target = d.target as GraphNode;
@@ -328,90 +270,6 @@ function getCustomSankeyPath(d: any) {
           Z`;
 }
 
-// --- Data Fetching Logic ---
-
-// Helper to determine URL
-function getBucketUrl(repo: string, path: string): string {
-  if (path === '.') {
-    return `${BASE_URL}/${repo}/main.json`;
-  }
-  const bucketId = getBucketId(path);
-  return `${BASE_URL}/${repo}/${bucketId}.json`;
-}
-
-// Core fetcher with Promise Caching (Deduplication)
-function fetchBucket(repo: string, url: string): Promise<Record<string, any>> {
-  // Return existing promise if we are already fetching this bucket
-  if (bucketCache.has(url)) {
-    return bucketCache.get(url)!;
-  }
-
-  // Create new promise
-  const promise = fetch(url).then(async (res) => {
-    if (!res.ok) {
-       throw new Error(`Failed to load bucket (Status: ${res.status})`);
-    }
-    return res.json();
-  }).catch(err => {
-    // If it fails, remove from cache so we can try again later
-    bucketCache.delete(url);
-    throw err;
-  });
-
-  bucketCache.set(url, promise);
-  return promise;
-}
-
-// Speculative Fetching
-function prefetchBuckets(repo: string, paths: string[]) {
-  for (const path of paths) {
-    const url = getBucketUrl(repo, path);
-    // Only fetch if not already in cache (bucketCache check happens inside fetchBucket too,
-    // but we check here to avoid unnecessary function calls)
-    if (!bucketCache.has(url)) {
-      // Fire and forget - don't await.
-      // fetchPathItems will attach to this promise later if needed.
-      fetchBucket(repo, url).catch(() => {
-        // errors handled in main fetch flow
-      });
-    }
-  }
-}
-
-async function fetchPathItems(repo: string, path: string): Promise<RateData[]> {
-  const cacheKey = `${repo}:${path}`;
-  if (dirCache.has(cacheKey)) return dirCache.get(cacheKey)!;
-
-  const url = getBucketUrl(repo, path);
-
-  try {
-    // This will join an existing request if prefetch initiated it,
-    // or start a new one if it didn't.
-    const bucketData = await fetchBucket(repo, url);
-    const targetDir = bucketData[path];
-
-    if (!targetDir) return [];
-
-    const items = Object.entries(targetDir).map(([name, data]: [string, any]) => {
-      // Skip the deleted files and directories.
-      if (typeof data.d === 'number') return null;
-
-      return {
-        name,
-        path: path === '.' ? name : `${path}/${name}`,
-        rates: decompressRates(data.r),
-        isDirectory: data.f == undefined || data.f != 1,
-      };
-    }).filter(Boolean) as RateData[];
-
-    dirCache.set(cacheKey, items);
-    return items;
-  } catch (err) {
-    console.error(`Error fetching path ${path}:`, err);
-    throw err;
-  }
-}
-
 function calculateActivity(rates: number[]): number {
   if (!rates || rates.length === 0) return 0;
   const smoothed = applyMovingSum(rates, smoothingWindow.value);
@@ -419,15 +277,13 @@ function calculateActivity(rates: number[]): number {
 }
 
 // --- Graph Building ---
-
 async function buildGraphData(startPath: string) {
   const nodes: GraphNode[] = [];
   const links: GraphLink[] = [];
   const nodeMap = new Map<string, number>();
 
-  const rootName = startPath === '.' ? repository.value : startPath.split('/').pop()!;
+  const rootName = startPath === "." ? repository.value : startPath.split("/").pop()!;
 
-  // Initialize root
   nodes.push({
     node: 0,
     name: rootName,
@@ -440,54 +296,49 @@ async function buildGraphData(startPath: string) {
   nodeMap.set(startPath, 0);
 
   const queue: string[] = [startPath];
+  const weeks = availableWeeks.value;
+  const repo = repository.value;
 
   while (queue.length > 0 && nodes.length < MAX_NODES) {
-    // --- Speculative Fetching ---
-    // Look ahead in the queue and trigger fetches for the next few items
-    // Since fetchPathItems awaits the promise, triggering them here allows parallel downloading
-    // while we process the current item.
-    const nextBatch = queue.slice(0, 5); // Look at next 5 items
+    const nextBatch = queue.slice(0, 5);
     if (nextBatch.length > 0) {
-      prefetchBuckets(repository.value, nextBatch);
+      prefetchBuckets(repo, nextBatch);
     }
 
     const currentPath = queue.shift()!;
     const parentIndex = nodeMap.get(currentPath)!;
 
-    const items = await fetchPathItems(repository.value, currentPath);
+    const items = await fetchDirectoryRates(repo, currentPath, {
+      includeDeleted: false,
+      padToWeeks: weeks,
+    });
     if (!items.length) continue;
 
-    const itemsWithActivity = items.map(item => ({
-      ...item,
-      activity: calculateActivity(item.rates)
-    })).filter(i => i.activity > 0);
+    const itemsWithActivity = items
+      .map(item => ({
+        ...item,
+        activity: calculateActivity(item.rates),
+      }))
+      .filter(i => i.activity > 0);
 
     itemsWithActivity.sort((a, b) => b.activity - a.activity);
 
     const significantChildren = itemsWithActivity.slice(0, 20);
-
-    // Sum of activity for the siblings we are actually displaying
     const totalSiblingsActivity = significantChildren.reduce((sum, i) => sum + i.activity, 0);
-
-    // Update Parent Logic
     const parentNode = nodes[parentIndex];
 
-    // If this is the root node, its height/activity is defined by the sum of its displayed children
     if (parentIndex === 0) {
-        parentNode.activity = totalSiblingsActivity;
-        parentNode.height = totalSiblingsActivity;
+      parentNode.activity = totalSiblingsActivity;
+      parentNode.height = totalSiblingsActivity;
     }
 
     const parentHeight = parentNode.height;
 
     for (const child of significantChildren) {
       const childIndex = nodes.length;
-
-      // Calculate relative height
-      let relativeHeight = 0;
-      if (totalSiblingsActivity > 0) {
-        relativeHeight = (child.activity / totalSiblingsActivity) * parentHeight;
-      }
+      const relativeHeight = totalSiblingsActivity > 0
+        ? (child.activity / totalSiblingsActivity) * parentHeight
+        : 0;
 
       nodes.push({
         node: childIndex,
@@ -497,14 +348,14 @@ async function buildGraphData(startPath: string) {
         height: relativeHeight,
         depth: parentNode.depth + 1,
         isDirectory: child.isDirectory,
-        parent: parentIndex
+        parent: parentIndex,
       });
       nodeMap.set(child.path, childIndex);
 
       links.push({
         source: parentIndex,
         target: childIndex,
-        value: relativeHeight
+        value: relativeHeight,
       });
 
       if (child.isDirectory && nodes.length < MAX_NODES) {
@@ -517,7 +368,6 @@ async function buildGraphData(startPath: string) {
 }
 
 // --- Rendering ---
-
 const colorScale = scaleOrdinal(categoricalPalette);
 
 async function render() {
@@ -541,7 +391,7 @@ async function render() {
     }
 
     width.value = svgRef.value.parentElement!.clientWidth;
-    height.value = nodes.length * 10 + 25
+    height.value = nodes.length * 10 + 25;
 
     const sankeyGenerator = sankey<GraphNode, GraphLink>()
       .nodeWidth(width.value < 700 ? 24 : 50)
@@ -549,24 +399,26 @@ async function render() {
       .nodeAlign(sankeyLeft)
       .extent([[1, 1], [width.value - 1, height.value - 6]])
       .nodeSort((a, b) => {
-        // Iterate over the parents to maintain hierarchy
         let nodeA: GraphNode | undefined = a;
         let nodeB: GraphNode | undefined = b;
 
-        // Find common ancestor:
-        while (nodeA &&
-               nodeB &&
-               nodeA.parent !== undefined &&
-               nodeB.parent !== undefined &&
-               nodeA.parent === nodeB.parent) {
+        while (
+          nodeA &&
+          nodeB &&
+          nodeA.parent !== undefined &&
+          nodeB.parent !== undefined &&
+          nodeA.parent === nodeB.parent
+        ) {
           nodeA = nodes[nodeA.parent];
           nodeB = nodes[nodeB.parent];
         }
 
-        if (nodeA &&
-            nodeB &&
-            nodeA.parent !== undefined &&
-            nodeB.parent !== undefined) {
+        if (
+          nodeA &&
+          nodeB &&
+          nodeA.parent !== undefined &&
+          nodeB.parent !== undefined
+        ) {
           return nodeA.parent - nodeB.parent;
         }
         return 0;
@@ -579,37 +431,37 @@ async function render() {
 
     const graph = sankeyGenerator({
       nodes: nodes.map(d => ({ ...d })),
-      links: links.map(d => ({ ...d }))
+      links: links.map(d => ({ ...d })),
     });
 
     const duration = 300;
     const update_transition = transition().ease(easeQuadInOut).duration(duration);
-    const enter_transition = transition().ease(easeQuadInOut).duration(duration).delay(3*duration/2);
-    const exit_transition = transition().ease(easeQuadInOut).duration(duration)
+    const enter_transition = transition().ease(easeQuadInOut).duration(duration).delay((3 * duration) / 2);
+    const exit_transition = transition().ease(easeQuadInOut).duration(duration);
 
     // --- Nodes ---
     const nodeSelection = select(layerNodes.value)
       .selectAll<SVGRectElement, GraphNode>("rect")
-      .data(graph.nodes, (d) => d.path);
+      .data(graph.nodes, d => d.path);
 
     nodeSelection.join(
       enter => enter.append("rect")
-        .attr("x", d => d.x0)
-        .attr("y", d => d.y0)
-        .attr("height", d => Math.max(1, d.y1 - d.y0))
-        .attr("width", d => d.x1 - d.x0)
+        .attr("x", d => d.x0!)
+        .attr("y", d => d.y0!)
+        .attr("height", d => Math.max(1, d.y1! - d.y0!))
+        .attr("width", d => d.x1! - d.x0!)
         .attr("fill", d => colorScale(d.name))
         .attr("rx", 2)
         .attr("opacity", 0)
         .call(enter => enter.transition(enter_transition).attr("opacity", 0.9)),
       update => update.transition(update_transition)
-        .attr("x", d => d.x0)
-        .attr("y", d => d.y0)
-        .attr("height", d => Math.max(1, d.y1 - d.y0))
-        .attr("width", d => d.x1 - d.x0)
+        .attr("x", d => d.x0!)
+        .attr("y", d => d.y0!)
+        .attr("height", d => Math.max(1, d.y1! - d.y0!))
+        .attr("width", d => d.x1! - d.x0!)
         .attr("fill", d => colorScale(d.name))
         .attr("opacity", 0.9),
-      exit => exit.transition(exit_transition).attr("opacity", 0).remove()
+      exit => exit.transition(exit_transition).attr("opacity", 0).remove(),
     )
     .attr("cursor", d => nodeTarget(d) ? "pointer" : null)
     .attr("tabindex", d => nodeTarget(d) ? 0 : null)
@@ -617,13 +469,13 @@ async function render() {
     .attr("aria-label", d => nodeTarget(d) && (d.node === 0
       ? `Go back to ${parentPath(currentRootPath.value)}`
       : `Explore ${d.path}, ${formatNumber(d.activity)} commits`))
-    .on("click", (e, d) => {
+    .on("click", (_e, d) => {
       const target = nodeTarget(d);
-      if (target) navigateTo(target);
+      if (target) openPath(target);
     })
     .on("keydown", (e, d) => {
       const target = nodeTarget(d);
-      if (target && e.key === "Enter") navigateTo(target);
+      if (target && e.key === "Enter") openPath(target);
     })
     .on("mouseover", showTooltip)
     .on("mousemove", moveTooltip)
@@ -632,7 +484,7 @@ async function render() {
     // --- Links ---
     const linkSelection = select(layerLinks.value)
       .selectAll<SVGPathElement, GraphLink>("path")
-      .data(graph.links, (d) => {
+      .data(graph.links, d => {
         const s = d.source as GraphNode;
         const t = d.target as GraphNode;
         return `${s.path}->${t.path}`;
@@ -649,32 +501,31 @@ async function render() {
         .attr("d", getCustomSankeyPath)
         .attr("fill", d => colorScale((d.source as GraphNode).name))
         .attr("opacity", 0.3),
-      exit => exit.transition(exit_transition).attr("opacity", 0).remove()
+      exit => exit.transition(exit_transition).attr("opacity", 0).remove(),
     )
-    .on("mouseover", function(e, d) {
+    .on("mouseover", function (e, d) {
       select(this).attr("opacity", 0.7);
-      showTooltip(e, d.target);
+      showTooltip(e, d.target as GraphNode);
     })
     .on("mousemove", moveTooltip)
-    .on("mouseout", function() {
+    .on("mouseout", function () {
       select(this).attr("opacity", 0.3);
       hideTooltip();
     });
 
     // --- Labels (Names) ---
-    // Modified selector to be specific to name labels
     const labelSelection = select(layerLabels.value)
       .selectAll<SVGTextElement, GraphNode>("text.name-label")
-      .data(graph.nodes, (d) => d.path);
+      .data(graph.nodes, d => d.path);
 
     labelSelection.join(
       enter => {
         const text = enter.append("text")
           .attr("class", "name-label")
-          .attr("x", d => d.x0 < width.value / 2 ? d.x1 + 6 : d.x0 - 6)
-          .attr("y", d => (d.y1 + d.y0) / 2)
+          .attr("x", d => d.x0! < width.value / 2 ? d.x1! + 6 : d.x0! - 6)
+          .attr("y", d => (d.y1! + d.y0!) / 2)
           .attr("dy", "0.35em")
-          .attr("text-anchor", d => d.x0 < width.value / 2 ? "start" : "end")
+          .attr("text-anchor", d => d.x0! < width.value / 2 ? "start" : "end")
           .attr("opacity", 0)
           .text(d => d.name);
 
@@ -682,30 +533,28 @@ async function render() {
         return text;
       },
       update => {
-        const text = update.transition(update_transition)
-          .attr("x", d => d.x0 < width.value / 2 ? d.x1 + 6 : d.x0 - 6)
-          .attr("y", d => (d.y1 + d.y0) / 2)
-          .attr("text-anchor", d => d.x0 < width.value / 2 ? "start" : "end")
+        return update.transition(update_transition)
+          .attr("x", d => d.x0! < width.value / 2 ? d.x1! + 6 : d.x0! - 6)
+          .attr("y", d => (d.y1! + d.y0!) / 2)
+          .attr("text-anchor", d => d.x0! < width.value / 2 ? "start" : "end")
           .text(d => d.name);
-        return text;
       },
-      exit => exit.transition(exit_transition).attr("opacity", 0).remove()
+      exit => exit.transition(exit_transition).attr("opacity", 0).remove(),
     )
     .attr("pointer-events", "none")
-    .style("display", d => (d.y1 - d.y0) > 12 ? "block" : "none");
+    .style("display", d => (d.y1! - d.y0!) > 12 ? "block" : "none");
 
     // --- Labels (Commit Values) ---
-    // New selection for values inside the nodes
     const valueSelection = select(layerLabels.value)
       .selectAll<SVGTextElement, GraphNode>("text.value-label")
-      .data(graph.nodes, (d) => d.path);
+      .data(graph.nodes, d => d.path);
 
     valueSelection.join(
       enter => {
         const text = enter.append("text")
           .attr("class", "value-label")
-          .attr("x", d => (d.x0 + d.x1) / 2)
-          .attr("y", d => (d.y0 + d.y1) / 2)
+          .attr("x", d => (d.x0! + d.x1!) / 2)
+          .attr("y", d => (d.y0! + d.y1!) / 2)
           .attr("dy", "0.35em")
           .attr("text-anchor", "middle")
           .attr("opacity", 0)
@@ -721,24 +570,22 @@ async function render() {
       },
       update => {
         return update.transition(update_transition)
-          .attr("x", d => (d.x0 + d.x1) / 2)
-          .attr("y", d => (d.y0 + d.y1) / 2)
+          .attr("x", d => (d.x0! + d.x1!) / 2)
+          .attr("y", d => (d.y0! + d.y1!) / 2)
           .text(d => formatNumber(d.activity))
           .attr("opacity", 1);
       },
-      exit => exit.transition(exit_transition).attr("opacity", 0).remove()
+      exit => exit.transition(exit_transition).attr("opacity", 0).remove(),
     )
     .style("display", d => {
-        const val = formatNumber(d.activity);
-        // Approx width calc: 7px per char for 11px font
-        const textWidth = val.length * 7;
-        const nodeWidth = d.x1 - d.x0;
-        const nodeHeight = d.y1 - d.y0;
-        // Check width AND height (must be at least 14px high to fit text)
-        return (nodeWidth >= textWidth && nodeHeight > 14) ? "block" : "none";
+      const val = formatNumber(d.activity);
+      const textWidth = val.length * 7;
+      const nodeWidth = d.x1! - d.x0!;
+      const nodeHeight = d.y1! - d.y0!;
+      return nodeWidth >= textWidth && nodeHeight > 14 ? "block" : "none";
     });
-
   } catch (err: any) {
+    if (currentRequestId !== renderRequestId) return;
     console.error("Render error:", err);
     error.value = err.message || "An unexpected error occurred.";
   } finally {
@@ -749,13 +596,11 @@ async function render() {
 }
 
 // --- Tooltip Logic ---
-
 function showTooltip(event: MouseEvent, dataNode: GraphNode) {
   if (!tooltipRef.value) return;
 
   tooltipData.value = {
     name: dataNode.name,
-    // IMPORTANT: Use .activity (real data) not .value (visual height)
     value: dataNode.activity,
     commit_per_day: (dataNode.activity / (smoothingWindow.value * 7)).toFixed(2),
   };
@@ -769,7 +614,7 @@ function moveTooltip(event: MouseEvent) {
   const [x, y] = pointer(event, svgRef.value.parentElement);
   const tooltipWidth = 180;
   let left = x + 20;
-  let top = y + 20;
+  const top = y + 20;
   if (left + tooltipWidth > width.value) {
     left = x - tooltipWidth - 20;
   }
@@ -782,8 +627,7 @@ function hideTooltip() {
 }
 
 // --- Watchers & Init ---
-
-let debounceTimeout: any;
+let debounceTimeout: ReturnType<typeof setTimeout> | undefined;
 function debouncedRender() {
   clearTimeout(debounceTimeout);
   debounceTimeout = setTimeout(() => {
@@ -791,39 +635,13 @@ function debouncedRender() {
   }, 50);
 }
 
-function onWindowChange() {
-  const value = smoothingWindow.value === DEFAULT_WINDOW
-    ? undefined
-    : String(smoothingWindow.value);
-  router.replace({ query: { ...route.query, window: value } });
-  debouncedRender();
-}
+watch([repository, currentRootPath], () => {
+  render();
+});
 
-watch(
-  () => route.query,
-  (newQuery) => {
-    let needsRender = false;
-    const newRepo = Array.isArray(newQuery.repository) ? newQuery.repository[0] : newQuery.repository;
-    if (newRepo && newRepo !== repository.value) {
-      repository.value = newRepo as string;
-      dirCache.clear();
-      bucketCache.clear(); // Clear bucket cache on repo change
-      needsRender = true;
-    }
-    const newPath = (Array.isArray(newQuery.path) ? newQuery.path[0] : newQuery.path) || '.';
-    if (newPath !== currentRootPath.value) {
-      currentRootPath.value = newPath as string;
-      needsRender = true;
-    }
-    const newWindow = Number(newQuery.window) || DEFAULT_WINDOW;
-    if (newWindow !== smoothingWindow.value) {
-      smoothingWindow.value = newWindow;
-      needsRender = true;
-    }
-    if (needsRender) render();
-  },
-  { immediate: true, deep: true }
-);
+watch(smoothingWindow, () => {
+  debouncedRender();
+});
 
 onMounted(() => {
   window.addEventListener("resize", debouncedRender);

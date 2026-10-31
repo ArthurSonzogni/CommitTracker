@@ -1,16 +1,15 @@
 <template>
   <div>
-    <Navbar/>
     <section class="section content">
       <div class="container">
         <h2 class="title">
           {{ id }}
-          <span class="tag is-danger is-small ml-2" v-if="!cve.bug_date">
+          <span class="tag is-danger is-small ml-2" v-if="cve.id && !cve.bug_date">
             <UiTooltip text="Bug are opened 14 weeks after being fixed" position="top">
             Private bug
             </UiTooltip>
           </span>
-          <span class="tag is-info is-small ml-2" v-else>
+          <span class="tag is-info is-small ml-2" v-else-if="cve.id">
             public
           </span>
         </h2>
@@ -29,7 +28,7 @@
 
           <template v-if="cve.vrp_reward">
             <strong>VRP reward</strong>
-            <div> {{ reward_formatter(cve.vrp_reward) }} </div>
+            <div> {{ reward_formatter(Number(cve.vrp_reward)) }} </div>
           </template>
 
           <strong>Bug </strong>
@@ -38,7 +37,7 @@
           <template v-if="cve.components">
             <strong>Components</strong>
             <div>
-              <div v-for="component in cve.components">
+              <div v-for="component in cve.components" :key="component">
                 {{ component }}
               </div>
             </div>
@@ -57,7 +56,12 @@
 
           <strong>Events</strong>
           <div class="events">
-            <div class="event" v-for="event in events" :class="{ blur: event.blur }">
+            <div
+              class="event"
+              v-for="(event, idx) in events"
+              :key="idx"
+              :class="{ blur: event.blur }"
+            >
               <div class="duration">
                 <p v-if="event.absolute_delta != event.delta" class="delta">
                 (+{{
@@ -83,7 +87,11 @@
                   {{ event.title }}
                 </div>
 
-                <div v-for="resource in event.resources" class="resources">
+                <div
+                  v-for="resource in event.resources"
+                  :key="resource.url"
+                  class="resources"
+                >
                   <a :href="resource.url">{{ resource.title }}</a>
                 </div>
 
@@ -116,59 +124,70 @@
 </template>
 
 <script setup lang="ts">
-import { fetchCveData } from '~/utils/cve'
-
 import hdate from "human-date";
 import humanizeDuration from "humanize-duration";
 import { format } from "d3-format";
+import { fetchCveData, type CveRecord } from "~/utils/cve";
+import { SITE_NAME } from "~/utils/pageMeta";
+
+interface CveEvent {
+  icon: string;
+  title: string;
+  date: Date;
+  resources?: { title: string; url: string }[];
+  blur?: boolean;
+  delta?: number;
+  absolute_delta?: number;
+}
 
 const reward_formatter = format("$,.0f");
 const route = useRoute();
-const router = useRouter();
-const id = ref(route.query.id);
+const id = ref("");
 
-const cve = ref({});
+const cve = ref<Partial<CveRecord>>({});
 const not_found = ref(false);
+const events = ref<CveEvent[]>([]);
 
-const events = ref([]);
+const getEvents = (record: CveRecord): CveEvent[] => {
+  const list: CveEvent[] = [];
 
-const getEvents = (cve) => {
-  const events = [];
+  list.push({
+    icon: "bullhorn",
+    title: "CVE published",
+    date: new Date(record.published),
+  });
 
-  events.push({
-    icon: 'bullhorn',
-    title: `CVE published`,
-    date: new Date(cve.published),
-  })
-
-  if (cve.bug_date) {
-    events.push({
-      icon: 'bug-outline',
-      title: `Bug reported`,
-      date: new Date(cve.bug_date),
-      resources: [
-        {
-          title: `${cve.bug}`,
-          url: cve.bug,
-        },
-      ],
-    })
+  if (record.bug_date) {
+    list.push({
+      icon: "bug-outline",
+      title: "Bug reported",
+      date: new Date(record.bug_date),
+      resources: record.bug
+        ? [
+            {
+              title: `${record.bug}`,
+              url: record.bug,
+            },
+          ]
+        : undefined,
+    });
   }
 
-  for (const [channel, date] of Object.entries(cve.version_dates)) {
-    events.push({
-      icon: 'cloud-upload',
+  for (const [channel, date] of Object.entries(record.version_dates ?? {})) {
+    list.push({
+      icon: "cloud-upload",
       title: `${channel} version deployed.`,
-      date: new Date(date),
-    })
+      date: new Date(date as string),
+    });
   }
 
-  for (const sha in cve.commits) {
-    const commit = cve.commits[sha];
-    if (commit.type == "commit") {
-      events.push({
-        icon: 'auto-fix',
-        title: `${commit.author.split("@")[0]}@ pushed a fix to ${commit.repo}.`,
+  for (const sha in record.commits ?? {}) {
+    const commit = record.commits![sha];
+    if (commit?.type === "commit") {
+      const authorPrefix = commit.author ? `${commit.author.split("@")[0]}@` : "unknown";
+      list.push({
+        icon: "auto-fix",
+        title: `${authorPrefix} pushed a fix to ${commit.repo}.`,
         resources: [
           {
             title: commit.title,
@@ -176,55 +195,78 @@ const getEvents = (cve) => {
           },
         ],
         date: new Date(commit.date),
-      })
+      });
     }
   }
 
-  events.sort((a, b)=> a.date - b.date);
+  list.sort((a, b) => a.date.getTime() - b.date.getTime());
 
   // Add indication of private bug if needed.
-  if (!cve.bug_date) {
-    events.unshift({
-      icon: 'lock',
-      title: `Private bug - details will be available 14 weeks after the fix is deployed.`,
-      date: new Date(events[0].date - 1), // 1 second before first event
+  if (!record.bug_date) {
+    const firstMs = list[0]?.date.getTime() ?? Date.now();
+    list.unshift({
+      icon: "lock",
+      title: "Private bug - details will be available 14 weeks after the fix is deployed.",
+      date: new Date(firstMs - 1),
       blur: true,
     });
   }
 
-  // Compute delta in between events
-  for (let i=1; i < events.length; i++) {
-    events[i].delta=events[i].date - events[i-1].date;
+  // Compute delta and absolute_delta in between events.
+  for (let i = 1; i < list.length; i++) {
+    list[i].delta = list[i].date.getTime() - list[i - 1].date.getTime();
+    list[i].absolute_delta = list[i].date.getTime() - list[0].date.getTime();
   }
 
-  // Compute absolute_delta in between events
-  for (let i=1; i < events.length; i++) {
-    events[i].absolute_delta=events[i].date - events[0].date;
-  }
+  return list;
+};
 
-  return events;
-}
+let requestId = 0;
 
-onMounted(async ()=> {
-  const data=await fetchCveData();
+watch(
+  () => route.query.id,
+  async (rawQueryId) => {
+    const rawId = Array.isArray(rawQueryId) ? rawQueryId[0] : rawQueryId;
+    const nextId = typeof rawId === "string" ? rawId.trim() : "";
 
-  let out=null;
-  for (const cve_ of data) {
-    if (cve_.id==id.value) {
-      out=cve_;
-      break;
+    if (!nextId) {
+      if (route.path.replace(/\/$/, "") === "/cve") {
+        navigateTo("/cve/overview", { replace: true });
+      }
+      return;
     }
-  }
 
-  if (!out) {
-    not_found.value = true;
-    return;
-  }
+    const reqId = ++requestId;
+    id.value = nextId;
+    cve.value = {};
+    events.value = [];
+    not_found.value = false;
 
-  cve.value=out;
-  events.value=getEvents(out);
+    const data = await fetchCveData();
+    if (reqId !== requestId) return;
+
+    const found = data.find(item => item.id === nextId);
+    if (!found) {
+      not_found.value = true;
+      return;
+    }
+
+    cve.value = found;
+    events.value = getEvents(found);
+  },
+  { immediate: true },
+);
+
+const pageTitle = () => {
+  if (!id.value) return `CVE · ${SITE_NAME}`;
+  const label = id.value.startsWith("CVE-") ? id.value : `CVE-${id.value}`;
+  return `${label} · ${SITE_NAME}`;
+};
+
+useSeoMeta({
+  title: pageTitle,
+  ogTitle: pageTitle,
 });
-
 </script>
 <style scoped>
 .grid {

@@ -1,7 +1,5 @@
 <template>
   <div>
-    <Navbar/>
-
     <section class="section">
       <div class="container content">
         <h1 class="title">Badges</h1>
@@ -14,7 +12,7 @@
         <p v-if="!developer" style="margin-top: 1rem;">
           Pick a developer to see which of them they earned.
         </p>
-        <p v-else style="margin-top: 1rem;">
+        <p v-else-if="data.length" style="margin-top: 1rem;">
           <strong>Badges:</strong>
           {{
             data.filter(badge => badge.enabled).length
@@ -39,7 +37,7 @@
         <BadgeBook
           :developer="developer"
           :badges="data"
-          :categories="[...categories]"
+          :categories="categories"
           :score="rarity"
           />
       </div>
@@ -81,84 +79,78 @@
 </template>
 
 <script setup lang="ts">
+import { useUrlState, urlCodecs } from "~/composables/useUrlState";
+import {
+  badgeRarityScore,
+  fetchBadgesCatalog,
+  fetchDeveloperBadges,
+  type BadgeDefinition,
+} from "~/utils/badges";
 
-const route = useRoute();
-const router = useRouter();
-
-const developers = ref([]);
-const developer = ref("");
-if (route.query.developers) {
-  developers.value = route.query.developers.split(',');
+interface BadgeItem extends BadgeDefinition {
+  enabled: boolean;
+  data?: any;
 }
 
-const categories = ref(new Set());
+const { developers, view } = useUrlState({
+  developers: urlCodecs.csv([]),
+  view: urlCodecs.enum(["book", "grid"] as const, "book"),
+});
 
-const data = shallowRef([]);
-
+const developer = computed(() => developers.value[0] ?? "");
+const data = shallowRef<BadgeItem[]>([]);
 const rarity = ref(0);
 
-const view = ref("book");
+const categories = computed(() => [
+  ...new Set(data.value.map(badge => badge.category)),
+]);
+
+let requestId = 0;
 
 const refresh = async () => {
-  router.push({
-    query: {
-      developers: developers.value.join(',')
-    }
-  })
-
   if (developers.value.length > 1) {
-    // Take the last one.
-      developers.value = developers.value.slice(-1);
+    developers.value = developers.value.slice(-1);
     return;
   }
-  developer.value = developers.value[0] ?? "";
 
-  const fetchJson = async (path) => {
-    const data = await fetch(path);
-    const json = await data.json()
-    return json;
-  }
+  const id = ++requestId;
+  const currentDeveloper = developer.value;
+  const catalog = await fetchBadgesCatalog();
+  if (id !== requestId) return;
 
-  const allBadges = await fetchJson(`/badges.json`);
-  for(const badge of allBadges) {
-    badge.enabled = false;
-    categories.value.add(badge.category);
-  }
+  const allBadges: BadgeItem[] = catalog.map(badge => ({
+    ...badge,
+    enabled: !currentDeveloper,
+  }));
 
-  // Without developer, the whole collection is shown.
-  if (!developer.value) {
-    for (const badge of allBadges) {
-      badge.enabled = true;
-    }
+  if (!currentDeveloper) {
     data.value = allBadges;
     rarity.value = 0;
     return;
   }
 
-  // The JSON file are grouping the badges of every users sharing the first
-  // letter of their username.
-  const badges = (await
-    fetchJson(`/badges/${developer.value[0]}.json`))[developer.value];
+  const earned = await fetchDeveloperBadges(currentDeveloper);
+  if (id !== requestId) return;
 
-  for (const badge of badges) {
-    allBadges[badge[0]].enabled = true;
-    allBadges[badge[0]].data = badge[1];
+  for (const [badgeIdx, badgeData] of earned) {
+    if (allBadges[badgeIdx]) {
+      allBadges[badgeIdx].enabled = true;
+      allBadges[badgeIdx].data = badgeData;
+    }
+  }
+
+  let totalRarity = 0;
+  for (const badge of allBadges) {
+    if (badge.enabled) {
+      totalRarity += badgeRarityScore(badge.recipients);
+    }
   }
 
   data.value = allBadges;
+  rarity.value = totalRarity;
+};
 
-  // Compute the rarity of the badges.
-  let rarity_ = 0;
-  for(const badge of data.value) {
-    if (badge.enabled) {
-      rarity_ += Math.log2(8200/badge.recipients) * 0.8
-    }
-  }
-  rarity.value = rarity_;
-}
-
-watch([ developers ], refresh, { immediate: true })
-
+watch(developers, refresh, { immediate: true });
 </script>
 
 <!--Global-->

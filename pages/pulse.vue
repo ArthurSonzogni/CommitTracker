@@ -1,6 +1,5 @@
 <template>
   <div>
-    <Navbar/>
     <section class="section">
       <div class="container">
         <h1 class="title">Repositories heatmap</h1>
@@ -28,143 +27,100 @@
 </template>
 
 <script setup lang="ts">
+import { useUrlState, urlCodecs } from "~/composables/useUrlState";
+import { listSummary, repositoryNames } from "~/utils/filter-summary";
 
-import { format } from "d3-format";
-import { scaleLinear } from "d3-scale";
-import { select } from "d3-selection";
+interface CommitsPerHourResponse {
+  startDate: string;
+  commits: number[];
+}
 
-const route = useRoute()
-const router = useRouter()
+interface AlignedCommitsPerHour {
+  minDateMs: number;
+  repos: string[];
+  aligned: number[][];
+}
 
-const heatmap = shallowRef([]);
-const data = shallowRef([]);
-const dates = ref([new Date("2000-01-01"), new Date()]);
-if (route.query.dates) {
+const HOUR_MS = 60 * 60 * 1000;
+
+const { repositories, dates } = useUrlState({
+  repositories: urlCodecs.csv(["chromium"]),
+  dates: urlCodecs.dateRange("2000-01-01"),
+});
+
+const rawAligned = shallowRef<AlignedCommitsPerHour | null>(null);
+let requestId = 0;
+
+const loadRepositories = async () => {
+  const id = ++requestId;
+  const repos = [...repositories.value];
+  if (repos.length === 0) {
+    rawAligned.value = null;
+    return;
+  }
+
   try {
-    dates.value = route.query.dates.split(",").map(d => new Date(d));
-  } catch (e) {
-    console.error(e);
-  }
-}
+    const responses = await Promise.all(
+      repos.map(repo => fetch(`/data/${repo}/commits_per_hour.json`)),
+    );
+    const jsons: CommitsPerHourResponse[] = await Promise.all(
+      responses.map(res => res.json()),
+    );
+    if (id !== requestId) return;
 
-const repositories = ref(["chromium"]);
-if (route.query.repositories) {
-  repositories.value = route.query.repositories.split(",");
-}
+    const minStartDate = jsons
+      .map(json => json.startDate)
+      .reduce((a, b) => (a < b ? a : b));
+    const minDateMs = new Date(minStartDate).getTime();
+    const size = Math.max(0, ...jsons.map(json => json.commits.length));
 
-const refresh = async () => {
-  router.push({
-    query: {
-      repositories: repositories.value.join(","),
-      dates: dates.value.map(d => d.toISOString()).join(",")
-    }
-  });
-
-  const responses = await Promise.all(repositories.value.map(repo =>
-    fetch(`/data/${repo}/commits_per_hour.json`)
-  ))
-  const jsons = await Promise.all(responses.map(res => res.json()));
-
-  // Format is:
-  // {
-  //   "startDate": "2021-01-01",
-  //   "commits": [
-  //      0, // The 0th hour
-  //      1, // The 1st hour
-  //      ...
-  //   ]
-  // }
-
-  // Align the data into a common array.
-  let min_date = new Date(jsons
-    .map(json => json.startDate)
-    .reduce((a, b) => a < b ? a : b)
-  );
-
-  const size = Math.max(...jsons.map(json => json.commits.length));
-
-  // Extend every json to the same size, by prepending 0s.
-  const aligned = jsons.map(json => {
-    const out = new Array(size).fill(0);
-    const offset = size - json.commits.length;
-    for (let i = 0; i < json.commits.length; i++) {
-      out[i + offset] = json.commits[i];
-    }
-    return out;
-  });
-
-  // Filter by date.
-  const aligned_filtered = aligned.map(json => {
-    return json.filter((_, index) => {
-      const date = new Date(min_date.getTime() + index * 1000 * 60 * 60);
-      return date >= dates.value[0] && date <= dates.value[1];
+    // Extend every json to the same size by prepending 0s.
+    const aligned = jsons.map(json => {
+      const out = new Array<number>(size).fill(0);
+      const offset = size - json.commits.length;
+      for (let i = 0; i < json.commits.length; i++) {
+        out[i + offset] = json.commits[i];
+      }
+      return out;
     });
-  });
 
-  // Adjust min_date
-  if (dates.value[0] > min_date) {
-    min_date = dates.value[0];
+    rawAligned.value = { minDateMs, repos, aligned };
+  } catch (error) {
+    if (id === requestId) {
+      console.error("Failed to fetch commits_per_hour:", error);
+    }
   }
-
-  data.value = aligned_filtered.map((json, index) => {
-    return {
-      label: repositories.value[index],
-      values: json.map((value, index) => {
-        return {
-          x: new Date(min_date.getTime() + index * 1000 * 60 * 60),
-          y: value,
-        };
-      })
-    };
-  });
 };
 
-watch(repositories, refresh);
-watch(dates, refresh);
-onMounted(refresh);
+const data = computed(() => {
+  const raw = rawAligned.value;
+  if (!raw || raw.aligned.length === 0) return [];
 
+  const { minDateMs, repos, aligned } = raw;
+  const size = aligned[0]?.length ?? 0;
+  if (size === 0) return repos.map(label => ({ label, values: [] }));
+
+  const d0Ms = dates.value[0].getTime();
+  const d1Ms = dates.value[1].getTime();
+  const startIdx = Math.max(0, Math.ceil((d0Ms - minDateMs) / HOUR_MS));
+  const endIdx = Math.min(size - 1, Math.floor((d1Ms - minDateMs) / HOUR_MS));
+  if (endIdx < startIdx) {
+    return repos.map(label => ({ label, values: [] }));
+  }
+
+  const baseMs = Math.max(minDateMs, d0Ms);
+  return aligned.map((series, repoIdx) => {
+    const sliced = series.slice(startIdx, endIdx + 1);
+    return {
+      label: repos[repoIdx],
+      values: sliced.map((value, idx) => ({
+        x: new Date(baseMs + idx * HOUR_MS),
+        y: value,
+      })),
+    };
+  });
+});
+
+watch(repositories, loadRepositories);
+onMounted(loadRepositories);
 </script>
-
-<style>
-
-  .line {
-    display:flex;
-    margin:1px;
-  }
-
-  .left {
-    text-align:right;
-    margin-right:10px;
-    width:48px;
-  }
-
-  .center {
-    color: var(--ink);
-    background: rgba(0,128,255);
-    opacity: 0.2;
-    margin: 0px 10px 0px 0px;
-    border-radius: 5px;
-  }
-
-  .center:hover {
-    opacity: 0.4;
-  }
-
-  .usernameList {
-    color: var(--ink);
-    list-style-type: square;
-    list-style-position: inside;
-    display:flex;
-    flex-wrap: wrap;
-    padding-left:100px;
-  }
-
-  .usernameList.hidden {
-    display:none;
-  }
-
-  .usernameList>* {
-    flex: 1 1 160px;
-  }
-
-</style>

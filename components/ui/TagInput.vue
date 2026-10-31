@@ -1,10 +1,14 @@
 <template>
-  <div ref="root" class="taginput control" :class="{ 'is-expanded': expanded }">
+  <div class="taginput control" :class="{ 'is-expanded': expanded }">
     <div
       class="taginput-container is-focusable"
       :class="{ 'is-focused': focused }"
       @click="input?.focus()">
-      <span v-for="(tag, index) in tags" :key="index" class="tag is-primary">
+      <span
+        v-for="(tag, index) in tags"
+        :key="index"
+        class="tag is-primary"
+        :style="tagStyle?.(tag)">
         <span>{{ label(tag) }}</span>
         <a
           role="button"
@@ -29,7 +33,7 @@
           @keydown="onKeydown" />
         <UiIcon v-if="icon" :name="icon" class="is-left" size="small" />
         <div v-if="isOpen" class="dropdown-menu" role="listbox">
-          <div class="dropdown-content">
+          <div class="dropdown-content" :style="maxHeight ? { maxHeight } : undefined">
             <div v-if="$slots.header" class="dropdown-header">
               <slot name="header" />
             </div>
@@ -68,15 +72,16 @@ const props = withDefaults(defineProps<{
   // Show the suggestions on focus, before typing.
   openOnFocus?: boolean;
   expanded?: boolean;
+  tagStyle?: (tag: any) => Record<string, string> | string | undefined;
+  maxHeight?: string;
 }>(), {
   suggestions: () => [],
   field: "this",
 });
 
 const tags = defineModel<any[]>({ default: () => [] });
-const emit = defineEmits<{ typing: [text: string] }>();
+const emit = defineEmits<{ typing: [text: string]; focus: [] }>();
 
-const root = ref<HTMLElement | null>(null);
 const input = ref<HTMLInputElement | null>(null);
 const text = ref("");
 const focused = ref(false);
@@ -98,6 +103,7 @@ watch(options, () => { hovered.value = -1; });
 
 const onFocus = () => {
   focused.value = true;
+  emit("focus");
   if (props.openOnFocus) {
     emit("typing", text.value);
   }
@@ -129,6 +135,8 @@ const onKeydown = (event: KeyboardEvent) => {
       add(options.value[hovered.value]);
     } else if (props.allowNew && text.value.trim()) {
       add(text.value.trim());
+    } else if (!props.allowNew && count > 0) {
+      add(options.value[0]);
     }
   } else if (event.key === "Backspace" && !text.value && tags.value.length) {
     remove(tags.value.length - 1);
@@ -136,7 +144,6 @@ const onKeydown = (event: KeyboardEvent) => {
     input.value?.blur();
   }
 };
-
 </script>
 
 <style scoped>
@@ -149,7 +156,6 @@ const onKeydown = (event: KeyboardEvent) => {
   min-height: 2.25rem;
   padding: 0.2rem 0.4rem;
 }
-
 
 .taginput-container .tag {
   gap: 0.25rem;

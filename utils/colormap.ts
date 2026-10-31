@@ -39,7 +39,9 @@ import {
   interpolateYlOrRd,
 } from "d3-scale-chromatic";
 
-const color_map = {
+export type ColormapFn = (t: number) => string;
+
+export const color_map: Record<string, ColormapFn> = {
   Blues: interpolateBlues,
   BrBG: interpolateBrBG,
   BuGn: interpolateBuGn,
@@ -80,24 +82,17 @@ const color_map = {
   YlOrRd: interpolateYlOrRd,
 };
 
-const GetColormapGradient = (name: string) => {
-  const gradientFunction = color_map[name];
-  if (!gradientFunction) {
-    throw new Error(`Color map "${name}" not found.`);
-  }
-  const steps = 10;
-  const stops = Array.from({ length: steps }, (_, i) => {
-    const t = i / (steps - 1);
+export const colormapNames = Object.keys(color_map);
+
+export const getColormap = (name: string): ColormapFn =>
+  color_map[name] ?? color_map.Oranges;
+
+export const GetColormapGradient = (name: string, steps = 10): string => {
+  const gradientFunction = getColormap(name);
+  const count = Math.max(2, steps);
+  const stops = Array.from({ length: count }, (_, i) => {
+    const t = i / (count - 1);
     return gradientFunction(t);
   });
-  return `linear-gradient(to right, ${stops.join(', ')})`;
+  return `linear-gradient(to right, ${stops.join(", ")})`;
 };
-
-export default defineNuxtPlugin(() => {
-  return {
-    provide: {
-      color_map,
-      GetColormapGradient,
-    },
-  }
-})

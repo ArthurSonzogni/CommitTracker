@@ -1,83 +1,39 @@
 <template>
-  <div class="organization-selector">
-    <div class="sort-buttons">
-      <button class="sort-button"
-              title="Sort alphabetically"
-              aria-label="Sort alphabetically"
-              @click="sortOrganizationsAlphabetically"
-              >
-              <UiIcon name="sort-alphabetical-descending-variant"></UiIcon>
-      </button>
-      <button class="sort-button"
-              title="Sort by commits"
-              aria-label="Sort by commits"
-              @click="sortOrganizationsByCommits"
-              >
-              <UiIcon name="sort"></UiIcon>
-      </button>
-    </div>
-
-    <!-- A single row, scrolling horizontally. -->
-    <div class="fields chip-track" :class="{ 'is-multiple': multiple }">
-      <UiToggle v-for="(item, index) in items" :key="index" v-model="value" @input="update(item)" :value="item">
-        <UiIcon :name="item.toLowerCase()" v-if="availableIcon.includes(item.toLowerCase())" size="small"></UiIcon>
-        {{item}}
-      </UiToggle>
-    </div>
-
-    <div class="options">
-      <UiCheckbox v-if="allowAll" name="all" :value="all" @input="updateAll()">
-        All
-      </UiCheckbox>
-      <UiCheckbox v-if="allowMultiple" name="multiple" v-model="multiple">
-        Multiple
-      </UiCheckbox>
-      <slot></slot>
-    </div>
-  </div>
+  <ChipSelector
+    v-model="value"
+    class="organization-selector"
+    :items="chipItems"
+    :allow-multiple="allowMultiple"
+    :allow-all="allowAll">
+    <template #leading>
+      <div class="sort-buttons">
+        <button
+          type="button"
+          class="sort-button"
+          title="Sort alphabetically"
+          aria-label="Sort alphabetically"
+          @click="sortOrganizationsAlphabetically">
+          <UiIcon name="sort-alphabetical-descending-variant" />
+        </button>
+        <button
+          type="button"
+          class="sort-button"
+          title="Sort by commits"
+          aria-label="Sort by commits"
+          @click="sortOrganizationsByCommits">
+          <UiIcon name="sort" />
+        </button>
+      </div>
+    </template>
+    <slot />
+  </ChipSelector>
 </template>
 
 <script setup lang="ts">
+import type { PropType } from "vue";
+import organizationsData from "../public/data/organizations.json";
 
-import organizations_data from '../public/data/organizations.json'
-
-const props = defineProps({
-  allowMultiple: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-
-  allowAll: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-
-  size: {
-    default: "is-small",
-    type: String,
-    required: true
-  },
-
-  label: {
-    default: "",
-    type: String,
-    required: false
-  },
-
-  repositories: {
-    type: Array[String],
-    required: false,
-    default: () => [],
-  },
-});
-
-const value = defineModel();
-const items = ref(structuredClone(organizations_data));
-const multiple = ref(value.value.length > 1 && props.allowMultiple);
-const all = ref(value.value.length == items.value.length);
-const availableIcon = ref([
+const AVAILABLE_ICONS = new Set([
   "adobe",
   "amazon",
   "apple",
@@ -90,79 +46,103 @@ const availableIcon = ref([
   "slack",
 ]);
 
-const sortOrganizationsByCommits = async () => {
-  const summary_response  = await fetch('/data/organizations_summary.json')
-  const summary = await summary_response.json()
-  const sum = {}
-  for(const org of items.value) {
-    sum[org] = 0;
-    for(const repo of props.repositories) {
-      if (summary[repo]) {
-        sum[org] += summary[repo][org] || 0;
-      }
+let summaryPromise: Promise<Record<string, Record<string, number>>> | null = null;
+const fetchOrganizationsSummary = () =>
+  (summaryPromise ??= fetch("/data/organizations_summary.json").then((res) =>
+    res.ok ? res.json() : {},
+  ));
+
+const props = defineProps({
+  allowMultiple: {
+    type: Boolean,
+    default: false,
+  },
+  allowAll: {
+    type: Boolean,
+    default: false,
+  },
+  size: {
+    type: String,
+    default: "is-small",
+  },
+  label: {
+    type: String,
+    default: "",
+  },
+  repositories: {
+    type: Array as PropType<string[]>,
+    default: () => [],
+  },
+});
+
+const value = defineModel<string[]>({ default: () => [] });
+const items = ref<string[]>([...organizationsData]);
+const sortMode = ref<"commits" | "alphabetical">("commits");
+
+const chipItems = computed(() =>
+  items.value.map((org) => {
+    const lower = org.toLowerCase();
+    return {
+      id: org,
+      label: org,
+      icon: AVAILABLE_ICONS.has(lower) ? lower : undefined,
+    };
+  }),
+);
+
+let sortRequestId = 0;
+
+const applyCommitsSort = async () => {
+  const reqId = ++sortRequestId;
+  const repos = [...(props.repositories ?? [])];
+  const summary = await fetchOrganizationsSummary();
+  if (reqId !== sortRequestId || sortMode.value !== "commits") return;
+
+  const sums: Record<string, number> = {};
+  for (const org of organizationsData) {
+    let total = 0;
+    for (const repo of repos) {
+      total += summary[repo]?.[org] || 0;
     }
+    sums[org] = total;
   }
 
-  items.value.sort((a, b) => {
-    const diff = sum[b] - sum[a];
-    if (diff == 0) {
-      return a.localeCompare(b);
-    }
-    return diff;
+  items.value = [...organizationsData].sort((a, b) => {
+    const diff = (sums[b] ?? 0) - (sums[a] ?? 0);
+    return diff !== 0 ? diff : a.localeCompare(b);
   });
 };
 
+const sortOrganizationsByCommits = () => {
+  sortMode.value = "commits";
+  applyCommitsSort();
+};
+
 const sortOrganizationsAlphabetically = () => {
-  items.value.sort();
+  sortMode.value = "alphabetical";
+  ++sortRequestId;
+  items.value = [...organizationsData].sort((a, b) => a.localeCompare(b));
 };
 
-
-const updateAll = () => {
-  all.value = !all.value;
-  if (all.value) {
-    multiple.value = props.allowMultiple
-    value.value = organizations_data;
-  } else {
-    multiple.value = false;
-    value.value = [];
-  }
-};
-
-const update = (item) => {
-  if (!multiple.value) {
-    value.value = [item];
-    return;
-  }
-
-  const newValue = [...value.value];
-  const index = newValue.indexOf(item);
-  if (index === -1) {
-    newValue.push(item);
-  } else {
-    newValue.splice(index, 1);
-  }
-  value.value = newValue.sort();
-};
-
-onMounted(() => {
-  sortOrganizationsByCommits();
-});
-
+watch(
+  () => (props.repositories ?? []).join("\0"),
+  () => {
+    if (sortMode.value === "commits") {
+      applyCommitsSort();
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <style scoped>
-
 .organization-selector {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1rem;
   margin-bottom: 1.5rem;
   padding-top: 0.5rem;
 }
 
 /* Keep the sort buttons on the same row, even on narrow screens. */
-.organization-selector .chip-track {
+.organization-selector :deep(.chip-track) {
   flex-basis: 12rem;
 }
 
@@ -189,12 +169,4 @@ onMounted(() => {
   background: var(--surface-sunken);
   color: var(--ink);
 }
-
-.options {
-  align-items: center;
-  display: flex;
-  flex: 0 0 auto;
-  gap: 1rem;
-}
-
 </style>

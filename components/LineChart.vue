@@ -11,26 +11,6 @@
       <g ref="xAxis" />
       <g ref="releaseAxis" />
       <g ref="yAxis" />
-
-      <!--
-        Filter for the tooltip, it creates a white glow around the text to
-        make it more readable
-      -->
-      <filter id="highlightText" x="0" y="0" width="100%" height="100%">
-        <!-- Dilate the source alpha channel to create a border -->
-        <feMorphology in="SourceAlpha" result="dilated" operator="dilate" radius="2" />
-        <!-- Fill the dilated shape with white -->
-        <feFlood flood-color="white" result="glow" />
-        <!-- Composite "glow" and "dilated" to create the final background -->
-        <feComposite in="glow" in2="dilated" operator="in" result="softGlow" />
-        <!-- Put the original text on top of the glowing background -->
-        <feMerge>
-          <!-- Glow first -->
-          <feMergeNode in="softGlow"/>
-          <!-- Original on top -->
-          <feMergeNode in="SourceGraphic"/>
-        </feMerge>
-      </filter>
     </svg>
   </div>
 </template>
@@ -247,7 +227,7 @@ const render = () => {
             const group = enter
               .append("g")
               .attr("class", "tooltipData")
-              .attr("transform", d => `translate(${x(d.x)}, ${y(d.y)}`)
+              .attr("transform", d => `translate(${x(d.x)}, ${y(d.y)})`)
 
             group
               .attr("opacity", 0)
@@ -257,16 +237,14 @@ const render = () => {
 
             group
               .append("text")
-              .attr("text-anchor", "middle")
               .attr("font-size", "12px")
               .attr("font-weight", "bold")
               .attr("x", -5)
               .attr("y", -5)
               .attr("text-anchor", "end")
               .attr("alignment-baseline", "bottom")
-              .attr("filter", "url(#highlightText)")
               .attr("fill", d => d.color || $color(d.label))
-              .text(d =>  d.label + ":  " + formatValue(d.y))
+              .text(d => d.label + ":  " + formatValue(d.y))
 
             group.append("circle")
               .attr("r", 3)
@@ -472,6 +450,13 @@ svg {
 svg {
   width: 100%;
   height: 100%;
+  touch-action: pan-y;
 }
 
+svg :deep(.tooltipData text) {
+  paint-order: stroke;
+  stroke: var(--bg);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
 </style>

@@ -1,7 +1,5 @@
 <template>
   <div>
-    <Navbar/>
-
     <section class="section">
       <div class="container content">
         <h1 class="title">API</h1>
@@ -137,7 +135,7 @@
           </li>
           <li>
             <code>time_range</code> is one of:
-            <span class="tag">1w</span> <span class="tag">1m</span> <span class="tag">3m</span> <span class="tag">6m</span> <span class="tag">1y</span> <span class="tag">forever</span> ...
+            <span class="tag">1m</span> <span class="tag">3m</span> <span class="tag">6m</span> <span class="tag">1y</span> <span class="tag">forever</span> ...
           </li>
         </ul>
 

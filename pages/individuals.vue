@@ -1,7 +1,5 @@
 <template>
   <div>
-    <Navbar/>
-
     <div>
 
       <section class="section sticky top">
@@ -57,7 +55,9 @@
       <section class="section">
         <div class="container">
           <h2 class="title">Counts</h2>
-          <TimelineCountBasic
+          <TimelineCount
+            basic
+            :commits="raw"
             :repositories="repositories"
             :developers="developers"
             :dates="dates"
@@ -71,15 +71,16 @@
         <div class="container">
           <h2 class="title">Timeline</h2>
           <div style="height: calc(50vh);">
-            <TimelineChart
+            <DeveloperTimelineChart
               chart="line"
+              :commits="raw"
               :repositories="repositories"
               :developers="developers"
               :dates="dates"
               :author="options.includes('author')"
               :review="options.includes('review')"
               :stacked="options.includes('stacked')"
-              ></TimelineChart>
+              />
           </div>
         </div>
       </section>
@@ -105,6 +106,7 @@
           </div>
 
           <TimelineWrappedChart
+            :commits="raw"
             :repositories="repositories"
             :developers="developers"
             :dates="dates"
@@ -121,6 +123,7 @@
         <div class="container">
           <h2 class="title">Peers</h2>
           <PeersChart
+            :commits="raw"
             :repositories="repositories"
             :developers="developers"
             :dates="dates"
@@ -135,6 +138,7 @@
         <div class="container">
           <h2 class="title">Details</h2>
           <TimelineCount
+            :commits="raw"
             :repositories="repositories"
             :developers="developers"
             :dates="dates"
@@ -147,15 +151,16 @@
       <section class="section">
         <div class="container">
           <h2 class="title">Heatmap</h2>
-          <TimelineChart
+          <DeveloperTimelineChart
             chart="heatmap"
+            :commits="raw"
             :repositories="repositories"
             :developers="developers"
             :dates="dates"
             :author="options.includes('author')"
             :review="options.includes('review')"
             :stacked="options.includes('stacked')"
-            ></TimelineChart>
+            />
         </div>
       </section>
 
@@ -171,96 +176,67 @@
 </template>
 
 <script setup lang="ts">
-// Explicit import: Nuxt 4's auto-import reads <TimelineChart> as the lazy
-// hydration modifier "Time" + "LineChart", and resolves it to LineChart.
-import TimelineChart from '~/components/TimelineChart.vue'
+import { useDeveloperCommits } from "~/composables/useDeveloperCommits";
+import { useUrlState, urlCodecs } from "~/composables/useUrlState";
+import { listSummary, repositoryNames } from "~/utils/filter-summary";
+import { fetchUsernamesSummary } from "~/utils/usernamesSummary";
 
-const route = useRoute();
-const router = useRouter();
-
-const dates = ref([new Date("2000-01-01"), new Date()]);
-if (route.query.dates) {
-  dates.value = route.query.dates.split(',').map((d: string|number|Date) => new Date(d));
-}
-
-const developers = ref([]);
-if (route.query.developers) {
-  developers.value = route.query.developers.split(',');
-}
-
-const tt = computed(() => {
-  return developers.value;
-});
-
-const options = ref(["author", "review"]);
-if (route.query.options) {
-  options.value = route.query.options.split(',');
-}
-
-const hourlyParam = ref(0);
-if (route.query.hourlyParam) {
-  hourlyParam.value = parseInt(route.query.hourlyParam);
-  hourlyParam.value = Math.min(2, Math.max(0, hourlyParam.value));
-}
-
-const wrappedBuckets = ref(100);
-if (route.query.wrappedBuckets) {
-  wrappedBuckets.value = parseInt(route.query.wrappedBuckets);
-}
-
-const repositories = ref(["chromium"]);
-
-const summary = computed(() =>
-  listSummary(repositoryNames(repositories.value), "repositories"));
-if (route.query.repositories) {
-  repositories.value = route.query.repositories.split(',');
-}
-
-// Suggestions when no developer is selected: the top authors of the latest
-// year in the first selected repository.
-const topAuthors = ref<string[]>([]);
-const topAuthorsYear = ref("");
-watch([developers, repositories], async () => {
-  if (developers.value.length || topAuthors.value.length) {
-    return;
-  }
-  const response = await fetch(
-    `/data/${repositories.value[0]}/usernames_summary_commit_yearly_author.json`);
-  if (!response.ok) {
-    return;
-  }
-  const summary: Record<string, Record<string, number>> = await response.json();
-  const year = Object.values(summary)
-    .flatMap(years => Object.keys(years))
-    .reduce((a, b) => a > b ? a : b, "");
-  topAuthorsYear.value = year;
-  topAuthors.value = Object.entries(summary)
-    .sort((a, b) => (b[1][year] ?? 0) - (a[1][year] ?? 0))
-    .slice(0, 8)
-    .map(([name]) => name);
-}, { immediate: true });
-
-const updateUrl = () => {
-  router.push({
-    query: {
-      developers: developers.value.join(','),
-      options: options.value.join(','),
-      hourlyParam: hourlyParam.value,
-      wrappedBuckets: wrappedBuckets.value,
-      repositories: repositories.value.join(','),
-      dates: dates.value.map((d: { toISOString: () => string; }) => d.toISOString().split("T")[0]).join(','),
-    }
-  });
-};
-
-watch([
-  dates,
+const {
   developers,
   options,
   hourlyParam,
   wrappedBuckets,
   repositories,
-], updateUrl);
+  dates,
+} = useUrlState({
+  developers: urlCodecs.csv([]),
+  options: urlCodecs.csv(["author", "review"]),
+  hourlyParam: urlCodecs.number(0, { min: 0, max: 2, integer: true }),
+  wrappedBuckets: urlCodecs.number(100, { min: 1, max: 500, integer: true }),
+  repositories: urlCodecs.csv(["chromium"]),
+  dates: urlCodecs.dateRange("2000-01-01"),
+});
+
+const { raw } = useDeveloperCommits({
+  repo: repositories,
+  developers,
+});
+
+const summary = computed(() =>
+  listSummary(repositoryNames(repositories.value), "repositories"),
+);
+
+// Suggestions when no developer is selected: the top authors of the latest
+// year in the first selected repository.
+const topAuthors = ref<string[]>([]);
+const topAuthorsYear = ref("");
+let topAuthorsRepo = "";
+let topAuthorsReqId = 0;
+
+watch([developers, repositories], async () => {
+  const repo = repositories.value[0];
+  if (developers.value.length > 0 || !repo) {
+    return;
+  }
+  if (topAuthors.value.length > 0 && topAuthorsRepo === repo) {
+    return;
+  }
+
+  const reqId = ++topAuthorsReqId;
+  const summaryData = await fetchUsernamesSummary(repo, "commit", "yearly", "author");
+  if (reqId !== topAuthorsReqId) return;
+
+  const year = Object.values(summaryData)
+    .flatMap(years => Object.keys(years))
+    .reduce((a, b) => (a > b ? a : b), "");
+
+  topAuthorsRepo = repo;
+  topAuthorsYear.value = year;
+  topAuthors.value = Object.entries(summaryData)
+    .sort((a, b) => (b[1][year] ?? 0) - (a[1][year] ?? 0))
+    .slice(0, 8)
+    .map(([name]) => name);
+}, { immediate: true });
 
 const updateHasScrolled = () => {
   const maxScroll = Math.max(
@@ -268,18 +244,25 @@ const updateHasScrolled = () => {
     document.body.offsetHeight,
     document.documentElement.clientHeight,
     document.documentElement.scrollHeight,
-    document.documentElement.offsetHeight
+    document.documentElement.offsetHeight,
   );
 
   document.documentElement.dataset.scrolltop =
-    (window.scrollY > 100) ? '1' : '0';
-  document.documentElement.dataset.scrollbottom=
-    (maxScroll - window.scrollY > 1000) ? '1' : '0';
+    window.scrollY > 100 ? "1" : "0";
+  document.documentElement.dataset.scrollbottom =
+    maxScroll - window.scrollY > 1000 ? "1" : "0";
 };
 
-updateHasScrolled();
-document.addEventListener('scroll', updateHasScrolled, { passive: true });
+onMounted(() => {
+  updateHasScrolled();
+  document.addEventListener("scroll", updateHasScrolled, { passive: true });
+});
 
+onBeforeUnmount(() => {
+  document.removeEventListener("scroll", updateHasScrolled);
+  delete document.documentElement.dataset.scrolltop;
+  delete document.documentElement.dataset.scrollbottom;
+});
 </script>
 
 <style scoped>
@@ -373,26 +356,4 @@ html[data-scrollbottom= "1"] .sticky.bottom {
   padding-bottom: 0.5rem;
   padding-top: 0.6rem;
 }
-
-.anchor {
-  display: block;
-  position: relative;
-  top: -200px;
-}
-
-.anchor-link {
-  color: var(--ink);
-  opacity: 0.1;
-  transition: opacity 0.2s ease-in-out;
-}
-
-.anchor-link:hover {
-  opacity: 1;
-}
-
-.test{
-  width: 100%;
-  height: 400px !important;
-}
-
 </style>

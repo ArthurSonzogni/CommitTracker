@@ -1,14 +1,11 @@
 <template>
   <div class="main">
-
-    <div v-if="chart == 'line'"
-         style="aspect-ratio: 16/9;">
+    <div v-if="chart == 'line'" style="aspect-ratio: 16/9;">
       <LineChart
         class="line-chart"
         :data="line_chart_data"
         :formatter="formatter"
-        >
-      </LineChart>
+      />
     </div>
 
     <BarChart
@@ -17,8 +14,7 @@
       :valueLabel="metric == 'commit' ? 'Commits' : 'Contributors'"
       :formatter="formatter"
       :data="bar_chart_data"
-      >
-    </BarChart>
+    />
 
     <UiField>
       <slot></slot>
@@ -26,7 +22,6 @@
       <p class="m-2"></p>
 
       <UiField>
-
         <button type="button" class="button" @click="download = true"> Download </button>
 
         <UiModal v-model="download" :width="640">
@@ -47,211 +42,199 @@
             </div>
           </div>
         </UiModal>
-
       </UiField>
     </UiField>
   </div>
 </template>
 
 <script setup lang="ts">
+import type { PropType } from "vue";
+import { format } from "d3-format";
+import repositories from "../public/data/repositories.json";
+import organizations from "../public/data/organizations.json";
 
-import repositories from '../public/data/repositories.json'
-import organizations from '../public/data/organizations.json'
-import { format } from 'd3-format'
+type ConsolidatedData = Record<string, Record<string, number>>;
+
+type BarBucket = {
+  label: string;
+  values: { label: string; value: number; color: string | undefined }[];
+};
+
+type LineSeries = {
+  label: string;
+  values: { x: Date; y: number }[];
+};
 
 const props = defineProps({
-  repositories: { type:Array[String], default: () => ["chromium"],},
-  organizations: { type:Array[String], default: () => ["Google"],},
-  colors: { type:String, default: "repositories"},
-  grouping: { type:String, default: "yearly"},
-  kind: {},
-  metric: {},
-  chart: { type:String, default: "bar"},
+  repositories: { type: Array as PropType<string[]>, default: () => ["chromium"] },
+  organizations: { type: Array as PropType<string[]>, default: () => ["Google"] },
+  colors: { type: String, default: "repositories" },
+  grouping: { type: String, default: "yearly" },
+  kind: { type: String, default: "author" },
+  metric: { type: String, default: "commit" },
+  chart: { type: String, default: "bar" },
   dates: {
-    type:Array[Date],
-    default: () => [new Date("2000-01-01"), new Date()]
+    type: Array as PropType<Date[]>,
+    default: () => [new Date("2000-01-01"), new Date()],
   },
-  others: { type: Boolean, default: false},
+  others: { type: Boolean, default: false },
   display: { type: String, default: "absolute" },
-})
+});
 
-const repositoriesColor = new Map();
-for(const repo of repositories) {
+const repositoriesColor = new Map<string, string>();
+for (const repo of repositories) {
   repositoriesColor.set(repo.dirname, repo.color);
 }
 
-const organizationsColor = new Map();
-for (const i in organizations) {
-  const hue = (i* 360 / organizations.length) + (i%4)*90;
-  const luminance = 40+5*(i%3);
+const organizationsColor = new Map<string, string>();
+for (let i = 0; i < organizations.length; ++i) {
+  const hue = (i * 360) / organizations.length + (i % 4) * 90;
+  const luminance = 40 + 5 * (i % 3);
   organizationsColor.set(organizations[i], `hsl(${hue}, 99%, ${luminance}%)`);
 }
 organizationsColor.set("Others", "hsl(0, 0%, 50%)");
 
-const bar_chart_data = shallowRef([]);
-const line_chart_data = shallowRef([]);
+const bar_chart_data = shallowRef<BarBucket[]>([]);
+const line_chart_data = shallowRef<LineSeries[]>([]);
 const download = ref(false);
-let formatter = format(",d");
+const formatter = ref<(n: number) => string>(format(",d"));
 
-const merge = function(a,b) {
-  for(const key in b) {
+const merge = (a: Record<string, number>, b: Record<string, number>) => {
+  for (const key in b) {
     a[key] = (a[key] || 0) + b[key];
   }
-}
+};
 
-const groupingFunction = function() {
-  switch(props.grouping) {
-    case "forever":
-      return x => "Forever";
-
-    case "decennial":
-      return x => x.substr(0,3) + "0";
-
-    case "yearly":
-      return x => x.substr(0,4);
-
-    case "quarterly":
-      return x => {
-        const year = x.substr(0,4)
-        const month = x.substr(5,2);
-        const quarter = Math.floor((month - 1) / 3) + 1;
-        return `${year}Q${quarter}`;
-      }
-
-    case "monthly":
-      return x => x.substr(0,7);
-  }
-
-  return x => x;
-}
-
-const groupingFunctionReverse = function(date) {
-  switch(props.grouping) {
+const groupingFunctionReverse = (date: string): Date => {
+  switch (props.grouping) {
     case "forever":
       return props.dates[0];
-
     case "decennial":
-      return new Date(date.substr(0,3) + "0-01-01");
-
+      return new Date(date.slice(0, 3) + "0-01-01");
     case "yearly":
-      return new Date(date.substr(0,4) + "-01-01");
-
-    case "quarterly":
-      return new Date(date.substr(0,4) + "-" + (1 + (parseInt(date.substr(5,1)) - 1) * 3) + "-01");
-
+      return new Date(date.slice(0, 4) + "-01-01");
+    case "quarterly": {
+      const month = String(1 + (parseInt(date.slice(5, 6), 10) - 1) * 3).padStart(2, "0");
+      return new Date(`${date.slice(0, 4)}-${month}-01`);
+    }
     case "monthly":
       return new Date(date + "-01");
   }
-}
+  return new Date(date);
+};
 
-const dataForRepository = async function(repository) {
-  const response = await
-    fetch(`/data/${repository}/organizations_summary_${props.metric}_${props.grouping}_${props.kind}.json`);
-  const data_all = await response.json();
+const dataForRepository = async (repository: string) => {
+  const response = await fetch(
+    `/data/${encodeURIComponent(repository)}/organizations_summary_${encodeURIComponent(props.metric)}_${encodeURIComponent(props.grouping)}_${encodeURIComponent(props.kind)}.json`,
+  );
+  if (!response.ok) {
+    return {};
+  }
+  const data_all: Record<string, Record<string, number>> = await response.json();
 
-  const data = {};
+  const data: Record<string, Record<string, number>> = {
+    Others: {},
+  };
 
-  data["Others"] = {};
-
-  for(const organization in data_all) {
+  for (const organization in data_all) {
     if (props.organizations.includes(organization)) {
-      data[organization] = data_all[organization]
+      data[organization] = { ...data_all[organization] };
       continue;
     }
 
     if (props.colors == "organizations" || props.others) {
-      merge(data["Others"], data_all[organization])
+      merge(data.Others, data_all[organization]);
     }
   }
 
   // Filter out the dates that are not in the range.
-  for(const organization in data) {
-    for(const key in data[organization]) {
+  for (const organization in data) {
+    for (const key in data[organization]) {
       const date = groupingFunctionReverse(key);
       if (date < props.dates[0] || date > props.dates[1]) {
-        delete data[organization][key]
+        delete data[organization][key];
       }
     }
   }
 
   return data;
-}
+};
 
-const consolidateData = async function() {
-  const repo_data = {}
-  for(const repo of props.repositories) {
-    repo_data[repo] = await dataForRepository(repo);
-  }
+const consolidateData = async (): Promise<ConsolidatedData> => {
+  const entries = await Promise.all(
+    props.repositories.map(async (repo) => [repo, await dataForRepository(repo)] as const),
+  );
+  const repo_data = Object.fromEntries(entries);
 
-  const data = {};
+  const data: ConsolidatedData = {};
   if (props.colors == "repositories") {
-    for(const repo in repo_data) {
-      for(const organization in repo_data[repo]) {
-        for(const date in repo_data[repo][organization]) {
+    for (const repo of props.repositories) {
+      for (const organization in repo_data[repo]) {
+        for (const date in repo_data[repo][organization]) {
           data[date] = data[date] || {};
-          data[date][repo] ||= 0;
-          data[date][repo] += repo_data[repo][organization][date];
+          data[date][repo] = (data[date][repo] || 0) + repo_data[repo][organization][date];
         }
       }
     }
 
     if (props.display == "percent") {
-      for(const date in data) {
+      for (const date in data) {
         let total = 0;
-        for(const repo in data[date]) {
+        for (const repo in data[date]) {
           total += data[date][repo];
         }
-        for(const repo in data[date]) {
-          data[date][repo] /= total;
+        if (total > 0) {
+          for (const repo in data[date]) {
+            data[date][repo] /= total;
+          }
         }
       }
     }
   } else {
-    for(const repo in repo_data) {
-      for(const organization in repo_data[repo]) {
-        for(const date in repo_data[repo][organization]) {
+    for (const repo of props.repositories) {
+      for (const organization in repo_data[repo]) {
+        for (const date in repo_data[repo][organization]) {
           data[date] = data[date] || {};
-          data[date][organization] ||= 0;
-          data[date][organization] += repo_data[repo][organization][date];
+          data[date][organization] =
+            (data[date][organization] || 0) + repo_data[repo][organization][date];
         }
       }
     }
 
     if (props.display == "percent") {
-      for(const date in data) {
+      for (const date in data) {
         let total = 0;
-        for(const organization in data[date]) {
+        for (const organization in data[date]) {
           total += data[date][organization];
         }
-        for(const organization in data[date]) {
-          data[date][organization] /= total;
+        if (total > 0) {
+          for (const organization in data[date]) {
+            data[date][organization] /= total;
+          }
         }
       }
     }
 
     if (!props.others) {
-      for(const date in data) {
-        delete data[date]["Others"];
+      for (const date in data) {
+        delete data[date].Others;
       }
     }
   }
 
   if (props.display == "accumulative") {
-    // Collect all labels:
-    const allLabels = new Set();
+    const allLabels = new Set<string>();
     for (const date in data) {
       for (const label in data[date]) {
         allLabels.add(label);
       }
     }
 
-    // Initialize cumulative values:
-    const cumulativeValues = {};
+    const cumulativeValues: Record<string, number> = {};
     for (const label of allLabels) {
       cumulativeValues[label] = 0;
     }
 
-    // Accumulate values from earliest to latest date:
     for (const date of Object.keys(data).sort()) {
       for (const label of allLabels) {
         cumulativeValues[label] += data[date][label] || 0;
@@ -261,8 +244,8 @@ const consolidateData = async function() {
   }
 
   // Cleanup empty data:
-  for(const date in data) {
-    for(const label in data[date]) {
+  for (const date in data) {
+    for (const label in data[date]) {
       if (data[date][label] == 0) {
         delete data[date][label];
       }
@@ -270,181 +253,187 @@ const consolidateData = async function() {
   }
 
   // Cleanup empty dates:
-  for(const date in data) {
+  for (const date in data) {
     if (Object.keys(data[date]).length == 0) {
       delete data[date];
     }
   }
 
   return data;
-}
+};
 
-const refresh = async function() {
-  const data = await consolidateData();
+let requestId = 0;
+let consolidatedCache: ConsolidatedData | null = null;
+let consolidatePromise: Promise<ConsolidatedData> | null = null;
 
-  formatter = props.display == "percent"
-    ? format(".2%")
-    : format(",d");
+const getConsolidatedData = async (): Promise<ConsolidatedData> => {
+  if (consolidatedCache) {
+    return consolidatedCache;
+  }
+  if (consolidatePromise) {
+    return consolidatePromise;
+  }
+  const promise = consolidateData();
+  consolidatePromise = promise;
+  try {
+    const result = await promise;
+    if (consolidatePromise === promise) {
+      consolidatedCache = result;
+    }
+    return result;
+  } finally {
+    if (consolidatePromise === promise) {
+      consolidatePromise = null;
+    }
+  }
+};
 
-  // Turn the object into an array of arrays for D3.
+const refresh = async () => {
+  const id = ++requestId;
+  consolidatedCache = null;
+  consolidatePromise = null;
+  const data = await getConsolidatedData();
+  if (id !== requestId) {
+    return;
+  }
+
+  formatter.value = props.display == "percent" ? format(".2%") : format(",d");
+
   if (props.chart == "bar") {
     bar_chart_data.value = Object.keys(data)
       .sort()
-      .map(date => {
-        return {
-          label: date,
-          values: Object
-          .keys(data[date])
+      .map((date) => ({
+        label: date,
+        values: Object.keys(data[date])
           .sort()
-          .map(label => {
-            return {
-              label: label,
-              value: data[date][label],
-              color: props.colors == "repositories"
-              ? repositoriesColor.get(label)
-              : organizationsColor.get(label),
-            };
-          })
-        };
-      });
+          .map((label) => ({
+            label,
+            value: data[date][label],
+            color:
+              props.colors == "repositories"
+                ? repositoriesColor.get(label)
+                : organizationsColor.get(label),
+          })),
+      }));
   }
 
   if (props.chart == "line") {
-    // For the time_char_data, we only take the top 10 labels.
-    const label_size = {}
-    for(const date in data) {
-      for(const label in data[date]) {
+    const label_size: Record<string, number> = {};
+    for (const date in data) {
+      for (const label in data[date]) {
         label_size[label] = (label_size[label] || 0) + data[date][label];
       }
     }
 
     const top_label = Object.keys(label_size)
-      .sort((a,b) => label_size[b] - label_size[a])
-      .slice(0,10);
+      .sort((a, b) => label_size[b] - label_size[a])
+      .slice(0, 10);
 
-    const accumulate = (acc = 0) => {
-      return (d) => {
-        return {
-          x: d.x,
-          y: acc += d.y,
-        };
-      };
-    }
-
-    line_chart_data.value = top_label
-      .map(label => {
-        return {
-          label: label,
-          values: Object.keys(data)
-          .sort()
-          .slice(0, -1)
-          .map(date => {
-            return {
-              x: new Date(groupingFunctionReverse(date)),
-              y: data[date][label] || 0,
-            };
-          })
-        };
-      });
+    const sortedDates = Object.keys(data).sort().slice(0, -1);
+    line_chart_data.value = top_label.map((label) => ({
+      label,
+      values: sortedDates.map((date) => ({
+        x: new Date(groupingFunctionReverse(date)),
+        y: data[date][label] || 0,
+      })),
+    }));
   }
-}
+};
 
-const Download = function(data_string, filename, type) {
-  const blob = new Blob([data_string], {type: type || "text/plain"});
+const Download = (data_string: string, filename: string, type?: string) => {
+  const blob = new Blob([data_string], { type: type || "text/plain" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
   a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
-}
+};
 
-const DownloadJSON2 = async function() {
-  const data = await consolidateData();
+const DownloadJSON2 = async () => {
+  const data = await getConsolidatedData();
   Download(JSON.stringify(data, null, 2), "data.json", "application/json");
-}
+};
 
-const DownloadJSON = async function() {
-  const data = await consolidateData();
+const DownloadJSON = async () => {
+  const data = await getConsolidatedData();
 
-  const inverted_data = {};
-  for(const date in data) {
-    for(const label in data[date]) {
+  const inverted_data: ConsolidatedData = {};
+  for (const date in data) {
+    for (const label in data[date]) {
       inverted_data[label] = inverted_data[label] || {};
       inverted_data[label][date] = data[date][label];
     }
   }
 
   Download(JSON.stringify(inverted_data, null, 2), "data.json", "application/json");
-}
+};
 
-const DownloadCSV = async function() {
-  const data = await consolidateData();
+const DownloadCSV = async () => {
+  const data = await getConsolidatedData();
   const csv = Object.keys(data)
     .sort()
-    .map(date => {
-      return Object.keys(data[date])
+    .map((date) =>
+      Object.keys(data[date])
         .sort()
-        .map(label => {
-          return `${date},${label},${data[date][label]}`;
-        })
-        .join("\n");
-    })
+        .map((label) => `${date},${label},${data[date][label]}`)
+        .join("\n"),
+    )
     .join("\n");
 
   Download(csv, "data.csv", "text/csv");
-}
+};
 
-const DownloadCSV2 = async function() {
-  const data = await consolidateData();
+const DownloadCSV2 = async () => {
+  const data = await getConsolidatedData();
 
-  const labels = new Set();
-  for(const date in data) {
-    for(const label in data[date]) {
+  const labels = new Set<string>();
+  for (const date in data) {
+    for (const label in data[date]) {
       labels.add(label);
     }
   }
 
-  // Head
-  let csv = "Date"
-  for(const label of labels) {
+  let csv = "Date";
+  for (const label of labels) {
     csv += `,${label}`;
   }
 
-  // Rows
-  for(const date in data) {
+  for (const date of Object.keys(data).sort()) {
     csv += `\n${date}`;
-    for(const label of labels) {
+    for (const label of labels) {
       csv += `,${data[date][label] || 0}`;
     }
   }
 
   Download(csv, "data.csv", "text/csv");
-}
+};
 
 const timeLabel = computed(() => {
-  switch(props.grouping) {
-    case "forever": return "Forever";
-    case "decennial": return "Decade";
-    case "yearly": return "Year";
-    case "quarterly": return "Quarter";
-    case "monthly": return "Month";
+  switch (props.grouping) {
+    case "forever":
+      return "Forever";
+    case "decennial":
+      return "Decade";
+    case "yearly":
+      return "Year";
+    case "quarterly":
+      return "Quarter";
+    case "monthly":
+      return "Month";
   }
-})
+  return "";
+});
 
-
-watch(props, refresh)
+watch(props, refresh);
 
 onMounted(() => {
   refresh();
-})
-
+});
 </script>
 
 <style scoped>
-
 .line-chart {
   margin-top: 2rem;
 }
-
 </style>

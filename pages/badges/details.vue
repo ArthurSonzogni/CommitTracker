@@ -1,6 +1,5 @@
 <template>
   <div>
-    <Navbar/>
     <section class="section">
       <div class="container content">
 
@@ -34,123 +33,112 @@
             <div class="card_list_container">
               <div class="cards">
                 <Badge
-                  v-for="badge in related_badges"
-                  :key="badge.name"
+                  v-for="item in related_badges"
+                  :key="item.name"
                   :developer="developer"
                   :enabled="true"
-                  :img="badge.image"
+                  :img="item.image"
                   :hover="false"
-                  :name="badge.name"
+                  :name="item.name"
                   />
               </div>
             </div>
           </div>
           <div class="column is-7">
-            <img :src="badge_data.image" />
+            <img v-if="badge_data.image" :src="badge_data.image" :alt="badge_data.name" />
           </div>
         </div>
-        <button type="button" class="button" @click="List">
-          <
+        <button type="button" class="button" aria-label="Back to badges" @click="List">
+          <UiIcon name="arrow-left" size="small" />
         </button>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="container content">
       </div>
     </section>
   </div>
 </template>
 
 <script setup lang="ts">
+import { useUrlState, urlCodecs } from "~/composables/useUrlState";
+import {
+  badgeRarityScore,
+  fetchBadgesCatalog,
+  fetchDeveloperBadges,
+  formatBadgeDetails,
+  type BadgeDefinition,
+} from "~/utils/badges";
+import { SITE_NAME } from "~/utils/pageMeta";
 
-const route = useRoute();
+const { developer, badge } = useUrlState({
+  developer: urlCodecs.string(""),
+  badge: urlCodecs.string(""),
+});
 
-const developer = ref("");
-if (route.query.developer) {
-  developer.value = route.query.developer;
-}
-
-const badge = ref("");
-if (route.query.badge) {
-  badge.value = route.query.badge;
-}
-
-const badge_data = ref({});
-
-const img = ref("");
-
-const related_badges = ref([]);
-
+const badge_data = ref<Partial<BadgeDefinition>>({});
+const related_badges = ref<BadgeDefinition[]>([]);
 const rarity = ref(0);
-
 const unlocked = ref(false);
 
-const main = async () => {
-  const fetchJson = async (path) => {
-    const data = await fetch(path);
-    const json = await data.json()
-    return json;
-  }
-  const allBadges = await fetchJson(`/badges.json`);
+const List = () => {
+  navigateTo({
+    path: "/badges/list",
+    query: developer.value ? { developers: developer.value } : undefined,
+  });
+};
 
-  const found = allBadges.find((data) => data.name === badge.value);
+let requestId = 0;
+
+const load = async () => {
+  const id = ++requestId;
+  const currentBadge = badge.value;
+  const currentDeveloper = developer.value;
+
+  const allBadges = await fetchBadgesCatalog();
+  if (id !== requestId) return;
+
+  const found = allBadges.find(item => item.name === currentBadge);
   if (!found) {
     List();
     return;
   }
-  badge_data.value = found;
 
-  related_badges.value = allBadges.filter((data) => data.category ===
-    badge_data.value.category);
-
-  rarity.value = Math.log2(8200/badge_data.value.recipients) * 0.8
-
-  // Fetch the developers's data.
-  const developer_data = developer.value ? (
-    await fetchJson(`/badges/${developer.value[0]}.json`))[developer.value] || [] : [];
-
-  let unlocked_ = false;
-  let data_ = null;
-  for(const [index, d] of developer_data) {
-    if (allBadges[index].name === badge.value) {
-      unlocked_ = true;
-      data_ = d
-    }
-  }
-  unlocked.value = unlocked_;
-  if (!unlocked_) {
-    return;
-  }
-
-  // Replace the description with the developer's data. The strings to replace
-  // are $0, $1, $2, etc.
-  badge_data.value.details = badge_data.value.details.replace(
-    /\$[0-9]/g, (match) => {
-      const index = parseInt(match[1]);
-      return data_[index];
-    }
+  const resolvedBadge: BadgeDefinition = { ...found };
+  related_badges.value = allBadges.filter(
+    item => item.category === resolvedBadge.category,
   );
-}
+  rarity.value = badgeRarityScore(resolvedBadge.recipients);
 
+  const developerTuples = currentDeveloper
+    ? await fetchDeveloperBadges(currentDeveloper)
+    : [];
+  if (id !== requestId) return;
 
-main();
+  let isUnlocked = false;
+  let unlockedData: any = null;
+  for (const [index, d] of developerTuples) {
+    if (allBadges[index]?.name === currentBadge) {
+      isUnlocked = true;
+      unlockedData = d;
+      break;
+    }
+  }
 
-watch(() => route.query, () => {
-  developer.value = route.query.developer;
-  badge.value = route.query.badge;
-  main();
+  unlocked.value = isUnlocked;
+  if (isUnlocked) {
+    resolvedBadge.details = formatBadgeDetails(resolvedBadge.details, unlockedData);
+  }
+  badge_data.value = resolvedBadge;
+};
+
+watch([developer, badge], load, { immediate: true });
+
+const pageTitle = () =>
+  badge_data.value.name
+    ? `${badge_data.value.name} · ${SITE_NAME}`
+    : `Badge · ${SITE_NAME}`;
+
+useSeoMeta({
+  title: pageTitle,
+  ogTitle: pageTitle,
 });
-
-const List = () => {
-  navigateTo({
-    path: '/badges/list',
-    query: {
-      developers: developer.value,
-    },
-  });
-}
-
 </script>
 
 <style scoped>

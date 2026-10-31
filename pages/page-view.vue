@@ -1,6 +1,5 @@
 <template>
   <div>
-    <Navbar />
     <section class="section">
       <div class="container content page-view">
         <h1 class="title">Page view</h1>

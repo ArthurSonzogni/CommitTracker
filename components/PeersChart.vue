@@ -1,22 +1,27 @@
 <template>
-  <div ref="container" align="center">
+  <div ref="container" class="peers-chart" align="center">
     <svg ref="svg" width="100%" :height="svgHeight">
-      <g ref="axis"></g>
+      <g ref="axis" class="peers-axis"></g>
       <g ref="authors"></g>
     </svg>
   </div>
 </template>
 
 <script setup lang="ts">
-
-import {max} from "d3-array";
-import {scaleLinear} from "d3-scale";
-import {select} from "d3-selection";
-import {interpolate} from "d3-interpolate";
-import {axisTop} from "d3-axis";
+import { max } from "d3-array";
+import { scaleLinear } from "d3-scale";
+import { select } from "d3-selection";
+import { interpolate } from "d3-interpolate";
+import { axisTop } from "d3-axis";
 import "d3-transition";
+import type { PropType } from "vue";
+import {
+  useDeveloperCommits,
+  type DeveloperCommitsEntry,
+} from "~/composables/useDeveloperCommits";
+import { useElementSize } from "~/composables/useElementSize";
 
-const { $chromiumDataAll, $color } = useNuxtApp();
+const { $color } = useNuxtApp();
 
 const container = ref<HTMLElement | null>(null);
 const svg = ref<SVGSVGElement | null>(null);
@@ -24,204 +29,201 @@ const axis = ref<SVGGElement | null>(null);
 const authors = ref<SVGGElement | null>(null);
 
 const props = defineProps({
-  repositories: { type:Array[String], default: () => ["chromium"],},
-  developers: { type: Array },
-  dates: { type: Array[Date] },
-  author: { type: Boolean },
-  review: { type: Boolean },
-  stacked: { type:Boolean },
-  take_n: { type: Number , default: 60},
+  repositories: {
+    type: Array as PropType<string[]>,
+    default: () => ["chromium"],
+  },
+  developers: {
+    type: Array as PropType<string[]>,
+    default: () => [],
+  },
+  dates: {
+    type: Array as PropType<Date[]>,
+    default: undefined,
+  },
+  author: { type: Boolean, default: true },
+  review: { type: Boolean, default: true },
+  stacked: { type: Boolean, default: false },
+  take_n: { type: Number, default: 60 },
+  commits: {
+    type: Array as PropType<DeveloperCommitsEntry[]>,
+    default: undefined,
+  },
 });
 
-interface Commit {
-  date: string;
-  kind: string;
-  peers: Array<string>;
-}
-
-interface Data {
-  developer: string;
-  data: Array<Commit>;
-}
-
-const data = ref<Array<Data>>([]);
+const { width: containerWidth } = useElementSize(container, { width: 800 });
 const svgHeight = computed(() => props.take_n * 20 + 50);
 
-const fetchData = async () => {
-  data.value = await $chromiumDataAll(props.repositories[0], props.developers);
+const { filtered: fetchedFiltered } = useDeveloperCommits({
+  repo: () => (props.commits !== undefined ? "" : props.repositories),
+  developers: () => (props.commits !== undefined ? [] : props.developers),
+  dates: () => props.dates,
+  author: () => props.author,
+  review: () => props.review,
+});
+
+const entries = computed<DeveloperCommitsEntry[]>(() => {
+  if (props.commits === undefined) {
+    return fetchedFiltered.value;
+  }
+  const hasDateBounds =
+    Array.isArray(props.dates) &&
+    props.dates.length >= 2 &&
+    props.dates[0] instanceof Date &&
+    props.dates[1] instanceof Date;
+  const startMs = hasDateBounds ? props.dates![0].getTime() : -Infinity;
+  const endMs = hasDateBounds ? props.dates![1].getTime() : Infinity;
+
+  return props.commits.map((entry) => {
+    if (!props.author && !props.review) {
+      return { developer: entry.developer, data: [] };
+    }
+    const data = entry.data.filter((commit) => {
+      if (!props.author && commit.kind === "author") return false;
+      if (!props.review && commit.kind === "review") return false;
+      const t = commit.timeMs ?? Date.parse(commit.date);
+      return t >= startMs && t <= endMs;
+    });
+    return { developer: entry.developer, data };
+  });
+});
+
+interface PeerDeveloperBar {
+  developer: string;
+  left: number;
+  right: number;
 }
 
-const filteredData = computed(() => {
-  // Filter and count peers for every developers.
-  const data2 = data.value.map(d => {
+interface PeerRow {
+  peer: string;
+  developers: PeerDeveloperBar[];
+  max: number;
+}
 
-    let commits = d.data
-      .filter(commit => {
-        const date = new Date(commit.date);
-        return date >= props.dates[0] && date <= props.dates[1];
-      });
+const filteredData = computed<PeerRow[]>(() => {
+  const peerCounts = new Map<string, Map<string, number>>();
 
-    if (!props.author) {
-      commits = commits.filter(commit => commit.kind != "author")
-    }
-
-    if (!props.review) {
-      commits = commits.filter(commit => commit.kind != "review")
-    }
-
-    const developers = commits.map(commit => commit.peers).flat();
-
-    const peers = {};
-
-    developers.forEach(d=> {
-      if (!peers[d])
-        peers[d] = 0;
-      peers[d]++;
-    })
-
-    return {
-      developer: d.developer,
-      peers: peers,
-    };
-  });
-
-  // Reformat data to be indexed by peers.
-  const peers = {};
-  data2.forEach(d => {
-    Object.entries(d.peers).forEach(([peer, count]) => {
-      if (!peers[peer])
-        peers[peer] = {};
-      peers[peer][d.developer] = count;
-    })
-  });
-
-  // If stacked, accumulate the data
-  for(const peer in peers) {
-    let accumulated = 0;
-    Object.entries(peers[peer]).forEach(([developer, count]) => {
-      peers[peer][developer] = {
-        left: accumulated,
-        right: accumulated + count,
+  for (const entry of entries.value) {
+    const devCounts = new Map<string, number>();
+    for (const commit of entry.data) {
+      if (!Array.isArray(commit.peers)) continue;
+      for (const peer of commit.peers) {
+        devCounts.set(peer, (devCounts.get(peer) ?? 0) + 1);
       }
-      if (props.stacked)
-        accumulated += count;
-    })
+    }
+    for (const [peer, count] of devCounts) {
+      let byDev = peerCounts.get(peer);
+      if (!byDev) {
+        byDev = new Map();
+        peerCounts.set(peer, byDev);
+      }
+      byDev.set(entry.developer, count);
+    }
   }
 
-  // Turn the object into an array.
-  const result = [];
-  for(const peer in peers) {
-    let max =  0;
-    Object.entries(peers[peer]).forEach(([, count]) => {
-      max = Math.max(max, count.right);
-    });
-
-    result.push({
-      peer: peer,
-      developers: Object.entries(peers[peer]).map(([developer, count]) => {
-        return {
-          developer: developer,
-          left: count.left,
-          right: count.right,
-        }
-      }),
-      max: max,
-    })
+  const result: PeerRow[] = [];
+  for (const [peer, byDev] of peerCounts) {
+    let accumulated = 0;
+    let rowMax = 0;
+    const developers: PeerDeveloperBar[] = [];
+    for (const [developer, count] of byDev) {
+      const left = accumulated;
+      const right = accumulated + count;
+      developers.push({ developer, left, right });
+      if (right > rowMax) rowMax = right;
+      if (props.stacked) {
+        accumulated += count;
+      }
+    }
+    result.push({ peer, developers, max: rowMax });
   }
 
   result.sort((a, b) => b.max - a.max);
-
-  return result.splice(0, props.take_n);
+  return result.slice(0, props.take_n);
 });
 
 const render = () => {
-  const svgWidth = container.value?.clientWidth || 800;
+  if (!axis.value || !authors.value) return;
 
-  const scale = scaleLinear()
-    .domain([0, max(filteredData.value, d => max(d.developers, d => d.right))])
-    .range([0, svgWidth - 200]);
+  const svgWidth = containerWidth.value || container.value?.clientWidth || 800;
+  const plotWidth = Math.max(80, svgWidth - 200);
+  const maxDomain = max(filteredData.value, (d) => max(d.developers, (b) => b.right)) || 1;
+
+  const scale = scaleLinear().domain([0, maxDomain]).range([0, plotWidth]);
 
   // About one tick every 60px, for the labels not to overlap.
-  const axis_ = axisTop(scale)
-    .ticks(Math.max(2, Math.floor((svgWidth - 200) / 60)))
+  const axisGen = axisTop(scale).ticks(Math.max(2, Math.floor(plotWidth / 60)));
 
   select(axis.value)
-    .attr("transform", `translate(130, 25)`)
+    .attr("transform", "translate(130, 25)")
     .transition()
     .duration(500)
-    .call(axis_);
+    .call(axisGen);
 
-  select(authors.value)
-    .attr("transform", `translate(130, 50)`)
+  select(authors.value).attr("transform", "translate(130, 50)");
 
-  const updateGroup = group => {
+  const updateGroup = (group: any) => {
     group
       .transition()
       .duration(500)
       .attr("opacity", 1)
-      .attr("transform", (_d, i) => `translate(0, ${i * 20})`);
-  }
+      .attr("transform", (_d: PeerRow, i: number) => `translate(0, ${i * 20})`);
+  };
 
-  const updateRect = rect => {
+  const updateRect = (rect: any) => {
     rect
       .transition()
       .duration(500)
       .attr("opacity", 0.5)
-      .attr("x", d => scale(d.left))
-      .attr("width", d => scale(d.right - d.left))
-  }
+      .attr("x", (d: PeerDeveloperBar) => scale(d.left))
+      .attr("width", (d: PeerDeveloperBar) => scale(d.right - d.left));
+  };
 
   select(authors.value)
-    .selectAll("g")
-    .data(filteredData.value, d => d.peer)
+    .selectAll<SVGGElement, PeerRow>("g")
+    .data(filteredData.value, (d) => d.peer)
     .join(
-      enter => {
+      (enter) => {
         const group = enter.append("g");
-        group
-          .attr("opacity", 0)
-          .attr("transform", (_d, i) => `translate(-100, ${i * 20})`);
+        group.attr("opacity", 0).attr("transform", (_d, i) => `translate(-100, ${i * 20})`);
         updateGroup(group);
 
-        const peer = group.append("text");
-        peer
+        group
+          .append("text")
           .attr("class", "peer")
-          .text(d => d.peer)
-          .attr("font-size", d => {
-            // Adjust font size based on the length of the peer name
-            return Math.min(230/(1+d.peer.length), 16) + "px";
-          })
+          .attr("fill", "var(--ink)")
+          .text((d) => d.peer)
+          .attr("font-size", (d) => `${Math.min(230 / (1 + d.peer.length), 16)}px`)
           .attr("text-anchor", "end")
           .attr("text-baseline", "middle")
-          .attr("x", -5)
+          .attr("x", -5);
 
-        const value = group.append("text");
-        value
+        group
+          .append("text")
           .attr("class", "value")
-          .text(d => d.max)
+          .attr("fill", "var(--muted)")
+          .text((d) => d.max)
           .attr("text-anchor", "start")
           .attr("text-baseline", "bottom")
-          .attr("x", d => scale(d.max) + 5);
+          .attr("x", (d) => scale(d.max) + 5);
 
         return group;
       },
-      update => {
-        const group = update;
-        updateGroup(group);
-
-        const value = group.select(".value");
-        value
+      (update) => {
+        updateGroup(update);
+        update
+          .select<SVGTextElement>(".value")
           .transition()
           .duration(500)
-          .attr("x", d => scale(d.max))
+          .attr("x", (d) => scale(d.max) + 5)
           .textTween((d, i, nodes) => {
-            const previous = select(nodes[i]).text();
+            const previous = Number(select(nodes[i]).text()) || 0;
             const interpolator = interpolate(previous, d.max);
-            return t => {
-              return Math.round(interpolator(t));
-            }
+            return (t) => String(Math.round(interpolator(t)));
           });
-        return group; },
-      exit => {
+        return update;
+      },
+      (exit) => {
         exit
           .transition()
           .duration(500)
@@ -231,42 +233,43 @@ const render = () => {
         return exit;
       },
     )
-    .selectAll("rect")
-    .data(d => d.developers, d => d.developer)
+    .selectAll<SVGRectElement, PeerDeveloperBar>("rect")
+    .data(
+      (d) => d.developers,
+      (d) => d.developer,
+    )
     .join(
-      enter => {
-        const rect = enter.append("rect")
+      (enter) => {
+        const rect = enter
+          .append("rect")
           .attr("opacity", 0)
           .attr("rx", 5)
           .attr("ry", 5)
-          .attr("x", d => scale(d.left))
+          .attr("x", (d) => scale(d.left))
           .attr("y", -15)
-          .attr("width", d => scale(d.right - d.left))
+          .attr("width", (d) => scale(d.right - d.left))
           .attr("height", 19)
-          .attr("fill", d => $color(d.developer))
-        ;
+          .attr("fill", (d) => $color(d.developer));
         updateRect(rect);
         return rect;
       },
-      update => {
-        const rect = update;
-        updateRect(rect);
-        return rect;
+      (update) => {
+        updateRect(update);
+        return update;
       },
-      exit => {
-        exit
-          .transition()
-          .duration(500)
-          .attr("opacity", 0)
-          .remove();
+      (exit) => {
+        exit.transition().duration(500).attr("opacity", 0).remove();
         return exit;
       },
-    )
-}
-watch(() => [props.developers, props.repositories], fetchData);
-window.addEventListener("resize", render)
-onMounted(render);
-watch(filteredData, render);
-fetchData();
+    );
+};
 
+watch([filteredData, containerWidth], render);
+onMounted(render);
 </script>
+
+<style scoped>
+.peers-chart :deep(.peers-axis) {
+  color: var(--muted);
+}
+</style>

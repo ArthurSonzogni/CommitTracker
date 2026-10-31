@@ -54,7 +54,10 @@ const formatter_wrap = ref(null);
 const loaded = ref(false);
 
 const step = async () => {
-  if (props.data?.length) {
+  if (!props.data || !histogram.value || !formatter_wrap.value) {
+    return;
+  }
+  if (props.data.length) {
     loaded.value = true;
   }
   formatter_wrap.value.formatter = props.formatter;
@@ -261,8 +264,7 @@ onMounted(() => {
 
 </script>
 
-<style>
-
+<style scoped>
 .bar-skeleton {
   display: flex;
   flex-direction: column;
@@ -274,30 +276,31 @@ onMounted(() => {
   height: 1.25rem;
 }
 
-.line {
-  display:flex;
+.line,
+.histogram :deep(.line) {
+  display: flex;
   justify-content: flex-start;
-  align-items:stretch;
-  gap:5px;
-  padding:1px;
+  align-items: stretch;
+  gap: 5px;
+  padding: 1px;
   overflow: hidden;
 }
 
-.left {
-  text-align:right;
-  width:72px;
+.left,
+.histogram :deep(.left) {
+  text-align: right;
+  width: 72px;
 }
 
-.center {
-  display:flex;
+.histogram :deep(.center) {
+  display: flex;
   justify-content: flex-start;
-  align-items:stretch;
-
+  align-items: stretch;
   border-radius: 5px;
-  background: rgba(0,128,255);
-  overflow:hidden;
-  opacity:0.3;
-  border: 1px solid #343434
+  background: rgb(0, 128, 255);
+  overflow: hidden;
+  opacity: 0.3;
+  border: 1px solid var(--line-strong);
 }
 
 .tooltip {
@@ -309,13 +312,15 @@ onMounted(() => {
   z-index: 10;
   transform: translate(-50%, -125%);
   opacity: 0;
+  pointer-events: none;
 }
 
 .tooltip-inner {
   margin: 0;
   padding: 10px;
   font-size: 1rem;
-  background-color: #333;
+  background-color: var(--tooltip-bg, #333);
+  color: var(--tooltip-ink, #fff);
   border-radius: 8px;
 }
 
@@ -326,7 +331,7 @@ onMounted(() => {
   margin: 0;
   padding: 0;
   border-width: 10px;
-  border-color: #333 transparent transparent transparent;
+  border-color: var(--tooltip-bg, #333) transparent transparent transparent;
   transform: translateX(-50%);
   position: absolute;
   top: 98%;
@@ -335,8 +340,7 @@ onMounted(() => {
 }
 
 .histogram {
-  margin-bottom:1rem;
+  margin-bottom: 1rem;
 }
-
 </style>
 

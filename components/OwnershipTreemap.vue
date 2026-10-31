@@ -40,28 +40,24 @@ import { hsl } from "d3-color";
 import { format } from "d3-format";
 import { hierarchy, treemap } from "d3-hierarchy";
 import { interpolateYlOrRd } from "d3-scale-chromatic";
+import { useElementSize } from "~/composables/useElementSize";
 
 const props = defineProps({
   // { name, path, lines, owned, children: [...] }: the lines authored or
   // reviewed in each directory. A child without a path holds the lines
   // elsewhere in its parent.
   tree: { type: Object, required: true },
-  color: { type: String, required: true },
+  color: { type: String, required: false, default: "" },
   verb: { type: String, default: "authored" },
   height: { type: Number, default: 360 },
 });
 const emit = defineEmits(["select"]);
 
 const container = ref<HTMLElement | null>(null);
-const width = ref(0);
-const hovered = shallowRef(null);
+const { width } = useElementSize(container);
+const hovered = shallowRef<any>(null);
 const legendGradient = `linear-gradient(to right, ${Array.from({ length: 10 }, (_, i) =>
   interpolateYlOrRd(i / 9)).join(", ")})`;
-onMounted(() => {
-  const observer = new ResizeObserver(() => width.value = container.value?.clientWidth || 0);
-  observer.observe(container.value);
-  onBeforeUnmount(() => observer.disconnect());
-});
 
 const compact = format(".3~s");
 // Two decimals under 1%, where most developers are.
