@@ -425,26 +425,34 @@ const tests = [
     `,
   },
   {
-    name: 'cve lifespan: dwell histogram, pipeline breakdown, SLA table, and icons',
+    name: 'cve lifespan: severity stratification, evolution charts, SLA table, and icons',
     url: 'cve/lifespan',
     run: `
-      await __t.until(() => document.querySelectorAll('.svg-box svg rect').length > 10 && document.querySelectorAll('.pipe-svg-box svg rect').length > 5 && document.querySelectorAll('.ui-table tbody tr').length >= 10, 25000);
-      const beforePipe = document.querySelectorAll('.pipe-svg-box svg rect').length;
+      await __t.until(() =>
+        document.querySelectorAll('.hero-svg-box svg path').length >= 2 &&
+        document.querySelectorAll('.svg-box svg rect').length >= 5 &&
+        document.querySelectorAll('.ui-table tbody tr').length >= 5, 25000);
+      __t.byText('.chips .chip', 'Medium').click();
+      const sevOk = await __t.until(() => location.search.includes('severities='), 5000);
+      __t.byText('.segmented-option', 'External VRP').click();
+      const srcOk = await __t.until(() => location.search.includes('source=vrp'), 5000);
+      __t.byText('.segmented-option', 'Quarterly').click();
+      const qtrOk = await __t.until(() => location.search.includes('granularity=quarter'), 5000);
+      __t.byText('.segmented-option', 'Compare Severities').click();
+      const cmpOk = await __t.until(() => location.search.includes('compareMode=severities') && document.querySelectorAll('.hero-svg-box svg path').length >= 3, 5000);
       __t.byText('.segmented-option', 'Days').click();
       const daysOk = await __t.until(() => location.search.includes('dwellUnit=days'), 5000);
-      __t.byText('.segmented-option', 'Top Components').click();
-      const compOk = await __t.until(() => location.search.includes('pipelineGroup=component') && document.querySelectorAll('.pipe-svg-box svg rect').length > beforePipe, 5000);
       const filterInput = document.querySelector('.comp-filter-box input');
-      filterInput.value = 'Network';
+      filterInput.value = 'Blink';
       filterInput.dispatchEvent(new Event('input', { bubbles: true }));
-      const tableFiltered = await __t.until(() => document.querySelectorAll('.ui-table tbody tr').length > 0 && document.querySelectorAll('.ui-table tbody tr').length < 15, 5000);
+      const tableFiltered = await __t.until(() => location.search.includes('compFilter=') && document.querySelectorAll('.ui-table tbody tr').length > 0 && document.querySelectorAll('.ui-table tbody tr').length < 25, 5000);
       const missing = [...document.querySelectorAll('.mdi')].filter(el => {
         const c = getComputedStyle(el, '::before').content;
         return !c || c === 'none' || c === 'normal';
       });
       return {
-        ok: !!(daysOk && compOk && tableFiltered && missing.length === 0),
-        detail: 'pipeRects=' + beforePipe + '->' + document.querySelectorAll('.pipe-svg-box svg rect').length + ' missingIcons=' + missing.length,
+        ok: !!(sevOk && srcOk && qtrOk && cmpOk && daysOk && tableFiltered && missing.length === 0),
+        detail: 'paths=' + document.querySelectorAll('.hero-svg-box svg path').length + ' missingIcons=' + missing.length,
       };
     `,
   },

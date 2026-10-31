@@ -9,7 +9,7 @@ cd ..
 node scripts/compact-treemap.mjs public/treemap
 node scripts/derive-developers.mjs public/data
 node scripts/derive-highlights.mjs public/data
-rm -f public/data/initiatives.json
+rm -f public/data/initiatives.json public/cve/lifespan.json
 node scripts/derive-security.mjs public
 if [ -d importer/chromium ]; then
   node importer/dir_metadata.mjs
