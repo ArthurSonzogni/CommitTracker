@@ -264,4 +264,14 @@
     reviewers: true,
     treemap: false,
   },
+
+  {
+    name: "Carbon",
+    dirname: "carbon",
+    color: "#4c6ef5",
+    owner: "carbon-language",
+    repository: "carbon-lang",
+    reviewers: false,
+    treemap: false,
+  },
 ]

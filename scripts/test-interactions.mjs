@@ -66,6 +66,8 @@ const launchChrome = () => new Promise((resolve, reject) => {
     '--headless=new',
     '--disable-gpu',
     '--no-sandbox',
+    '--password-store=basic',
+    '--no-proxy-server',
     '--remote-debugging-port=0',
     `--user-data-dir=${userDataDir}`,
     'about:blank',
@@ -910,10 +912,10 @@ const tests = [
     run: `
       const rows = () => [...document.querySelectorAll('.ui-table tbody tr:not(.detail)')].map(r => r.innerText);
       await __t.until(() => rows().length > 5, 20000);
-      const first = rows()[0];
+      const first = rows().join(' | ');
       const header = [...document.querySelectorAll('.ui-table th')].find(th => th.textContent.trim() === 'Author');
       header.click();
-      const sorted = await __t.until(() => rows()[0] !== first, 5000);
+      const sorted = await __t.until(() => rows().join(' | ') !== first, 5000);
       const page = () => document.querySelector('.ui-table-page')?.textContent;
       document.querySelector('.ui-table-pagination button[aria-label="Next page"]').click();
       const paged = await __t.until(() => page()?.startsWith('2 /'), 5000);
@@ -957,6 +959,110 @@ const tests = [
       document.querySelector('h1').click();
       const closed = await __t.until(() => !link.parentElement.classList.contains('is-active'), 3000);
       return { ok: !!opened && !!closed, detail: 'opened=' + !!opened + ' closed=' + !!closed };
+    `,
+  },
+  {
+    name: 'carbon: accretion markers, directories, and Carbon language filter',
+    url: 'accretion?repository=carbon',
+    run: `
+      await __t.until(() =>
+        __t.count('.figure') >= 4 &&
+        __t.count('#chart .milestone text') >= 4 &&
+        __t.byText('.language-bar .segmented-option', 'Carbon'), 20000);
+      const repoMilestones = [...document.querySelectorAll('#chart .milestone text')].map(t => t.textContent.trim());
+      const hasNamedMilestones = repoMilestones.some(t => t.includes('Explorer interpreter removed')) &&
+        !repoMilestones.some(t => t.includes('toolchain/check/testdata/'));
+      const repoLines = __t.text('.figure .figure-value');
+      __t.byText('.language-bar .segmented-option', 'Carbon').click();
+      const carbonFiltered = await __t.until(() =>
+        location.search.includes('lang=carbon') &&
+        __t.text('.figure .figure-value') !== repoLines &&
+        __t.count('#chart .milestone text') >= 4 &&
+        [...document.querySelectorAll('#directories table a')].some(a => a.textContent.trim() === 'core'), 20000);
+      const langMilestones = [...document.querySelectorAll('#chart .milestone text')].map(t => t.textContent.trim());
+      const hasLangNamedMilestones = langMilestones.some(t => t.includes('Raw IR dumps disabled')) &&
+        !langMilestones.some(t => t.includes('toolchain/check/testdata/'));
+      return {
+        ok: !!(hasNamedMilestones && carbonFiltered && hasLangNamedMilestones),
+        detail: 'repoMilestones=' + repoMilestones.length + ' (' + repoLines + ' -> ' + __t.text('.figure .figure-value') + ') langMilestones=' + langMilestones.length,
+      };
+    `,
+  },
+  {
+    name: 'carbon: repo-info and palette search',
+    url: 'repo-info',
+    run: `
+      const row = await __t.until(() => [...document.querySelectorAll('tbody tr')].find(tr => tr.innerText.includes('Carbon')), 20000);
+      const repoInfoOk = !!row && row.innerText.includes('Google') && /[1-9]/.test(row.innerText);
+      document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true }));
+      const input = await __t.until(() => document.querySelector('.palette input'));
+      input.value = 'Carbon';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      const item = await __t.until(() => [...document.querySelectorAll('.palette .search-item')].find(e => e.textContent.includes('Carbon')));
+      item.click();
+      const nav = await __t.until(() => location.pathname === '/repositories' && location.search.includes('repositories=carbon'), 10000);
+      const chart = await __t.until(() => /202\\d/.test(document.body.innerText), 15000);
+      return { ok: !!(repoInfoOk && nav && chart), detail: (row?.innerText || '').replace(/\\s+/g, ' ').trim() };
+    `,
+  },
+  {
+    name: 'carbon: leaderboard',
+    url: 'leaderboard?repositories=carbon&grouping=forever',
+    run: `
+      const leader = await __t.until(() => [...document.querySelectorAll('svg text.name')].some(t => t.textContent.includes('jperkins')), 20000);
+      return { ok: !!leader, detail: [...document.querySelectorAll('svg text.name')].slice(0, 5).map(t => t.textContent.trim()).join(', ') };
+    `,
+  },
+  {
+    name: 'carbon: pulse, organizations, commit-rates, and developer profile',
+    url: 'developers/jperkins',
+    run: `
+      const hasCarbon = await __t.until(() =>
+        [...document.querySelectorAll('.profile-repository')].some(el => el.textContent.includes('Carbon')), 20000);
+      const carbonRepo = [...document.querySelectorAll('.profile-repository')].find(el => el.textContent.includes('Carbon'));
+      carbonRepo.click();
+      const individualsOk = await __t.until(() =>
+        location.pathname === '/individuals' &&
+        location.search.includes('jperkins') &&
+        document.querySelectorAll('.container svg path').length > 3, 20000);
+      return { ok: !!(hasCarbon && individualsOk), detail: location.pathname + location.search };
+    `,
+  },
+  {
+    name: 'carbon: commit rates and sankey',
+    url: 'commit-rates-sankey?repository=carbon&window=52',
+    run: `
+      const dir = await __t.until(() => [...document.querySelectorAll('.sankey-svg rect[role=link]')].find(r => r.getAttribute('aria-label')?.startsWith('Explore toolchain,')), 20000);
+      dir.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+      const opened = await __t.until(() => location.search.includes('path=toolchain') && __t.text('.breadcrumb li:last-child') === 'toolchain', 8000);
+      return { ok: !!(dir && opened), detail: decodeURIComponent(location.search) };
+    `,
+  },
+  {
+    name: 'carbon: commit-rates virtualized list',
+    url: 'commit-rates?repository=carbon',
+    run: `
+      const ratesOk = await __t.until(() => document.body.innerText.includes('toolchain') && __t.count('.virtual-row') >= 5, 20000);
+      return { ok: !!ratesOk, detail: 'rows=' + __t.count('.virtual-row') };
+    `,
+  },
+  {
+    name: 'carbon: pulse and organizations commits',
+    url: 'organizations/commits?repositories=carbon',
+    run: `
+      const orgOk = await __t.until(() => /202\\d/.test(document.body.innerText) && document.body.innerText.includes('Google'), 20000);
+      document.querySelector('.navbar-dropdown a, a[href="/pulse"]') || true;
+      const pulseLink = [...document.querySelectorAll('a')].find(a => a.getAttribute('href') === '/pulse');
+      pulseLink.click();
+      const pulsePage = await __t.until(() => location.pathname === '/pulse' && __t.byText('.chip', 'Carbon'), 15000);
+      __t.byText('.chip', 'Chromium').click();
+      __t.byText('.chip', 'Carbon').click();
+      const pulseOk = await __t.until(() => location.search.includes('repositories=carbon') && document.querySelectorAll('svg rect').length > 200, 15000);
+      const commLink = [...document.querySelectorAll('a')].find(a => a.getAttribute('href') === '/communities');
+      commLink.click();
+      await __t.until(() => location.pathname === '/communities' && __t.byText('.chip', 'Chromium'), 15000);
+      const noCarbonInCommunities = !__t.byText('.chip', 'Carbon');
+      return { ok: !!(orgOk && pulsePage && pulseOk && noCarbonInCommunities), detail: 'org=' + !!orgOk + ' pulse=' + !!pulseOk + ' communitiesExcludesCarbon=' + noCarbonInCommunities };
     `,
   },
 ];

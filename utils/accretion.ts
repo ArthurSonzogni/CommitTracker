@@ -18,6 +18,8 @@ export const REPO_EXCLUSIONS: Record<string, string> = {
   llvm:
     "libc/test/src/math/exhaustive/*.wc (plus LLVM test files whose assertions are auto-generated in their first 40 lines).",
   chromeos: "TPM specification files in trunks/generator/raw_*.",
+  carbon:
+    "fuzzer_corpus/ directories, MODULE.bazel.lock, and executable_semantics/testdata/*.golden.",
 };
 
 export type ActivityKind = "new" | "iteration" | "rework" | "mechanical" | "removed";

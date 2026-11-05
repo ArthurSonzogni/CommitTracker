@@ -159,6 +159,11 @@ const GENERATED_PATHS_OF = {
   llvm: ["^libc/test/src/math/exhaustive/.*\\.wc$"],
   // The TPM specification, from which trunks is generated.
   chromeos: ["^trunks/generator/raw_"],
+  carbon: [
+    "(^|/)fuzzer_corpus/",
+    "(^|/)MODULE\\.bazel\\.lock$",
+    "^executable_semantics/testdata/.*\\.golden$",
+  ],
 };
 let GENERATED_FILE = new RegExp(GENERATED_PATHS.join("|"));
 // The rules of a repository, before replaying or writing it.
@@ -270,6 +275,12 @@ const LANGUAGES = [
     label: "Rust",
     hint: "Rust (.rs)",
     ext: /^rs$/i,
+  },
+  {
+    id: "carbon",
+    label: "Carbon",
+    hint: "Carbon (.carbon)",
+    ext: /^carbon$/i,
   },
 ];
 const LANG_COUNT = LANGUAGES.length;
@@ -862,8 +873,16 @@ class State {
     state.samples = header.samples;
     state.author_samples = header.author_samples;
     state.events = header.events || [];
-    if (header.lang_samples) state.lang_samples = header.lang_samples;
-    if (header.lang_events) state.lang_events = header.lang_events;
+    if (header.lang_samples) {
+      for (let l = 0; l < Math.min(LANG_COUNT, header.lang_samples.length); l++) {
+        state.lang_samples[l] = header.lang_samples[l];
+      }
+    }
+    if (header.lang_events) {
+      for (let l = 0; l < Math.min(LANG_COUNT, header.lang_events.length); l++) {
+        state.lang_events[l] = header.lang_events[l];
+      }
+    }
     state.activity_complete = header.activity_complete === true;
     state.recent_since = header.recent_since ?? null;
     const u32s = () => {
@@ -2234,10 +2253,12 @@ const Validate = async (state, cwd, dir, pathspecs, blame_count) => {
   const range = state.base ? [state.head, `^${state.base}`] : [state.head];
   const options = [];
   if (state.options.ignore_revs) {
-    const file = path.resolve(dir, "ignore-revs.tmp");
-    await fs.writeFile(file, await run(["git", "show",
-      `${state.head}:.git-blame-ignore-revs`], cwd));
-    options.push(`--ignore-revs-file=${file}`);
+    try {
+      const file = path.resolve(dir, "ignore-revs.tmp");
+      await fs.writeFile(file, await run(["git", "show",
+        `${state.head}:.git-blame-ignore-revs`], cwd));
+      options.push(`--ignore-revs-file=${file}`);
+    } catch (error) { }
   }
   // Prefer the files modified by the replayed commits.
   const files = [...state.files.keys()].filter(file =>

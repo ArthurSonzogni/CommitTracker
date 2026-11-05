@@ -280,6 +280,8 @@ const file_json = JSON5.parse(file_content);
 await fs.writeFile(
     '../public/data/repositories.json', JSON.stringify(file_json, null, 2));
 
+const targetRepo = process.argv[2];
 for (const repository of file_json) {
+  if (targetRepo && repository.dirname !== targetRepo) continue;
   await ProcessRepository(repository);
 }

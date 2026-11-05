@@ -202,7 +202,12 @@ async function ensureRepo(repo, bucketsState) {
 
   try {
     await fs.access(gitDir);
-    await runCommand('git', ['fetch', '--progress', '--verbose', `--shallow-since=${shallowSince}`, '--filter=blob:none'], repo.dirname);
+    const isShallow = await runCommand('git', ['rev-parse', '--is-shallow-repository'], repo.dirname);
+    const fetchArgs = ['fetch', '--progress', '--verbose', '--filter=blob:none'];
+    if (isShallow === 'true') {
+      fetchArgs.push(`--shallow-since=${shallowSince}`);
+    }
+    await runCommand('git', fetchArgs, repo.dirname);
   } catch (err) {
     await runCommand('git', ['clone', '--progress', '--verbose', '--filter=blob:none', '--depth', '1', '--no-checkout', repoUrl, repo.dirname], '.');
     await runCommand('git', ['fetch', '--progress', '--verbose', `--shallow-since=${shallowSince}`, '--filter=blob:none'], repo.dirname);
@@ -553,8 +558,10 @@ async function main() {
   const repositories_file = "../repositories.json5";
   console.log(`Loading repositories from ${repositories_file}...`);
   const repositories = await parseFile(JSON5, repositories_file);
+  const targetRepo = process.argv[2];
 
   for (const repository of repositories) {
+    if (targetRepo && repository.dirname !== targetRepo) continue;
     if (repository.cone) {
       console.log(`Skipping cone repository: ${repository.owner}/${repository.repository}`);
       continue;
