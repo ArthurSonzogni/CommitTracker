@@ -1,8 +1,20 @@
 [
  {
+  "date": "2023-10-25T09:58:31Z",
+  "kind": "review",
+  "peers": [
+   "momchil.velikov@arm.com"
+  ],
+  "additions": 8,
+  "deletions": 8,
+  "files": 5
+ },
+ {
   "date": "2023-11-22T19:41:12Z",
   "kind": "author",
-  "peers": [],
+  "peers": [
+   "ldionne@users.noreply.github.com"
+  ],
   "additions": 39,
   "deletions": 1,
   "files": 7
@@ -10,9 +22,137 @@
  {
   "date": "2024-01-04T08:25:57Z",
   "kind": "author",
-  "peers": [],
+  "peers": [
+   "mordante@users.noreply.github.com"
+  ],
   "additions": 7,
   "deletions": 4,
   "files": 2
+ },
+ {
+  "date": "2024-06-06T09:46:33Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 42,
+  "deletions": 103,
+  "files": 6
+ },
+ {
+  "date": "2024-06-06T09:59:52Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 61,
+  "deletions": 168,
+  "files": 15
+ },
+ {
+  "date": "2025-03-06T17:12:22Z",
+  "kind": "review",
+  "peers": [
+   "apple-fcloutier@users.noreply.github.com"
+  ],
+  "additions": 32,
+  "deletions": 11,
+  "files": 2
+ },
+ {
+  "date": "2025-07-11T08:46:21Z",
+  "kind": "review",
+  "peers": [
+   "david.sherwood@arm.com"
+  ],
+  "additions": 77,
+  "deletions": 409,
+  "files": 4
+ },
+ {
+  "date": "2025-07-11T23:51:42Z",
+  "kind": "review",
+  "peers": [
+   "avogelsgesang@salesforce.com"
+  ],
+  "additions": 16,
+  "deletions": 8,
+  "files": 2
+ },
+ {
+  "date": "2025-10-02T10:05:43Z",
+  "kind": "review",
+  "peers": [
+   "elver@google.com"
+  ],
+  "additions": 21,
+  "deletions": 15,
+  "files": 1
+ },
+ {
+  "date": "2026-02-02T14:03:42Z",
+  "kind": "review",
+  "peers": [
+   "newsigma@163.com"
+  ],
+  "additions": 115,
+  "deletions": 48,
+  "files": 3
+ },
+ {
+  "date": "2026-02-03T13:09:24Z",
+  "kind": "review",
+  "peers": [
+   "newsigma@163.com"
+  ],
+  "additions": 129,
+  "deletions": 48,
+  "files": 3
+ },
+ {
+  "date": "2026-02-18T16:46:29Z",
+  "kind": "review",
+  "peers": [
+   "aidengrossman@google.com"
+  ],
+  "additions": 38,
+  "deletions": 407,
+  "files": 6
+ },
+ {
+  "date": "2026-10-21T20:05:18Z",
+  "kind": "review",
+  "peers": [
+   "vitalybuka@google.com"
+  ],
+  "additions": 97,
+  "deletions": 3,
+  "files": 1
+ },
+ {
+  "date": "2026-10-23T02:02:24Z",
+  "kind": "review",
+  "peers": [
+   "vitalybuka@google.com"
+  ],
+  "additions": 76,
+  "deletions": 105,
+  "files": 4
+ },
+ {
+  "date": "2026-10-23T03:25:51Z",
+  "kind": "review",
+  "peers": [
+   "vitalybuka@google.com"
+  ],
+  "additions": 9,
+  "deletions": 7,
+  "files": 6
+ },
+ {
+  "date": "2026-10-23T04:36:57Z",
+  "kind": "review",
+  "peers": [
+   "vitalybuka@google.com"
+  ],
+  "additions": 3,
+  "deletions": 1,
+  "files": 3
  }
 ]

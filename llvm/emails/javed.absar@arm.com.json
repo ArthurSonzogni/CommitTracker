@@ -546,7 +546,11 @@
  {
   "date": "2019-01-25T10:25:25Z",
   "kind": "author",
-  "peers": [],
+  "peers": [
+   "hfinkel@users.noreply.github.com",
+   "simon_tatham@users.noreply.github.com",
+   "greened@users.noreply.github.com"
+  ],
   "additions": 549,
   "deletions": 2,
   "files": 18
@@ -570,7 +574,9 @@
  {
   "date": "2019-03-26T10:49:09Z",
   "kind": "author",
-  "peers": [],
+  "peers": [
+   "hfinkel@users.noreply.github.com"
+  ],
   "additions": 18,
   "deletions": 2,
   "files": 2
@@ -578,7 +584,9 @@
  {
   "date": "2019-03-26T11:16:01Z",
   "kind": "author",
-  "peers": [],
+  "peers": [
+   "hfinkel@users.noreply.github.com"
+  ],
   "additions": 8,
   "deletions": 0,
   "files": 2
@@ -618,7 +626,10 @@
  {
   "date": "2019-05-21T14:21:26Z",
   "kind": "author",
-  "peers": [],
+  "peers": [
+   "dmgreen@users.noreply.github.com",
+   "snidertm@users.noreply.github.com"
+  ],
   "additions": 47,
   "deletions": 0,
   "files": 9

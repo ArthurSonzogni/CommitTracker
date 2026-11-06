@@ -2,7 +2,11 @@
  {
   "date": "2024-01-09T17:14:17Z",
   "kind": "author",
-  "peers": [],
+  "peers": [
+   "endilll@users.noreply.github.com",
+   "shafik@users.noreply.github.com",
+   "cor3ntin@users.noreply.github.com"
+  ],
   "additions": 21,
   "deletions": 1,
   "files": 5
@@ -10,7 +14,10 @@
  {
   "date": "2024-01-21T20:28:57Z",
   "kind": "author",
-  "peers": [],
+  "peers": [
+   "cor3ntin@users.noreply.github.com",
+   "aaronballman@users.noreply.github.com"
+  ],
   "additions": 1109,
   "deletions": 230,
   "files": 47
@@ -18,7 +25,11 @@
  {
   "date": "2024-01-30T12:03:55Z",
   "kind": "author",
-  "peers": [],
+  "peers": [
+   "cor3ntin@users.noreply.github.com",
+   "steakhal@users.noreply.github.com",
+   "erichkeane@users.noreply.github.com"
+  ],
   "additions": 37,
   "deletions": 4,
   "files": 4
@@ -26,9 +37,21 @@
  {
   "date": "2024-01-31T14:28:37Z",
   "kind": "author",
-  "peers": [],
+  "peers": [
+   "cor3ntin@users.noreply.github.com"
+  ],
   "additions": 37,
   "deletions": 20,
   "files": 2
+ },
+ {
+  "date": "2024-05-24T14:33:16Z",
+  "kind": "review",
+  "peers": [
+   "mizvekov@gmail.com"
+  ],
+  "additions": 114,
+  "deletions": 42,
+  "files": 4
  }
 ]

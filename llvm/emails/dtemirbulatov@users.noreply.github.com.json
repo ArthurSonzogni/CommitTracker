@@ -1,10 +1,282 @@
 [
  {
+  "date": "2019-06-26T21:25:24Z",
+  "kind": "review",
+  "peers": [
+   "vasileios.porpodas@intel.com"
+  ],
+  "additions": 323,
+  "deletions": 93,
+  "files": 2
+ },
+ {
+  "date": "2019-07-02T20:20:28Z",
+  "kind": "review",
+  "peers": [
+   "vasileios.porpodas@intel.com"
+  ],
+  "additions": 423,
+  "deletions": 79,
+  "files": 2
+ },
+ {
+  "date": "2019-11-12T05:06:51Z",
+  "kind": "review",
+  "peers": [
+   "vasileios.porpodas@intel.com"
+  ],
+  "additions": 524,
+  "deletions": 137,
+  "files": 3
+ },
+ {
+  "date": "2023-08-14T10:32:06Z",
+  "kind": "review",
+  "peers": [
+   "kerry.mclaughlin@arm.com"
+  ],
+  "additions": 437,
+  "deletions": 0,
+  "files": 3
+ },
+ {
+  "date": "2023-08-29T12:24:47Z",
+  "kind": "review",
+  "peers": [
+   "kerry.mclaughlin@arm.com"
+  ],
+  "additions": 259,
+  "deletions": 0,
+  "files": 3
+ },
+ {
+  "date": "2023-08-31T13:47:46Z",
+  "kind": "review",
+  "peers": [
+   "sander.desmalen@arm.com"
+  ],
+  "additions": 150,
+  "deletions": 12,
+  "files": 4
+ },
+ {
+  "date": "2023-08-31T15:03:19Z",
+  "kind": "review",
+  "peers": [
+   "sander.desmalen@arm.com"
+  ],
+  "additions": 169,
+  "deletions": 16,
+  "files": 5
+ },
+ {
+  "date": "2023-09-12T17:08:57Z",
+  "kind": "review",
+  "peers": [
+   "carolineconcatto@users.noreply.github.com"
+  ],
+  "additions": 304,
+  "deletions": 303,
+  "files": 5
+ },
+ {
   "date": "2023-10-09T11:54:28Z",
   "kind": "author",
-  "peers": [],
+  "peers": [
+   "nikic@users.noreply.github.com"
+  ],
   "additions": 3,
   "deletions": 0,
   "files": 1
+ },
+ {
+  "date": "2023-10-19T08:55:32Z",
+  "kind": "review",
+  "peers": [
+   "caroline.concatto@arm.com"
+  ],
+  "additions": 38,
+  "deletions": 0,
+  "files": 3
+ },
+ {
+  "date": "2023-10-19T16:10:51Z",
+  "kind": "review",
+  "peers": [
+   "caroline.concatto@arm.com"
+  ],
+  "additions": 123,
+  "deletions": 0,
+  "files": 3
+ },
+ {
+  "date": "2023-10-20T08:35:13Z",
+  "kind": "review",
+  "peers": [
+   "caroline.concatto@arm.com"
+  ],
+  "additions": 392,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2023-11-16T14:25:08Z",
+  "kind": "review",
+  "peers": [
+   "samuel.tebbs@arm.com"
+  ],
+  "additions": 902,
+  "deletions": 0,
+  "files": 3
+ },
+ {
+  "date": "2023-11-20T08:37:52Z",
+  "kind": "review",
+  "peers": [
+   "matthew.devereau@arm.com"
+  ],
+  "additions": 92,
+  "deletions": 8,
+  "files": 12
+ },
+ {
+  "date": "2023-12-13T15:45:59Z",
+  "kind": "review",
+  "peers": [
+   "caroline.concatto@arm.com"
+  ],
+  "additions": 1691,
+  "deletions": 18,
+  "files": 12
+ },
+ {
+  "date": "2023-12-15T11:42:00Z",
+  "kind": "review",
+  "peers": [
+   "caroline.concatto@arm.com"
+  ],
+  "additions": 81,
+  "deletions": 55,
+  "files": 3
+ },
+ {
+  "date": "2023-12-18T16:38:36Z",
+  "kind": "review",
+  "peers": [
+   "kerry.mclaughlin@arm.com"
+  ],
+  "additions": 3195,
+  "deletions": 0,
+  "files": 5
+ },
+ {
+  "date": "2023-12-21T15:25:23Z",
+  "kind": "review",
+  "peers": [
+   "kerry.mclaughlin@arm.com"
+  ],
+  "additions": 267,
+  "deletions": 251,
+  "files": 5
+ },
+ {
+  "date": "2024-01-15T08:55:30Z",
+  "kind": "review",
+  "peers": [
+   "kerry.mclaughlin@arm.com"
+  ],
+  "additions": 123,
+  "deletions": 98,
+  "files": 3
+ },
+ {
+  "date": "2024-01-29T11:07:02Z",
+  "kind": "review",
+  "peers": [
+   "peter.waller@arm.com"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1
+ },
+ {
+  "date": "2024-02-02T11:56:38Z",
+  "kind": "review",
+  "peers": [
+   "sander.desmalen@arm.com"
+  ],
+  "additions": 40,
+  "deletions": 29,
+  "files": 3
+ },
+ {
+  "date": "2024-02-22T13:07:31Z",
+  "kind": "review",
+  "peers": [
+   "samuel.tebbs@arm.com"
+  ],
+  "additions": 94,
+  "deletions": 0,
+  "files": 3
+ },
+ {
+  "date": "2024-04-09T15:17:27Z",
+  "kind": "review",
+  "peers": [
+   "samuel.tebbs@arm.com"
+  ],
+  "additions": 115,
+  "deletions": 90,
+  "files": 12
+ },
+ {
+  "date": "2024-04-15T11:51:06Z",
+  "kind": "review",
+  "peers": [
+   "paul.walker@arm.com"
+  ],
+  "additions": 28,
+  "deletions": 223,
+  "files": 2
+ },
+ {
+  "date": "2024-04-26T10:25:55Z",
+  "kind": "review",
+  "peers": [
+   "paul.walker@arm.com"
+  ],
+  "additions": 39,
+  "deletions": 24,
+  "files": 5
+ },
+ {
+  "date": "2024-04-30T10:12:58Z",
+  "kind": "review",
+  "peers": [
+   "paul.walker@arm.com"
+  ],
+  "additions": 14,
+  "deletions": 18,
+  "files": 3
+ },
+ {
+  "date": "2024-07-04T09:59:21Z",
+  "kind": "review",
+  "peers": [
+   "graham.hunter@arm.com"
+  ],
+  "additions": 154,
+  "deletions": 0,
+  "files": 3
+ },
+ {
+  "date": "2024-07-22T10:21:35Z",
+  "kind": "review",
+  "peers": [
+   "kerry.mclaughlin@arm.com"
+  ],
+  "additions": 345,
+  "deletions": 76,
+  "files": 3
  }
 ]

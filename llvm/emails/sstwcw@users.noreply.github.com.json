@@ -1,10 +1,42 @@
 [
  {
+  "date": "2022-03-17T08:45:43Z",
+  "kind": "review",
+  "peers": [
+   "krystian.kuzniarek@gmail.com"
+  ],
+  "additions": 20,
+  "deletions": 24,
+  "files": 1
+ },
+ {
   "date": "2023-09-13T15:04:04Z",
   "kind": "author",
-  "peers": [],
+  "peers": [
+   "alexfh@users.noreply.github.com"
+  ],
   "additions": 47,
   "deletions": 0,
   "files": 3
+ },
+ {
+  "date": "2025-10-20T20:11:11Z",
+  "kind": "review",
+  "peers": [
+   "bjoern@hazardy.de"
+  ],
+  "additions": 83,
+  "deletions": 19,
+  "files": 2
+ },
+ {
+  "date": "2025-11-07T15:12:30Z",
+  "kind": "review",
+  "peers": [
+   "bjoern@hazardy.de"
+  ],
+  "additions": 112,
+  "deletions": 12,
+  "files": 7
  }
 ]

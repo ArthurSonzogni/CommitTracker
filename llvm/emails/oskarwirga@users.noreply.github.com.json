@@ -2,7 +2,10 @@
  {
   "date": "2023-09-23T10:28:29Z",
   "kind": "author",
-  "peers": [],
+  "peers": [
+   "dexonsmith@users.noreply.github.com",
+   "nikic@users.noreply.github.com"
+  ],
   "additions": 105,
   "deletions": 1,
   "files": 3
@@ -10,7 +13,9 @@
  {
   "date": "2023-09-29T22:34:31Z",
   "kind": "author",
-  "peers": [],
+  "peers": [
+   "vitalybuka@users.noreply.github.com"
+  ],
   "additions": 184,
   "deletions": 19,
   "files": 5
@@ -18,7 +23,9 @@
  {
   "date": "2023-10-12T00:32:41Z",
   "kind": "author",
-  "peers": [],
+  "peers": [
+   "nikic@users.noreply.github.com"
+  ],
   "additions": 137,
   "deletions": 31,
   "files": 3
@@ -32,9 +39,31 @@
   "files": 2
  },
  {
+  "date": "2023-11-30T17:41:51Z",
+  "kind": "review",
+  "peers": [
+   "momchil.velikov@arm.com"
+  ],
+  "additions": 2302,
+  "deletions": 40,
+  "files": 13
+ },
+ {
+  "date": "2023-12-04T09:44:02Z",
+  "kind": "review",
+  "peers": [
+   "momchil.velikov@arm.com"
+  ],
+  "additions": 286,
+  "deletions": 72,
+  "files": 7
+ },
+ {
   "date": "2023-12-06T20:56:59Z",
   "kind": "author",
-  "peers": [],
+  "peers": [
+   "statham-arm@users.noreply.github.com"
+  ],
   "additions": 446,
   "deletions": 24,
   "files": 8
@@ -42,7 +71,9 @@
  {
   "date": "2023-12-10T13:01:29Z",
   "kind": "author",
-  "peers": [],
+  "peers": [
+   "momchil-velikov@users.noreply.github.com"
+  ],
   "additions": 18,
   "deletions": 18,
   "files": 5
@@ -50,7 +81,9 @@
  {
   "date": "2024-01-26T19:25:36Z",
   "kind": "author",
-  "peers": [],
+  "peers": [
+   "yozhu@users.noreply.github.com"
+  ],
   "additions": 1996,
   "deletions": 1698,
   "files": 30
@@ -58,9 +91,101 @@
  {
   "date": "2024-01-31T03:33:04Z",
   "kind": "author",
-  "peers": [],
+  "peers": [
+   "yozhu@users.noreply.github.com"
+  ],
   "additions": 98,
   "deletions": 46,
   "files": 12
+ },
+ {
+  "date": "2024-02-09T21:55:08Z",
+  "kind": "review",
+  "peers": [
+   "yozhu@users.noreply.github.com"
+  ],
+  "additions": 94,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2024-04-15T21:12:25Z",
+  "kind": "review",
+  "peers": [
+   "kai.peter.nacke@ibm.com"
+  ],
+  "additions": 32,
+  "deletions": 61,
+  "files": 9
+ },
+ {
+  "date": "2024-12-19T20:53:48Z",
+  "kind": "review",
+  "peers": [
+   "thurston@google.com"
+  ],
+  "additions": 28,
+  "deletions": 20,
+  "files": 4
+ },
+ {
+  "date": "2024-12-19T21:31:29Z",
+  "kind": "review",
+  "peers": [
+   "thurston@google.com"
+  ],
+  "additions": 6,
+  "deletions": 3,
+  "files": 2
+ },
+ {
+  "date": "2026-06-12T21:07:01Z",
+  "kind": "review",
+  "peers": [
+   "jonathan_roelofs@apple.com"
+  ],
+  "additions": 247,
+  "deletions": 15,
+  "files": 4
+ },
+ {
+  "date": "2026-06-30T03:45:47Z",
+  "kind": "review",
+  "peers": [
+   "alokkumar.sharma@amd.com"
+  ],
+  "additions": 233,
+  "deletions": 0,
+  "files": 3
+ },
+ {
+  "date": "2026-07-01T05:53:03Z",
+  "kind": "review",
+  "peers": [
+   "alokkumar.sharma@amd.com"
+  ],
+  "additions": 231,
+  "deletions": 0,
+  "files": 3
+ },
+ {
+  "date": "2026-07-30T17:04:46Z",
+  "kind": "review",
+  "peers": [
+   "alokkumar.sharma@amd.com"
+  ],
+  "additions": 145,
+  "deletions": 28,
+  "files": 2
+ },
+ {
+  "date": "2026-10-29T23:46:54Z",
+  "kind": "review",
+  "peers": [
+   "thakis@chromium.org"
+  ],
+  "additions": 59,
+  "deletions": 17,
+  "files": 2
  }
 ]

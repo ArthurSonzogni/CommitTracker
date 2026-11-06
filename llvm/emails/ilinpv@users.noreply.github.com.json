@@ -1,10 +1,232 @@
 [
  {
+  "date": "2020-12-14T07:20:30Z",
+  "kind": "review",
+  "peers": [
+   "raul@tambre.ee"
+  ],
+  "additions": 11,
+  "deletions": 16,
+  "files": 2
+ },
+ {
+  "date": "2020-12-14T14:38:48Z",
+  "kind": "review",
+  "peers": [
+   "mracek@apple.com"
+  ],
+  "additions": 5,
+  "deletions": 0,
+  "files": 1
+ },
+ {
+  "date": "2023-04-20T18:34:54Z",
+  "kind": "review",
+  "peers": [
+   "dimitry@andric.com"
+  ],
+  "additions": 19,
+  "deletions": 19,
+  "files": 1
+ },
+ {
   "date": "2023-09-08T15:26:39Z",
   "kind": "author",
-  "peers": [],
+  "peers": [
+   "danielkristofkiss@users.noreply.github.com"
+  ],
   "additions": 20,
   "deletions": 13,
   "files": 2
+ },
+ {
+  "date": "2023-11-20T08:37:52Z",
+  "kind": "review",
+  "peers": [
+   "matthew.devereau@arm.com"
+  ],
+  "additions": 92,
+  "deletions": 8,
+  "files": 12
+ },
+ {
+  "date": "2023-11-23T02:17:55Z",
+  "kind": "review",
+  "peers": [
+   "houzhenyu@huawei.com"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2023-12-14T21:57:00Z",
+  "kind": "review",
+  "peers": [
+   "jonathan_roelofs@apple.com"
+  ],
+  "additions": 482,
+  "deletions": 328,
+  "files": 15
+ },
+ {
+  "date": "2023-12-14T21:57:38Z",
+  "kind": "review",
+  "peers": [
+   "jonathan_roelofs@apple.com"
+  ],
+  "additions": 88,
+  "deletions": 6,
+  "files": 1
+ },
+ {
+  "date": "2023-12-15T16:47:34Z",
+  "kind": "review",
+  "peers": [
+   "thomas.preudhomme@arm.com"
+  ],
+  "additions": 4,
+  "deletions": 4,
+  "files": 1
+ },
+ {
+  "date": "2024-01-22T17:10:16Z",
+  "kind": "review",
+  "peers": [
+   "jonathan_roelofs@apple.com"
+  ],
+  "additions": 15,
+  "deletions": 13,
+  "files": 1
+ },
+ {
+  "date": "2024-01-22T18:55:16Z",
+  "kind": "review",
+  "peers": [
+   "danielkristofkiss@users.noreply.github.com"
+  ],
+  "additions": 656,
+  "deletions": 302,
+  "files": 5
+ },
+ {
+  "date": "2024-01-23T15:48:12Z",
+  "kind": "review",
+  "peers": [
+   "alexandros.lamprineas@arm.com"
+  ],
+  "additions": 25,
+  "deletions": 17,
+  "files": 7
+ },
+ {
+  "date": "2024-01-26T09:27:28Z",
+  "kind": "review",
+  "peers": [
+   "alexandros.lamprineas@arm.com"
+  ],
+  "additions": 68,
+  "deletions": 2,
+  "files": 1
+ },
+ {
+  "date": "2024-03-06T10:42:39Z",
+  "kind": "review",
+  "peers": [
+   "alexandros.lamprineas@arm.com"
+  ],
+  "additions": 59,
+  "deletions": 37,
+  "files": 3
+ },
+ {
+  "date": "2024-05-09T20:51:39Z",
+  "kind": "review",
+  "peers": [
+   "tomas.matheson@arm.com"
+  ],
+  "additions": 267,
+  "deletions": 0,
+  "files": 2
+ },
+ {
+  "date": "2024-07-04T19:04:11Z",
+  "kind": "review",
+  "peers": [
+   "alexandros.lamprineas@arm.com"
+  ],
+  "additions": 126,
+  "deletions": 122,
+  "files": 6
+ },
+ {
+  "date": "2024-11-07T17:15:23Z",
+  "kind": "review",
+  "peers": [
+   "alexandros.lamprineas@arm.com"
+  ],
+  "additions": 29,
+  "deletions": 47,
+  "files": 11
+ },
+ {
+  "date": "2025-01-23T17:55:03Z",
+  "kind": "review",
+  "peers": [
+   "alexandros.lamprineas@arm.com"
+  ],
+  "additions": 189,
+  "deletions": 14,
+  "files": 1
+ },
+ {
+  "date": "2025-04-15T11:59:05Z",
+  "kind": "review",
+  "peers": [
+   "aleksei.kuzmenko@arm.com"
+  ],
+  "additions": 67,
+  "deletions": 21,
+  "files": 7
+ },
+ {
+  "date": "2025-08-28T12:32:31Z",
+  "kind": "review",
+  "peers": [
+   "gergely.balint@arm.com"
+  ],
+  "additions": 196,
+  "deletions": 0,
+  "files": 3
+ },
+ {
+  "date": "2025-11-13T18:05:08Z",
+  "kind": "review",
+  "peers": [
+   "david.green@arm.com"
+  ],
+  "additions": 345,
+  "deletions": 26,
+  "files": 2
+ },
+ {
+  "date": "2026-05-12T08:13:14Z",
+  "kind": "review",
+  "peers": [
+   "david.green@arm.com"
+  ],
+  "additions": 18,
+  "deletions": 2,
+  "files": 2
+ },
+ {
+  "date": "2026-09-10T15:07:09Z",
+  "kind": "review",
+  "peers": [
+   "aaupov@fb.com"
+  ],
+  "additions": 4,
+  "deletions": 5,
+  "files": 1
  }
 ]
