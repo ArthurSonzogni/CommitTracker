@@ -361,7 +361,7 @@ const yearLink = (y: number) => `${profileLink.value}/${y}`;
 const individualsLink = (repository: string) =>
   `/individuals?developers=${encodeURIComponent(name.value)}&repositories=${repository}`;
 
-// Also written into the generated HTML by scripts/static-meta.mjs.
+// Not written into the generated HTML: too many pages (see scripts/static-meta.mjs).
 useSeoMeta({
   title: () => formatDeveloperYearTitle(name.value, year.value),
   ogTitle: () => formatDeveloperYearTitle(name.value, year.value),
