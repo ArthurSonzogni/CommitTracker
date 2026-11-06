@@ -201,7 +201,7 @@
               <strong>Languages:</strong> the language filter scopes every chart,
               cohort history, directory, treemap, and developer or organization
               metric to files matching the selected extension group (C/C++,
-              HTML/JS/TS, Java, Python, Rust, Carbon).
+              HTML/JS/TS, Java, Python, Rust, Carbon, Markdown).
             </li>
           </ul>
         </AboutData>

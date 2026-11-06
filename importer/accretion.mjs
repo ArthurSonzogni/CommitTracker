@@ -162,7 +162,9 @@ const GENERATED_PATHS_OF = {
   carbon: [
     "(^|/)fuzzer_corpus/",
     "(^|/)MODULE\\.bazel\\.lock$",
-    "^executable_semantics/testdata/.*\\.golden$",
+    // The file tests: ~80% of their lines are CHECK lines, rewritten by the
+    // autoupdate tool.
+    "(^|/)testdata/",
   ],
 };
 let GENERATED_FILE = new RegExp(GENERATED_PATHS.join("|"));
@@ -281,6 +283,12 @@ const LANGUAGES = [
     label: "Carbon",
     hint: "Carbon (.carbon)",
     ext: /^carbon$/i,
+  },
+  {
+    id: "markdown",
+    label: "Markdown",
+    hint: "Markdown (.md, .markdown)",
+    ext: /^(md|markdown|mdown|mkd)$/i,
   },
 ];
 const LANG_COUNT = LANGUAGES.length;
@@ -1338,6 +1346,25 @@ const NextMonday = time => {
 
 const Day = time => new Date(time * 1000).toISOString().slice(0, 10);
 
+// The username of each email. In the repositories developed on GitHub, it is
+// the GitHub login, as in derive_data.mjs, from the logins.json written by
+// fetch_data.mjs.
+const UsernamesOf = async (dirname, emails) => {
+  const repositories = JSON5.parse(await fs.readFile("../repositories.json5", "utf8"));
+  const github = repositories.find(repo => repo.dirname === dirname)?.reviewers === "github";
+  const logins = github
+    ? await fs.readFile(`../public/data/${dirname}/logins.json`, "utf8")
+      .then(JSON.parse, () => ({}))
+    : {};
+  return emails.map(email => {
+    if (!email) return null;
+    const noreply = email.match(/^(.+)@users\.noreply\.github\.com$/);
+    // Like derive_data.mjs: without a GitHub login, the full email.
+    if (!github) return email.split("@")[0];
+    return logins[email] ?? (noreply ? noreply[1] : email);
+  });
+};
+
 const WriteOutput = async (state, dir) => {
   const now = Math.floor(Date.now() / 1000);
   const sampleNow = state.samples.at(-1)?.[0] ?? now;
@@ -1346,7 +1373,7 @@ const WriteOutput = async (state, dir) => {
   const emailOf = state.authors.map(email => IsEmailValid(email) && !IMPORT_BOT.test(email)
     ? mailMap(email)
     : null);
-  const usernameOf = emailOf.map(email => email ? email.split("@")[0] : null);
+  const usernameOf = await UsernamesOf(path.basename(dir), emailOf);
   const staticOrgOf = emailOf.map(email => email && !hasDynamicAffiliation(email)
     ? getOrganization(email, "")
     : null);

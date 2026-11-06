@@ -62,5 +62,28 @@
   { "old": "46229924+jonmeow@users.noreply.github.com", "new": "jperkins@google.com"},
   { "old": "richard-llvm@metafoo.co.uk", "new": "richard@metafoo.co.uk"},
   { "old": "richard-github@metafoo.co.uk", "new": "richard@metafoo.co.uk"},
+
+  // LLVM Phabricator handles ("Reviewed By:"), when they differ from both the
+  // GitHub login and the email of the reviewer:
+  { "old": "aaron.ballman@users.noreply.github.com", "new": "aaron@aaronballman.com"},
+  { "old": "abataev@users.noreply.github.com", "new": "a.bataev@hotmail.com"},
+  { "old": "awarzynski@users.noreply.github.com", "new": "andrzej.warzynski@arm.com"},
+  { "old": "ayal@users.noreply.github.com", "new": "ayal.zaks@intel.com"},
+  { "old": "dmgreen@users.noreply.github.com", "new": "david.green@arm.com"},
+  { "old": "dsanders@users.noreply.github.com", "new": "daniel_l_sanders@apple.com"},
+  { "old": "foad@users.noreply.github.com", "new": "jay.foad@amd.com"},
+  { "old": "gribozavr2@users.noreply.github.com", "new": "gribozavr@gmail.com"},
+  { "old": "jhenderson@users.noreply.github.com", "new": "james.henderson@sony.com"},
+  { "old": "mehdi_amini@users.noreply.github.com", "new": "joker.eph@gmail.com"},
+  { "old": "noq@users.noreply.github.com", "new": "noqnoqneo@gmail.com"},
+  { "old": "peiming@users.noreply.github.com", "new": "peimingliu@users.noreply.github.com"},
+  { "old": "pengfei@users.noreply.github.com", "new": "pengfei.wang@intel.com"},
+  { "old": "petesteinfeld@users.noreply.github.com", "new": "psteinfeld@nvidia.com"},
+  { "old": "philnik@users.noreply.github.com", "new": "nikolasklauser@berlin.de"},
+  { "old": "rafauler@users.noreply.github.com", "new": "rafaelauler@fb.com"},
+  { "old": "reames@users.noreply.github.com", "new": "listmail@philipreames.com"},
+  { "old": "rriddle@users.noreply.github.com", "new": "riddleriver@gmail.com"},
+  { "old": "rsmith@users.noreply.github.com", "new": "richard@metafoo.co.uk"},
+  { "old": "sdesmalen@users.noreply.github.com", "new": "sander.desmalen@arm.com"},
 ]
 

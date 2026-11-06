@@ -9,14 +9,16 @@
 const PALETTE_SIZE = 8;
 
 // The organization of each username, from the organization of their emails.
-export function UsernameOrganizations(organizations_emails) {
+// `usernameOf` maps an email to its username: by default its local part.
+export function UsernameOrganizations(organizations_emails,
+                                      usernameOf = email => email.split("@")[0]) {
   const counts = {};
   for (const [organization, emails] of Object.entries(organizations_emails)) {
     if (organization === "Unknown") {
       continue;
     }
     for (const email of emails) {
-      const username = email.split("@")[0];
+      const username = usernameOf(email);
       counts[username] ||= {};
       counts[username][organization] = (counts[username][organization] || 0) + 1;
     }

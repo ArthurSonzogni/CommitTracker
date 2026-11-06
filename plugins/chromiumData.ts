@@ -24,8 +24,12 @@ async function loadDeveloperCommits(
   try {
     const encodedRepo = encodeURIComponent(repo);
     const encodedDev = encodeURIComponent(developer);
-    const kindDir = developer.includes("@") ? "emails" : "usernames";
-    const response = await fetch(`/data/${encodedRepo}/${kindDir}/${encodedDev}.json`);
+    // An email is a username in the GitHub repositories, when it has no GitHub
+    // login. Otherwise, it is one of the emails of a username.
+    let response = await fetch(`/data/${encodedRepo}/usernames/${encodedDev}.json`);
+    if (!response.ok && developer.includes("@")) {
+      response = await fetch(`/data/${encodedRepo}/emails/${encodedDev}.json`);
+    }
     if (!response.ok) {
       cache.delete(cacheKey);
       return { developer, data: [] };

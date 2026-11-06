@@ -13,13 +13,30 @@
 
         <template v-else>
           <header class="profile-header">
-            <div class="monogram" aria-hidden="true">{{ name[0].toUpperCase() }}</div>
+            <img
+              v-if="avatar"
+              class="monogram avatar"
+              :src="avatar"
+              alt=""
+              @error="avatarFailed = true" />
+            <div v-else class="monogram" aria-hidden="true">{{ name[0].toUpperCase() }}</div>
             <div class="profile-heading">
               <h1 class="title">{{ name }}</h1>
               <p class="profile-subtitle">
                 Contributor to {{ repositories.length }}
                 {{ repositories.length > 1 ? "repositories" : "repository" }}
                 since {{ firstYear }}
+              </p>
+              <p v-if="githubLogins.length" class="profile-github">
+                <a
+                  v-for="login in githubLogins"
+                  :key="login"
+                  :href="`https://github.com/${login}`"
+                  target="_blank"
+                  rel="noopener">
+                  <UiIcon name="github" size="small" />
+                  {{ login }}
+                </a>
               </p>
             </div>
             <div class="profile-actions">
@@ -171,8 +188,8 @@ const route = useRoute();
 const name = computed(() => String(route.params.name));
 
 // scripts/derive-developers.mjs:
-// {repository: [commits authored, reviews, first year, last year]}
-const entry = shallowRef<Record<string, number[]> | null>(null);
+// {repository: [commits authored, reviews, first year, last year, GitHub login?]}
+const entry = shallowRef<Record<string, (number | string)[]> | null>(null);
 const badges = shallowRef<{ name: string, image: string }[]>([]);
 const loaded = ref(false);
 
@@ -206,6 +223,19 @@ const load = async () => {
 watch(name, load, { immediate: true });
 
 const byActivity = (a, b) => (b.author + b.review) - (a.author + a.review);
+
+// The GitHub accounts, from the repositories hosted on GitHub.
+const githubLogins = computed(() => [...new Set(Object.values(entry.value ?? {})
+  .map(values => values[4])
+  .filter((login): login is string => typeof login === 'string'))]);
+
+// The GitHub avatar, when the GitHub account is known. The monogram otherwise,
+// or when it fails to load.
+const avatarFailed = ref(false);
+watch(name, () => { avatarFailed.value = false; });
+const avatar = computed(() => githubLogins.value.length && !avatarFailed.value
+  ? `https://github.com/${encodeURIComponent(githubLogins.value[0])}.png?size=144`
+  : null);
 
 const allRepositories = computed(() => Object.entries(entry.value ?? {})
   .map(([dirname, [author, review, first, last]]) => {
@@ -340,6 +370,11 @@ useSeoMeta({
   width: 4.5rem;
 }
 
+.monogram.avatar {
+  background: var(--surface-sunken);
+  object-fit: cover;
+}
+
 .profile-heading {
   flex: 1 1 14rem;
   min-width: 0;
@@ -352,6 +387,19 @@ useSeoMeta({
 
 .profile-subtitle {
   color: var(--muted);
+}
+
+.profile-github {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.profile-github a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 .profile-actions {

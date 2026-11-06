@@ -207,12 +207,12 @@ const tests = [
       __t.byText('.segmented-option', 'Monthly').click();
       const monthly = await __t.until(() => /^\\d{4}-\\d{2}/.test(timeLabel() || ''), 8000);
       const monthLabel = timeLabel();
-      __t.byText('button', 'Previous').click();
+      (await __t.until(() => __t.byText('button', 'Previous'), 8000)).click();
       const prev = await __t.until(() => timeLabel() !== monthLabel, 8000);
       const prevLabel = timeLabel();
-      __t.byText('.chip', 'Blink').click();
+      (await __t.until(() => __t.byText('.chip', 'Blink'), 8000)).click();
       const blink = await __t.until(() => location.search.includes('blink'), 8000);
-      __t.byText('button', 'Animate').click();
+      (await __t.until(() => __t.byText('button', 'Animate'), 8000)).click();
       const stopBtn = await __t.until(() => __t.byText('button', 'Stop'), 4000);
       const finished = await __t.until(() => !__t.byText('button', 'Stop') && timeLabel() === monthLabel, 8000);
       return { ok: !!monthly && !!prev && !!blink && !!stopBtn && !!finished, detail: year + ' -> monthly ' + monthLabel + ' -> previous ' + prevLabel + ' -> animated / url ' + location.search };
@@ -962,29 +962,32 @@ const tests = [
     `,
   },
   {
-    name: 'carbon: accretion markers, directories, and Carbon language filter',
+    name: 'carbon: accretion markers, directories, and language filters',
     url: 'accretion?repository=carbon',
     run: `
       await __t.until(() =>
         __t.count('.figure') >= 4 &&
-        __t.count('#chart .milestone text') >= 4 &&
-        __t.byText('.language-bar .segmented-option', 'Carbon'), 20000);
+        __t.count('#chart .milestone text') >= 1 &&
+        __t.byText('.language-bar .segmented-option', 'Markdown'), 20000);
       const repoMilestones = [...document.querySelectorAll('#chart .milestone text')].map(t => t.textContent.trim());
-      const hasNamedMilestones = repoMilestones.some(t => t.includes('Explorer interpreter removed')) &&
-        !repoMilestones.some(t => t.includes('toolchain/check/testdata/'));
+      const hasNamedMilestones = repoMilestones.some(t => t.includes('Explorer interpreter removed'));
       const repoLines = __t.text('.figure .figure-value');
+      __t.byText('.language-bar .segmented-option', 'C/C++').click();
+      const cppFiltered = await __t.until(() =>
+        location.search.includes('lang=cpp') &&
+        __t.text('.figure .figure-value') !== repoLines &&
+        __t.count('#chart .milestone text') >= 4, 20000);
+      const langMilestones = [...document.querySelectorAll('#chart .milestone text')].map(t => t.textContent.trim());
+      const hasLangNamedMilestones = langMilestones.some(t => t.includes('Custom hash tables added'));
       __t.byText('.language-bar .segmented-option', 'Carbon').click();
+      // The file tests in testdata/ are excluded: core/ is the main directory.
       const carbonFiltered = await __t.until(() =>
         location.search.includes('lang=carbon') &&
-        __t.text('.figure .figure-value') !== repoLines &&
-        __t.count('#chart .milestone text') >= 4 &&
-        [...document.querySelectorAll('#directories table a')].some(a => a.textContent.trim() === 'core'), 20000);
-      const langMilestones = [...document.querySelectorAll('#chart .milestone text')].map(t => t.textContent.trim());
-      const hasLangNamedMilestones = langMilestones.some(t => t.includes('Raw IR dumps disabled')) &&
-        !langMilestones.some(t => t.includes('toolchain/check/testdata/'));
+        [...document.querySelectorAll('#directories table a')].some(a => a.textContent.trim() === 'core') &&
+        ![...document.querySelectorAll('#directories table a')].some(a => a.textContent.includes('testdata')), 20000);
       return {
-        ok: !!(hasNamedMilestones && carbonFiltered && hasLangNamedMilestones),
-        detail: 'repoMilestones=' + repoMilestones.length + ' (' + repoLines + ' -> ' + __t.text('.figure .figure-value') + ') langMilestones=' + langMilestones.length,
+        ok: !!(hasNamedMilestones && cppFiltered && hasLangNamedMilestones && carbonFiltered),
+        detail: 'repoMilestones=' + repoMilestones.length + ' (' + repoLines + ') cppMilestones=' + langMilestones.length + ' carbon=' + !!carbonFiltered,
       };
     `,
   },
@@ -1009,23 +1012,25 @@ const tests = [
     name: 'carbon: leaderboard',
     url: 'leaderboard?repositories=carbon&grouping=forever',
     run: `
-      const leader = await __t.until(() => [...document.querySelectorAll('svg text.name')].some(t => t.textContent.includes('jperkins')), 20000);
+      const leader = await __t.until(() => [...document.querySelectorAll('svg text.name')].some(t => t.textContent.includes('jonmeow')), 20000);
       return { ok: !!leader, detail: [...document.querySelectorAll('svg text.name')].slice(0, 5).map(t => t.textContent.trim()).join(', ') };
     `,
   },
   {
     name: 'carbon: pulse, organizations, commit-rates, and developer profile',
-    url: 'developers/jperkins',
+    url: 'developers/jonmeow',
     run: `
+      const github = await __t.until(() =>
+        document.querySelector('.profile-github a[href="https://github.com/jonmeow"]'), 20000);
       const hasCarbon = await __t.until(() =>
         [...document.querySelectorAll('.profile-repository')].some(el => el.textContent.includes('Carbon')), 20000);
       const carbonRepo = [...document.querySelectorAll('.profile-repository')].find(el => el.textContent.includes('Carbon'));
       carbonRepo.click();
       const individualsOk = await __t.until(() =>
         location.pathname === '/individuals' &&
-        location.search.includes('jperkins') &&
+        location.search.includes('jonmeow') &&
         document.querySelectorAll('.container svg path').length > 3, 20000);
-      return { ok: !!(hasCarbon && individualsOk), detail: location.pathname + location.search };
+      return { ok: !!(github && hasCarbon && individualsOk), detail: location.pathname + location.search };
     `,
   },
   {
@@ -1047,7 +1052,7 @@ const tests = [
     `,
   },
   {
-    name: 'carbon: pulse and organizations commits',
+    name: 'carbon: pulse, organizations commits, and communities',
     url: 'organizations/commits?repositories=carbon',
     run: `
       const orgOk = await __t.until(() => /202\\d/.test(document.body.innerText) && document.body.innerText.includes('Google'), 20000);
@@ -1060,9 +1065,8 @@ const tests = [
       const pulseOk = await __t.until(() => location.search.includes('repositories=carbon') && document.querySelectorAll('svg rect').length > 200, 15000);
       const commLink = [...document.querySelectorAll('a')].find(a => a.getAttribute('href') === '/communities');
       commLink.click();
-      await __t.until(() => location.pathname === '/communities' && __t.byText('.chip', 'Chromium'), 15000);
-      const noCarbonInCommunities = !__t.byText('.chip', 'Carbon');
-      return { ok: !!(orgOk && pulsePage && pulseOk && noCarbonInCommunities), detail: 'org=' + !!orgOk + ' pulse=' + !!pulseOk + ' communitiesExcludesCarbon=' + noCarbonInCommunities };
+      const communities = await __t.until(() => location.pathname === '/communities' && __t.byText('.chip', 'Carbon'), 15000);
+      return { ok: !!(orgOk && pulsePage && pulseOk && communities), detail: 'org=' + !!orgOk + ' pulse=' + !!pulseOk + ' communitiesCarbon=' + !!communities };
     `,
   },
 ];

@@ -4,11 +4,37 @@ import statusLine from '@alt-jero/status-line';
 import {mailMap} from './mailmap.mjs';
 import {octokit} from './octokit.mjs';
 import {IsEmailValid} from './is_email_valid.mjs';
-import {ParseReviewers} from './parse_reviewers.mjs';
+import {ParseReviewers, ParsePhabricatorReviewers} from './parse_reviewers.mjs';
 
 const fs = filesystem.promises;
 
-const ProcessCommit = (data, commit) => {
+// The approvers of the pull request merged as this commit, as GitHub noreply
+// emails. They are resolved to the reviewers' commit emails when deriving the
+// data, using logins.json.
+const GitHubReviewers = (commit) => {
+  const reviewers = [];
+  for (const pr of commit.associatedPullRequests?.nodes || []) {
+    if (!pr.merged) {
+      continue;
+    }
+    for (const review of pr.reviews.nodes) {
+      if (review.author?.__typename !== 'User') {
+        continue;
+      }
+      const login = review.author.login.toLowerCase();
+      if (login === commit.author.user?.login.toLowerCase()) {
+        continue;
+      }
+      const reviewer = mailMap(`${login}@users.noreply.github.com`);
+      if (IsEmailValid(reviewer)) {
+        reviewers.push(reviewer);
+      }
+    }
+  }
+  return reviewers;
+};
+
+const ProcessCommit = (data, logins, commit, github) => {
   // Skip merge commits:
   if (commit.parents.totalCount > 1) {
     return "skipped";
@@ -27,6 +53,9 @@ const ProcessCommit = (data, commit) => {
   if (author === 'deleted' || !IsEmailValid(author)) {
     return "invalid email";
   }
+  if (commit.author.user?.login) {
+    logins[author] = commit.author.user.login.toLowerCase();
+  }
   const date = commit.committedDate;
   // Ignore self-review:
   //
@@ -38,8 +67,12 @@ const ProcessCommit = (data, commit) => {
   // The sum of everyone's "authored" commits is equal to the sum of commit.
   //
   // https://github.com/ArthurSonzogni/CommitTracker/issues/7
-  const reviewers = ParseReviewers(commit.messageBody)
-    .filter(reviewer => reviewer != author);
+  const reviewers = [...new Set([
+    ...ParseReviewers(commit.messageBody),
+    ...(github ? GitHubReviewers(commit) : []),
+    ...(github ? ParsePhabricatorReviewers(commit.messageBody) : []),
+  ])].filter(reviewer => reviewer != author &&
+    reviewer != `${logins[author]}@users.noreply.github.com`);
 
   data[author] ||= [];
 
@@ -52,21 +85,13 @@ const ProcessCommit = (data, commit) => {
     'files': commit.changedFilesIfAvailable,
   };
 
-  // Skip duplicated commits:
-  for(const commit of data[author]) {
-    if (commit.date == new_commit.date && //
-      commit.additions == new_commit.additions && //
-      commit.deletions == new_commit.deletions && //
-      commit.files == new_commit.files
-    ) {
-      return "duplicate";
-    }
-  }
-
-  data[author].push(new_commit);
-
-  reviewers.forEach(reviewer => {
+  const AddReview = (reviewer) => {
     data[reviewer] ||= [];
+    if (data[reviewer].some(review => review.date == date &&
+      review.additions == commit.additions &&
+      review.deletions == commit.deletions)) {
+      return;
+    }
     data[reviewer].push({
       'date': date,
       'kind': 'review',
@@ -75,7 +100,27 @@ const ProcessCommit = (data, commit) => {
       'deletions': commit.deletions,
       'files': commit.changedFilesIfAvailable,
     });
-  });
+  };
+
+  // Skip duplicated commits. Their reviewers are still merged in, to backfill
+  // the reviews of the commits imported before they were fetched.
+  for(const commit of data[author]) {
+    if (commit.date == new_commit.date && //
+      commit.additions == new_commit.additions && //
+      commit.deletions == new_commit.deletions && //
+      commit.files == new_commit.files
+    ) {
+      const missing = reviewers.filter(reviewer => !commit.peers.includes(reviewer));
+      if (commit.kind == 'author' && missing.length > 0) {
+        commit.peers = [...commit.peers, ...missing];
+        missing.forEach(AddReview);
+      }
+      return "duplicate";
+    }
+  }
+
+  data[author].push(new_commit);
+  reviewers.forEach(AddReview);
 
   return "success";
 };
@@ -126,11 +171,21 @@ const ProcessRepository = async (repository) => {
     data[email] = await email_data(email);
   }
 
+  // Email -> GitHub login of the commit authors.
+  const logins_file = `${repository_dir}/logins.json`;
+  const logins = await fs.readFile(logins_file, 'utf8')
+    .then(JSON.parse)
+    .catch(() => ({}));
+
   const SaveDataForRepository = async() => {
     // Write emails:
     await fs.writeFile(
       `${repository_dir}/emails.json`,
       JSON.stringify(Object.keys(data).sort(), null, 1));
+
+    // Write logins:
+    await fs.writeFile(logins_file, JSON.stringify(
+      Object.fromEntries(Object.entries(logins).sort()), null, 1));
 
     // Write email data:
     for (const email in data) {
@@ -161,10 +216,42 @@ const ProcessRepository = async (repository) => {
   let retry_total = 0;
 
   let max_duplicate = prexisting ? 30 : 1000000000;
+  // --since=<date> refetches every commit since the date, e.g. to backfill
+  // the GitHub reviews or logins of the commits already imported.
+  // --logins-only refetches the whole history quickly, without the pull
+  // requests, to backfill the GitHub logins of the older commits.
+  if (since || logins_only) {
+    max_duplicate = 1000000000;
+  }
+
+  // The GitHub pull request reviews are slow to resolve: smaller pages avoid
+  // the timeouts.
+  const github_reviews = repository.reviewers === 'github' && !logins_only;
+  const page_size = github_reviews ? 25 : 100;
+  const pull_requests = github_reviews ? `
+                            associatedPullRequests(first: 1) {
+                              nodes {
+                                merged
+                                reviews(first: 50,
+                                        states: [APPROVED, CHANGES_REQUESTED]) {
+                                  nodes {
+                                    author {
+                                      __typename
+                                      login
+                                    }
+                                  }
+                                }
+                              }
+                            }` : '';
+  let pages = 0;
 
   while(hasNextPage && duplicate<max_duplicate) {
     if (index % 10000 == 0) {
       statusLine.logString(`Repo: ${repository.dirname} ${index}`);
+    }
+    // Checkpoint the long imports.
+    if (++pages % 200 == 0) {
+      await SaveDataForRepository();
     }
     let succeeded = false;
     for(let retry = 0; retry < 5; ++retry) {
@@ -174,7 +261,8 @@ const ProcessRepository = async (repository) => {
           query GetCommit($cursor: String,
                           $owner: String!,
                           $name: String!,
-                          $path: String)
+                          $path: String,
+                          $since: GitTimestamp)
           {
             repository(owner: $owner, name: $name) {
               defaultBranchRef {
@@ -182,8 +270,9 @@ const ProcessRepository = async (repository) => {
                   ... on Commit {
                     history(
                       path: $path
-                      first: 100,
+                      first: ${page_size},
                       after: $cursor
+                      since: $since
                     ) {
                       pageInfo {
                         hasNextPage
@@ -200,13 +289,16 @@ const ProcessRepository = async (repository) => {
                             }
                             author {
                               email
+                              user {
+                                login
+                              }
                             }
                             additions
                             deletions
                             changedFilesIfAvailable
                             parents {
                               totalCount
-                            }
+                            }${pull_requests}
                           }
                         }
                       }
@@ -222,6 +314,7 @@ const ProcessRepository = async (repository) => {
             owner: repository.owner,
             name: repository.repository,
             path: repository.cone,
+            since: since,
           }
         );
         const endTime = Date.now();
@@ -232,7 +325,8 @@ const ProcessRepository = async (repository) => {
         for (const edge of history.edges) {
           index++;
           let commit = edge.node
-          const result = ProcessCommit(data, commit);
+          const result = ProcessCommit(data, logins, commit,
+            repository.reviewers === 'github');
           statusLine(`${index} ${commit.committedDate} ${commit.abbreviatedOid} ${delay} ${result}`);
 
           if (result == "duplicate") {
@@ -280,7 +374,16 @@ const file_json = JSON5.parse(file_content);
 await fs.writeFile(
     '../public/data/repositories.json', JSON.stringify(file_json, null, 2));
 
-const targetRepo = process.argv[2];
+// Usage: node fetch_data.mjs [repository] [--since=<ISO date>] [--logins-only]
+const args = process.argv.slice(2);
+const logins_only = args.includes('--logins-only');
+const targetRepo = args.find(arg => !arg.startsWith('--'));
+const since_arg = args.find(arg => arg.startsWith('--since='));
+const since = since_arg &&
+  new Date(since_arg.slice('--since='.length)).toISOString();
+if ((since || logins_only) && !targetRepo) {
+  throw new Error('--since and --logins-only require a repository');
+}
 for (const repository of file_json) {
   if (targetRepo && repository.dirname !== targetRepo) continue;
   await ProcessRepository(repository);

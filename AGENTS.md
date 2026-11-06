@@ -68,13 +68,18 @@ Run from inside `importer/` (scripts use paths like `../repositories.json5`,
 
 - `fetch_data.mjs` — fetch commits per repo into `public/data/<repo>/emails/`
   (raw, per-email). Uses `mailmap.json5` to merge identities and
-  `parse_reviewers.mjs` for reviewers.
+  `parse_reviewers.mjs` for reviewers. Also records the authors' GitHub
+  logins in `logins.json` (raw, kept on the `data` branch). For repos with
+  `reviewers: "github"`, the pull request approvals are the reviewers, and
+  the usernames are the GitHub logins. `node fetch_data.mjs <repo>
+  --since=<date>` refetches a range, e.g. to backfill the reviews.
 - `derive_data` script — projects emails → usernames → organizations,
   summaries, commits-per-hour, badges. Run by `generate-derived-data.sh`,
   which also runs `scripts/compact-treemap.mjs`, `derive-developers.mjs`,
   `derive-highlights.mjs`.
 - `clean-derived-data.sh` strips derived files back to `emails/` +
-  `emails.json` before pushing the `data` branch (only raw data is stored).
+  `emails.json` + `logins.json` before pushing the `data` branch (only raw
+  data is stored).
 - `treemap.mjs` (config in `treemap/*.yaml`), `fuzz-test.mjs`, `cve.mjs`,
   `commit_rates.mjs` produce their respective branches.
 - `accretion.mjs <dirname>` replays the first-parent history like

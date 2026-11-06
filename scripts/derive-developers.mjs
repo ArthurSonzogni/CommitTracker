@@ -7,7 +7,8 @@
 // usernames:
 //   {
 //     "<username>": {
-//       "<repository>": [<commits authored>, <reviews>, <first year>, <last year>],
+//       "<repository>": [<commits authored>, <reviews>, <first year>, <last year>,
+//                        <GitHub login, if known>],
 //       ...
 //     },
 //     ...
@@ -24,6 +25,8 @@ const shardOf = username => {
   return /[a-z0-9]/.test(c) ? c : '_';
 };
 
+const readJson = file => fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : {};
+
 const readSummary = (repository, kind) => {
   const file = path.join(dir, repository, `usernames_summary_commit_yearly_${kind}.json`);
   return fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : {};
@@ -34,6 +37,7 @@ const repositories = JSON.parse(fs.readFileSync(path.join(dir, 'repositories.jso
 for (const { dirname } of repositories) {
   const author = readSummary(dirname, 'author');
   const review = readSummary(dirname, 'review');
+  const github = readJson(path.join(dir, dirname, 'usernames_github.json'));
   for (const username of new Set([...Object.keys(author), ...Object.keys(review)])) {
     if (!username) {
       continue;
@@ -49,6 +53,7 @@ for (const { dirname } of repositories) {
       sum(review[username]),
       Math.min(...years),
       Math.max(...years),
+      ...(github[username] ? [github[username]] : []),
     ];
   }
 }

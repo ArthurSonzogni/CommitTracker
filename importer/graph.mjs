@@ -91,7 +91,10 @@ async function Main() {
   const all_wanted = !only_repos || only_repos === "all";
   for (const repository of repositories) {
     const own_wanted = !only_repos || only_repos === repository.dirname;
-    const in_all = all_wanted && repository.cone == undefined;
+    // "all" is the Chromium family: the repositories reviewed on Gerrit. The
+    // GitHub ones (LLVM, Carbon) are separate communities.
+    const in_all = all_wanted && repository.cone == undefined &&
+      repository.reviewers === true;
     if (!own_wanted && !in_all) {
       continue;
     }
@@ -102,7 +105,8 @@ async function Main() {
       ...(in_all ? [all] : []),
     ]);
     if (own_wanted) {
-      await GenerateGraphs(repository.dirname, own, generator, organizations);
+      await GenerateGraphs(repository.dirname, own, generator,
+        await RepositoryOrganizations(repository, organizations));
     }
   }
   if (all_wanted) {
@@ -112,6 +116,24 @@ async function Main() {
   if (!only_repos && !only_date) {
     await RemoveObsoleteGraphs(repositories);
   }
+}
+
+// In the GitHub repositories, the usernames are the GitHub logins, not the
+// email local parts: their organizations come from their own emails.
+async function RepositoryOrganizations(repository, organizations) {
+  if (repository.reviewers !== "github") {
+    return organizations;
+  }
+  const dir = `../public/data/${repository.dirname}`;
+  const usernames_emails = JSON.parse(
+    await fs.readFile(`${dir}/usernames_emails.json`, "utf8"));
+  const usernameOf = new Map();
+  for (const [username, emails] of Object.entries(usernames_emails)) {
+    for (const email of emails) usernameOf.set(email, username);
+  }
+  return UsernameOrganizations(JSON.parse(
+    await fs.readFile(`${dir}/organizations_emails.json`, "utf8")),
+    email => usernameOf.get(email) ?? email.split("@")[0]);
 }
 
 async function GenerateGraphs(repos, accumulator, generator, organizations) {
