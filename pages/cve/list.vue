@@ -3,8 +3,10 @@
     <CveSubnav />
     <UiLoading v-if="loading" v-model="loading" :is-full-page="true"></UiLoading>
 
-    <section class="section pb-2">
-      <div class="container content">
+    <section class="section">
+      <SplitLayout>
+        <template #header>
+        <div class="content">
         <h1 class="title">CVE list</h1>
 
         <AboutData>
@@ -24,7 +26,10 @@
             </li>
           </ul>
         </AboutData>
+        </div>
+        </template>
 
+        <template #aside>
         <FilterPanel :summary="summary">
           <div class="form-row">
             <UiField label="Year">
@@ -67,12 +72,9 @@
             <UiSegmented v-model="group_by" :options="group_by_options" />
           </UiField>
         </FilterPanel>
-      </div>
-    </section>
+        </template>
 
-
-    <section class="section cve-group" v-for="group in visible_groups" :key="group.key">
-      <div class="container content">
+      <div class="cve-group content" v-for="group in visible_groups" :key="group.key">
         <h3 class="title">
           {{ group.key}}
           <div style="display: inline-block;" class="tags has-addons mr-2
@@ -135,14 +137,15 @@
           </template>
         </div>
       </div>
-    </section>
 
-    <!-- Render more CVEs when this comes into view. -->
-    <div v-if="limit < total_cves" ref="more" :key="limit" class="container has-text-centered pb-6">
-      <button type="button" class="button" @click="limit += PAGE">
-        Show more ({{ limit }} / {{ total_cves }})
-      </button>
-    </div>
+      <!-- Render more CVEs when this comes into view. -->
+      <div v-if="limit < total_cves" ref="more" :key="limit" class="has-text-centered pb-6">
+        <button type="button" class="button" @click="limit += PAGE">
+          Show more ({{ limit }} / {{ total_cves }})
+        </button>
+      </div>
+      </SplitLayout>
+    </section>
 
   </div>
 </template>
@@ -694,8 +697,7 @@ h3 {
 }
 
 .cve-group {
-  padding-bottom: 1rem;
-  padding-top: 1rem;
+  padding-bottom: 2rem;
 }
 
 /* On narrow screens, put the CVE id above its description. */

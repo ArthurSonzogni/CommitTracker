@@ -1,8 +1,11 @@
 <template>
   <div>
     <section class="section">
-      <div class="container">
-        <h1 class="title">Commit rates</h1>
+      <SplitLayout>
+        <template #header>
+          <h1 class="title">Commit rates</h1>
+        </template>
+        <template #aside>
         <FilterPanel :summary="listSummary(repositoryNames(repositories), 'repositories')">
           <RepositorySelector
             size="is-medium"
@@ -27,6 +30,7 @@
             </UiCheckbox>
           </UiField>
         </div>
+        </template>
 
         <div class="level mb-4">
           <div class="level-left">
@@ -196,7 +200,7 @@
             </div>
           </div>
         </div>
-      </div>
+      </SplitLayout>
     </section>
   </div>
 </template>

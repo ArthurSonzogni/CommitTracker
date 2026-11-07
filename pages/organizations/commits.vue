@@ -1,9 +1,12 @@
 <template>
   <div>
     <section class="section">
-      <div class="container">
-        <h1 class="title">Organizations commits</h1>
+      <SplitLayout>
+        <template #header>
+          <h1 class="title">Organizations commits</h1>
+        </template>
 
+        <template #aside>
         <FilterPanel :summary="summary">
           <UiField>
             <RepositorySelector
@@ -32,8 +35,31 @@
               </div>
             </OrganizationsSelector>
           </UiField>
+        </FilterPanel>
+        </template>
 
-          <div class="form-row">
+        <!-- The settings of the chart, on one line above it. -->
+        <FilterPanel :summary="settingsSummary">
+          <div class="form-row settings-row">
+            <UiField label="Metric">
+              <UiSegmented
+                v-model="metric"
+                :options="[
+                { value: 'commit', label: 'Commits', title: 'Number of commits' },
+                { value: 'contributor', label: 'Contributors', title: 'Number of contributors' },
+              ]" />
+            </UiField>
+
+            <UiField label="Display">
+              <UiSegmented
+                v-model="display"
+                :options="[
+                { value: 'accumulative', label: 'Accumulative', disabled: metric == 'contributor' },
+                { value: 'absolute', label: 'Absolute' },
+                { value: 'percent', label: 'Percent' },
+              ]" />
+            </UiField>
+
             <UiField label="Count as">
               <UiSegmented
                 v-model="kind"
@@ -75,7 +101,6 @@
             </UiField>
 
           </div>
-
         </FilterPanel>
 
         <Organizations
@@ -89,30 +114,7 @@
           :dates="dates"
           :others="others"
           :display="display"
-        >
-
-          <UiField class="has-addons">
-            <UiSegmented
-              v-model="metric"
-              :options="[
-              { value: 'commit', label: 'Commits', title: 'Number of commits' },
-              { value: 'contributor', label: 'Contributors', title: 'Number of contributors' },
-            ]" />
-          </UiField>
-
-          <div class="mr-2"></div>
-
-          <UiField class="has-addons">
-            <UiSegmented
-              v-model="display"
-              :options="[
-              { value: 'accumulative', label: 'Accumulative', disabled: metric == 'contributor' },
-              { value: 'absolute', label: 'Absolute' },
-              { value: 'percent', label: 'Percent' },
-            ]" />
-          </UiField>
-
-        </Organizations>
+        />
 
         <!-- Warn users for invalid combinaisons -->
         <div v-if="metric == 'contributor'" class="mt-2">
@@ -124,7 +126,7 @@
           </div>
         </div>
 
-      </div>
+      </SplitLayout>
     </section>
 
     <section class="section">
@@ -200,7 +202,14 @@ const summary = computed(() => [
   organizations.value.length === all_organizations.length
     ? "All organizations"
     : listSummary(organizations.value, "organizations"),
+].join(" · "));
+const settingsSummary = computed(() => [
+  metric.value === "contributor" ? "Contributors" : "Commits",
+  capitalize(display.value),
+  capitalize(kind.value),
   capitalize(grouping.value),
+  `Colored by ${colors.value}`,
+  `${capitalize(chart.value)} chart`,
 ].join(" · "));
 
 // Avoid unsupported combinations:
@@ -211,3 +220,12 @@ watch(metric, () => {
 });
 </script>
 
+
+<style scoped>
+/* The labels sit before their control, so the settings take a single line. */
+.settings-row :deep(.ui-field) {
+  align-items: center;
+  flex-direction: row;
+  gap: 0.5rem;
+}
+</style>

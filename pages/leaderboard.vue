@@ -1,9 +1,12 @@
 <template>
   <div>
     <section class="section">
-      <div class="container">
-        <h1 class="title">Leaderboard</h1>
+      <SplitLayout>
+        <template #header>
+          <h1 class="title">Leaderboard</h1>
+        </template>
 
+        <template #aside>
         <FilterPanel :summary="summary">
           <UiField>
             <RepositorySelector
@@ -47,6 +50,7 @@
             </UiField>
           </div>
         </FilterPanel>
+        </template>
 
         <!--If props.type is "line", display a warning that this is heavily biased-->
         <!--around large scale refactoring and large deletion.-->
@@ -59,7 +63,7 @@
           :kind="kind"
           v-model:timeIndex="timeIndex"
           />
-      </div>
+      </SplitLayout>
     </section>
   </div>
 </template>

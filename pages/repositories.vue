@@ -1,9 +1,12 @@
 <template>
   <div>
     <section class="section">
-      <div class="container">
-        <h1 class="title">Repositories charts</h1>
+      <SplitLayout>
+        <template #header>
+          <h1 class="title">Repositories charts</h1>
+        </template>
 
+        <template #aside>
         <FilterPanel :summary="summary">
           <UiField>
             <RepositorySelector
@@ -73,6 +76,7 @@
           </div>
 
         </FilterPanel>
+        </template>
 
         <Contributions
           :repositories="repositories"
@@ -85,7 +89,7 @@
           :developers="developers"
           :min_contributions="min_contributions_enabled ? min_contributions : 0"
           />
-      </div>
+      </SplitLayout>
     </section>
 
     <section class="section pt-0">
