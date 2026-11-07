@@ -16,11 +16,7 @@
       :data="bar_chart_data"
     />
 
-    <UiField>
-      <slot></slot>
-
-      <p class="m-2"></p>
-
+    <UiField class="mt-3">
       <UiField>
         <button type="button" class="button" @click="download = true"> Download </button>
 

@@ -8,7 +8,7 @@
 
         <template #aside>
         <FilterPanel :summary="summary">
-          <UiField>
+          <UiField label="Repositories">
             <RepositorySelector
               v-model="repositories"
               size="medium"
@@ -16,13 +16,18 @@
               :allowAll="true"
               />
           </UiField>
+        </FilterPanel>
+        </template>
 
-          <UiField label="Metric" class="mb-4">
+        <!-- The settings of the chart, above it. -->
+        <FilterPanel :summary="settingsSummary">
+          <div class="form-row settings-row">
+          <UiField label="Metric">
             <UiSegmented v-model="what" :options="what_options" />
           </UiField>
 
 
-          <UiField label="Display" class="mb-4" v-if="what == 'per_contributor'">
+          <UiField label="Display" v-if="what == 'per_contributor'">
             <UiSegmented
               v-model="display"
               :options="[
@@ -35,19 +40,18 @@
             ]" />
           </UiField>
 
-          <UiField v-if="what == 'per_contributor' && display == 'percentile'">
+          <UiField v-if="what == 'per_contributor' && display == 'percentile'" class="setting-slider">
             <UiSlider v-model="percentile" :min="0" :max="1" :step="0.001" :formatter="(val) => sliderTransform(val).toFixed(2) + '%'" :tooltip="false" indicator lazy></UiSlider>
           </UiField>
 
-          <UiField v-if="what == 'per_contributor' && display == 'individual'">
+          <UiField v-if="what == 'per_contributor' && display == 'individual'" class="setting-slider">
             <UiSlider v-model="individual" :min="1" :max="1000" :step="1" :tooltip="false" lazy indicator></UiSlider>
           </UiField>
 
-          <UiField v-if="what == 'per_contributor' && display.startsWith('someone')" expanded>
+          <UiField v-if="what == 'per_contributor' && display.startsWith('someone')" expanded class="setting-developers">
                    <DevelopersInput v-model="developers"></DevelopersInput>
           </UiField>
 
-          <div class="form-row">
             <UiField label="Count as" v-if="what != 'commit'">
               <UiSegmented
                 v-model="kind"
@@ -74,9 +78,7 @@
                      <UiNumberInput v-model="min_contributions"></UiNumberInput>
             </UiField>
           </div>
-
         </FilterPanel>
-        </template>
 
         <Contributions
           :repositories="repositories"
@@ -180,8 +182,8 @@ const what_options = [
   { value: 'per_contributor', label: 'Commits per developer' },
 ];
 
-const summary = computed(() => [
-  listSummary(repositoryNames(repositories.value), "repositories"),
+const summary = computed(() => listSummary(repositoryNames(repositories.value), "repositories"));
+const settingsSummary = computed(() => [
   what_options.find(option => option.value == what.value)?.label,
   capitalize(grouping.value),
 ].join(" · "));
@@ -199,3 +201,11 @@ const min_contributions_enabled = computed(() => {
 });
 
 </script>
+
+<style scoped>
+/* The slider and the developers of a display take a line of their own. */
+.setting-slider,
+.setting-developers {
+  flex-basis: 100%;
+}
+</style>

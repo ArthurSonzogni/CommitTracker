@@ -7,21 +7,26 @@
         </template>
         <template #aside>
         <FilterPanel :summary="listSummary(repositoryNames(repositories), 'repositories')">
-          <RepositorySelector
-            size="is-medium"
-            v-model="repositories"
-            :allowMultiple="false"
-            :allowAll="false"
-            :filter="(repo) => !repo.cone"
-          />
+          <UiField label="Repository">
+            <RepositorySelector
+              size="is-medium"
+              v-model="repositories"
+              :allowMultiple="false"
+              :allowAll="false"
+              :filter="(repo) => !repo.cone"
+            />
+          </UiField>
         </FilterPanel>
-        <div>
-          Smoothing Window: <strong>{{ smoothingWindow }} week{{ smoothingWindow
-            === 1 ? '' : 's' }}</strong>, displaying activity over <strong>{{
-            displayedDurationLabel }}</strong>.
+        </template>
 
-          <UiField>
+        <!-- The settings of the table, above it. -->
+        <div class="form-row settings-row">
+          <UiField label="Smoothing window" class="smoothing">
             <UiSlider v-model="smoothingWindow" :min="1" :max="52" :step="1"></UiSlider>
+            <span class="smoothing-label">
+              <strong>{{ smoothingWindow }} week{{ smoothingWindow === 1 ? '' : 's' }}</strong>,
+              activity over <strong>{{ displayedDurationLabel }}</strong>
+            </span>
           </UiField>
 
           <UiField>
@@ -30,7 +35,6 @@
             </UiCheckbox>
           </UiField>
         </div>
-        </template>
 
         <div class="level mb-4">
           <div class="level-left">
@@ -587,6 +591,22 @@ watch([repository, currentPath], ([repo, path]) => {
 </script>
 
 <style scoped>
+.smoothing {
+  flex: 1 1 28rem;
+}
+
+.smoothing :deep(.ui-slider),
+.smoothing > :nth-child(2) {
+  flex: 1 1 10rem;
+  min-width: 8rem;
+}
+
+.smoothing-label {
+  color: var(--ink-2);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
 .is-clickable {
   cursor: pointer;
 }
@@ -635,6 +655,13 @@ watch([repository, currentPath], ([repo, path]) => {
   height: calc(100vh - 470px);
   overflow-y: auto;
   position: relative;
+}
+
+/* With the parameters on the left, less sits above the table. */
+@media (min-width: 1280px) {
+  .virtual-scroll-container {
+    height: calc(100vh - 380px);
+  }
 }
 
 .virtual-scroll-container::-webkit-scrollbar {

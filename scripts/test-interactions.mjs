@@ -619,8 +619,10 @@ const tests = [
     url: 'repositories',
     mobile: true,
     run: `
-      const toggle = document.querySelector('.filter-panel-toggle');
-      const body = document.querySelector('.filter-panel-body');
+      // The second panel: the settings of the chart, after the repositories.
+      const panel = document.querySelectorAll('.filter-panel')[1];
+      const toggle = panel.querySelector('.filter-panel-toggle');
+      const body = panel.querySelector('.filter-panel-body');
       const hidden = body.offsetHeight === 0;
       toggle.click();
       const shown = await __t.until(() => body.offsetHeight > 100);

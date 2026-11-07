@@ -2,8 +2,15 @@
   <!-- A page with its parameters. On large screens, the parameters sit in a
        column on the left, and stay in view while the content scrolls. The
        page grows by that column, so the content keeps its usual width. On
-       smaller screens, the parameters stack above the content. -->
-  <div class="container split-layout">
+       smaller screens, the parameters stack above the content.
+
+       The selection (what the content is about: repositories, organizations,
+       filters) goes in the "aside" slot. The settings of how it is shown go
+       above the content, in a ".form-row.settings-row". -->
+  <div
+    class="container split-layout"
+    :class="{ 'has-width': width }"
+    :style="width ? { '--content-width': `${width}px` } : undefined">
     <div v-if="$slots.header" class="split-header">
       <slot name="header" />
     </div>
@@ -19,6 +26,9 @@
 <script setup lang="ts">
 withDefaults(defineProps<{
   asideLabel?: string;
+  // The maximum width of the content, in px, e.g. a reading column. By
+  // default, the site's container.
+  width?: number;
 }>(), {
   asideLabel: "Parameters",
 });
@@ -32,6 +42,14 @@ withDefaults(defineProps<{
 
 .split-main {
   min-width: 0;
+}
+
+/* The settings of the content, above it: each label sits before its
+ * control, so that they take few lines. */
+.split-main :deep(.settings-row .ui-field) {
+  align-items: center;
+  flex-direction: row;
+  gap: 0.5rem;
 }
 
 @media (min-width: 1280px) {
@@ -74,18 +92,16 @@ withDefaults(defineProps<{
     margin-bottom: 1.1rem;
   }
 
-  /* Long lists (repositories, organizations): they wrap, and scroll past
-   * nine rows. */
+  /* Long lists (repositories, organizations): they wrap. Only the column
+   * scrolls, not each list in it. */
   .split-aside :deep(.chip-track) {
     align-content: flex-start;
     animation: none;
     flex: none;
     flex-wrap: wrap;
     mask-image: none;
-    max-height: calc(9.5 * 1.75rem + 9 * 2px + 3px);
-    overflow-x: hidden;
-    overflow-y: auto;
-    scrollbar-width: thin;
+    max-height: none;
+    overflow: visible;
     width: 100%;
   }
 
@@ -106,6 +122,16 @@ withDefaults(defineProps<{
 @media (min-width: 1408px) {
   .container.split-layout {
     max-width: calc(1344px + var(--aside-width) + var(--aside-gap));
+  }
+}
+
+.container.split-layout.has-width {
+  max-width: var(--content-width);
+}
+
+@media (min-width: 1280px) {
+  .container.split-layout.has-width {
+    max-width: calc(var(--content-width) + var(--aside-width) + var(--aside-gap));
   }
 }
 </style>

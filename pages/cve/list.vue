@@ -63,16 +63,21 @@
             <UiField label="Private bugs">
               <UiSwitch v-model="hide_private">Hide</UiSwitch>
             </UiField>
+          </div>
+        </FilterPanel>
+        </template>
+
+        <!-- How the list is shown, above it. -->
+        <FilterPanel :summary="settingsSummary">
+          <div class="form-row settings-row">
+            <UiField label="Group by">
+              <UiSegmented v-model="group_by" :options="group_by_options" />
+            </UiField>
             <UiField label="Description">
               <UiSwitch v-model="show_description">Show</UiSwitch>
             </UiField>
           </div>
-
-          <UiField label="Group by">
-            <UiSegmented v-model="group_by" :options="group_by_options" />
-          </UiField>
         </FilterPanel>
-        </template>
 
       <div class="cve-group content" v-for="group in visible_groups" :key="group.key">
         <h3 class="title">
@@ -330,7 +335,10 @@ const loading = ref(false);
 const summary = computed(() => [
   filter_date.value && filter_date.value !== "All" ? filter_date.value : "All years",
   filter_component.value ?? "All components",
+].join(" · "));
+const settingsSummary = computed(() => [
   "By " + group_by_options.find(o => o.value === group_by.value)?.label,
+  show_description.value ? "With descriptions" : "Without descriptions",
 ].join(" · "));
 
 onMounted(async () => {

@@ -1,8 +1,8 @@
 <template>
   <div class="report">
     <section class="section">
-      <div class="container">
-      <div class="report-stack">
+      <SplitLayout :width="1080" aside-label="Report parameters">
+        <template #header>
         <header class="page-head">
           <div>
             <p class="kicker">Report · {{ repositoryName }} · 2026</p>
@@ -22,8 +22,10 @@
             Through {{ monthLabel(data.months.at(-1)!) }}
           </span>
         </header>
+        </template>
 
-        <aside class="group-bar" aria-label="Report parameters">
+        <template #aside>
+        <div class="group-bar">
           <div class="selector repository">
             <h2 class="panel-title">Repository</h2>
             <RepositorySelector
@@ -34,8 +36,10 @@
             <h2 class="panel-title">Organization</h2>
             <UiSegmented v-model="groupId" :options="groupOptions" aria-label="Organization" />
           </div>
-        </aside>
+        </div>
+        </template>
 
+        <div class="report-stack">
         <div v-if="!data" class="skeleton kpi-skeleton" aria-hidden="true" />
         <template v-else-if="group">
           <p v-if="few" class="few-warning" role="note">
@@ -245,8 +249,8 @@
             </ul>
           </section>
         </template>
-      </div>
-      </div>
+        </div>
+      </SplitLayout>
     </section>
   </div>
 </template>
@@ -527,73 +531,50 @@ const repositoryTable = computed(() => comparedRepositories.value.map(r => [
 </script>
 
 <style scoped>
-/* A reading column, narrower than the site's container. */
 .report-stack {
   display: grid;
   gap: 1.75rem;
   grid-template-columns: minmax(0, 1fr);
-  margin-inline: auto;
-  max-width: 1080px;
 }
 
-/* On large screens, the parameters sit in a column on the left, and stay in
- * view while the report scrolls. */
+.page-head,
+.group-bar {
+  margin-bottom: 1.75rem;
+}
+
+/* On large screens, the parameters are in the column on the left: their
+ * options one per line, as they are few. */
 @media (min-width: 1280px) {
-  .report-stack {
-    column-gap: 2.5rem;
-    grid-template-columns: 200px minmax(0, 1fr);
-    max-width: calc(1080px + 200px + 2.5rem);
-  }
-
-  .report-stack > * {
-    grid-column: 2;
-  }
-
-  .report-stack > .page-head {
-    grid-column: 1 / -1;
-  }
-
-  .report-stack > .group-bar {
-    align-self: start;
+  .group-bar {
     border-bottom: none;
     display: grid;
     gap: 1.5rem;
-    grid-column: 1;
-    grid-row: 2 / span 20;
-    justify-content: stretch;
-    /* Taller than the window: it scrolls on its own. */
-    max-height: calc(100vh - 3rem);
-    overflow-y: auto;
+    margin-bottom: 0;
     padding-bottom: 0;
-    position: sticky;
-    scrollbar-width: thin;
-    top: 1.5rem;
   }
 
   .group-bar .selector {
     justify-items: stretch;
   }
 
-  /* The options, one per line. */
-  .group-bar :deep(.chip-track),
-  .group-bar :deep(.segmented) {
-    animation: none;
+  .group-bar .selector :deep(.chip-track),
+  .group-bar .selector :deep(.segmented) {
     display: flex;
     flex-direction: column;
     flex-wrap: nowrap;
-    mask-image: none;
     max-height: none;
     overflow: visible;
     width: 100%;
   }
 
-  .group-bar :deep(.chip-track .chip),
-  .group-bar :deep(.segmented-option) {
+  .group-bar .selector :deep(.chip-track .chip),
+  .group-bar .selector :deep(.segmented-option) {
     justify-content: flex-start;
   }
 }
 
 /* The selectors scroll sideways on narrow screens. */
+.group-bar :deep(.segmented),
 .report-stack :deep(.segmented) {
   max-width: 100%;
   overflow-x: auto;

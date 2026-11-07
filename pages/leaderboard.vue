@@ -8,7 +8,7 @@
 
         <template #aside>
         <FilterPanel :summary="summary">
-          <UiField>
+          <UiField label="Repositories">
             <RepositorySelector
               v-model="repositories"
               size="medium"
@@ -16,8 +16,12 @@
               :allowAll="true"
               />
           </UiField>
+        </FilterPanel>
+        </template>
 
-          <div class="form-row">
+        <!-- The settings of the chart, above it. -->
+        <FilterPanel :summary="settingsSummary">
+          <div class="form-row settings-row">
             <UiField label="Count as">
               <UiSegmented
                 v-model="kind"
@@ -50,7 +54,6 @@
             </UiField>
           </div>
         </FilterPanel>
-        </template>
 
         <!--If props.type is "line", display a warning that this is heavily biased-->
         <!--around large scale refactoring and large deletion.-->
@@ -94,10 +97,11 @@ const type_labels = {
   deleted_lines: "Deletions",
 };
 
-const summary = computed(() => [
-  listSummary(repositoryNames(repositories.value), "repositories"),
-  type_labels[type.value],
+const summary = computed(() => listSummary(repositoryNames(repositories.value), "repositories"));
+const settingsSummary = computed(() => [
+  capitalize(kind.value),
   capitalize(grouping.value),
+  type_labels[type.value],
 ].join(" · "));
 
 const WARNING_MESSAGES: Record<string, string> = {

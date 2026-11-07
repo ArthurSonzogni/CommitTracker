@@ -8,7 +8,7 @@
 
         <template #aside>
         <FilterPanel :summary="summary">
-          <UiField>
+          <UiField label="Repositories">
             <RepositorySelector
               v-model="repositories"
               size="small"
@@ -116,6 +116,9 @@
           :display="display"
         />
 
+        <!-- The range of time of the chart, under it. -->
+        <Timeline v-model="dates" class="mt-5" />
+
         <!-- Warn users for invalid combinaisons -->
         <div v-if="metric == 'contributor'" class="mt-2">
           <div class="notification is-warning" v-if="repositories.length > 1">
@@ -127,12 +130,6 @@
         </div>
 
       </SplitLayout>
-    </section>
-
-    <section class="section">
-      <UiField expanded>
-        <Timeline v-model="dates" ></Timeline>
-      </UiField>
     </section>
   </div>
 </template>
@@ -220,12 +217,3 @@ watch(metric, () => {
 });
 </script>
 
-
-<style scoped>
-/* The labels sit before their control, so the settings take a single line. */
-.settings-row :deep(.ui-field) {
-  align-items: center;
-  flex-direction: row;
-  gap: 0.5rem;
-}
-</style>
