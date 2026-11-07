@@ -92,17 +92,27 @@ withDefaults(defineProps<{
     margin-bottom: 1.1rem;
   }
 
-  /* Long lists (repositories, organizations): they wrap. Only the column
-   * scrolls, not each list in it. */
+  /* Long lists (repositories, organizations): they wrap, and scroll on
+   * their own past ten rows and a half, the half row hinting at the rest.
+   * The repositories fit; the organizations scroll. */
   .split-aside :deep(.chip-track) {
     align-content: flex-start;
     animation: none;
     flex: none;
     flex-wrap: wrap;
     mask-image: none;
-    max-height: none;
-    overflow: visible;
+    max-height: calc(10.5 * 1.75rem + 10 * 2px + 3px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
     width: 100%;
+  }
+
+  /* The organizations are many more: they scroll past six rows and a half,
+   * so that the column stays short. */
+  .split-aside :deep(.organization-selector .chip-track) {
+    max-height: calc(6.5 * 1.75rem + 6 * 2px + 3px);
   }
 
   .split-aside :deep(.chip-selector) {

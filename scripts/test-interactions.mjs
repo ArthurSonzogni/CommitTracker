@@ -494,9 +494,9 @@ const tests = [
       const value = () => [...document.querySelectorAll('.kpi-value')].map(e => e.textContent.trim()).join(' ');
       const all = value();
 
-      // The bars grow in: once done, the last one (+77%) reaches above the +70% gridline.
+      // The bars grow in: once done, the last one (+77%) reaches above the +50% gridline.
       const grown = await __t.until(() => {
-        const tick = [...document.querySelectorAll('.yoy-chart text.axis')].find(t => t.textContent.trim() === '+70%');
+        const tick = [...document.querySelectorAll('.yoy-chart text.axis')].find(t => t.textContent.trim() === '+50%');
         const bars = document.querySelectorAll('.yoy-chart rect.bar');
         return tick && +bars[bars.length - 1].getAttribute('y') < +tick.getAttribute('y');
       }, 5000);
@@ -505,8 +505,21 @@ const tests = [
       const org = await __t.until(() => value() !== all && location.search.includes('organization=others'));
 
       const note = __t.text('.yoy-chart .note');
-      __t.byText('.segmented-option', 'Lines per commit (median)').click();
-      const measure = await __t.until(() => __t.text('.yoy-chart .note') !== note && location.search.includes('metric=lines'));
+      // A figure at the top selects the measure of the chart.
+      [...document.querySelectorAll('.kpi-card')]
+        .find(card => card.querySelector('.kpi-label').textContent.trim() === 'Lines per commit').click();
+      const measure = await __t.until(() =>
+        __t.text('.yoy-chart .note') !== note && location.search.includes('metric=lines') &&
+        __t.text('.kpi-card.selected .kpi-label') === 'Lines per commit' &&
+        __t.text('.metric-note').startsWith('Lines per commit:'));
+
+      // The size of the commits, and the lines per commit across repositories.
+      const sizes = __t.count('.size-facts dd') === 4 && __t.count('.percentile-chart') === 2;
+      const people = __t.text('.repository-chart');
+      __t.byText('[aria-label="Compare"] .segmented-option', 'Lines per commit').click();
+      const compare = await __t.until(() =>
+        location.search.includes('compare=lines') && __t.text('.repository-chart') !== people &&
+        __t.text('.repository-chart').includes('lines'));
 
       // The numbers behind a chart unfold in a table.
       const details = document.querySelector('.report-data');
@@ -530,7 +543,7 @@ const tests = [
       const warning = await __t.until(() =>
         location.search.includes('repository=dawn') && __t.text('.few-warning')?.includes('Few people'));
 
-      return { ok: !!ready && !!grown && !!org && !!measure && !!table && !!repository && !!warning, detail: 'all=' + all + ' others=' + value() };
+      return { ok: !!ready && !!grown && !!org && !!measure && !!table && !!repository && !!warning && sizes && !!compare, detail: 'all=' + all + ' others=' + value() };
     `,
   },
   {

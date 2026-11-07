@@ -5,9 +5,9 @@
       :viewBox="`0 0 ${width} ${HEIGHT}`"
       :height="HEIGHT"
       role="img"
-      aria-label="Percentiles of commits per person, one line per year">
+:aria-label="`${tipTitle}: percentiles, one line per year`">
       <text class="axis-title" :x="M.left - 6" :y="10">
-        Commits in a month · log scale: each gridline is ×2
+        {{ axisTitle }} · log scale: each gridline is ×2
       </text>
       <g v-for="tick in ticks" :key="tick">
         <line class="grid" :x1="M.left" :x2="width - M.right" :y1="y(tick)" :y2="y(tick)" />
@@ -50,7 +50,7 @@
     </svg>
 
     <div v-if="hover !== null && current" class="chart-tip" :style="tipStyle">
-      <div class="tip-title">p{{ Math.round(quantiles[hover] * 100) }} of commits per person-month</div>
+      <div class="tip-title">p{{ Math.round(quantiles[hover] * 100) }} of {{ tipTitle }}</div>
       <div>
         {{ previousYear }}: <strong>{{ previous?.[hover] ?? "—" }}</strong> ·
         {{ currentYear }}: <strong>{{ current[hover] }}</strong>
@@ -65,14 +65,21 @@
 </template>
 
 <script setup lang="ts">
-// Percentiles of commits per active person-month, one line per year, on a
-// log scale. The last year is highlighted, the one before it is darker.
+// Percentiles of a quantity (by default, the commits per active person-month),
+// one line per year, on a log scale. The last year is highlighted, the one
+// before it is darker.
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   quantiles: number[];
   // year -> the value at each quantile.
   percentiles: Record<string, number[]>;
-}>();
+  // What the values are, above the axis and in the tooltip.
+  axisTitle?: string;
+  tipTitle?: string;
+}>(), {
+  axisTitle: "Commits in a month",
+  tipTitle: "commits per person-month",
+});
 
 const HEIGHT = 310;
 const M = { top: 26, right: 46, bottom: 40, left: 34 };

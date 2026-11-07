@@ -89,7 +89,7 @@ const props = withDefaults(defineProps<{
 });
 
 const HEIGHT = 300;
-const M = { top: 10, right: 120, bottom: 24, left: 40 };
+const M = { top: 10, right: 140, bottom: 24, left: 40 };
 
 const root = ref<HTMLElement | null>(null);
 const width = ref(0);

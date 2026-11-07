@@ -31,7 +31,7 @@
         <circle class="median" :cx="x(change(row.p50))" :cy="rowY(k)" r="6" />
         <text class="row-value" :x="width - M.right + 10" :y="rowY(k) + 4">
           {{ pct(change(row.p50)) }}
-          <tspan v-if="!narrow" class="row-sub">· {{ row.n }} people</tspan>
+          <tspan v-if="!narrow" class="row-sub">· {{ row.detail ?? `${row.n} people` }}</tspan>
         </text>
       </g>
 
@@ -45,13 +45,18 @@
 
     <div v-if="hover !== null && rows[hover]" class="chart-tip" :style="tipStyle">
       <div class="tip-title">{{ rows[hover].name }}</div>
-      <div><strong>{{ rows[hover].n }}</strong> people with at least {{ minCommits }} commits in both periods</div>
-      <div>Median change: <strong>{{ pct(change(rows[hover].p50)) }}</strong></div>
+      <template v-if="rows[hover].tip">
+        <div v-for="line in rows[hover].tip" :key="line">{{ line }}</div>
+      </template>
+      <template v-else>
+        <div><strong>{{ rows[hover].n }}</strong> people with at least {{ minCommits }} commits in both periods</div>
+        <div>Median change: <strong>{{ pct(change(rows[hover].p50)) }}</strong></div>
+      </template>
       <div v-if="rows[hover].usual">
-        Usual median, {{ usualYears[0] }}–{{ usualYears[1] }}:
+        Usual, {{ usualYears[0] }}–{{ usualYears[1] }}:
         <strong>{{ pct(rows[hover].usual![0]) }}</strong> to <strong>{{ pct(rows[hover].usual![1]) }}</strong>
       </div>
-      <div><strong>{{ Math.round(rows[hover].up * 100) }}%</strong> of them landed more commits</div>
+      <div v-if="!rows[hover].tip"><strong>{{ Math.round(rows[hover].up * 100) }}%</strong> of them landed more commits</div>
     </div>
   </div>
 </template>
@@ -59,6 +64,7 @@
 <script setup lang="ts">
 // The same people, a year apart, per repository: the median change of the
 // last year (dot) against the range of the medians of the usual years (bar).
+// Or any other change, with its `detail` and `tip`.
 
 export interface RepositoryRow {
   dirname: string;
@@ -68,6 +74,9 @@ export interface RepositoryRow {
   up: number;
   // The lowest and highest median change of the usual years, or null.
   usual: [number, number] | null;
+  // Instead of "<n> people", after the change, and in the tooltip.
+  detail?: string;
+  tip?: string[];
 }
 
 const props = defineProps<{

@@ -65,14 +65,23 @@
 
           <div>
             <div class="kpi-grid">
-              <div v-for="card in kpis" :key="card.label" class="kpi-card">
+              <component
+                :is="card.metric ? 'button' : 'div'"
+                v-for="card in kpis"
+                :key="card.label"
+                :type="card.metric ? 'button' : undefined"
+                :class="['kpi-card', { selectable: card.metric, selected: card.metric === metric }]"
+                :aria-pressed="card.metric ? card.metric === metric : undefined"
+                :title="card.metric ? `Show ${card.label.toLowerCase()} month by month` : undefined"
+                @click="card.metric && (metric = card.metric)">
                 <span class="kpi-label">{{ card.label }}</span>
                 <span class="kpi-value">{{ card.value }}</span>
                 <span class="kpi-detail">{{ card.detail }}</span>
-              </div>
+              </component>
             </div>
             <p class="kpi-caption">
-              {{ windowLabel(lastYear) }} against {{ windowLabel(lastYear - 1) }}.
+              {{ windowLabel(lastYear) }} against {{ windowLabel(lastYear - 1) }}. Select a figure
+              to see it month by month below.
             </p>
           </div>
 
@@ -86,6 +95,14 @@
               </p>
             </div>
             <UiSegmented v-model="metric" :options="metricOptions" aria-label="Measure" class="metric" />
+            <p class="metric-note">
+              <strong>{{ metricLabel }}:</strong> {{ METRIC_TEXT[metric] }}
+              <template v-if="latestValues">
+                {{ latestValues.current }} in {{ monthShort(latestValues.month) }}, against
+                {{ latestValues.previous }} a year earlier.
+              </template>
+              <span class="metric-scope">This choice only changes this chart.</span>
+            </p>
             <div class="legend">
               <span><span class="legend-box past" />Before 2026</span>
               <span><span class="legend-box current" />2026</span>
@@ -174,8 +191,45 @@
 
           <section class="panel">
             <div>
-              <h2 class="panel-title">Not only {{ repositoryName }}</h2>
+              <h2 class="panel-title">{{ chromium ? "Bigger commits, not just a few huge ones" : "The size of the commits" }}</h2>
               <p class="panel-text">
+                Lines added plus deleted per commit, {{ windowMonths }} of each year, from the
+                10th to the 90th percentile. Under each percentile, how many times larger
+                {{ lastYear }} is than {{ lastYear - 1 }}.
+              </p>
+            </div>
+            <div class="size-layout">
+              <div>
+                <div class="legend">
+                  <span><span class="legend-line past" />{{ sizeYears[0] }}–{{ lastYear - 2 }}</span>
+                  <span><span class="legend-line previous" />{{ lastYear - 1 }}</span>
+                  <span><span class="legend-line current" />{{ lastYear }}</span>
+                </div>
+                <ReportPercentileChart
+                  :quantiles="data.size_quantiles"
+                  :percentiles="sizeValues"
+                  axis-title="Lines per commit"
+                  tip-title="the lines per commit" />
+              </div>
+              <dl class="size-facts">
+                <div v-for="fact in sizeFacts" :key="fact.label">
+                  <dt>{{ fact.label }}</dt>
+                  <dd>
+                    <span class="fact-value">{{ fact.previous }} → {{ fact.current }}</span>
+                    <span class="fact-detail">{{ fact.detail }}</span>
+                  </dd>
+                </div>
+              </dl>
+            </div>
+            <ReportDataTable
+              :columns="['Year', ...data.size_quantiles.map(q => `p${Math.round(q * 100)}`), `≤ ${data.tiny_commit} lines`, 'Files (median)', 'Added']"
+              :rows="sizeTable" />
+          </section>
+
+          <section class="panel">
+            <div>
+              <h2 class="panel-title">Not only {{ repositoryName }}</h2>
+              <p v-if="compare === 'people'" class="panel-text">
                 The same people, a year apart, in the other repositories tracked by this site, for
                 all their contributors. The dot is the median change from {{ windowLabel(lastYear - 1) }}
                 to {{ windowLabel(lastYear) }}; the bar spans the medians of
@@ -186,18 +240,25 @@
                   {{ repositoryName }} is shown, as it is selected.
                 </template>
               </p>
+              <p v-else class="panel-text">
+                The median lines per commit in the other repositories tracked by this site. The dot
+                is the change from {{ windowLabel(lastYear - 1) }} to {{ windowLabel(lastYear) }};
+                the bar spans the yearly changes of {{ data.usual_years[0] }}–{{ data.usual_years[1] }},
+                the usual range of each repository.
+              </p>
             </div>
+            <UiSegmented v-model="compare" :options="COMPARE_OPTIONS" aria-label="Compare" class="metric" />
             <div class="legend">
-              <span><span class="legend-dot current" />Median change, {{ lastYear }}</span>
-              <span><span class="legend-range" />Usual median, {{ data.usual_years[0] }}–{{ data.usual_years[1] }}</span>
+              <span><span class="legend-dot current" />{{ compare === "people" ? "Median change" : "Change" }}, {{ lastYear }}</span>
+              <span><span class="legend-range" />Usual, {{ data.usual_years[0] }}–{{ data.usual_years[1] }}</span>
             </div>
             <ReportRepositoryChart
-              :rows="comparedRepositories"
+              :rows="compare === 'people' ? comparedRepositories : linesRepositories"
               :min-commits="data.min_window"
               :usual-years="data.usual_years"
               :featured="repository!.dirname" />
             <ReportDataTable
-              :columns="['Repository', 'People', `Median, ${lastYear}`, `Usual, ${data.usual_years[0]}–${data.usual_years[1]}`, 'Commits per author a month']"
+:columns="repositoryColumns"
               :rows="repositoryTable" />
           </section>
 
@@ -228,7 +289,8 @@
               </li>
               <li>
                 Commit size is the number of lines added plus deleted, as a median: a few very large
-                commits don't move it.
+                commits don't move it. Lines per author is the median of each person's lines in the
+                month. The commits of the bots are not counted.
                 <template v-if="repository!.reviews_from">
                   Reviews come from the commit message trailers, compared from
                   {{ repository!.reviews_from.slice(0, 4) }}, once they are recorded steadily.
@@ -268,7 +330,10 @@ interface Group {
   authors: number[];
   reviews: number[];
   lines: (number | null)[];
+  lines_per_author: (number | null)[];
   cohort: CohortRow[];
+  // year -> the size of the commits of the window.
+  commit_size: Record<string, { q: number[]; tiny: number; files: number; added: number }>;
   percentiles: Record<string, number[]>;
   kpi: {
     commits: [number, number];
@@ -294,6 +359,8 @@ interface Repository extends RepositoryRow {
 }
 
 interface Report {
+  size_quantiles: number[];
+  tiny_commit: number;
   months: string[];
   window: string[];
   min_window: number;
@@ -305,16 +372,32 @@ interface Report {
 const METRICS = {
   commits: "Commits",
   per_author: "Commits per author",
-  lines: "Lines per commit (median)",
+  lines: "Lines per commit",
+  lines_per_author: "Lines per author",
   reviews: "Reviews",
   authors: "Active authors",
 } as const;
 type Metric = keyof typeof METRICS;
+// What each measure is, in the month.
+const METRIC_TEXT: Record<Metric, string> = {
+  commits: "the commits landed.",
+  per_author: "the commits divided by the people who landed at least one.",
+  lines: "the median of the lines added plus deleted by each commit.",
+  lines_per_author: "the median of the lines added plus deleted by each person who landed a commit. Lines measure output, not value.",
+  reviews: "the reviewers named in the commit messages, once per commit.",
+  authors: "the people who landed at least one commit.",
+};
 
-const { repositoryId, groupId, metric } = useUrlState({
+const COMPARE_OPTIONS = [
+  { value: "people", label: "The same people" },
+  { value: "lines", label: "Lines per commit" },
+];
+
+const { repositoryId, groupId, metric, compare } = useUrlState({
   repositoryId: { ...urlCodecs.string("chromium"), key: "repository" },
   groupId: { ...urlCodecs.string("all"), key: "organization" },
   metric: urlCodecs.enum(Object.keys(METRICS) as Metric[], "commits"),
+  compare: urlCodecs.enum(["people", "lines"] as const, "people"),
 });
 
 const data = shallowRef<Report | null>(null);
@@ -403,16 +486,19 @@ const kpis = computed(() => {
   return [
     {
       label: "Commits",
+      metric: "commits" as Metric,
       value: pct(k.commits[1] / k.commits[0] - 1),
       detail: `${integer.format(k.commits[0])} → ${integer.format(k.commits[1])}`,
     },
     {
       label: "Commits per author",
+      metric: "per_author" as Metric,
       value: pct(perAuthor[1] / perAuthor[0] - 1),
       detail: `${decimal.format(perAuthor[0])} → ${decimal.format(perAuthor[1])} a month`,
     },
     {
       label: "Lines per commit",
+      metric: "lines" as Metric,
       value: k.lines[0] && k.lines[1] !== null ? pct(k.lines[1] / k.lines[0] - 1) : "—",
       detail: `median ${k.lines[0] ?? "—"} → ${k.lines[1] ?? "—"}`,
     },
@@ -426,6 +512,7 @@ const kpis = computed(() => {
     },
     {
       label: "Active authors",
+      metric: "authors" as Metric,
       value: pct(k.authors[1] / k.authors[0] - 1),
       detail: `${integer.format(k.authors[0])} → ${integer.format(k.authors[1])} a month`,
     },
@@ -456,11 +543,23 @@ const valuesOf = (g: Group, m: Metric): (number | null)[] => {
     case "commits": return g.commits;
     case "per_author": return perAuthor(g);
     case "lines": return g.lines;
+    case "lines_per_author": return g.lines_per_author;
     case "reviews": return g.reviews;
     case "authors": return g.authors;
   }
 };
 const metricValues = computed(() => valuesOf(group.value!, metric.value));
+// The last month of the measure, against a year earlier.
+const latestValues = computed(() => {
+  const values = metricValues.value, i = values.length - 1;
+  const current = values[i], previous = values[i - 12];
+  if (current === null || previous === null || current === undefined || previous === undefined) return null;
+  return {
+    month: data.value!.months[i],
+    current: metricFormat.value(current),
+    previous: metricFormat.value(previous),
+  };
+});
 // All the measures share the scale of the chart, to compare them.
 const metricScale = computed(() => metrics.value.map(m => ({
   values: valuesOf(group.value!, m),
@@ -472,9 +571,9 @@ const metricFormat = computed(() =>
 const indexSeries = computed<IndexSeries[]>(() => {
   const g = group.value!;
   return [
-    { label: "Commits per author", short: "Per author", color: "var(--series-1)", values: perAuthor(g) },
-    { label: "Lines per commit (median)", short: "Lines/commit", color: "var(--series-2)", values: g.lines },
-    { label: "Active authors", short: "Authors", color: "var(--series-3)", values: g.authors },
+    { label: "Commits per author", color: "var(--series-1)", values: perAuthor(g) },
+    { label: "Lines per commit", color: "var(--series-2)", values: g.lines },
+    { label: "Active authors", color: "var(--series-3)", values: g.authors },
   ];
 });
 
@@ -483,6 +582,76 @@ const percentileStart = computed(() => Math.max(0, data.value!.quantiles.findInd
 const percentileQuantiles = computed(() => data.value!.quantiles.slice(percentileStart.value));
 const percentileValues = computed(() => Object.fromEntries(
   Object.entries(group.value!.percentiles).map(([year, values]) => [year, values.slice(percentileStart.value)])));
+
+// The size of the commits.
+const sizeYears = computed(() =>
+  Object.keys(group.value?.commit_size ?? {}).map(Number).sort((a, b) => a - b));
+const sizeValues = computed(() => Object.fromEntries(
+  Object.entries(group.value!.commit_size).map(([year, size]) => [year, size.q])));
+const share = (v: number) => `${Math.round(v * 100)}%`;
+const sizeFacts = computed(() => {
+  const sizes = group.value!.commit_size;
+  const current = sizes[lastYear.value], previous = sizes[lastYear.value - 1];
+  if (!current || !previous) return [];
+  const median = data.value!.size_quantiles.indexOf(0.5);
+  return [
+    {
+      label: "Median commit",
+      previous: `${previous.q[median]}`,
+      current: `${current.q[median]} lines`,
+      detail: "lines added plus deleted",
+    },
+    {
+      label: "Tiny commits",
+      previous: share(previous.tiny),
+      current: share(current.tiny),
+      detail: `of the commits change ${data.value!.tiny_commit} lines or fewer`,
+    },
+    {
+      label: "Files per commit",
+      previous: `${previous.files}`,
+      current: `${current.files}`,
+      detail: current.files === previous.files
+        ? "the median: the same files, with more lines in each"
+        : "the median",
+    },
+    {
+      label: "Added lines",
+      previous: share(previous.added),
+      current: share(current.added),
+      detail: "of the lines changed are added, the rest deleted",
+    },
+  ];
+});
+
+// The comparison across repositories, of the median lines per commit: the
+// change of the last year, against the changes of the usual years.
+const linesRepositories = computed<RepositoryRow[]>(() => {
+  const last = lastYear.value, [u0, u1] = data.value!.usual_years;
+  const median = data.value!.size_quantiles.indexOf(0.5);
+  return comparedRepositories.value.flatMap(r => {
+    const sizes = r.groups[0].commit_size;
+    const at = (year: number) => sizes[year]?.q[median];
+    const changeOf = (year: number) => at(year) && at(year - 1) ? at(year)! / at(year - 1)! : null;
+    const latest = changeOf(last);
+    if (latest === null) return [];
+    const usual = [];
+    for (let year = u0; year <= u1; year++) {
+      const c = changeOf(year);
+      if (c !== null) usual.push(c - 1);
+    }
+    return [{
+      ...r,
+      p50: Math.log2(latest),
+      usual: usual.length ? [Math.min(...usual), Math.max(...usual)] as [number, number] : null,
+      detail: `${at(last - 1)} → ${at(last)} lines`,
+      tip: [
+        `Median lines per commit: ${at(last - 1)} in ${windowLabel(last - 1)}, ${at(last)} in ${windowLabel(last)}`,
+        `Change: ${pct(latest - 1)}`,
+      ],
+    }];
+  });
+});
 
 // The numbers behind the charts --------------------------------------------
 
@@ -521,13 +690,36 @@ const percentileTable = computed(() => Object.entries(percentileValues.value)
   .sort((a, b) => +b[0] - +a[0])
   .map(([year, values]) => [year, ...values.map(v => integer.format(v))]));
 
-const repositoryTable = computed(() => comparedRepositories.value.map(r => [
-  r.name,
-  integer.format(r.n),
-  change(r.p50),
-  r.usual ? `${pct(r.usual[0])} to ${pct(r.usual[1])}` : "—",
-  `${decimal.format(r.per_author[0])} → ${decimal.format(r.per_author[1])}`,
-]));
+const repositoryColumns = computed(() => {
+  const usual = `Usual, ${data.value!.usual_years[0]}–${data.value!.usual_years[1]}`;
+  return compare.value === "people"
+    ? ["Repository", "People", `Median, ${lastYear.value}`, usual, "Commits per author a month"]
+    : ["Repository", "Lines per commit", `Change, ${lastYear.value}`, usual];
+});
+const repositoryTable = computed(() => compare.value === "people"
+  ? comparedRepositories.value.map(r => [
+    r.name,
+    integer.format(r.n),
+    change(r.p50),
+    r.usual ? `${pct(r.usual[0])} to ${pct(r.usual[1])}` : "—",
+    `${decimal.format(r.per_author[0])} → ${decimal.format(r.per_author[1])}`,
+  ])
+  : linesRepositories.value.map(r => [
+    r.name,
+    r.detail!,
+    change(r.p50),
+    r.usual ? `${pct(r.usual[0])} to ${pct(r.usual[1])}` : "—",
+  ]));
+
+const sizeTable = computed(() => Object.entries(group.value!.commit_size)
+  .sort((a, b) => +b[0] - +a[0])
+  .map(([year, size]) => [
+    year,
+    ...size.q.map(v => integer.format(v)),
+    share(size.tiny),
+    `${size.files}`,
+    share(size.added),
+  ]));
 </script>
 
 <style scoped>
@@ -540,6 +732,16 @@ const repositoryTable = computed(() => comparedRepositories.value.map(r => [
 .page-head,
 .group-bar {
   margin-bottom: 1.75rem;
+}
+
+.group-bar {
+  align-items: flex-start;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  justify-content: space-between;
+  padding-bottom: 0.9rem;
 }
 
 /* On large screens, the parameters are in the column on the left: their
@@ -623,16 +825,6 @@ const repositoryTable = computed(() => comparedRepositories.value.map(r => [
   white-space: nowrap;
 }
 
-.group-bar {
-  align-items: flex-start;
-  border-bottom: 1px solid var(--line);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem 1.5rem;
-  justify-content: space-between;
-  padding-bottom: 0.9rem;
-}
-
 .selector {
   display: grid;
   gap: 0.4rem;
@@ -690,6 +882,34 @@ const repositoryTable = computed(() => comparedRepositories.value.map(r => [
   display: grid;
   gap: 0.1rem;
   padding: 0.9rem 1rem;
+}
+
+/* The figures that select the measure of the chart below. */
+button.kpi-card {
+  align-content: start;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+button.kpi-card:hover {
+  border-color: var(--line-strong);
+}
+
+button.kpi-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.kpi-card.selected {
+  border-color: var(--accent-line);
+  box-shadow: inset 0 0 0 1px var(--accent-line);
+}
+
+.kpi-card.selected .kpi-label {
+  color: var(--accent-ink);
 }
 
 .kpi-label {
@@ -753,6 +973,61 @@ const repositoryTable = computed(() => comparedRepositories.value.map(r => [
 .metric {
   justify-self: start;
   max-width: 100%;
+}
+
+.metric-note {
+  color: var(--ink-2);
+  font-size: 0.86rem;
+  max-width: 85ch;
+}
+
+.metric-scope {
+  color: var(--muted);
+}
+
+/* The size of the commits: the chart, and the facts beside it. */
+.size-layout {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr) 260px;
+}
+
+@media (max-width: 900px) {
+  .size-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.size-facts {
+  align-content: start;
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+}
+
+.size-facts dt {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.size-facts dd {
+  display: grid;
+  margin: 0;
+}
+
+.fact-value {
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.fact-detail {
+  color: var(--ink-2);
+  font-size: 0.8rem;
 }
 
 .row2 {

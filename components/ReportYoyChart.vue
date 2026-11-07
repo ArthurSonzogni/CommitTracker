@@ -157,11 +157,12 @@ const domain = computed<[number, number]>(() => {
   const s = tickStep(hi - lo);
   return [Math.floor(lo / s) * s, Math.ceil(hi / s) * s];
 });
-// The ticks of the new scale, inside the animated one.
+// The ticks of the new scale, inside the animated one: the multiples of the
+// step, so that 0 is one of them.
 const ticks = computed(() => {
   const [lo, hi] = domain.value, s = tickStep(hi - lo), out: number[] = [];
   const [shownLo, shownHi] = shown.value.domain;
-  for (let v = lo; v <= hi + 1e-9; v += s) {
+  for (let v = Math.ceil(lo / s - 1e-9) * s; v <= hi + 1e-9; v += s) {
     if (v >= shownLo - 1e-9 && v <= shownHi + 1e-9) out.push(Math.round(v * 100) / 100);
   }
   return out;

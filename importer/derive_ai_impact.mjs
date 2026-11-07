@@ -20,6 +20,12 @@
 //         "id", "label",
 //         "commits": [...], "authors": [...], "reviews": [...],
 //         "lines": [...],                   // median lines changed per commit
+//         "lines_per_author": [...],        // median lines changed per author
+//         "commit_size": { "<year>": {      // the commits of the window
+//           "q": [...],                     // their lines, at "size_quantiles"
+//           "tiny", "files", "added" } },   // share of at most "tiny_commit"
+//                                           // lines, median files, share of
+//                                           // the lines that are added
 //         "cohort": [{ "year", "n", "p25", "p50", "p75", "up" }, ...],
 //         "percentiles": { "<year>": [...] }, // of commits per active person-month
 //                                             // in the window, at "quantiles"
@@ -58,6 +64,10 @@ const MIN_WINDOW = 6;
 // Organizations shown on their own: enough people to say something.
 const MIN_AUTHORS_PER_MONTH = 15;
 const QUANTILES = [0.1, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99];
+// Of the size of the commits.
+const SIZE_QUANTILES = [0.1, 0.25, 0.5, 0.75, 0.9];
+// A commit of at most this many lines is tiny.
+const TINY_COMMIT = 5;
 const FIRST_PERCENTILE_YEAR = 2016;
 // The report is about 2026: the months stop there, even later.
 const LAST_MONTH = "2026-12";
@@ -119,8 +129,10 @@ const deriveRepository = async repository => {
   // username -> month index -> Map(org -> commits), for authors and reviewers.
   const authored = new Map();
   const reviewed = new Map();
-  // org -> month index -> lines changed of each commit.
+  // org -> month index -> [lines changed, files, lines added] of each commit.
   const lines = new Map();
+  // username -> month index -> lines changed.
+  const authoredLines = new Map();
 
   const add = (table, user, i, org) => {
     let byMonth = table.get(user);
@@ -145,11 +157,15 @@ const deriveRepository = async repository => {
       const org = getOrganization(email, commit.date);
       if (commit.kind === "author") {
         add(authored, user, i, org);
+        const changed = (commit.additions || 0) + (commit.deletions || 0);
         let byMonth = lines.get(org);
         if (!byMonth) lines.set(org, byMonth = new Map());
         let list = byMonth.get(i);
         if (!list) byMonth.set(i, list = []);
-        list.push((commit.additions || 0) + (commit.deletions || 0));
+        list.push([changed, commit.files || 0, commit.additions || 0]);
+        let linesByMonth = authoredLines.get(user);
+        if (!linesByMonth) authoredLines.set(user, linesByMonth = new Map());
+        linesByMonth.set(i, (linesByMonth.get(i) || 0) + changed);
       } else if (commit.kind === "review") {
         add(reviewed, user, i, org);
       }
@@ -221,13 +237,42 @@ const deriveRepository = async repository => {
         if (group.test(org)) reviews[i] += n;
       }
     }
-    const medianLines = months.map((_, i) => {
+    // The commits of the group in the months [first, last].
+    const commitsIn = (first, last) => {
       const all = [];
       for (const [org, byMonth] of lines) {
-        if (group.test(org)) all.push(...(byMonth.get(i) || []));
+        if (!group.test(org)) continue;
+        for (let i = Math.max(0, first); i <= last; i++) all.push(...(byMonth.get(i) || []));
       }
-      return quantile(all.sort((a, b) => a - b), 0.5);
-    });
+      return all;
+    };
+    const medianLines = months.map((_, i) =>
+      quantile(commitsIn(i, i).map(c => c[0]).sort((a, b) => a - b), 0.5));
+    // The median of the lines changed by each active author in the month.
+    const linesPerAuthor = new Array(M).fill(null).map(() => []);
+    for (const [user, byMonth] of authors) {
+      for (const [i, [, org]] of byMonth) {
+        if (group.test(org)) linesPerAuthor[i].push(authoredLines.get(user).get(i));
+      }
+    }
+    const medianLinesPerAuthor = linesPerAuthor.map(list => quantile(list.sort((a, b) => a - b), 0.5));
+
+    // The size of the commits in the window of each year.
+    const commitSize = {};
+    for (let end = windowEnd; end - WINDOW + 1 >= 0; end -= 12) {
+      const year = +months[end].slice(0, 4);
+      if (year < FIRST_PERCENTILE_YEAR) break;
+      const all = commitsIn(end - WINDOW + 1, end);
+      if (!all.length) continue;
+      const sizes = all.map(c => c[0]).sort((a, b) => a - b);
+      const changed = sizes.reduce((a, b) => a + b, 0);
+      commitSize[year] = {
+        q: SIZE_QUANTILES.map(q => quantile(sizes, q)),
+        tiny: round(sizes.filter(n => n <= TINY_COMMIT).length / sizes.length),
+        files: quantile(all.map(c => c[1]).sort((a, b) => a - b), 0.5),
+        added: round(all.reduce((a, c) => a + c[2], 0) / (changed || 1)),
+      };
+    }
 
     const cohort = [];
     for (let end = windowEnd; end - 12 - WINDOW + 1 >= 0; end -= 12) {
@@ -260,15 +305,12 @@ const deriveRepository = async repository => {
     // KPIs: the window against the same months a year earlier.
     const windowStats = end => {
       let c = 0, personMonths = 0;
-      const all = [];
       for (let i = end - WINDOW + 1; i <= end; i++) {
         c += commits[i];
         personMonths += authorCount[i];
-        for (const [org, byMonth] of lines) {
-          if (group.test(org)) all.push(...(byMonth.get(i) || []));
-        }
       }
-      return { commits: c, personMonths, lines: quantile(all.sort((a, b) => a - b), 0.5) };
+      const sizes = commitsIn(end - WINDOW + 1, end).map(c => c[0]).sort((a, b) => a - b);
+      return { commits: c, personMonths, lines: quantile(sizes, 0.5) };
     };
     const before = windowStats(windowEnd - 12);
     const after = windowStats(windowEnd);
@@ -280,8 +322,10 @@ const deriveRepository = async repository => {
       authors: authorCount,
       reviews,
       lines: medianLines,
+      lines_per_author: medianLinesPerAuthor,
       cohort,
       percentiles,
+      commit_size: commitSize,
       kpi: {
         commits: [before.commits, after.commits],
         person_months: [before.personMonths, after.personMonths],
@@ -305,6 +349,9 @@ const deriveRepository = async repository => {
     group.cohort = group.cohort.filter(row => row.year - 1 >= firstYear);
     for (const year of Object.keys(group.percentiles)) {
       if (+year < firstYear) delete group.percentiles[year];
+    }
+    for (const year of Object.keys(group.commit_size)) {
+      if (+year < firstYear) delete group.commit_size[year];
     }
   }
   const usual = all.cohort
@@ -348,6 +395,8 @@ await fs.writeFile("../public/data/ai-impact.json", JSON.stringify({
   window: months.slice(windowEnd - WINDOW + 1),
   min_window: MIN_WINDOW,
   quantiles: QUANTILES,
+  size_quantiles: SIZE_QUANTILES,
+  tiny_commit: TINY_COMMIT,
   usual_years: USUAL_YEARS,
   repositories: output,
 }));
