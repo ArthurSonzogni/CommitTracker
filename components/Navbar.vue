@@ -200,6 +200,7 @@ const MENU: Array<NavLeaf | NavGroup> = [
     label: "More",
     icon: "dots-horizontal",
     items: [
+      pageItem("/reports/2026-ai-impact"),
       pageItem("/security"),
       pageItem("/usernames"),
       pageItem("/leaderboard"),

@@ -7,6 +7,8 @@ export interface SitePageMeta {
   hint?: string;
   title?: string;
   description: string;
+  // The link preview image of the page, a path from the site root.
+  image?: string;
 }
 
 export const SITE_URL = "https://chrome-commit-tracker.arthursonzogni.com";
@@ -35,6 +37,9 @@ export const formatPageTitle = (page?: SitePageMeta): string =>
 
 export const formatPageDescription = (page?: SitePageMeta): string =>
   page?.description ?? sitePages[0]?.description ?? "";
+
+export const formatPageImage = (page?: SitePageMeta): string =>
+  page?.image ? `${SITE_URL}${page.image}` : SITE_OG_IMAGE;
 
 export const formatPageUrl = (routePath: string): string =>
   `${SITE_URL}${routePath.startsWith("/") ? routePath : `/${routePath}`}`;

@@ -13,11 +13,11 @@
 <script setup lang="ts">
 import {
   findSitePage,
+  formatPageImage,
   formatPageDescription,
   formatPageTitle,
   formatPageUrl,
   SITE_NAME,
-  SITE_OG_IMAGE,
   SITE_TWITTER,
 } from "~/utils/pageMeta";
 
@@ -49,7 +49,7 @@ useSeoMeta({
   description,
   ogDescription: description,
 
-  ogImage: SITE_OG_IMAGE,
+  ogImage: () => formatPageImage(page.value),
 
   ogUrl: url,
   ogType: "website",

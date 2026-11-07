@@ -480,6 +480,60 @@ const tests = [
     `,
   },
   {
+    name: 'ai impact report: KPIs, charts, organization, measure, repository',
+    url: 'reports/2026-ai-impact',
+    run: `
+      const ready = await __t.until(() =>
+        __t.count('.kpi-card') === 5 &&
+        __t.count('.yoy-chart rect.bar') > 100 &&
+        __t.count('.index-chart path.line') === 3 &&
+        __t.count('.cohort-chart circle.median') >= 10 &&
+        __t.count('.percentile-chart path.line') >= 10 &&
+        __t.count('.percentile-chart text.factor') >= 3 &&
+        __t.count('.repository-chart circle.median') >= 3, 20000);
+      const value = () => [...document.querySelectorAll('.kpi-value')].map(e => e.textContent.trim()).join(' ');
+      const all = value();
+
+      // The bars grow in: once done, the last one (+77%) reaches above the +70% gridline.
+      const grown = await __t.until(() => {
+        const tick = [...document.querySelectorAll('.yoy-chart text.axis')].find(t => t.textContent.trim() === '+70%');
+        const bars = document.querySelectorAll('.yoy-chart rect.bar');
+        return tick && +bars[bars.length - 1].getAttribute('y') < +tick.getAttribute('y');
+      }, 5000);
+
+      __t.byText('.segmented-option', 'Everyone else').click();
+      const org = await __t.until(() => value() !== all && location.search.includes('organization=others'));
+
+      const note = __t.text('.yoy-chart .note');
+      __t.byText('.segmented-option', 'Lines per commit (median)').click();
+      const measure = await __t.until(() => __t.text('.yoy-chart .note') !== note && location.search.includes('metric=lines'));
+
+      // The numbers behind a chart unfold in a table.
+      const details = document.querySelector('.report-data');
+      details.querySelector('summary').click();
+      const table = await __t.until(() => details.open && details.querySelectorAll('tbody tr').length > 10);
+
+      // Another repository: the same report, without the reviews Firefox doesn't record.
+      __t.byText('.segmented-option', 'Reviews').click();
+      await __t.until(() => location.search.includes('metric=reviews'));
+      const chromium = value();
+      const chip = name => __t.byText('.repository-selector .chip', name);
+      chip('Firefox').click();
+      const repository = await __t.until(() =>
+        location.search.includes('repository=firefox') && !location.search.includes('metric=reviews') &&
+        __t.text('h1').includes('Firefox') && value() !== chromium &&
+        !__t.byText('.segmented-option', 'Reviews') &&
+        __t.count('.yoy-chart rect.bar') > 100 && __t.count('.cohort-chart circle.median') >= 10);
+
+      // A repository with few people carries a warning.
+      chip('Dawn').click();
+      const warning = await __t.until(() =>
+        location.search.includes('repository=dawn') && __t.text('.few-warning')?.includes('Few people'));
+
+      return { ok: !!ready && !!grown && !!org && !!measure && !!table && !!repository && !!warning, detail: 'all=' + all + ' others=' + value() };
+    `,
+  },
+  {
     name: 'cve lifespan: severity stratification, evolution charts, SLA table, and icons',
     url: 'cve/lifespan',
     run: `

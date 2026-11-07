@@ -32,14 +32,14 @@ const escape = text => text
 
 const shell = fs.readFileSync(path.join(output, '200.html'), 'utf8');
 
-const render = (html, { title, description, url }) => {
+const render = (html, { title, description, url, image = SITE_OG_IMAGE }) => {
   const tags = [
     `<title>${escape(title)}</title>`,
     `<meta name="description" content="${escape(description)}">`,
     `<meta property="og:title" content="${escape(title)}">`,
     `<meta property="og:description" content="${escape(description)}">`,
     `<meta property="og:url" content="${escape(url)}">`,
-    `<meta property="og:image" content="${SITE_OG_IMAGE}">`,
+    `<meta property="og:image" content="${escape(image)}">`,
     `<meta property="og:type" content="website">`,
     `<meta property="og:site_name" content="${SITE_NAME}">`,
     `<meta name="twitter:card" content="summary_large_image">`,
@@ -63,6 +63,7 @@ for (const page of pages) {
     title: page.title ?? `${page.label} · ${SITE_NAME}`,
     description: page.description,
     url: SITE_URL + page.path,
+    image: page.image ? SITE_URL + page.image : undefined,
   }));
   pageCount++;
 }
