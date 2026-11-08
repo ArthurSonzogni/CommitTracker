@@ -40,8 +40,13 @@
         :x="width - M.right"
         :y="endLabelY"
         text-anchor="end">
-        {{ monthLabel(lastBar.month) }} {{ pct(lastBar.r) }}
+        {{ windowMark ? windowMark.text : `${monthLabel(lastBar.month)} ${pct(lastBar.r)}` }}
       </text>
+      <!-- The months of the figures at the top of the page. -->
+      <path
+        v-if="windowMark && lastBar && bars.length >= windowMark.size"
+        class="window-mark"
+        :d="`M${x(bars.length - windowMark.size) + gap},${endLabelY + 7}v-3H${x(bars.length - 1) + gap + barWidth}v3`" />
 
       <rect
         class="hit"
@@ -66,7 +71,6 @@
       <template v-if="clipped">
         ▲ {{ clipped }} month{{ clipped > 1 ? "s" : "" }} above {{ pct(domain[1]) }} cut off.
       </template>
-      Hover for the values.
     </p>
   </div>
 </template>
@@ -94,6 +98,8 @@ const props = withDefaults(defineProps<{
   baseline?: [string, string];
   format?: (v: number) => string;
   scale?: YoySeries[];
+  // The last `size` months, marked with a bracket labeled `text`.
+  windowMark?: { size: number; text: string };
 }>(), {
   from: "2017-01",
   highlightFrom: "2026-01",
@@ -222,7 +228,7 @@ const y = (v: number) => {
 };
 // The label of the last bar, above the bars it spans (about 100px).
 const endLabelY = computed(() => {
-  const n = Math.max(1, Math.ceil(100 / step.value));
+  const n = Math.max(1, Math.ceil((props.windowMark ? 240 : 100) / step.value));
   const spanned = bars.value.slice(-n);
   const top = Math.max(0, ...spanned.map(b => rOf(b.month)));
   return y(top) - (spanned.some(b => b.r > domain.value[1]) ? 14 : 7);
@@ -297,6 +303,12 @@ svg {
 
 .cut {
   fill: var(--ink);
+}
+
+.window-mark {
+  fill: none;
+  stroke: var(--ink-2);
+  stroke-width: 1.2;
 }
 
 .end-label {

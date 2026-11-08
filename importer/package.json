@@ -6,7 +6,7 @@
   "main": "index.mjs",
   "scripts": {
     "fetch_data": "node fetch_data.mjs",
-    "derive_data": "node derive_data.mjs && node badges.mjs && node derive_ai_impact.mjs",
+    "derive_data": "node derive_data.mjs && node badges.mjs && node derive_developer_output.mjs",
     "treemap": "node treemap.mjs",
     "graph": "node graph.mjs",
     "fixmailmap": "node fixmailmap.mjs",

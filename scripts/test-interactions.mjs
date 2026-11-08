@@ -480,17 +480,18 @@ const tests = [
     `,
   },
   {
-    name: 'ai impact report: KPIs, charts, organization, measure, repository',
-    url: 'reports/2026-ai-impact',
+    name: 'developer output: KPIs, charts, organization, measure, repository, period',
+    // A fixed period, for the values below.
+    url: 'developer-output?end=2026-10',
     run: `
       const ready = await __t.until(() =>
-        __t.count('.kpi-card') === 5 &&
+        __t.count('.kpi-card') === 4 &&
+        __t.count('.findings li') === 3 &&
         __t.count('.yoy-chart rect.bar') > 100 &&
-        __t.count('.index-chart path.line') === 3 &&
+        __t.text('.yoy-chart .end-label')?.includes('Aug–Oct 2026') &&
         __t.count('.cohort-chart circle.median') >= 10 &&
         __t.count('.percentile-chart path.line') >= 10 &&
-        __t.count('.percentile-chart text.factor') >= 3 &&
-        __t.count('.repository-chart circle.median') >= 3, 20000);
+        __t.count('.percentile-chart text.factor') >= 3, 20000);
       const value = () => [...document.querySelectorAll('.kpi-value')].map(e => e.textContent.trim()).join(' ');
       const all = value();
 
@@ -513,13 +514,24 @@ const tests = [
         __t.text('.kpi-card.selected .kpi-label') === 'Lines per commit' &&
         __t.text('.metric-note').startsWith('Lines per commit:'));
 
-      // The size of the commits, and the lines per commit across repositories.
-      const sizes = __t.count('.size-facts dd') === 4 && __t.count('.percentile-chart') === 2;
-      const people = __t.text('.repository-chart');
-      __t.byText('[aria-label="Compare"] .segmented-option', 'Lines per commit').click();
-      const compare = await __t.until(() =>
-        location.search.includes('compare=lines') && __t.text('.repository-chart') !== people &&
-        __t.text('.repository-chart').includes('lines'));
+      // The size of the commits.
+      const sizes = __t.count('.size-facts dd') === 3 && __t.count('.percentile-chart') === 2;
+
+      // The organizations side by side: the small ones without figures.
+      const organizations = __t.count('table.organizations tbody tr') > 3 &&
+        __t.count('table.organizations tr.selected') <= 1 &&
+        __t.count('table.organizations tr.small') === __t.count('table.organizations .too-few');
+
+      // The switches show the same thing another way, kept in the link.
+      __t.byText('.segmented-option', 'Against the usual years').click();
+      __t.byText('.segmented-option', 'Month by month').click();
+      const views = await __t.until(() =>
+        location.search.includes('view=index') && location.search.includes('people=month') &&
+        __t.count('.index-chart path.line') === 3 && __t.count('.cohort-monthly-chart path.median') === 1 &&
+        !__t.count('.yoy-chart') && !__t.count('.cohort-chart'));
+      __t.byText('.segmented-option', 'Against a year earlier').click();
+      __t.byText('.segmented-option', 'By year').click();
+      await __t.until(() => __t.count('.yoy-chart rect.bar') > 100 && __t.count('.cohort-chart circle.median') >= 10);
 
       // The numbers behind a chart unfold in a table.
       const details = document.querySelector('.report-data');
@@ -538,12 +550,39 @@ const tests = [
         !__t.byText('.segmented-option', 'Reviews') &&
         __t.count('.yoy-chart rect.bar') > 100 && __t.count('.cohort-chart circle.median') >= 10);
 
-      // A repository with few people carries a warning.
+      // A repository with few people carries a warning. Scrolled down, it
+      // floats at the top of the window for a while.
+      window.scrollTo(0, 1500);
+      await __t.until(() => document.querySelector('.page-head').getBoundingClientRect().top < 0);
       chip('Dawn').click();
       const warning = await __t.until(() =>
-        location.search.includes('repository=dawn') && __t.text('.few-warning')?.includes('Few people'));
+        location.search.includes('repository=dawn') && __t.text('.kicker .caveat.warning')?.includes('Few people') &&
+        __t.text('.caveat-overlay .caveat-note.warning')?.includes('Read the direction') &&
+        __t.count('.caveat-overlay.floating') === 1 &&
+        __t.count('.findings li') === 3 && __t.text('.findings').includes('too few people'));
 
-      return { ok: !!ready && !!grown && !!org && !!measure && !!table && !!repository && !!warning && sizes && !!compare, detail: 'all=' + all + ' others=' + value() };
+      // Another period: a year earlier, kept in the link.
+      chip('Chromium').click();
+      await __t.until(() => !location.search.includes('repository=') && value() !== '');
+      const before = value();
+      const select = document.querySelector('[aria-label="Period"] select') || document.querySelector('.select select');
+      select.value = '2025-10';
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+      const period = await __t.until(() =>
+        location.search.includes('end=2025-10') && value() !== before &&
+        __t.text('.kicker').includes('Aug–Oct 2025') && __t.text('.findings').includes('(2020–2024)'));
+
+      // Back returns to the previous period, Forward to the new one.
+      const after = value();
+      history.back();
+      const back = await __t.until(() =>
+        location.search.includes('end=2026-10') && __t.text('.kicker').includes('Aug–Oct 2026') &&
+        value() === before && select.value === '2026-10');
+      history.forward();
+      const forward = await __t.until(() =>
+        location.search.includes('end=2025-10') && value() === after);
+
+      return { ok: !!ready && !!grown && !!org && !!measure && !!table && !!repository && !!warning && sizes && organizations && !!views && !!period && !!back && !!forward, detail: 'all=' + all + ' 2025=' + value() };
     `,
   },
   {

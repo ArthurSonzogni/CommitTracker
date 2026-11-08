@@ -1,18 +1,18 @@
-// Renders the link preview image of /reports/2026-ai-impact, from the data of
-// the report, with a headless Chrome. The image is committed: run it again
-// once the report data is final (it is frozen at the end of 2026).
+// Renders the link preview image of /developer-output, from the data of
+// the report at its latest period, with a headless Chrome. The image is
+// committed: run it again to refresh its figures.
 //
-// Usage: node scripts/og-ai-impact.mjs [data=public/data/ai-impact.json]
+// Usage: node scripts/og-developer-output.mjs [data=public/data/developer-output.json]
 //        Requires Chrome (CHROME_PATH, default: google-chrome).
-// Writes public/img/og/2026-ai-impact.png (1200x630).
+// Writes public/img/og/developer-output.png (1200x630).
 
 import { execFileSync } from 'child_process';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
-const dataFile = process.argv[2] || 'public/data/ai-impact.json';
-const output = path.resolve('public/img/og/2026-ai-impact.png');
+const dataFile = process.argv[2] || 'public/data/developer-output.json';
+const output = path.resolve('public/img/og/developer-output.png');
 const chromePath = process.env.CHROME_PATH || 'google-chrome';
 
 const data = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
@@ -22,7 +22,8 @@ const months = data.months;
 const pct = v => `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(Math.round(v * 100))}%`;
 const short = month => new Date(`${month}-15T00:00:00Z`)
   .toLocaleString('en', { month: 'short', timeZone: 'UTC' });
-const window = `${short(data.window[0])}–${short(data.window.at(-1))}`;
+const end = months.length - 1;
+const window = `${short(months[end - data.window + 1])}–${short(months[end])}`;
 const year = +months.at(-1).slice(0, 4);
 
 // Year-over-year change of the commits, as in the report's first chart.
@@ -32,13 +33,16 @@ for (let i = 12; i < months.length; i++) {
   bars.push({ month: months[i], r: all.commits[i] / all.commits[i - 12] - 1 });
 }
 
-const k = all.kpi;
-const perAuthor = k.commits[1] / k.person_months[1] / (k.commits[0] / k.person_months[0]) - 1;
-const samePeople = 2 ** all.cohort.at(-1).p50 - 1;
+// The window ending at `last`, as on the page.
+const sum = (values, last) => values.slice(last - data.window + 1, last + 1).reduce((a, b) => a + b, 0);
+const perAuthorAt = last => sum(all.commits, last) / sum(all.authors, last);
+const perAuthor = perAuthorAt(end) / perAuthorAt(end - 12) - 1;
+const samePeople = 2 ** all.cohort.p50[end] - 1;
+const median = data.size_quantiles.indexOf(0.5);
 const figures = [
   [pct(perAuthor), 'commits per author'],
   [pct(samePeople), 'the same people'],
-  [pct(k.lines[1] / k.lines[0] - 1), 'lines per commit'],
+  [pct(all.size.q[end][median] / all.size.q[end - 12][median] - 1), 'lines per commit'],
 ];
 
 // The chart, as an SVG.
@@ -73,8 +77,8 @@ const html = `<!doctype html>
 <body>
   <div class="site">CommitTracker</div>
   <div>
-    <div class="kicker">Report · Chromium · ${year}</div>
-    <h1>Chromium's ${year} acceleration</h1>
+    <div class="kicker">Report · Chromium · ${window} ${year}</div>
+    <h1>Chromium developer output</h1>
   </div>
   <div class="figures">
     ${figures.map(([value, label]) => `<div class="figure"><b>${value}</b><span>${label}</span></div>`).join('')}
@@ -86,7 +90,7 @@ const html = `<!doctype html>
   <div class="caption">${window} ${year} against ${window} ${year - 1}. Bars: commits, against the same month a year earlier.</div>
 </body></html>`;
 
-const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'og-ai-impact-'));
+const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'og-developer-output-'));
 const page = path.join(dir, 'og.html');
 fs.writeFileSync(page, html);
 fs.mkdirSync(path.dirname(output), { recursive: true });
@@ -101,4 +105,4 @@ execFileSync(chromePath, [
   `file://${page}`,
 ], { stdio: 'ignore' });
 fs.rmSync(dir, { recursive: true, force: true });
-console.log(`og-ai-impact: wrote ${output}`);
+console.log(`og-developer-output: wrote ${output}`);
