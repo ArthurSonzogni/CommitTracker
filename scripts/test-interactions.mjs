@@ -540,15 +540,15 @@ const tests = [
       const table = await __t.until(() => details.open && details.querySelectorAll('tbody tr').length > 10);
 
       // Another repository: the same report, without the reviews Firefox doesn't record.
-      __t.byText('.segmented-option', 'Reviews').click();
-      await __t.until(() => location.search.includes('metric=reviews'));
+      __t.byText('.segmented-option', 'Reviews per reviewer').click();
+      await __t.until(() => location.search.includes('metric=per_reviewer'));
       const chromium = value();
       const chip = name => __t.byText('.repository-selector .chip', name);
       chip('Firefox').click();
       const repository = await __t.until(() =>
-        location.search.includes('repository=firefox') && !location.search.includes('metric=reviews') &&
+        location.search.includes('repository=firefox') && !location.search.includes('metric=per_reviewer') &&
         __t.text('h1').includes('Firefox') && value() !== chromium &&
-        !__t.byText('.segmented-option', 'Reviews') &&
+        !__t.byText('.segmented-option', 'Reviews per reviewer') &&
         __t.count('.yoy-chart rect.bar') > 100 && __t.count('.cohort-chart circle.median') >= 10);
 
       // A repository with few people carries a warning. Scrolled down, it

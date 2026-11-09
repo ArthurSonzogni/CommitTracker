@@ -20,6 +20,7 @@
 //         "id", "label",
 //         // By month:
 //         "commits": [...], "authors": [...], "reviews": [...],
+//         "reviewers": [...],               // the people who reviewed at least one
 //         "lines": [...],                   // median lines changed per commit
 //         // By the window ending at each month, null without enough data:
 //         "cohort": { "n", "p25", "p50", "p75", "mean", "up" }, // arrays
@@ -235,6 +236,7 @@ const deriveRepository = async repository => {
     const commits = new Array(M).fill(0);
     const authorCount = new Array(M).fill(0);
     const reviews = new Array(M).fill(0);
+    const reviewerCount = new Array(M).fill(0);
     for (const byMonth of authors.values()) {
       for (const [i, [n, org]] of byMonth) {
         if (!group.test(org)) continue;
@@ -244,7 +246,9 @@ const deriveRepository = async repository => {
     }
     for (const byMonth of reviewers.values()) {
       for (const [i, [n, org]] of byMonth) {
-        if (group.test(org)) reviews[i] += n;
+        if (!group.test(org)) continue;
+        reviews[i] += n;
+        reviewerCount[i]++;
       }
     }
     // The commits of the group in the months [first, last].
@@ -331,6 +335,7 @@ const deriveRepository = async repository => {
       commits,
       authors: authorCount,
       reviews,
+      reviewers: reviewerCount,
       lines: medianLines,
       cohortAt,
       sizeAt,

@@ -407,6 +407,7 @@ interface Group {
   commits: number[];
   authors: number[];
   reviews: number[];
+  reviewers: number[];
   lines: (number | null)[];
   cohort: CohortRow[];
   cohort_monthly: CohortMonthly;
@@ -471,6 +472,7 @@ interface RawGroup {
   commits: number[];
   authors: number[];
   reviews: number[];
+  reviewers: number[];
   lines: Column;
   cohort: Record<"n" | "p25" | "p50" | "p75" | "mean" | "up", Column>;
   size: { q: (number[] | null)[]; tiny: Column; files: Column; added: Column };
@@ -577,6 +579,7 @@ const reportAt = (raw: RawReport, end: number): Report => {
       commits: cut(g.commits),
       authors: cut(g.authors),
       reviews: cut(g.reviews),
+      reviewers: cut(g.reviewers),
       lines: cut(g.lines),
       cohort: yearly(i => c.n[i] === null ? null : {
         year: yearOf(i), n: c.n[i]!, p25: c.p25[i], p50: c.p50[i], p75: c.p75[i], up: c.up[i] ?? 0,
@@ -618,7 +621,7 @@ const METRICS = {
   commits: "Commits",
   per_author: "Commits per author",
   lines: "Lines per commit",
-  reviews: "Reviews",
+  per_reviewer: "Reviews per reviewer",
   authors: "Active authors",
 } as const;
 type Metric = keyof typeof METRICS;
@@ -627,7 +630,8 @@ type Metric = keyof typeof METRICS;
 const METRIC_TEXT: Partial<Record<Metric, string>> = {
   per_author: "the commits divided by the people who landed at least one.",
   lines: "the median of the lines added plus deleted by each commit.",
-  reviews: "the reviewers named in the commit messages, once per commit.",
+  per_reviewer: "the reviews divided by the people who reviewed at least one commit. A review is " +
+    "a reviewer named in a commit message.",
 };
 
 const TREND_VIEWS = [
@@ -692,7 +696,7 @@ const topOrganization = computed(() => repository.value?.groups[1]?.label ?? "th
 watch(repository, r => {
   if (!r) return;
   if (!r.groups.some(g => g.id === groupId.value)) groupId.value = "all";
-  if (metric.value === "reviews" && !r.reviews_from) metric.value = "per_author";
+  if (metric.value === "per_reviewer" && !r.reviews_from) metric.value = "per_author";
 });
 // The people of the selection in the same-people comparison.
 const people = computed(() => group.value?.cohort.at(-1)?.n ?? 0);
@@ -836,12 +840,12 @@ const selectGroup = (id: string) => {
 // Charts -------------------------------------------------------------------
 
 const metrics = computed(() => (Object.keys(METRICS) as Metric[])
-  .filter(m => m !== "reviews" || repository.value?.reviews_from));
+  .filter(m => m !== "per_reviewer" || repository.value?.reviews_from));
 const metricOptions = computed(() => metrics.value.map(value => ({ value, label: METRICS[value] })));
 // A year after the first full year of data, to compare with it.
 const metricFrom = (m: Metric) => {
   const r = repository.value!;
-  if (m === "reviews") return r.reviews_from!;
+  if (m === "per_reviewer") return r.reviews_from!;
   const from = `${+r.data_from.slice(0, 4) + 1}-01`;
   return from > "2017-01" ? from : "2017-01";
 };
@@ -852,12 +856,13 @@ const indexFrom = computed(() => {
 });
 const metricLabel = computed(() => METRICS[metric.value]);
 const perAuthor = (g: Group) => g.commits.map((c, i) => g.authors[i] ? c / g.authors[i] : null);
+const perReviewer = (g: Group) => g.reviews.map((r, i) => g.reviewers[i] ? r / g.reviewers[i] : null);
 const valuesOf = (g: Group, m: Metric): (number | null)[] => {
   switch (m) {
     case "commits": return g.commits;
     case "per_author": return perAuthor(g);
     case "lines": return g.lines;
-    case "reviews": return g.reviews;
+    case "per_reviewer": return perReviewer(g);
     case "authors": return g.authors;
   }
 };
@@ -868,7 +873,7 @@ const metricScale = computed(() => metrics.value.map(m => ({
   from: metricFrom(m),
 })));
 const metricFormat = computed(() =>
-  metric.value === "per_author" ? (v: number) => decimal.format(v) : (v: number) => integer.format(v));
+  metric.value === "per_author" || metric.value === "per_reviewer" ? (v: number) => decimal.format(v) : (v: number) => integer.format(v));
 
 const indexSeries = computed<IndexSeries[]>(() => {
   const g = group.value!;
@@ -943,7 +948,10 @@ const windowValue = (g: Group, m: Metric, last: number): number | null => {
       const size = g.commit_size[+data.value!.months[last].slice(0, 4)];
       return size ? size.q[data.value!.size_quantiles.indexOf(0.5)] : null;
     }
-    case "reviews": return windowSum(g.reviews, last);
+    case "per_reviewer": {
+      const reviewers = windowSum(g.reviewers, last);
+      return reviewers ? windowSum(g.reviews, last) / reviewers : null;
+    }
     case "authors": return windowSum(g.authors, last) / data.value!.window.length;
   }
 };
