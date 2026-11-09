@@ -171,8 +171,6 @@ const MENU: Array<NavLeaf | NavGroup> = [
     items: [
       pageItem("/repositories", "Charts"),
       pageItem("/pulse", "Heatmap"),
-      pageItem("/commit-rates"),
-      pageItem("/commit-rates-sankey"),
       pageItem("/accretion"),
     ],
   },

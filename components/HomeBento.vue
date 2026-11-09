@@ -169,10 +169,10 @@ const moreLinks = [
     description: "Security vulnerabilities, severities, components, and rewards.",
   },
   {
-    to: "/commit-rates-sankey",
-    label: "Commit rates",
-    icon: "chart-sankey",
-    description: "Directory commit velocity explored as an interactive Sankey diagram.",
+    to: "/developer-output",
+    label: "Developer output",
+    icon: "trending-up",
+    description: "Are developers landing more than usual? Against a year earlier and the usual years.",
   },
   {
     to: "/leaderboard",

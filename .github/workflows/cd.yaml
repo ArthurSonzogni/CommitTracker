@@ -57,6 +57,11 @@ jobs:
       - name: Test website interactions
         run: npm run test:interactions
 
+      # The commit rates pages are dormant: their ~30k data files made the
+      # Pages deployment time out. The pages are still built and tested.
+      - name: Drop dormant data
+        run: rm -rf .output/public/commit_rates
+
       # Deployed as an artifact: much faster than committing the 200k files
       # of the site to a branch, and building it again.
       - name: Upload website
