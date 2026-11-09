@@ -6,6 +6,11 @@
       :height="HEIGHT"
       role="img"
       aria-label="Measures indexed to their baseline average">
+      <defs>
+        <clipPath :id="clipId">
+          <rect :x="0" :y="M.top" :width="width" :height="HEIGHT - M.top" />
+        </clipPath>
+      </defs>
       <rect
         v-if="highlightIndex >= 0"
         class="highlight"
@@ -27,12 +32,14 @@
         </text>
       </g>
 
-      <path
-        v-for="line in lines"
-        :key="line.label"
-        class="line"
-        :d="pathOf(line.values)"
-        :style="{ stroke: line.color }" />
+      <g :clip-path="`url(#${clipId})`">
+        <path
+          v-for="line in lines"
+          :key="line.label"
+          class="line"
+          :d="pathOf(line.values)"
+          :style="{ stroke: line.color }" />
+      </g>
       <text
         v-for="label in endLabels"
         :key="label.text"
@@ -57,6 +64,7 @@
         {{ line.label }}: <strong>{{ line.values[hover] === null ? "—" : Math.round(line.values[hover]!) }}</strong>
       </div>
     </div>
+    <p v-if="clipped" class="note">▲ Cut off above {{ domain[1] }}: {{ clipped }}.</p>
   </div>
 </template>
 
@@ -126,14 +134,36 @@ const lines = computed(() => props.series.map(s => {
   return { ...s, values };
 }));
 
+// The scale stops at CAP, so that an unusual early period (a young project
+// with a few very active people) doesn't flatten the rest. The year before
+// the highlighted period is never cut.
+const CAP = 300;
 const domain = computed<[number, number]>(() => {
   const all = lines.value.flatMap(l => l.values).filter((v): v is number => v !== null);
   if (!all.length) return [0, 200];
-  return [Math.floor(Math.min(80, ...all) / 20) * 20, Math.ceil(Math.max(120, ...all) / 20) * 20];
+  const recentFrom = shown.value.findIndex(m => m >= `${+props.highlightFrom.slice(0, 4) - 1}-01`);
+  const recent = recentFrom < 0 ? [] : lines.value
+    .flatMap(l => l.values.slice(recentFrom))
+    .filter((v): v is number => v !== null);
+  const top = Math.min(Math.max(...all), Math.max(CAP, ...recent));
+  return [Math.floor(Math.min(80, ...all) / 20) * 20, Math.ceil(Math.max(120, top) / 20) * 20];
 });
+// The measures cut off at the top, and when: "Commits per author, 2019–2020".
+const clipped = computed(() => lines.value.flatMap(l => {
+  const years = shown.value
+    .filter((_, k) => l.values[k] !== null && l.values[k]! > domain.value[1])
+    .map(m => m.slice(0, 4));
+  if (!years.length) return [];
+  const span = years[0] === years.at(-1) ? years[0] : `${years[0]}–${years.at(-1)}`;
+  return [`${l.label}, ${span}`];
+}).join("; "));
+const clipId = `index-clip-${useId()}`;
 const ticks = computed(() => {
-  const [lo, hi] = domain.value, step = hi - lo > 200 ? 40 : 20, out: number[] = [];
-  for (let v = lo; v <= hi; v += step) out.push(v);
+  // About 8 gridlines at most, on round numbers.
+  const [lo, hi] = domain.value, out: number[] = [];
+  const step = [20, 50, 100, 200, 250, 500, 1000].find(s => (hi - lo) / s <= 8) ?? 2000;
+  for (let v = Math.ceil(lo / step) * step; v <= hi; v += step) out.push(v);
+  if (!out.includes(100)) out.push(100);
   return out;
 });
 
@@ -272,5 +302,10 @@ svg {
   margin-right: 0.3rem;
   vertical-align: middle;
   width: 12px;
+}
+.note {
+  color: var(--muted);
+  font-size: 0.78rem;
+  margin-top: 0.35rem;
 }
 </style>

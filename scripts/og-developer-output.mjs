@@ -41,7 +41,7 @@ const samePeople = 2 ** all.cohort.p50[end] - 1;
 const median = data.size_quantiles.indexOf(0.5);
 const figures = [
   [pct(perAuthor), 'commits per author'],
-  [pct(samePeople), 'the same people'],
+  [pct(samePeople), 'commits by the same people'],
   [pct(all.size.q[end][median] / all.size.q[end - 12][median] - 1), 'lines per commit'],
 ];
 

@@ -520,7 +520,8 @@ const tests = [
       // The organizations side by side: the small ones without figures.
       const organizations = __t.count('table.organizations tbody tr') > 3 &&
         __t.count('table.organizations tr.selected') <= 1 &&
-        __t.count('table.organizations tr.small') === __t.count('table.organizations .too-few');
+        __t.count('table.organizations tr.small') === __t.count('table.organizations .too-few') &&
+        __t.count('table.organizations .row-link') >= 3 && __t.text('table.organizations').includes('usual');
 
       // The switches show the same thing another way, kept in the link.
       __t.byText('.segmented-option', 'Against the usual years').click();

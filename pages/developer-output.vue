@@ -214,50 +214,6 @@
 
           <section class="panel">
             <div>
-              <h2 class="panel-title">The largest organizations</h2>
-              <p class="panel-text">
-                The {{ repository!.organizations.length }} organizations with the most active
-                authors over the last 12 months: {{ windowLabel(lastYear) }} against
-                {{ windowLabel(lastYear - 1) }}. With fewer than {{ MIN_COMPARED }} people active in
-                both years, an organization is too small to measure.
-              </p>
-            </div>
-            <div class="table-scroll">
-              <table class="organizations">
-                <thead>
-                  <tr>
-                    <th>Organization</th>
-                    <th>Active authors a month</th>
-                    <th>Commits per author</th>
-                    <th>Same people</th>
-                    <th>Lines per commit</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr
-                    v-for="row in organizationRows"
-                    :key="row.label"
-                    :class="{ small: !row.measured, selected: row.selected }">
-                    <th scope="row">{{ row.label }}</th>
-                    <td>{{ row.authors }} <span class="cell-detail">{{ row.authorsChange }}</span></td>
-                    <template v-if="row.measured">
-                      <td class="figure">{{ row.perAuthor }}</td>
-                      <td class="figure">
-                        {{ row.same || "—" }} <span class="cell-detail">{{ row.people }} people</span>
-                      </td>
-                      <td class="figure">{{ row.lines }}</td>
-                    </template>
-                    <td v-else colspan="3" class="too-few">
-                      Too few people to measure ({{ row.people }} active in both years)
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          <section class="panel">
-            <div>
               <h2 class="panel-title">{{ activityTitle }}</h2>
               <p class="panel-text">
                 The developers ranked by their commits in a month, from the median (p50) to the
@@ -309,6 +265,74 @@
             <ReportDataTable
               :columns="['Year', ...percentileQuantiles.map(q => `p${Math.round(q * 100)}`), `≤ ${data.tiny_commit} lines`, 'Files (median)', 'Added']"
               :rows="sizeTable" />
+          </section>
+
+          <section class="panel">
+            <div>
+              <h2 class="panel-title">The largest organizations</h2>
+              <p class="panel-text">
+                The {{ repository!.organizations.length - 1 }} organizations with the most active
+                authors over the last 12 months: {{ windowLabel(lastYear) }} against
+                {{ windowLabel(lastYear - 1) }}, and the same change in the usual years
+                ({{ usualLabel }}). With fewer than {{ MIN_COMPARED }} people active in both years,
+                an organization is too small to measure. Select one to see it in detail.
+              </p>
+            </div>
+            <div class="table-scroll">
+              <table class="organizations">
+                <thead>
+                  <tr>
+                    <th>Organization</th>
+                    <th>Active authors a month</th>
+                    <th>Commits per author</th>
+                    <th>Commits by the same people</th>
+                    <th>Lines per commit</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="row in organizationRows"
+                    :key="row.label"
+                    :class="{ small: !row.measured, selected: row.selected }">
+                    <th scope="row">
+                      <button
+                        v-if="row.group"
+                        type="button"
+                        class="row-link"
+                        :title="`Show ${row.label}`"
+                        @click="selectGroup(row.group)">
+                        {{ row.label }}
+                      </button>
+                      <template v-else>{{ row.label }}</template>
+                    </th>
+                    <td>
+                      <span v-if="row.authors" class="figure">{{ row.authors }}</span>
+                      <span class="cell-detail">{{ row.authorsDetail }}</span>
+                    </td>
+                    <template v-if="row.measured">
+                      <td>
+                        <span class="figure">{{ row.perAuthor }}</span>
+                        <span class="cell-detail">{{ row.perAuthorDetail }} a month</span>
+                        <span class="cell-usual">{{ row.usual.perAuthor }}</span>
+                      </td>
+                      <td>
+                        <span class="figure">{{ row.same }}</span>
+                        <span class="cell-detail">{{ row.people }} people</span>
+                        <span class="cell-usual">{{ row.usual.same }}</span>
+                      </td>
+                      <td>
+                        <span class="figure">{{ row.lines }}</span>
+                        <span class="cell-detail">{{ row.linesDetail }} lines</span>
+                        <span class="cell-usual">{{ row.usual.lines }}</span>
+                      </td>
+                    </template>
+                    <td v-else colspan="3" class="too-few">
+                      Too few people to measure ({{ row.people }} active in both years)
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </section>
 
           <section class="notes">
@@ -423,6 +447,8 @@ interface Organization {
   people: number;
   same: number | null;
   lines: [number | null, number | null];
+  // The changes of the usual years, the USUAL_SPAN before the end's.
+  usual: { per_author: number[]; same: number[]; lines: number[] };
 }
 
 interface Report {
@@ -481,6 +507,9 @@ interface RawReport {
 
 // The years compared with the one of the end month: the 5 before it.
 const USUAL_SPAN = 5;
+// Below this many people active in both years, an organization is too small
+// to measure: one person moves its figures by hundreds of percent.
+const MIN_COMPARED = 10;
 
 // The report for the window ending at month `end`: the months stop there, the
 // yearly rows are the windows ending at end, end - 12, ...
@@ -504,17 +533,40 @@ const reportAt = (raw: RawReport, end: number): Report => {
     for (let i = Math.max(0, last - W + 1); i <= last; i++) total += values[i];
     return total;
   };
-  const organizationAt = (o: RawOrganization): Organization => {
-    const authors = [sum(o.authors, end - 12), sum(o.authors, end)];
+  // The organization over the window ending at `i`, and a year earlier.
+  const organizationAt = (o: RawOrganization, i: number) => {
+    const authors = [sum(o.authors, i - 12), sum(o.authors, i)];
     return {
-      label: o.label,
-      authors: [authors[0] / W, authors[1] / W],
-      per_author: [sum(o.commits, end - 12) / authors[0], sum(o.commits, end) / authors[1]],
-      people: o.people[end] ?? 0,
-      same: o.same[end],
-      lines: [o.lines[end - 12], o.lines[end]],
+      authors: [authors[0] / W, authors[1] / W] as [number, number],
+      per_author: [sum(o.commits, i - 12) / authors[0], sum(o.commits, i) / authors[1]] as [number, number],
+      people: o.people[i] ?? 0,
+      same: o.same[i],
+      lines: [o.lines[i - 12], o.lines[i]] as [number | null, number | null],
     };
   };
+  const organization = (o: RawOrganization, dataFrom: string): Organization => {
+    const change = ([before, after]: [number | null, number | null]) =>
+      before && after !== null && Number.isFinite(after / before) ? [after / before - 1] : [];
+    const usual: Organization["usual"] = { per_author: [], same: [], lines: [] };
+    for (let back = 1; back <= USUAL_SPAN; back++) {
+      const i = end - 12 * back;
+      if (i - 12 < 0 || months[i - 12] < dataFrom) break;
+      const v = organizationAt(o, i);
+      usual.per_author.push(...change(v.per_author));
+      if (v.people >= MIN_COMPARED && v.same !== null) usual.same.push(2 ** v.same - 1);
+      usual.lines.push(...change(v.lines));
+    }
+    return { label: o.label, ...organizationAt(o, end), usual };
+  };
+  // Everyone, compared as an organization.
+  const everyone = (g: RawGroup): RawOrganization => ({
+    label: g.label,
+    commits: g.commits,
+    authors: g.authors,
+    people: g.cohort.n,
+    same: g.cohort.p50,
+    lines: g.size.q.map(q => q?.[median] ?? null),
+  });
   const groupAt = (g: RawGroup): Group => {
     const cut = <T>(values: T[]) => values.slice(0, end + 1);
     const c = g.cohort;
@@ -555,7 +607,9 @@ const reportAt = (raw: RawReport, end: number): Report => {
     usual_years: [year - USUAL_SPAN, year - 1],
     repositories: raw.repositories.map(repository => {
       const groups = repository.groups.map(groupAt);
-      return { ...repository, groups, organizations: repository.organizations.map(organizationAt) };
+      const organizations = [everyone(repository.groups[0]), ...repository.organizations]
+        .map(o => organization(o, repository.data_from));
+      return { ...repository, groups, organizations };
     }),
   };
 };
@@ -591,7 +645,7 @@ const { endMonth, repositoryId, groupId, metric, trendView, peopleView } = useUr
   endMonth: { ...urlCodecs.string(""), key: "end", history: "push" },
   repositoryId: { ...urlCodecs.string("chromium"), key: "repository", history: "push" },
   groupId: { ...urlCodecs.string("all"), key: "organization", history: "push" },
-  metric: { ...urlCodecs.enum(Object.keys(METRICS) as Metric[], "commits"), history: "push" },
+  metric: { ...urlCodecs.enum(Object.keys(METRICS) as Metric[], "per_author"), history: "push" },
   trendView: { ...urlCodecs.enum(["yoy", "index"] as const, "yoy"), key: "view", history: "push" },
   peopleView: { ...urlCodecs.enum(["year", "month"] as const, "year"), key: "people", history: "push" },
 });
@@ -638,7 +692,7 @@ const topOrganization = computed(() => repository.value?.groups[1]?.label ?? "th
 watch(repository, r => {
   if (!r) return;
   if (!r.groups.some(g => g.id === groupId.value)) groupId.value = "all";
-  if (metric.value === "reviews" && !r.reviews_from) metric.value = "commits";
+  if (metric.value === "reviews" && !r.reviews_from) metric.value = "per_author";
 });
 // The people of the selection in the same-people comparison.
 const people = computed(() => group.value?.cohort.at(-1)?.n ?? 0);
@@ -715,7 +769,7 @@ const kpis = computed(() => {
       detail: `${decimal.format(perAuthor[0])} → ${decimal.format(perAuthor[1])} a month`,
       // The same, without the people who came or left.
       extra: {
-        label: "Same people",
+        label: "Commits by the same people",
         value: enough ? pct(2 ** latest!.p50! - 1) : "—",
         lines: enough
           ? [
@@ -744,35 +798,40 @@ const kpis = computed(() => {
 
 // Organizations ------------------------------------------------------------
 
-// Below this many people active in both years, an organization is too small
-// to measure: one person moves its figures by hundreds of percent.
-const MIN_COMPARED = 10;
 const organizationRows = computed(() => {
-  const r = repository.value!, all = r.groups[0], k = all.kpi;
+  const r = repository.value!;
   const ratio = (v: [number | null, number | null]) => v[0] && v[1] !== null ? pct(v[1] / v[0] - 1) : "—";
-  const rows: Organization[] = [{
-    label: all.label,
-    authors: k.authors,
-    per_author: [k.commits[0] / k.person_months[0], k.commits[1] / k.person_months[1]],
-    people: all.cohort.at(-1)?.n ?? 0,
-    same: all.cohort.at(-1)?.p50 ?? null,
-    lines: k.lines,
-  }, ...r.organizations];
-  return rows.map(o => {
+  const usual = (values: number[]) => values.length ? `usual ${range(values)}` : "";
+  return r.organizations.map(o => {
     const measured = o.people >= MIN_COMPARED;
     return {
       label: o.label,
+      // The group to select, when it has one.
+      group: r.groups.find(g => g.label === o.label)?.id ?? null,
       measured,
       selected: o.label === group.value?.label,
-      authors: integer.format(o.authors[1]),
-      authorsChange: measured && o.authors[0] ? pct(o.authors[1] / o.authors[0] - 1) : "",
-      perAuthor: measured ? ratio(o.per_author) : "",
-      same: measured && o.same !== null ? pct(2 ** o.same - 1) : "",
+      usual: {
+        perAuthor: usual(o.usual.per_author),
+        same: usual(o.usual.same),
+        lines: usual(o.usual.lines),
+      },
+      authors: measured && o.authors[0] ? pct(o.authors[1] / o.authors[0] - 1) : "",
+      authorsDetail: `${integer.format(o.authors[0])} → ${integer.format(o.authors[1])}`,
+      perAuthor: ratio(o.per_author),
+      perAuthorDetail: `${decimal.format(o.per_author[0])} → ${decimal.format(o.per_author[1])}`,
+      same: o.same !== null ? pct(2 ** o.same - 1) : "—",
       people: integer.format(o.people),
-      lines: measured ? ratio(o.lines) : "",
+      lines: ratio(o.lines),
+      linesDetail: `${o.lines[0] ?? "—"} → ${o.lines[1] ?? "—"}`,
     };
   });
 });
+
+// Selects an organization from the table, and shows it from the top.
+const selectGroup = (id: string) => {
+  groupId.value = id;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+};
 
 // Charts -------------------------------------------------------------------
 
@@ -904,7 +963,9 @@ const usualChanges = (g: Group, m: Metric) => {
   }
   return out;
 };
-const range = (values: number[]) => `${pct(Math.min(...values))} to ${pct(Math.max(...values))}`;
+const range = (values: number[]) => values.length === 1
+  ? pct(values[0])
+  : `${pct(Math.min(...values))} to ${pct(Math.max(...values))}`;
 
 const windowMark = computed(() => {
   const g = group.value!, change = windowChange(g, metric.value);
@@ -1072,7 +1133,7 @@ const findings = computed(() => {
   const same = samePeople.value;
   if (!same) {
     out.push({
-      lead: "Same people:",
+      lead: "Commits by the same people:",
       text: `too few people active in both years (${group.value!.cohort.at(-1)?.n ?? 0}) to compare. ` +
         "Read the direction of the figures, not the exact numbers.",
     });
@@ -1081,7 +1142,7 @@ const findings = computed(() => {
     const explains = perAuthor !== null && Math.sign(same.change) === Math.sign(perAuthor) &&
       Math.abs(same.change) >= Math.abs(perAuthor) / 2;
     out.push({
-      lead: `${pct(same.change)} for the same people:`,
+      lead: `${pct(same.change)} commits by the same people:`,
       text: `the median of the ${integer.format(same.n)} people active in both years` +
         (explains ? ", so not because of who joined or left." : "."),
     });
@@ -1523,6 +1584,17 @@ button.kpi-card:focus-visible {
   text-align: left;
 }
 
+/* The organization stays in view when the table scrolls sideways. */
+.organizations th:first-child {
+  background: var(--surface);
+  left: 0;
+  position: sticky;
+}
+
+.organizations tr.selected th:first-child {
+  background: var(--surface-sunken);
+}
+
 .organizations tbody th {
   font-weight: 600;
 }
@@ -1532,6 +1604,7 @@ button.kpi-card:focus-visible {
 }
 
 .organizations .figure {
+  display: block;
   font-weight: 640;
 }
 
@@ -1551,11 +1624,33 @@ button.kpi-card:focus-visible {
   text-align: left;
 }
 
+.cell-usual {
+  color: var(--muted);
+  font-style: italic;
+  display: block;
+  font-size: 0.72rem;
+}
+
+.row-link {
+  background: none;
+  border: 0;
+  color: var(--accent);
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-align: left;
+}
+
+.row-link:hover,
+.row-link:focus-visible {
+  text-decoration: underline;
+}
+
 .cell-detail {
   color: var(--muted);
+  display: block;
   font-size: 0.75rem;
   font-weight: 400;
-  margin-left: 0.25rem;
 }
 
 .kpi-skeleton {
