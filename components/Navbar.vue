@@ -189,7 +189,6 @@ const MENU: Array<NavLeaf | NavGroup> = [
       pageItem("/cve/overview", "Overview"),
       pageItem("/cve/list", "List"),
       pageItem("/cve/pivot-table", "Pivot table"),
-      pageItem("/cve/lifespan", "Lifespan & SLA"),
       pageItem("/cve/reward_per_components", "Reward per component"),
       pageItem("/cve/money-tree", "Money tree"),
     ],

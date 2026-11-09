@@ -24,8 +24,6 @@
     "description": "Every publicly known Chromium CVE, with its component, severity and reward." },
   { "path": "/cve/pivot-table", "label": "CVE pivot table", "icon": "table",
     "description": "Chromium CVE rewards and counts, per component and year." },
-  { "path": "/cve/lifespan", "label": "CVE lifespan & SLA", "icon": "timer-sand", "hint": "Vulnerability dwell time & fix pipeline",
-    "description": "Silent vulnerability dwell time (Found In to Fixed), decomposed engineering vs release-train latency, and security SLA metrics." },
   { "path": "/cve/reward_per_components", "label": "CVE reward per component", "icon": "chart-sankey",
     "description": "Chromium vulnerability rewards per component." },
   { "path": "/cve/money-tree", "label": "CVE money tree", "icon": "currency-usd",

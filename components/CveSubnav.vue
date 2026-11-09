@@ -23,7 +23,6 @@ const TABS = [
   { to: '/cve/overview', label: 'Overview', icon: 'chart-pie' },
   { to: '/cve/list', label: 'List', icon: 'format-list-bulleted' },
   { to: '/cve/pivot-table', label: 'Pivot table', icon: 'table' },
-  { to: '/cve/lifespan', label: 'Lifespan & SLA', icon: 'timer-sand' },
   { to: '/cve/reward_per_components', label: 'Rewards by component', icon: 'chart-sankey' },
   { to: '/cve/money-tree', label: 'Money tree', icon: 'currency-usd' },
 ];
