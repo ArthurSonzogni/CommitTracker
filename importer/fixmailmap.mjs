@@ -27,8 +27,9 @@ const dedupAndSortCommits = (commits, ownerEmail) => {
     if (commit.kind === 'review' && commit.peers.length === 0) {
       continue;
     }
-    const key =
-      commit.sha ??
+    // The hash is abbreviated: it identifies a commit together with its date.
+    const key = commit.sha ?
+      `${commit.date}\0${commit.sha}` :
       `${commit.date}\0${commit.additions}\0${commit.deletions}\0${commit.files}`;
     const preexisting = map.get(key);
     if (!preexisting || (preexisting.kind === 'review' && commit.kind === 'author')) {

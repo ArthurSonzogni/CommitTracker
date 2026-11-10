@@ -248,6 +248,9 @@ for (const repository of repositories) {
           } else if (commit.peers.length > 1) {
             commit.peers = [...new Set(commit.peers.map(usernameOf))].sort();
           }
+          // The hash only identifies the commit for the importer: it would
+          // grow the files of the usernames for nothing.
+          delete commit.sha;
           if (perEmail.length > 1) {
             userCommits.push(commit);
           }

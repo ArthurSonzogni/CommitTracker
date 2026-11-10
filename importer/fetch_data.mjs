@@ -34,7 +34,8 @@ const GitHubReviewers = (commit) => {
   return reviewers;
 };
 
-const ProcessCommit = (data, logins, commit, github) => {
+const ProcessCommit = (data, logins, commit, repository) => {
+  const github = repository.reviewers === 'github';
   // Skip merge commits:
   if (commit.parents.totalCount > 1) {
     return "skipped";
@@ -45,7 +46,10 @@ const ProcessCommit = (data, logins, commit, github) => {
   //
   // Note that other repositories like Chromium have all of their commit
   // committed by a bot, so we can't just exclude all commits from a bot.
-  if (commit.committer.email.includes('wptsync')) {
+  if (
+    (repository.dirname === 'firefox' || repository.dirname === 'spidermonkey') &&
+    commit.committer.email.includes('wptsync')
+  ) {
     return "wptsync";
   }
 
@@ -57,6 +61,9 @@ const ProcessCommit = (data, logins, commit, github) => {
     logins[author] = commit.author.user.login.toLowerCase();
   }
   const date = commit.committedDate;
+  // Abbreviated here rather than by GitHub, whose abbreviations may grow
+  // with the repository. It identifies the commit together with its date.
+  const sha = commit.oid.slice(0, 7);
   // Ignore self-review:
   //
   // This often happen when the author clicked CR: +1 on their own CL instead
@@ -83,13 +90,41 @@ const ProcessCommit = (data, logins, commit, github) => {
     'additions': commit.additions,
     'deletions': commit.deletions,
     'files': commit.changedFilesIfAvailable,
+    'sha': sha,
+  };
+
+  // The entry of this commit among the ones of a developer, if any. A commit
+  // is identified by its hash: several can share a date, e.g. the commits of
+  // a pull request merged by rebasing.
+  //
+  // The entries imported before the hashes were recorded have none, and a
+  // single one was kept per date. The one of the same size is this commit: it
+  // takes its hash.
+  const FindEntry = (entries, kind) => {
+    let legacy = null;
+    for (const entry of entries) {
+      if (entry.date != date || entry.kind != kind) {
+        continue;
+      }
+      if (entry.sha == sha) {
+        return entry;
+      }
+      if (!entry.sha && !legacy &&
+        entry.additions == commit.additions &&
+        entry.deletions == commit.deletions &&
+        entry.files == commit.changedFilesIfAvailable) {
+        legacy = entry;
+      }
+    }
+    if (legacy) {
+      legacy.sha = sha;
+    }
+    return legacy;
   };
 
   const AddReview = (reviewer) => {
     data[reviewer] ||= [];
-    if (data[reviewer].some(review => review.date == date &&
-      review.additions == commit.additions &&
-      review.deletions == commit.deletions)) {
+    if (FindEntry(data[reviewer], 'review')) {
       return;
     }
     data[reviewer].push({
@@ -99,24 +134,21 @@ const ProcessCommit = (data, logins, commit, github) => {
       'additions': commit.additions,
       'deletions': commit.deletions,
       'files': commit.changedFilesIfAvailable,
+      'sha': sha,
     });
   };
 
   // Skip duplicated commits. Their reviewers are still merged in, to backfill
   // the reviews of the commits imported before they were fetched.
-  for(const commit of data[author]) {
-    if (commit.date == new_commit.date && //
-      commit.additions == new_commit.additions && //
-      commit.deletions == new_commit.deletions && //
-      commit.files == new_commit.files
-    ) {
-      const missing = reviewers.filter(reviewer => !commit.peers.includes(reviewer));
-      if (commit.kind == 'author' && missing.length > 0) {
-        commit.peers = [...commit.peers, ...missing];
-        missing.forEach(AddReview);
-      }
-      return "duplicate";
+  const existing = FindEntry(data[author], 'author');
+  if (existing) {
+    const missing = reviewers.filter(reviewer => !existing.peers.includes(reviewer));
+    if (missing.length > 0) {
+      existing.peers = [...existing.peers, ...missing];
     }
+    // Also stamp the hash onto existing review entries on an in-place backfill.
+    reviewers.forEach(AddReview);
+    return "duplicate";
   }
 
   data[author].push(new_commit);
@@ -191,16 +223,25 @@ const ProcessRepository = async (repository) => {
     for (const email in data) {
       const email_file = `${emails_dir}/${email}.json`;
 
-      // Remove duplicated commits.
+      // Remove duplicated commits. A commit is identified by its hash, and
+      // the entries imported before the hashes were recorded by their date.
+      const authored = new Set(data[email]
+        .filter(commit => commit.kind == 'author')
+        .map(commit => commit.date));
       const map = new Map();
       for(const commit of data[email]) {
         // See https://github.com/ArthurSonzogni/CommitTracker/issues/7
         // The database is currently polluted with duplicate commits where
         // "reviewed" commits were preferred over "authored" commits. This
         // allows the next full import to fix the database.
-        const preexisting = map.get(commit.date);
+        if (!commit.sha && commit.kind == 'review' &&
+          authored.has(commit.date)) {
+          continue;
+        }
+        const key = commit.sha ? `${commit.date} ${commit.sha}` : commit.date;
+        const preexisting = map.get(key);
         if (!preexisting || preexisting.kind == 'review') {
-          map.set(commit.date, commit);
+          map.set(key, commit);
         }
       }
       data[email] = Array.from(map.values()).sort((a, b) => a.date.localeCompare(b.date));
@@ -281,7 +322,7 @@ const ProcessRepository = async (repository) => {
                       edges {
                         node {
                           ... on Commit {
-                            abbreviatedOid
+                            oid
                             messageBody
                             committedDate
                             committer {
@@ -325,9 +366,8 @@ const ProcessRepository = async (repository) => {
         for (const edge of history.edges) {
           index++;
           let commit = edge.node
-          const result = ProcessCommit(data, logins, commit,
-            repository.reviewers === 'github');
-          statusLine(`${index} ${commit.committedDate} ${commit.abbreviatedOid} ${delay} ${result}`);
+          const result = ProcessCommit(data, logins, commit, repository);
+          statusLine(`${index} ${commit.committedDate} ${commit.oid.slice(0, 7)} ${delay} ${result}`);
 
           if (result == "duplicate") {
             duplicate++;
