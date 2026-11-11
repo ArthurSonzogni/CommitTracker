@@ -649,7 +649,15 @@ const tests = [
     run: `
       const ok = await __t.until(() => document.querySelector('.page-view svg') || /could not be loaded/.test(document.body.innerText), 20000);
       const counters = __t.count('img[src*="hitscounter"]');
-      return { ok: !!ok && counters === 0, detail: 'title=' + __t.text('h1') + ' counters=' + counters };
+      // Selecting a quarter shows it in the timeline, and in the URL.
+      const quarter = [...document.querySelectorAll('.segmented-option')].pop();
+      quarter?.click();
+      const selected = !quarter || await __t.until(() => location.search.includes('range='), 5000);
+      // So does clicking a quarter's row.
+      const row = document.querySelector('.quarters tbody tr');
+      row?.click();
+      const clicked = !row || await __t.until(() => row.classList.contains('selected') && location.search.includes(encodeURIComponent(row.cells[0].textContent.trim()).replace(/%20/g, '+')), 5000);
+      return { ok: !!ok && counters === 0 && !!selected && !!clicked, detail: 'title=' + __t.text('h1') + ' counters=' + counters + ' url=' + decodeURIComponent(location.search) };
     `,
   },
   {

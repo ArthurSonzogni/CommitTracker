@@ -45,7 +45,7 @@ const releaseAxis = ref<SVGGElement | null>(null);
 
 interface Point {
   x: Date;
-  y: number;
+  y: number | null; // null leaves a gap in the line.
 }
 
 interface Data {
@@ -234,11 +234,14 @@ const render = () => {
 
   const max_curve_length = seriesList.reduce((acc, d) => Math.max(acc, d.values.length), 0);
 
+  const defined = (d: Point) => d.y !== null;
   const smoothLine = line<Point>()
+    .defined(defined)
     .x(d => x(d.x))
     .y(d => y(d.y))
     .curve(max_curve_length < 400 ? curveMonotoneX : curveLinear);
   const straightLine = line<Point>()
+    .defined(defined)
     .x(d => x(d.x))
     .y(d => y(d.y))
     .curve(curveLinear);
@@ -247,6 +250,7 @@ const render = () => {
   const colorFor = (d: { label: string; color?: string }) => d.color || $color(d.label);
 
   const valueZero = line<Point>()
+    .defined(defined)
     .x(d => x(d.x))
     .y(() => y(0));
 
@@ -258,7 +262,7 @@ const render = () => {
       const references = seriesList
         .map(d => {
           const i = bisectDate(d.values, date);
-          if (i <= 0 || i >= d.values.length) {
+          if (i <= 0 || i >= d.values.length || d.values[i].y === null) {
             return null;
           }
           return {
