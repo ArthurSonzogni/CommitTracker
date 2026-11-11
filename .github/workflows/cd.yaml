@@ -4,10 +4,11 @@ on:
   # Allows manual trigger.
   workflow_dispatch: {}
 
-  # Triggered when the importer workflow completes.
+  # Triggered when the importer or fixmailmap workflow completes.
   workflow_run:
     workflows:
       - "importer"
+      - "fixmailmap"
     types:
       - completed
 

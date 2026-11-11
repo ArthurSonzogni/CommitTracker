@@ -1,0 +1,54 @@
+name: fixmailmap
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+      - main
+    paths:
+      - mailmap.json5
+      - importer/is_email_valid.mjs
+      - importer/mailmap.mjs
+      - importer/fixmailmap.mjs
+
+concurrency:
+  group: importer
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  fixmailmap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main repository
+        uses: actions/checkout@v4
+
+      - name: Setup node env
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Pull data branch
+        run: |
+          rm -rf public/data
+          git clone --branch data --single-branch --depth=1 https://github.com/ArthurSonzogni/CommitTracker.git public/data
+          rm -rf public/data/.git
+
+      - name: Install importer dependencies
+        run: cd importer && npm ci
+
+      - name: Apply mailmap to existing data
+        run: cd importer && npm run fixmailmap
+
+      - name: Cleanup derived data
+        run: npm run clean-derived-data
+
+      - name: Push data
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public/data/
+          publish_branch: data
+          force_orphan: true
