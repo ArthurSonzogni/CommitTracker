@@ -1,0 +1,5356 @@
+[
+ {
+  "date": "2012-12-07T19:38:38Z",
+  "kind": "author",
+  "peers": [
+   "keybuk@chromium.org"
+  ],
+  "additions": 12,
+  "deletions": 7,
+  "files": 1,
+  "sha": "4ef5a95"
+ },
+ {
+  "date": "2012-12-20T17:37:30Z",
+  "kind": "author",
+  "peers": [
+   "benchan@chromium.org"
+  ],
+  "additions": 5,
+  "deletions": 4,
+  "files": 1,
+  "sha": "8a86f7f"
+ },
+ {
+  "date": "2013-03-18T23:53:29Z",
+  "kind": "review",
+  "peers": [
+   "keybuk@chromium.org"
+  ],
+  "additions": 6,
+  "deletions": 0,
+  "files": 1,
+  "sha": "c7dd0e0"
+ },
+ {
+  "date": "2013-03-21T23:58:14Z",
+  "kind": "review",
+  "peers": [
+   "keybuk@chromium.org"
+  ],
+  "additions": 80,
+  "deletions": 0,
+  "files": 1,
+  "sha": "d4337ef"
+ },
+ {
+  "date": "2013-04-11T22:38:10Z",
+  "kind": "author",
+  "peers": [
+   "keybuk@chromium.org"
+  ],
+  "additions": 8,
+  "deletions": 0,
+  "files": 1,
+  "sha": "aec87f6"
+ },
+ {
+  "date": "2013-05-09T20:41:52Z",
+  "kind": "review",
+  "peers": [
+   "keybuk@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 107,
+  "files": 1,
+  "sha": "64c5e7e"
+ },
+ {
+  "date": "2013-05-09T21:31:18Z",
+  "kind": "review",
+  "peers": [
+   "keybuk@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 28,
+  "files": 1,
+  "sha": "b108582"
+ },
+ {
+  "date": "2013-05-09T21:31:18Z",
+  "kind": "review",
+  "peers": [
+   "keybuk@chromium.org"
+  ],
+  "additions": 48,
+  "deletions": 5,
+  "files": 1,
+  "sha": "d985902"
+ },
+ {
+  "date": "2013-06-28T21:32:21Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 134,
+  "deletions": 1,
+  "files": 6,
+  "sha": "90097df"
+ },
+ {
+  "date": "2013-07-03T19:42:28Z",
+  "kind": "review",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 19,
+  "deletions": 8,
+  "files": 1,
+  "sha": "588f8cd"
+ },
+ {
+  "date": "2013-07-09T15:51:19Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 180,
+  "deletions": 20,
+  "files": 7,
+  "sha": "7df345c"
+ },
+ {
+  "date": "2013-07-09T22:21:23Z",
+  "kind": "author",
+  "peers": [
+   "sosa@chromium.org",
+   "quiche@chromium.org"
+  ],
+  "additions": 28,
+  "deletions": 0,
+  "files": 1,
+  "sha": "36affcd"
+ },
+ {
+  "date": "2013-07-09T22:21:24Z",
+  "kind": "author",
+  "peers": [
+   "sosa@chromium.org"
+  ],
+  "additions": 256,
+  "deletions": 26,
+  "files": 10,
+  "sha": "6c9862e"
+ },
+ {
+  "date": "2013-07-10T01:56:33Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 39,
+  "deletions": 3,
+  "files": 2,
+  "sha": "3a7719c"
+ },
+ {
+  "date": "2013-07-10T18:16:44Z",
+  "kind": "author",
+  "peers": [
+   "joychen@chromium.org",
+   "quiche@chromium.org"
+  ],
+  "additions": 102,
+  "deletions": 9,
+  "files": 8,
+  "sha": "ac9f4c8"
+ },
+ {
+  "date": "2013-07-12T23:49:19Z",
+  "kind": "author",
+  "peers": [
+   "pstew@chromium.org"
+  ],
+  "additions": 145,
+  "deletions": 1,
+  "files": 9,
+  "sha": "ef6241e"
+ },
+ {
+  "date": "2013-07-16T17:58:56Z",
+  "kind": "author",
+  "peers": [
+   "pstew@chromium.org",
+   "sosa@chromium.org"
+  ],
+  "additions": 53,
+  "deletions": 12,
+  "files": 2,
+  "sha": "b4a0bbe"
+ },
+ {
+  "date": "2013-07-23T21:43:20Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 52,
+  "deletions": 29,
+  "files": 3,
+  "sha": "2d7e8ae"
+ },
+ {
+  "date": "2013-07-23T21:43:21Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 10,
+  "deletions": 3,
+  "files": 1,
+  "sha": "280ebaf"
+ },
+ {
+  "date": "2013-07-23T23:06:27Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 601,
+  "deletions": 88,
+  "files": 28,
+  "sha": "04a1b2c"
+ },
+ {
+  "date": "2013-07-24T19:09:44Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 30,
+  "deletions": 443,
+  "files": 6,
+  "sha": "b22028b"
+ },
+ {
+  "date": "2013-07-25T22:50:25Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 34,
+  "deletions": 0,
+  "files": 2,
+  "sha": "e543c3f"
+ },
+ {
+  "date": "2013-07-30T22:24:53Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 514,
+  "deletions": 131,
+  "files": 15,
+  "sha": "444368f"
+ },
+ {
+  "date": "2013-07-31T20:16:00Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 87,
+  "deletions": 42,
+  "files": 3,
+  "sha": "c0fb994"
+ },
+ {
+  "date": "2013-07-31T22:40:23Z",
+  "kind": "author",
+  "peers": [
+   "sosa@chromium.org"
+  ],
+  "additions": 405,
+  "deletions": 49,
+  "files": 10,
+  "sha": "bfbefcd"
+ },
+ {
+  "date": "2013-07-31T22:40:24Z",
+  "kind": "author",
+  "peers": [
+   "sosa@chromium.org"
+  ],
+  "additions": 69,
+  "deletions": 26,
+  "files": 4,
+  "sha": "2f4fb61"
+ },
+ {
+  "date": "2013-07-31T23:32:14Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 6,
+  "deletions": 5,
+  "files": 1,
+  "sha": "4dfd088"
+ },
+ {
+  "date": "2013-08-06T03:53:14Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 598,
+  "deletions": 79,
+  "files": 13,
+  "sha": "5a0e550"
+ },
+ {
+  "date": "2013-08-08T00:24:07Z",
+  "kind": "review",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 181,
+  "deletions": 86,
+  "files": 16,
+  "sha": "e69e5bf"
+ },
+ {
+  "date": "2013-08-09T21:54:19Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1,
+  "sha": "6731c3b"
+ },
+ {
+  "date": "2013-08-10T01:59:14Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 47,
+  "deletions": 1,
+  "files": 3,
+  "sha": "861b7c7"
+ },
+ {
+  "date": "2013-08-13T20:07:40Z",
+  "kind": "author",
+  "peers": [
+   "dgarrett@chromium.org",
+   "zeuthen@chromium.org"
+  ],
+  "additions": 913,
+  "deletions": 104,
+  "files": 20,
+  "sha": "65deca6"
+ },
+ {
+  "date": "2013-08-15T00:05:35Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 440,
+  "deletions": 208,
+  "files": 8,
+  "sha": "d3ed770"
+ },
+ {
+  "date": "2013-08-22T04:03:11Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 970,
+  "deletions": 44,
+  "files": 10,
+  "sha": "27b2d12"
+ },
+ {
+  "date": "2013-08-27T23:20:49Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 508,
+  "deletions": 389,
+  "files": 12,
+  "sha": "968e68b"
+ },
+ {
+  "date": "2013-08-29T22:51:45Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 102,
+  "deletions": 86,
+  "files": 2,
+  "sha": "d97d763"
+ },
+ {
+  "date": "2013-08-29T23:09:35Z",
+  "kind": "author",
+  "peers": [
+   "sosa@chromium.org"
+  ],
+  "additions": 32,
+  "deletions": 0,
+  "files": 1,
+  "sha": "b34ef93"
+ },
+ {
+  "date": "2013-08-29T23:09:43Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 135,
+  "deletions": 2,
+  "files": 5,
+  "sha": "39549b0"
+ },
+ {
+  "date": "2013-08-31T00:08:48Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 43,
+  "deletions": 0,
+  "files": 1,
+  "sha": "98a3d30"
+ },
+ {
+  "date": "2013-08-31T00:09:07Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 17,
+  "deletions": 5,
+  "files": 1,
+  "sha": "a68fc81"
+ },
+ {
+  "date": "2013-09-03T23:37:38Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 46,
+  "deletions": 50,
+  "files": 2,
+  "sha": "cce8e51"
+ },
+ {
+  "date": "2013-09-03T23:37:41Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 10,
+  "deletions": 10,
+  "files": 2,
+  "sha": "9658924"
+ },
+ {
+  "date": "2013-09-04T00:56:58Z",
+  "kind": "review",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 8,
+  "deletions": 13,
+  "files": 1,
+  "sha": "4e18c8f"
+ },
+ {
+  "date": "2013-09-04T22:40:09Z",
+  "kind": "review",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 103,
+  "deletions": 8,
+  "files": 9,
+  "sha": "9c186bf"
+ },
+ {
+  "date": "2013-09-07T23:04:10Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1,
+  "sha": "40d4c23"
+ },
+ {
+  "date": "2013-09-11T20:20:36Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1,
+  "sha": "11d0271"
+ },
+ {
+  "date": "2013-09-12T03:35:48Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 54,
+  "deletions": 70,
+  "files": 6,
+  "sha": "41bed31"
+ },
+ {
+  "date": "2013-09-13T02:22:57Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 34,
+  "deletions": 22,
+  "files": 4,
+  "sha": "138405e"
+ },
+ {
+  "date": "2013-09-13T03:19:29Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 3,
+  "files": 1,
+  "sha": "ce329e3"
+ },
+ {
+  "date": "2013-09-13T03:19:32Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 75,
+  "deletions": 11,
+  "files": 9,
+  "sha": "89945d8"
+ },
+ {
+  "date": "2013-09-13T08:36:30Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 8,
+  "deletions": 3,
+  "files": 1,
+  "sha": "377f9a3"
+ },
+ {
+  "date": "2013-09-14T18:30:36Z",
+  "kind": "author",
+  "peers": [
+   "yunlian@chromium.org"
+  ],
+  "additions": 28,
+  "deletions": 10,
+  "files": 1,
+  "sha": "0543bf4"
+ },
+ {
+  "date": "2013-09-20T16:36:45Z",
+  "kind": "author",
+  "peers": [
+   "sosa@chromium.org"
+  ],
+  "additions": 5,
+  "deletions": 17,
+  "files": 1,
+  "sha": "7611ff9"
+ },
+ {
+  "date": "2013-09-20T16:37:13Z",
+  "kind": "author",
+  "peers": [
+   "sosa@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 15,
+  "files": 2,
+  "sha": "4494ece"
+ },
+ {
+  "date": "2013-09-25T22:54:16Z",
+  "kind": "review",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 44,
+  "deletions": 9,
+  "files": 5,
+  "sha": "b001538"
+ },
+ {
+  "date": "2013-09-26T23:54:50Z",
+  "kind": "review",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 122,
+  "deletions": 3,
+  "files": 4,
+  "sha": "e38da15"
+ },
+ {
+  "date": "2013-09-27T01:05:43Z",
+  "kind": "review",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 93,
+  "deletions": 11,
+  "files": 5,
+  "sha": "c575630"
+ },
+ {
+  "date": "2013-09-28T00:23:54Z",
+  "kind": "review",
+  "peers": [
+   "sosa@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1,
+  "sha": "1bb3df8"
+ },
+ {
+  "date": "2013-10-02T09:19:17Z",
+  "kind": "review",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 15,
+  "deletions": 63,
+  "files": 4,
+  "sha": "c131e3d"
+ },
+ {
+  "date": "2013-10-08T16:19:54Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 1,
+  "files": 1,
+  "sha": "ded5b7d"
+ },
+ {
+  "date": "2013-10-08T16:19:57Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org",
+   "keybuk@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1,
+  "sha": "440d3e4"
+ },
+ {
+  "date": "2013-10-19T07:26:51Z",
+  "kind": "author",
+  "peers": [
+   "vapier@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1,
+  "sha": "acc1493"
+ },
+ {
+  "date": "2013-10-25T03:09:36Z",
+  "kind": "review",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 104,
+  "files": 2,
+  "sha": "bd6fec5"
+ },
+ {
+  "date": "2013-10-30T03:59:44Z",
+  "kind": "review",
+  "peers": [
+   "dgarrett@google.com"
+  ],
+  "additions": 45,
+  "deletions": 10,
+  "files": 6,
+  "sha": "e04a862"
+ },
+ {
+  "date": "2013-10-30T03:59:49Z",
+  "kind": "review",
+  "peers": [
+   "jrbarnette@chromium.org"
+  ],
+  "additions": 14,
+  "deletions": 27,
+  "files": 5,
+  "sha": "3fb34aa"
+ },
+ {
+  "date": "2013-12-04T01:52:17Z",
+  "kind": "review",
+  "peers": [
+   "pstew@chromium.org"
+  ],
+  "additions": 6,
+  "deletions": 0,
+  "files": 1,
+  "sha": "235c660"
+ },
+ {
+  "date": "2014-01-22T04:52:39Z",
+  "kind": "author",
+  "peers": [
+   "victoryang@chromium.org"
+  ],
+  "additions": 7,
+  "deletions": 1,
+  "files": 1,
+  "sha": "a8b5423"
+ },
+ {
+  "date": "2014-01-24T23:50:54Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 52,
+  "deletions": 0,
+  "files": 3,
+  "sha": "272086f"
+ },
+ {
+  "date": "2014-01-24T23:50:57Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 153,
+  "deletions": 0,
+  "files": 4,
+  "sha": "01c5afe"
+ },
+ {
+  "date": "2014-01-28T13:52:03Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 212,
+  "deletions": 0,
+  "files": 8,
+  "sha": "45fb150"
+ },
+ {
+  "date": "2014-01-29T21:33:50Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 86,
+  "deletions": 79,
+  "files": 10,
+  "sha": "5e88488"
+ },
+ {
+  "date": "2014-01-29T21:33:53Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 42,
+  "deletions": 13,
+  "files": 5,
+  "sha": "d10cce4"
+ },
+ {
+  "date": "2014-02-04T00:54:11Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 65,
+  "deletions": 8,
+  "files": 6,
+  "sha": "351a45b"
+ },
+ {
+  "date": "2014-02-05T19:47:56Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 11,
+  "deletions": 1,
+  "files": 2,
+  "sha": "4cc4c4e"
+ },
+ {
+  "date": "2014-02-05T19:48:00Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 6,
+  "deletions": 6,
+  "files": 1,
+  "sha": "8553e94"
+ },
+ {
+  "date": "2014-02-07T04:13:42Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 63,
+  "deletions": 137,
+  "files": 10,
+  "sha": "5ae991a"
+ },
+ {
+  "date": "2014-02-07T04:13:46Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 77,
+  "deletions": 0,
+  "files": 2,
+  "sha": "a43228a"
+ },
+ {
+  "date": "2014-02-07T04:13:49Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 14,
+  "deletions": 15,
+  "files": 10,
+  "sha": "0025dc5"
+ },
+ {
+  "date": "2014-02-12T02:05:12Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 9,
+  "files": 1,
+  "sha": "348764c"
+ },
+ {
+  "date": "2014-02-15T05:25:37Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 4,
+  "files": 1,
+  "sha": "3cbbd73"
+ },
+ {
+  "date": "2014-02-18T22:27:06Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 53,
+  "files": 5,
+  "sha": "73874f4"
+ },
+ {
+  "date": "2014-02-19T22:40:24Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 5,
+  "deletions": 1,
+  "files": 1,
+  "sha": "bc17465"
+ },
+ {
+  "date": "2014-02-21T00:11:00Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 379,
+  "deletions": 0,
+  "files": 8,
+  "sha": "51f038d"
+ },
+ {
+  "date": "2014-02-25T20:55:29Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 188,
+  "deletions": 0,
+  "files": 6,
+  "sha": "f0d5781"
+ },
+ {
+  "date": "2014-02-26T00:38:26Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 65,
+  "deletions": 16,
+  "files": 8,
+  "sha": "ba93bee"
+ },
+ {
+  "date": "2014-02-26T21:37:48Z",
+  "kind": "review",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 1,
+  "sha": "955aa36"
+ },
+ {
+  "date": "2014-02-26T21:38:23Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 397,
+  "deletions": 0,
+  "files": 10,
+  "sha": "12f22f3"
+ },
+ {
+  "date": "2014-02-28T06:44:25Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 49,
+  "deletions": 1,
+  "files": 3,
+  "sha": "5581149"
+ },
+ {
+  "date": "2014-02-28T06:44:29Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 84,
+  "deletions": 0,
+  "files": 2,
+  "sha": "ef789ec"
+ },
+ {
+  "date": "2014-02-28T06:44:31Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 216,
+  "deletions": 27,
+  "files": 18,
+  "sha": "beab411"
+ },
+ {
+  "date": "2014-02-28T06:44:34Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 35,
+  "deletions": 19,
+  "files": 8,
+  "sha": "86556d9"
+ },
+ {
+  "date": "2014-03-10T16:37:05Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 185,
+  "deletions": 333,
+  "files": 6,
+  "sha": "b6993ca"
+ },
+ {
+  "date": "2014-03-13T14:41:01Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 23,
+  "deletions": 22,
+  "files": 6,
+  "sha": "e1bf290"
+ },
+ {
+  "date": "2014-03-13T14:41:21Z",
+  "kind": "author",
+  "peers": [
+   "sosa@chromium.org"
+  ],
+  "additions": 257,
+  "deletions": 81,
+  "files": 7,
+  "sha": "7e6a9a4"
+ },
+ {
+  "date": "2014-03-14T05:12:16Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 189,
+  "deletions": 12,
+  "files": 8,
+  "sha": "1a19c7e"
+ },
+ {
+  "date": "2014-03-19T20:19:48Z",
+  "kind": "author",
+  "peers": [
+   "dgarrett@chromium.org"
+  ],
+  "additions": 245,
+  "deletions": 246,
+  "files": 84,
+  "sha": "ace81b9"
+ },
+ {
+  "date": "2014-03-21T21:26:12Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 296,
+  "deletions": 4,
+  "files": 12,
+  "sha": "cb22d9e"
+ },
+ {
+  "date": "2014-03-21T23:59:36Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 482,
+  "deletions": 72,
+  "files": 15,
+  "sha": "ce6cd31"
+ },
+ {
+  "date": "2014-03-22T01:44:25Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 7,
+  "deletions": 0,
+  "files": 2,
+  "sha": "b97a9b4"
+ },
+ {
+  "date": "2014-03-22T01:44:30Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 34,
+  "deletions": 2,
+  "files": 3,
+  "sha": "3456350"
+ },
+ {
+  "date": "2014-03-25T17:56:08Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 247,
+  "deletions": 12,
+  "files": 13,
+  "sha": "971445f"
+ },
+ {
+  "date": "2014-03-26T05:33:32Z",
+  "kind": "review",
+  "peers": [
+   "sosa@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 8,
+  "files": 2,
+  "sha": "8be7184"
+ },
+ {
+  "date": "2014-03-26T05:33:52Z",
+  "kind": "author",
+  "peers": [
+   "sosa@chromium.org",
+   "dgarrett@chromium.org"
+  ],
+  "additions": 6,
+  "deletions": 6,
+  "files": 6,
+  "sha": "00ef7fc"
+ },
+ {
+  "date": "2014-03-26T05:34:44Z",
+  "kind": "author",
+  "peers": [
+   "dgarrett@chromium.org"
+  ],
+  "additions": 144,
+  "deletions": 0,
+  "files": 4,
+  "sha": "07cac88"
+ },
+ {
+  "date": "2014-03-28T17:05:24Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 2,
+  "sha": "16e3d07"
+ },
+ {
+  "date": "2014-03-28T17:05:29Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 2,
+  "files": 1,
+  "sha": "547c25b"
+ },
+ {
+  "date": "2014-03-31T22:41:57Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 215,
+  "deletions": 156,
+  "files": 18,
+  "sha": "24ee48d"
+ },
+ {
+  "date": "2014-04-01T00:49:06Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 1,
+  "files": 1,
+  "sha": "335774f"
+ },
+ {
+  "date": "2014-04-01T21:36:39Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 66,
+  "deletions": 4,
+  "files": 2,
+  "sha": "516c896"
+ },
+ {
+  "date": "2014-04-01T21:37:28Z",
+  "kind": "review",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 87,
+  "deletions": 60,
+  "files": 2,
+  "sha": "7e9a9d8"
+ },
+ {
+  "date": "2014-04-04T04:57:02Z",
+  "kind": "review",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 145,
+  "deletions": 5,
+  "files": 7,
+  "sha": "c273848"
+ },
+ {
+  "date": "2014-04-04T20:27:03Z",
+  "kind": "author",
+  "peers": [
+   "sosa@chromium.org"
+  ],
+  "additions": 10,
+  "deletions": 3,
+  "files": 2,
+  "sha": "c28233e"
+ },
+ {
+  "date": "2014-04-04T20:27:08Z",
+  "kind": "author",
+  "peers": [
+   "sosa@chromium.org"
+  ],
+  "additions": 21,
+  "deletions": 54,
+  "files": 8,
+  "sha": "22bf6ab"
+ },
+ {
+  "date": "2014-04-04T20:27:12Z",
+  "kind": "author",
+  "peers": [
+   "sosa@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 10,
+  "files": 1,
+  "sha": "687d3a7"
+ },
+ {
+  "date": "2014-04-04T20:27:16Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 77,
+  "deletions": 72,
+  "files": 16,
+  "sha": "1fd0e4e"
+ },
+ {
+  "date": "2014-04-04T20:27:27Z",
+  "kind": "author",
+  "peers": [
+   "sosa@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 1,
+  "files": 1,
+  "sha": "f859a24"
+ },
+ {
+  "date": "2014-04-05T00:01:35Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 26,
+  "deletions": 23,
+  "files": 7,
+  "sha": "9b2a17a"
+ },
+ {
+  "date": "2014-04-09T02:30:16Z",
+  "kind": "review",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 129,
+  "deletions": 1,
+  "files": 1,
+  "sha": "3a67d31"
+ },
+ {
+  "date": "2014-04-09T05:37:30Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 64,
+  "deletions": 24,
+  "files": 2,
+  "sha": "3d80a53"
+ },
+ {
+  "date": "2014-04-16T08:40:13Z",
+  "kind": "author",
+  "peers": [
+   "pastarmovj@chromium.org"
+  ],
+  "additions": 36,
+  "deletions": 2,
+  "files": 3,
+  "sha": "d3b90fa"
+ },
+ {
+  "date": "2014-04-17T16:39:20Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 215,
+  "deletions": 0,
+  "files": 3,
+  "sha": "d9ffa1d"
+ },
+ {
+  "date": "2014-04-17T16:44:01Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 234,
+  "deletions": 19,
+  "files": 10,
+  "sha": "a2dbc78"
+ },
+ {
+  "date": "2014-04-18T09:23:48Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 189,
+  "deletions": 71,
+  "files": 5,
+  "sha": "4d35bff"
+ },
+ {
+  "date": "2014-04-19T03:36:04Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 61,
+  "deletions": 7,
+  "files": 2,
+  "sha": "1b06fdb"
+ },
+ {
+  "date": "2014-04-19T03:36:08Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 204,
+  "deletions": 122,
+  "files": 6,
+  "sha": "f4333ed"
+ },
+ {
+  "date": "2014-04-19T03:36:12Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 17,
+  "deletions": 6,
+  "files": 3,
+  "sha": "cfb58dd"
+ },
+ {
+  "date": "2014-04-19T03:36:34Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 7,
+  "deletions": 2,
+  "files": 1,
+  "sha": "1403e08"
+ },
+ {
+  "date": "2014-04-19T03:36:37Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 781,
+  "deletions": 16,
+  "files": 18,
+  "sha": "a5ca0c6"
+ },
+ {
+  "date": "2014-04-22T00:47:06Z",
+  "kind": "review",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 6,
+  "files": 2,
+  "sha": "46da471"
+ },
+ {
+  "date": "2014-04-23T07:02:44Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 410,
+  "deletions": 328,
+  "files": 7,
+  "sha": "08f0efd"
+ },
+ {
+  "date": "2014-04-23T07:02:48Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 18,
+  "deletions": 55,
+  "files": 2,
+  "sha": "6b6c641"
+ },
+ {
+  "date": "2014-04-23T23:00:23Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 299,
+  "deletions": 7,
+  "files": 11,
+  "sha": "b49b354"
+ },
+ {
+  "date": "2014-04-24T23:49:46Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 12,
+  "deletions": 14,
+  "files": 2,
+  "sha": "3b60ddb"
+ },
+ {
+  "date": "2014-04-24T23:50:25Z",
+  "kind": "review",
+  "peers": [
+   "benchan@chromium.org"
+  ],
+  "additions": 13,
+  "deletions": 14,
+  "files": 1,
+  "sha": "f86a17b"
+ },
+ {
+  "date": "2014-04-24T23:50:49Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 202,
+  "deletions": 281,
+  "files": 14,
+  "sha": "04a4908"
+ },
+ {
+  "date": "2014-04-24T23:50:56Z",
+  "kind": "review",
+  "peers": [
+   "sosa@chromium.org"
+  ],
+  "additions": 8,
+  "deletions": 1,
+  "files": 2,
+  "sha": "5708741"
+ },
+ {
+  "date": "2014-04-24T23:53:16Z",
+  "kind": "author",
+  "peers": [
+   "sosa@chromium.org",
+   "vapier@chromium.org"
+  ],
+  "additions": 20,
+  "deletions": 16,
+  "files": 1,
+  "sha": "6fc1f86"
+ },
+ {
+  "date": "2014-04-26T01:02:38Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 42,
+  "deletions": 82,
+  "files": 26,
+  "sha": "cff518d"
+ },
+ {
+  "date": "2014-04-26T01:02:43Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 16,
+  "deletions": 18,
+  "files": 17,
+  "sha": "e0014c5"
+ },
+ {
+  "date": "2014-04-26T02:46:14Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 45,
+  "deletions": 39,
+  "files": 7,
+  "sha": "1fc3f03"
+ },
+ {
+  "date": "2014-04-30T12:41:16Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 26,
+  "deletions": 23,
+  "files": 8,
+  "sha": "50dfc14"
+ },
+ {
+  "date": "2014-04-30T12:41:22Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 15,
+  "deletions": 7,
+  "files": 4,
+  "sha": "f5f7557"
+ },
+ {
+  "date": "2014-04-30T12:47:51Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 35,
+  "deletions": 6,
+  "files": 5,
+  "sha": "c66d088"
+ },
+ {
+  "date": "2014-04-30T12:47:55Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 86,
+  "deletions": 0,
+  "files": 3,
+  "sha": "620c8e7"
+ },
+ {
+  "date": "2014-04-30T21:05:38Z",
+  "kind": "review",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 145,
+  "deletions": 1,
+  "files": 7,
+  "sha": "8d1ab66"
+ },
+ {
+  "date": "2014-05-01T05:46:28Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 68,
+  "deletions": 5,
+  "files": 8,
+  "sha": "9cf0507"
+ },
+ {
+  "date": "2014-05-02T10:51:37Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 352,
+  "deletions": 60,
+  "files": 12,
+  "sha": "752fdd3"
+ },
+ {
+  "date": "2014-05-03T04:04:00Z",
+  "kind": "review",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 326,
+  "deletions": 3,
+  "files": 4,
+  "sha": "3bfc634"
+ },
+ {
+  "date": "2014-05-03T04:04:07Z",
+  "kind": "review",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 60,
+  "deletions": 1,
+  "files": 3,
+  "sha": "ec6eb74"
+ },
+ {
+  "date": "2014-05-03T04:04:51Z",
+  "kind": "author",
+  "peers": [
+   "sosa@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 2,
+  "files": 1,
+  "sha": "c365d27"
+ },
+ {
+  "date": "2014-05-07T17:52:59Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 35,
+  "deletions": 32,
+  "files": 7,
+  "sha": "f43fb98"
+ },
+ {
+  "date": "2014-05-14T22:51:29Z",
+  "kind": "review",
+  "peers": [
+   "gauravsh@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 0,
+  "files": 1,
+  "sha": "2ac1203"
+ },
+ {
+  "date": "2014-05-15T23:52:53Z",
+  "kind": "review",
+  "peers": [
+   "vapier@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 3,
+  "files": 3,
+  "sha": "5e46f0a"
+ },
+ {
+  "date": "2014-05-19T23:06:17Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 308,
+  "deletions": 227,
+  "files": 43,
+  "sha": "c3a76be"
+ },
+ {
+  "date": "2014-05-19T23:06:46Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 9,
+  "deletions": 3,
+  "files": 2,
+  "sha": "e107537"
+ },
+ {
+  "date": "2014-05-20T07:33:51Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 2,
+  "files": 1,
+  "sha": "9011d0d"
+ },
+ {
+  "date": "2014-05-21T04:18:31Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 40,
+  "deletions": 50,
+  "files": 2,
+  "sha": "c368d3c"
+ },
+ {
+  "date": "2014-05-22T04:57:22Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 5,
+  "deletions": 0,
+  "files": 1,
+  "sha": "f016305"
+ },
+ {
+  "date": "2014-05-22T04:57:25Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 25,
+  "deletions": 7,
+  "files": 4,
+  "sha": "bb07ceb"
+ },
+ {
+  "date": "2014-05-22T04:58:12Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 31,
+  "deletions": 26,
+  "files": 7,
+  "sha": "0d5d7f1"
+ },
+ {
+  "date": "2014-05-22T08:11:49Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 739,
+  "deletions": 34,
+  "files": 8,
+  "sha": "29bac77"
+ },
+ {
+  "date": "2014-05-22T08:11:55Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 287,
+  "deletions": 2,
+  "files": 7,
+  "sha": "e67d5b9"
+ },
+ {
+  "date": "2014-05-22T10:34:18Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 56,
+  "deletions": 6,
+  "files": 6,
+  "sha": "2f90ec6"
+ },
+ {
+  "date": "2014-05-22T10:34:23Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 52,
+  "deletions": 8,
+  "files": 2,
+  "sha": "d0bbc79"
+ },
+ {
+  "date": "2014-05-22T10:34:27Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 36,
+  "deletions": 38,
+  "files": 2,
+  "sha": "746f0b8"
+ },
+ {
+  "date": "2014-05-23T05:01:30Z",
+  "kind": "review",
+  "peers": [
+   "benchan@chromium.org"
+  ],
+  "additions": 30,
+  "deletions": 37,
+  "files": 13,
+  "sha": "1939f98"
+ },
+ {
+  "date": "2014-05-23T09:32:44Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 4,
+  "files": 1,
+  "sha": "ec363c4"
+ },
+ {
+  "date": "2014-05-29T02:11:20Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 959,
+  "deletions": 961,
+  "files": 83,
+  "sha": "6e69358"
+ },
+ {
+  "date": "2014-05-30T01:26:02Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 11,
+  "deletions": 5,
+  "files": 1,
+  "sha": "339c4f2"
+ },
+ {
+  "date": "2014-05-30T07:20:20Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 47,
+  "deletions": 27,
+  "files": 7,
+  "sha": "957924b"
+ },
+ {
+  "date": "2014-05-30T09:29:30Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org",
+   "zeuthen@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 2,
+  "files": 1,
+  "sha": "3df9294"
+ },
+ {
+  "date": "2014-05-30T09:29:36Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org",
+   "zeuthen@chromium.org"
+  ],
+  "additions": 19,
+  "deletions": 16,
+  "files": 1,
+  "sha": "d1032d0"
+ },
+ {
+  "date": "2014-05-31T01:47:58Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 37,
+  "deletions": 35,
+  "files": 3,
+  "sha": "f828594"
+ },
+ {
+  "date": "2014-06-06T01:17:40Z",
+  "kind": "author",
+  "peers": [
+   "vapier@chromium.org",
+   "dgarrett@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 1,
+  "files": 1,
+  "sha": "9407a7b"
+ },
+ {
+  "date": "2014-06-12T01:41:03Z",
+  "kind": "author",
+  "peers": [
+   "dkrahn@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 2,
+  "sha": "f38b7a1"
+ },
+ {
+  "date": "2014-06-12T04:31:56Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org",
+   "yunlian@chromium.org"
+  ],
+  "additions": 6,
+  "deletions": 0,
+  "files": 2,
+  "sha": "1c8348a"
+ },
+ {
+  "date": "2014-06-13T05:34:28Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 663,
+  "deletions": 624,
+  "files": 29,
+  "sha": "4d310b3"
+ },
+ {
+  "date": "2014-06-15T01:39:23Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 17,
+  "deletions": 14,
+  "files": 1,
+  "sha": "5b71a58"
+ },
+ {
+  "date": "2014-06-19T06:53:22Z",
+  "kind": "review",
+  "peers": [
+   "dgarrett@google.com"
+  ],
+  "additions": 52,
+  "deletions": 18,
+  "files": 3,
+  "sha": "362d63e"
+ },
+ {
+  "date": "2014-06-24T20:03:52Z",
+  "kind": "author",
+  "peers": [
+   "benchan@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1,
+  "sha": "d22d141"
+ },
+ {
+  "date": "2014-06-24T20:03:56Z",
+  "kind": "author",
+  "peers": [
+   "vapier@chromium.org"
+  ],
+  "additions": 10,
+  "deletions": 0,
+  "files": 1,
+  "sha": "1960d66"
+ },
+ {
+  "date": "2014-06-24T20:03:59Z",
+  "kind": "author",
+  "peers": [
+   "bsimonnet@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1,
+  "sha": "18569df"
+ },
+ {
+  "date": "2014-06-24T20:04:04Z",
+  "kind": "author",
+  "peers": [
+   "quiche@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1,
+  "sha": "f7fe672"
+ },
+ {
+  "date": "2014-06-24T20:04:06Z",
+  "kind": "author",
+  "peers": [
+   "bsimonnet@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1,
+  "sha": "a62ea72"
+ },
+ {
+  "date": "2014-06-24T20:04:09Z",
+  "kind": "author",
+  "peers": [
+   "dkrahn@chromium.org",
+   "vapier@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1,
+  "sha": "3a04ad3"
+ },
+ {
+  "date": "2014-06-24T20:04:13Z",
+  "kind": "author",
+  "peers": [
+   "benchan@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1,
+  "sha": "10a420a"
+ },
+ {
+  "date": "2014-06-24T20:13:04Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 490,
+  "deletions": 46,
+  "files": 7,
+  "sha": "ad8b9da"
+ },
+ {
+  "date": "2014-06-25T01:32:37Z",
+  "kind": "author",
+  "peers": [
+   "vapier@chromium.org"
+  ],
+  "additions": 8,
+  "deletions": 1,
+  "files": 2,
+  "sha": "23716e3"
+ },
+ {
+  "date": "2014-06-26T02:42:39Z",
+  "kind": "review",
+  "peers": [
+   "pstew@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1,
+  "sha": "046790a"
+ },
+ {
+  "date": "2014-06-27T02:32:44Z",
+  "kind": "author",
+  "peers": [
+   "vapier@chromium.org"
+  ],
+  "additions": 22,
+  "deletions": 5,
+  "files": 2,
+  "sha": "b622cea"
+ },
+ {
+  "date": "2014-06-30T20:47:58Z",
+  "kind": "review",
+  "peers": [
+   "wfrichar@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 6,
+  "files": 1,
+  "sha": "aa09d8d"
+ },
+ {
+  "date": "2014-06-30T22:47:36Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 150,
+  "deletions": 136,
+  "files": 44,
+  "sha": "3c0a2f7"
+ },
+ {
+  "date": "2014-07-08T02:18:04Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 72,
+  "deletions": 13,
+  "files": 3,
+  "sha": "9ca6013"
+ },
+ {
+  "date": "2014-07-10T21:16:37Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 23,
+  "deletions": 2,
+  "files": 2,
+  "sha": "ece1ef3"
+ },
+ {
+  "date": "2014-07-11T17:00:22Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 49,
+  "deletions": 6,
+  "files": 6,
+  "sha": "85af1aa"
+ },
+ {
+  "date": "2014-07-11T17:00:26Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 58,
+  "deletions": 8,
+  "files": 4,
+  "sha": "1641155"
+ },
+ {
+  "date": "2014-07-15T18:41:19Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 314,
+  "deletions": 116,
+  "files": 7,
+  "sha": "00843f1"
+ },
+ {
+  "date": "2014-07-15T18:41:37Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 128,
+  "deletions": 21,
+  "files": 11,
+  "sha": "f99839d"
+ },
+ {
+  "date": "2014-07-15T21:21:05Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 433,
+  "deletions": 382,
+  "files": 10,
+  "sha": "0d98d92"
+ },
+ {
+  "date": "2014-07-16T18:38:59Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 20,
+  "deletions": 13,
+  "files": 2,
+  "sha": "8cc45c7"
+ },
+ {
+  "date": "2014-07-17T06:51:01Z",
+  "kind": "author",
+  "peers": [
+   "bsimonnet@chromium.org"
+  ],
+  "additions": 437,
+  "deletions": 382,
+  "files": 10,
+  "sha": "9b31c47"
+ },
+ {
+  "date": "2014-07-18T04:44:19Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 375,
+  "deletions": 310,
+  "files": 12,
+  "sha": "393f4e9"
+ },
+ {
+  "date": "2014-07-19T01:14:12Z",
+  "kind": "author",
+  "peers": [
+   "dgarrett@chromium.org",
+   "avakulenko@chromium.org"
+  ],
+  "additions": 42,
+  "deletions": 14,
+  "files": 2,
+  "sha": "3b19e33"
+ },
+ {
+  "date": "2014-07-19T01:27:40Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 44,
+  "deletions": 15,
+  "files": 6,
+  "sha": "a28815b"
+ },
+ {
+  "date": "2014-07-25T03:41:18Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 13,
+  "deletions": 0,
+  "files": 4,
+  "sha": "019d1f6"
+ },
+ {
+  "date": "2014-07-25T03:42:17Z",
+  "kind": "review",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 18,
+  "deletions": 18,
+  "files": 13,
+  "sha": "fde3c4e"
+ },
+ {
+  "date": "2014-07-25T03:42:22Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 94,
+  "deletions": 31,
+  "files": 13,
+  "sha": "8f625c7"
+ },
+ {
+  "date": "2014-07-30T23:41:27Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 420,
+  "deletions": 636,
+  "files": 56,
+  "sha": "0d5fb16"
+ },
+ {
+  "date": "2014-07-30T23:41:34Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org",
+   "zeuthen@chromium.org"
+  ],
+  "additions": 232,
+  "deletions": 221,
+  "files": 32,
+  "sha": "3feae6a"
+ },
+ {
+  "date": "2014-07-31T04:37:46Z",
+  "kind": "review",
+  "peers": [
+   "usanghi@chromium.org"
+  ],
+  "additions": 57,
+  "deletions": 51,
+  "files": 17,
+  "sha": "f5330e9"
+ },
+ {
+  "date": "2014-07-31T21:55:39Z",
+  "kind": "review",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1,
+  "sha": "ef9365f"
+ },
+ {
+  "date": "2014-07-31T22:47:32Z",
+  "kind": "review",
+  "peers": [
+   "usanghi@chromium.org"
+  ],
+  "additions": 25,
+  "deletions": 206,
+  "files": 13,
+  "sha": "305ed84"
+ },
+ {
+  "date": "2014-08-01T04:18:32Z",
+  "kind": "review",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 3,
+  "files": 2,
+  "sha": "a08e0aa"
+ },
+ {
+  "date": "2014-08-01T04:18:41Z",
+  "kind": "review",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 12,
+  "deletions": 12,
+  "files": 4,
+  "sha": "991c170"
+ },
+ {
+  "date": "2014-08-01T04:18:44Z",
+  "kind": "review",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 2,
+  "files": 1,
+  "sha": "5b90c7f"
+ },
+ {
+  "date": "2014-08-01T04:18:50Z",
+  "kind": "review",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 1,
+  "files": 1,
+  "sha": "04e9f9e"
+ },
+ {
+  "date": "2014-08-01T04:18:54Z",
+  "kind": "review",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1,
+  "sha": "f7a84ae"
+ },
+ {
+  "date": "2014-08-01T04:18:58Z",
+  "kind": "review",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 5,
+  "deletions": 0,
+  "files": 3,
+  "sha": "6f0a01b"
+ },
+ {
+  "date": "2014-08-01T04:19:03Z",
+  "kind": "review",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 6,
+  "deletions": 6,
+  "files": 3,
+  "sha": "1a9e982"
+ },
+ {
+  "date": "2014-08-01T04:19:09Z",
+  "kind": "review",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 3,
+  "files": 1,
+  "sha": "e7ffe90"
+ },
+ {
+  "date": "2014-08-01T04:19:15Z",
+  "kind": "review",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 2,
+  "sha": "9501c96"
+ },
+ {
+  "date": "2014-08-01T06:34:51Z",
+  "kind": "review",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 20,
+  "deletions": 19,
+  "files": 11,
+  "sha": "3ef898d"
+ },
+ {
+  "date": "2014-08-01T06:34:54Z",
+  "kind": "review",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 172,
+  "deletions": 172,
+  "files": 64,
+  "sha": "262be3f"
+ },
+ {
+  "date": "2014-08-07T02:36:39Z",
+  "kind": "review",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 39,
+  "deletions": 36,
+  "files": 13,
+  "sha": "a7dfe81"
+ },
+ {
+  "date": "2014-08-08T00:51:16Z",
+  "kind": "review",
+  "peers": [
+   "benchan@chromium.org"
+  ],
+  "additions": 6,
+  "deletions": 2,
+  "files": 2,
+  "sha": "e252648"
+ },
+ {
+  "date": "2014-08-09T04:43:59Z",
+  "kind": "author",
+  "peers": [
+   "vapier@chromium.org"
+  ],
+  "additions": 33,
+  "deletions": 19,
+  "files": 2,
+  "sha": "b196ee1"
+ },
+ {
+  "date": "2014-08-11T15:36:43Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 103,
+  "deletions": 67,
+  "files": 9,
+  "sha": "af0e0fc"
+ },
+ {
+  "date": "2014-08-13T13:20:50Z",
+  "kind": "author",
+  "peers": [
+   "vapier@chromium.org"
+  ],
+  "additions": 13,
+  "deletions": 3,
+  "files": 4,
+  "sha": "e57c494"
+ },
+ {
+  "date": "2014-08-19T20:02:47Z",
+  "kind": "review",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 12,
+  "deletions": 3,
+  "files": 3,
+  "sha": "ed3c16d"
+ },
+ {
+  "date": "2014-08-22T19:03:02Z",
+  "kind": "author",
+  "peers": [
+   "benchan@chromium.org"
+  ],
+  "additions": 98,
+  "deletions": 292,
+  "files": 15,
+  "sha": "7234423"
+ },
+ {
+  "date": "2014-08-23T02:44:28Z",
+  "kind": "review",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 2,
+  "files": 1,
+  "sha": "12eb773"
+ },
+ {
+  "date": "2014-08-23T02:44:36Z",
+  "kind": "review",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 20,
+  "deletions": 45,
+  "files": 10,
+  "sha": "bdacdbb"
+ },
+ {
+  "date": "2014-08-28T04:23:40Z",
+  "kind": "review",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 78,
+  "deletions": 5,
+  "files": 7,
+  "sha": "c1ce0fd"
+ },
+ {
+  "date": "2014-09-01T11:05:16Z",
+  "kind": "review",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 750,
+  "deletions": 758,
+  "files": 96,
+  "sha": "4457d0d"
+ },
+ {
+  "date": "2014-09-03T22:48:01Z",
+  "kind": "review",
+  "peers": [
+   "benchan@chromium.org"
+  ],
+  "additions": 52,
+  "deletions": 44,
+  "files": 30,
+  "sha": "d630aff"
+ },
+ {
+  "date": "2014-09-03T22:48:05Z",
+  "kind": "review",
+  "peers": [
+   "benchan@chromium.org"
+  ],
+  "additions": 8,
+  "deletions": 9,
+  "files": 10,
+  "sha": "b312272"
+ },
+ {
+  "date": "2014-09-05T17:02:20Z",
+  "kind": "author",
+  "peers": [
+   "pastarmovj@chromium.org"
+  ],
+  "additions": 7,
+  "deletions": 0,
+  "files": 3,
+  "sha": "4985c20"
+ },
+ {
+  "date": "2014-09-12T00:56:12Z",
+  "kind": "author",
+  "peers": [
+   "dgarrett@chromium.org",
+   "gauravsh@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 1,
+  "files": 2,
+  "sha": "a761c83"
+ },
+ {
+  "date": "2014-09-18T03:03:37Z",
+  "kind": "author",
+  "peers": [
+   "dgarrett@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 1,
+  "files": 1,
+  "sha": "b72ece4"
+ },
+ {
+  "date": "2014-09-18T03:03:45Z",
+  "kind": "author",
+  "peers": [
+   "dgarrett@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1,
+  "sha": "d330a0a"
+ },
+ {
+  "date": "2014-09-23T02:15:02Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1,
+  "sha": "4be6b76"
+ },
+ {
+  "date": "2014-09-23T02:15:47Z",
+  "kind": "review",
+  "peers": [
+   "vapier@chromium.org"
+  ],
+  "additions": 8,
+  "deletions": 2,
+  "files": 1,
+  "sha": "b712a58"
+ },
+ {
+  "date": "2014-09-23T02:15:50Z",
+  "kind": "review",
+  "peers": [
+   "gabeblack@chromium.org"
+  ],
+  "additions": 32,
+  "deletions": 38,
+  "files": 9,
+  "sha": "1e89bad"
+ },
+ {
+  "date": "2014-09-24T00:59:03Z",
+  "kind": "review",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 74,
+  "deletions": 8,
+  "files": 2,
+  "sha": "9350136"
+ },
+ {
+  "date": "2014-09-24T06:25:44Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org",
+   "dpursell@chromium.org"
+  ],
+  "additions": 86,
+  "deletions": 76,
+  "files": 8,
+  "sha": "3c641c4"
+ },
+ {
+  "date": "2014-09-25T04:10:00Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 37,
+  "deletions": 37,
+  "files": 10,
+  "sha": "37c0e82"
+ },
+ {
+  "date": "2014-09-25T20:26:58Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 36,
+  "deletions": 2,
+  "files": 1,
+  "sha": "8df3310"
+ },
+ {
+  "date": "2014-09-29T20:28:08Z",
+  "kind": "review",
+  "peers": [
+   "pstew@chromium.org"
+  ],
+  "additions": 10,
+  "deletions": 5,
+  "files": 2,
+  "sha": "f7f8a8d"
+ },
+ {
+  "date": "2014-10-01T19:46:30Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 34,
+  "deletions": 10,
+  "files": 2,
+  "sha": "7225abb"
+ },
+ {
+  "date": "2014-10-01T19:46:37Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1,
+  "sha": "416da0c"
+ },
+ {
+  "date": "2014-10-02T07:02:34Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 17,
+  "deletions": 17,
+  "files": 1,
+  "sha": "b2228e9"
+ },
+ {
+  "date": "2014-10-02T07:02:47Z",
+  "kind": "review",
+  "peers": [
+   "pstew@chromium.org"
+  ],
+  "additions": 71,
+  "deletions": 23,
+  "files": 4,
+  "sha": "550bb7e"
+ },
+ {
+  "date": "2014-10-02T18:24:26Z",
+  "kind": "review",
+  "peers": [
+   "gabeblack@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 33,
+  "files": 1,
+  "sha": "4d673a2"
+ },
+ {
+  "date": "2014-10-02T18:24:31Z",
+  "kind": "review",
+  "peers": [
+   "gabeblack@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 2,
+  "files": 1,
+  "sha": "889ec2b"
+ },
+ {
+  "date": "2014-10-02T20:51:09Z",
+  "kind": "author",
+  "peers": [
+   "pstew@chromium.org",
+   "avakulenko@chromium.org"
+  ],
+  "additions": 10,
+  "deletions": 5,
+  "files": 2,
+  "sha": "d3e5366"
+ },
+ {
+  "date": "2014-10-04T00:59:44Z",
+  "kind": "author",
+  "peers": [
+   "dgarrett@chromium.org"
+  ],
+  "additions": 10,
+  "deletions": 0,
+  "files": 1,
+  "sha": "839ccd1"
+ },
+ {
+  "date": "2014-10-07T03:37:13Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 1,
+  "files": 1,
+  "sha": "67b80d2"
+ },
+ {
+  "date": "2014-10-08T05:07:26Z",
+  "kind": "review",
+  "peers": [
+   "gabeblack@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 2,
+  "files": 1,
+  "sha": "2df70e7"
+ },
+ {
+  "date": "2014-10-09T20:42:45Z",
+  "kind": "review",
+  "peers": [
+   "stevefung@chromium.org"
+  ],
+  "additions": 10,
+  "deletions": 11,
+  "files": 1,
+  "sha": "5ac2424"
+ },
+ {
+  "date": "2014-10-14T23:59:59Z",
+  "kind": "review",
+  "peers": [
+   "vapier@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1,
+  "sha": "d293b90"
+ },
+ {
+  "date": "2014-10-15T00:00:02Z",
+  "kind": "author",
+  "peers": [
+   "vapier@chromium.org",
+   "tbarzic@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 14,
+  "files": 3,
+  "sha": "da3a7d8"
+ },
+ {
+  "date": "2014-10-18T01:36:53Z",
+  "kind": "review",
+  "peers": [
+   "stevefung@chromium.org"
+  ],
+  "additions": 176,
+  "deletions": 166,
+  "files": 5,
+  "sha": "83d33ee"
+ },
+ {
+  "date": "2014-10-18T01:37:38Z",
+  "kind": "author",
+  "peers": [
+   "davidjames@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1,
+  "sha": "b909098"
+ },
+ {
+  "date": "2014-10-18T01:37:45Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 757,
+  "deletions": 216,
+  "files": 8,
+  "sha": "17b8f4d"
+ },
+ {
+  "date": "2014-10-18T01:38:11Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 7,
+  "deletions": 7,
+  "files": 6,
+  "sha": "ebd84a2"
+ },
+ {
+  "date": "2014-10-18T01:39:10Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 42,
+  "deletions": 3,
+  "files": 5,
+  "sha": "af611f1"
+ },
+ {
+  "date": "2014-10-18T07:38:13Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 51,
+  "deletions": 12,
+  "files": 7,
+  "sha": "a5d4fe3"
+ },
+ {
+  "date": "2014-10-21T00:44:38Z",
+  "kind": "review",
+  "peers": [
+   "benchan@chromium.org"
+  ],
+  "additions": 219,
+  "deletions": 177,
+  "files": 42,
+  "sha": "22bfc2d"
+ },
+ {
+  "date": "2014-10-21T00:44:42Z",
+  "kind": "review",
+  "peers": [
+   "benchan@chromium.org"
+  ],
+  "additions": 7,
+  "deletions": 7,
+  "files": 3,
+  "sha": "1d7dcdf"
+ },
+ {
+  "date": "2014-10-22T23:50:02Z",
+  "kind": "review",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 415,
+  "deletions": 21,
+  "files": 6,
+  "sha": "1942b6e"
+ },
+ {
+  "date": "2014-10-24T00:17:37Z",
+  "kind": "author",
+  "peers": [
+   "gauravsh@chromium.org"
+  ],
+  "additions": 19,
+  "deletions": 6,
+  "files": 2,
+  "sha": "cdc25de"
+ },
+ {
+  "date": "2014-10-24T01:38:01Z",
+  "kind": "review",
+  "peers": [
+   "pstew@chromium.org"
+  ],
+  "additions": 5,
+  "deletions": 3,
+  "files": 3,
+  "sha": "d7fd09c"
+ },
+ {
+  "date": "2014-10-27T21:44:50Z",
+  "kind": "author",
+  "peers": [
+   "pstew@chromium.org",
+   "avakulenko@chromium.org"
+  ],
+  "additions": 122,
+  "deletions": 0,
+  "files": 3,
+  "sha": "26f522f"
+ },
+ {
+  "date": "2014-10-30T11:50:03Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 111,
+  "deletions": 26,
+  "files": 7,
+  "sha": "cef4eeb"
+ },
+ {
+  "date": "2014-10-31T20:55:41Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 366,
+  "deletions": 585,
+  "files": 2,
+  "sha": "c7aa7b9"
+ },
+ {
+  "date": "2014-10-31T22:32:37Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 96,
+  "deletions": 9,
+  "files": 5,
+  "sha": "3b42708"
+ },
+ {
+  "date": "2014-11-01T01:27:48Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 113,
+  "deletions": 32,
+  "files": 8,
+  "sha": "e16ebe3"
+ },
+ {
+  "date": "2014-11-01T03:26:34Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 272,
+  "deletions": 316,
+  "files": 64,
+  "sha": "34f389c"
+ },
+ {
+  "date": "2014-11-01T04:49:52Z",
+  "kind": "author",
+  "peers": [
+   "sosa@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1,
+  "sha": "4901f7b"
+ },
+ {
+  "date": "2014-11-01T07:59:06Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 61,
+  "deletions": 54,
+  "files": 5,
+  "sha": "be0c588"
+ },
+ {
+  "date": "2014-11-04T07:03:35Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 243,
+  "deletions": 33,
+  "files": 8,
+  "sha": "3a16636"
+ },
+ {
+  "date": "2014-11-04T07:03:40Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 32,
+  "deletions": 1,
+  "files": 1,
+  "sha": "4ffaa83"
+ },
+ {
+  "date": "2014-11-06T02:28:29Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 66,
+  "deletions": 170,
+  "files": 3,
+  "sha": "697f9a1"
+ },
+ {
+  "date": "2014-11-06T05:13:47Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 184,
+  "deletions": 170,
+  "files": 23,
+  "sha": "281e942"
+ },
+ {
+  "date": "2014-11-06T06:32:43Z",
+  "kind": "review",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 840,
+  "deletions": 504,
+  "files": 20,
+  "sha": "5283eab"
+ },
+ {
+  "date": "2014-11-06T21:14:47Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org",
+   "dgarrett@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 43,
+  "files": 2,
+  "sha": "0669c5d"
+ },
+ {
+  "date": "2014-11-07T01:24:34Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org",
+   "dgarrett@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 127,
+  "files": 4,
+  "sha": "a277585"
+ },
+ {
+  "date": "2014-11-07T19:23:03Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 91,
+  "deletions": 134,
+  "files": 9,
+  "sha": "946a882"
+ },
+ {
+  "date": "2014-11-12T03:58:34Z",
+  "kind": "author",
+  "peers": [
+   "vapier@chromium.org",
+   "gauravsh@chromium.org"
+  ],
+  "additions": 15,
+  "deletions": 29,
+  "files": 3,
+  "sha": "46ba634"
+ },
+ {
+  "date": "2014-11-12T06:13:25Z",
+  "kind": "author",
+  "peers": [
+   "gauravsh@chromium.org"
+  ],
+  "additions": 176,
+  "deletions": 31,
+  "files": 3,
+  "sha": "ebedffa"
+ },
+ {
+  "date": "2014-11-12T19:56:39Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 421,
+  "deletions": 420,
+  "files": 36,
+  "sha": "c8a79a8"
+ },
+ {
+  "date": "2014-11-12T19:56:46Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 15,
+  "deletions": 0,
+  "files": 9,
+  "sha": "7d567e4"
+ },
+ {
+  "date": "2014-11-12T19:56:58Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 250,
+  "deletions": 151,
+  "files": 129,
+  "sha": "4527b9c"
+ },
+ {
+  "date": "2014-11-13T00:30:08Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 323,
+  "deletions": 327,
+  "files": 70,
+  "sha": "f3db7f2"
+ },
+ {
+  "date": "2014-11-14T09:54:47Z",
+  "kind": "author",
+  "peers": [
+   "cmasone@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 5,
+  "files": 5,
+  "sha": "0394663"
+ },
+ {
+  "date": "2014-11-14T23:57:08Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1,
+  "sha": "b12cc58"
+ },
+ {
+  "date": "2014-11-18T03:30:00Z",
+  "kind": "author",
+  "peers": [
+   "vapier@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 20,
+  "files": 2,
+  "sha": "fe47f02"
+ },
+ {
+  "date": "2014-11-18T06:32:44Z",
+  "kind": "author",
+  "peers": [
+   "dgarrett@chromium.org"
+  ],
+  "additions": 41,
+  "deletions": 4,
+  "files": 1,
+  "sha": "2148989"
+ },
+ {
+  "date": "2014-11-20T02:55:40Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 10,
+  "files": 2,
+  "sha": "909b549"
+ },
+ {
+  "date": "2014-11-22T00:13:01Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 28,
+  "deletions": 18,
+  "files": 4,
+  "sha": "916b959"
+ },
+ {
+  "date": "2014-12-03T21:29:16Z",
+  "kind": "review",
+  "peers": [
+   "namnguyen@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1,
+  "sha": "3e8cac0"
+ },
+ {
+  "date": "2014-12-09T00:43:55Z",
+  "kind": "review",
+  "peers": [
+   "dpursell@chromium.org"
+  ],
+  "additions": 291,
+  "deletions": 85,
+  "files": 15,
+  "sha": "b2f1491"
+ },
+ {
+  "date": "2014-12-15T22:46:16Z",
+  "kind": "review",
+  "peers": [
+   "namnguyen@chromium.org"
+  ],
+  "additions": 52,
+  "deletions": 4,
+  "files": 2,
+  "sha": "32cfa16"
+ },
+ {
+  "date": "2014-12-16T01:28:49Z",
+  "kind": "review",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 146,
+  "deletions": 99,
+  "files": 7,
+  "sha": "813ad60"
+ },
+ {
+  "date": "2014-12-16T01:29:10Z",
+  "kind": "review",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 0,
+  "files": 54,
+  "sha": "d3e0b42"
+ },
+ {
+  "date": "2014-12-16T02:43:40Z",
+  "kind": "review",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 26,
+  "files": 3,
+  "sha": "1633507"
+ },
+ {
+  "date": "2014-12-17T04:53:20Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 14,
+  "deletions": 1,
+  "files": 1,
+  "sha": "920f08d"
+ },
+ {
+  "date": "2014-12-17T22:27:28Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 150,
+  "deletions": 5,
+  "files": 8,
+  "sha": "188191a"
+ },
+ {
+  "date": "2014-12-20T21:30:26Z",
+  "kind": "review",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 8,
+  "files": 1,
+  "sha": "839f251"
+ },
+ {
+  "date": "2015-01-14T23:13:07Z",
+  "kind": "review",
+  "peers": [
+   "vapier@chromium.org"
+  ],
+  "additions": 17,
+  "deletions": 5,
+  "files": 1,
+  "sha": "bb778ad"
+ },
+ {
+  "date": "2015-01-21T17:43:53Z",
+  "kind": "review",
+  "peers": [
+   "gdk@chromium.org"
+  ],
+  "additions": 10,
+  "deletions": 10,
+  "files": 3,
+  "sha": "7c004f7"
+ },
+ {
+  "date": "2015-01-22T07:43:51Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 348,
+  "deletions": 0,
+  "files": 4,
+  "sha": "af069ff"
+ },
+ {
+  "date": "2015-01-22T21:14:57Z",
+  "kind": "review",
+  "peers": [
+   "namnguyen@chromium.org"
+  ],
+  "additions": 431,
+  "deletions": 79,
+  "files": 16,
+  "sha": "24650f6"
+ },
+ {
+  "date": "2015-01-23T19:58:50Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 3,
+  "deletions": 0,
+  "files": 1,
+  "sha": "c8d18d6"
+ },
+ {
+  "date": "2015-01-27T01:59:40Z",
+  "kind": "author",
+  "peers": [
+   "sosa@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 1,
+  "files": 1,
+  "sha": "c536e3c"
+ },
+ {
+  "date": "2015-01-28T21:51:15Z",
+  "kind": "author",
+  "peers": [
+   "stevefung@chromium.org"
+  ],
+  "additions": 11,
+  "deletions": 0,
+  "files": 1,
+  "sha": "532ce47"
+ },
+ {
+  "date": "2015-01-30T02:58:15Z",
+  "kind": "review",
+  "peers": [
+   "yunlian@google.com"
+  ],
+  "additions": 16,
+  "deletions": 16,
+  "files": 5,
+  "sha": "9d241ef"
+ },
+ {
+  "date": "2015-01-31T05:44:40Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 9,
+  "deletions": 7,
+  "files": 1,
+  "sha": "e7fb2ac"
+ },
+ {
+  "date": "2015-02-02T21:14:57Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 13,
+  "deletions": 6,
+  "files": 4,
+  "sha": "2030377"
+ },
+ {
+  "date": "2015-02-03T05:39:32Z",
+  "kind": "author",
+  "peers": [
+   "djkurtz@chromium.org"
+  ],
+  "additions": 47,
+  "deletions": 42,
+  "files": 15,
+  "sha": "c5f05b5"
+ },
+ {
+  "date": "2015-02-03T07:06:11Z",
+  "kind": "author",
+  "peers": [
+   "djkurtz@chromium.org"
+  ],
+  "additions": 88,
+  "deletions": 88,
+  "files": 35,
+  "sha": "90a36cf"
+ },
+ {
+  "date": "2015-02-03T07:06:17Z",
+  "kind": "author",
+  "peers": [
+   "djkurtz@chromium.org"
+  ],
+  "additions": 29,
+  "deletions": 22,
+  "files": 17,
+  "sha": "1205a1d"
+ },
+ {
+  "date": "2015-02-03T08:21:35Z",
+  "kind": "author",
+  "peers": [
+   "djkurtz@chromium.org"
+  ],
+  "additions": 113,
+  "deletions": 99,
+  "files": 32,
+  "sha": "8c14523"
+ },
+ {
+  "date": "2015-02-04T04:07:23Z",
+  "kind": "author",
+  "peers": [
+   "djkurtz@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1,
+  "sha": "ff1e8bc"
+ },
+ {
+  "date": "2015-02-10T23:07:46Z",
+  "kind": "review",
+  "peers": [
+   "alliewood@chromium.org"
+  ],
+  "additions": 44,
+  "deletions": 20,
+  "files": 4,
+  "sha": "988a616"
+ },
+ {
+  "date": "2015-02-11T06:00:18Z",
+  "kind": "review",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 550,
+  "deletions": 542,
+  "files": 53,
+  "sha": "60ffc6e"
+ },
+ {
+  "date": "2015-02-18T23:53:16Z",
+  "kind": "review",
+  "peers": [
+   "alliewood@chromium.org"
+  ],
+  "additions": 5,
+  "deletions": 2,
+  "files": 2,
+  "sha": "76c3e1e"
+ },
+ {
+  "date": "2015-02-20T01:26:55Z",
+  "kind": "review",
+  "peers": [
+   "alliewood@chromium.org"
+  ],
+  "additions": 12,
+  "deletions": 1,
+  "files": 3,
+  "sha": "97261cf"
+ },
+ {
+  "date": "2015-02-21T09:20:15Z",
+  "kind": "review",
+  "peers": [
+   "usanghi@chromium.org"
+  ],
+  "additions": 273,
+  "deletions": 201,
+  "files": 3,
+  "sha": "af0d1de"
+ },
+ {
+  "date": "2015-02-26T00:49:39Z",
+  "kind": "review",
+  "peers": [
+   "kemp@google.com"
+  ],
+  "additions": 24,
+  "deletions": 0,
+  "files": 3,
+  "sha": "4b93f8e"
+ },
+ {
+  "date": "2015-02-26T00:49:45Z",
+  "kind": "review",
+  "peers": [
+   "alliewood@chromium.org"
+  ],
+  "additions": 1696,
+  "deletions": 1586,
+  "files": 9,
+  "sha": "ae7068b"
+ },
+ {
+  "date": "2015-03-02T21:37:11Z",
+  "kind": "review",
+  "peers": [
+   "namnguyen@chromium.org"
+  ],
+  "additions": 103,
+  "deletions": 3,
+  "files": 3,
+  "sha": "f497dfb"
+ },
+ {
+  "date": "2015-03-04T18:23:14Z",
+  "kind": "review",
+  "peers": [
+   "namnguyen@chromium.org"
+  ],
+  "additions": 97,
+  "deletions": 0,
+  "files": 3,
+  "sha": "5f802c0"
+ },
+ {
+  "date": "2015-03-06T08:49:46Z",
+  "kind": "review",
+  "peers": [
+   "namnguyen@chromium.org"
+  ],
+  "additions": 16,
+  "deletions": 6,
+  "files": 1,
+  "sha": "7082961"
+ },
+ {
+  "date": "2015-03-06T08:49:50Z",
+  "kind": "review",
+  "peers": [
+   "alliewood@chromium.org"
+  ],
+  "additions": 249,
+  "deletions": 86,
+  "files": 5,
+  "sha": "1e610e8"
+ },
+ {
+  "date": "2015-03-10T19:03:21Z",
+  "kind": "review",
+  "peers": [
+   "tjennison@chromium.org"
+  ],
+  "additions": 8,
+  "deletions": 5,
+  "files": 5,
+  "sha": "fee77dc"
+ },
+ {
+  "date": "2015-03-10T19:04:30Z",
+  "kind": "review",
+  "peers": [
+   "marc.herbert@intel.com"
+  ],
+  "additions": 9,
+  "deletions": 5,
+  "files": 1,
+  "sha": "5536e0c"
+ },
+ {
+  "date": "2015-03-12T05:17:19Z",
+  "kind": "author",
+  "peers": [
+   "dgarrett@chromium.org"
+  ],
+  "additions": 14,
+  "deletions": 13,
+  "files": 6,
+  "sha": "c6ebd5a"
+ },
+ {
+  "date": "2015-03-12T08:10:07Z",
+  "kind": "review",
+  "peers": [
+   "benchan@chromium.org"
+  ],
+  "additions": 6,
+  "deletions": 3,
+  "files": 1,
+  "sha": "0ba4bcd"
+ },
+ {
+  "date": "2015-03-12T22:06:49Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 460,
+  "deletions": 274,
+  "files": 11,
+  "sha": "35ccdc8"
+ },
+ {
+  "date": "2015-03-13T02:24:55Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 580,
+  "deletions": 440,
+  "files": 15,
+  "sha": "00f2e53"
+ },
+ {
+  "date": "2015-03-14T02:02:11Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 2,
+  "files": 1,
+  "sha": "b3c35ea"
+ },
+ {
+  "date": "2015-03-14T06:59:33Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org",
+   "dgarrett@chromium.org"
+  ],
+  "additions": 248,
+  "deletions": 3,
+  "files": 7,
+  "sha": "0f4ae7a"
+ },
+ {
+  "date": "2015-03-17T22:31:58Z",
+  "kind": "review",
+  "peers": [
+   "yunlian@google.com"
+  ],
+  "additions": 2,
+  "deletions": 3,
+  "files": 1,
+  "sha": "6c520a1"
+ },
+ {
+  "date": "2015-03-18T23:07:03Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 69,
+  "deletions": 27,
+  "files": 6,
+  "sha": "e327698"
+ },
+ {
+  "date": "2015-03-20T05:29:13Z",
+  "kind": "review",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 1513,
+  "deletions": 0,
+  "files": 10,
+  "sha": "c72b4d9"
+ },
+ {
+  "date": "2015-03-24T21:32:40Z",
+  "kind": "review",
+  "peers": [
+   "alliewood@chromium.org"
+  ],
+  "additions": 202,
+  "deletions": 65,
+  "files": 10,
+  "sha": "7baf1a9"
+ },
+ {
+  "date": "2015-03-26T19:56:06Z",
+  "kind": "author",
+  "peers": [
+   "alliewood@chromium.org",
+   "dgarrett@chromium.org"
+  ],
+  "additions": 133,
+  "deletions": 93,
+  "files": 1,
+  "sha": "5626ba5"
+ },
+ {
+  "date": "2015-03-27T04:11:05Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org",
+   "dgarrett@chromium.org"
+  ],
+  "additions": 400,
+  "deletions": 266,
+  "files": 15,
+  "sha": "9f86baf"
+ },
+ {
+  "date": "2015-03-31T06:32:11Z",
+  "kind": "author",
+  "peers": [
+   "dgarrett@chromium.org"
+  ],
+  "additions": 20,
+  "deletions": 20,
+  "files": 1,
+  "sha": "1f11754"
+ },
+ {
+  "date": "2015-04-03T18:33:17Z",
+  "kind": "review",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 117,
+  "deletions": 116,
+  "files": 56,
+  "sha": "274c74a"
+ },
+ {
+  "date": "2015-04-06T18:32:44Z",
+  "kind": "author",
+  "peers": [
+   "dgarrett@chromium.org"
+  ],
+  "additions": 346,
+  "deletions": 388,
+  "files": 6,
+  "sha": "31c2684"
+ },
+ {
+  "date": "2015-04-07T00:52:17Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 96,
+  "deletions": 50,
+  "files": 3,
+  "sha": "f714c0e"
+ },
+ {
+  "date": "2015-04-10T05:47:29Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 32,
+  "deletions": 39,
+  "files": 11,
+  "sha": "cca47c2"
+ },
+ {
+  "date": "2015-04-10T20:48:51Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 42,
+  "deletions": 27,
+  "files": 5,
+  "sha": "302ecf8"
+ },
+ {
+  "date": "2015-04-21T00:18:34Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 13,
+  "deletions": 2,
+  "files": 1,
+  "sha": "a5040ee"
+ },
+ {
+  "date": "2015-04-22T01:46:21Z",
+  "kind": "author",
+  "peers": [
+   "vapier@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1,
+  "sha": "746c819"
+ },
+ {
+  "date": "2015-04-24T19:48:08Z",
+  "kind": "review",
+  "peers": [
+   "alliewood@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 2,
+  "files": 1,
+  "sha": "abdd22f"
+ },
+ {
+  "date": "2015-04-24T20:47:58Z",
+  "kind": "review",
+  "peers": [
+   "alliewood@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 2,
+  "sha": "27f46dd"
+ },
+ {
+  "date": "2015-04-25T02:00:18Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2,
+  "deletions": 2,
+  "files": 2,
+  "sha": "0a3098f"
+ },
+ {
+  "date": "2015-04-27T23:29:38Z",
+  "kind": "review",
+  "peers": [
+   "benchan@google.com"
+  ],
+  "additions": 0,
+  "deletions": 1,
+  "files": 1,
+  "sha": "727b841"
+ },
+ {
+  "date": "2015-05-01T01:07:57Z",
+  "kind": "review",
+  "peers": [
+   "alliewood@chromium.org"
+  ],
+  "additions": 190,
+  "deletions": 0,
+  "files": 3,
+  "sha": "0978da5"
+ },
+ {
+  "date": "2015-05-05T03:36:16Z",
+  "kind": "review",
+  "peers": [
+   "alliewood@chromium.org"
+  ],
+  "additions": 107,
+  "deletions": 18,
+  "files": 3,
+  "sha": "c165499"
+ },
+ {
+  "date": "2015-05-05T22:53:52Z",
+  "kind": "review",
+  "peers": [
+   "alliewood@chromium.org"
+  ],
+  "additions": 66,
+  "deletions": 7,
+  "files": 3,
+  "sha": "31e28be"
+ },
+ {
+  "date": "2015-05-07T22:25:30Z",
+  "kind": "review",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1,
+  "sha": "0b4f4f3"
+ },
+ {
+  "date": "2015-05-07T23:39:00Z",
+  "kind": "review",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 38,
+  "deletions": 58,
+  "files": 6,
+  "sha": "3306a82"
+ },
+ {
+  "date": "2015-05-08T19:33:14Z",
+  "kind": "review",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 11,
+  "deletions": 2,
+  "files": 3,
+  "sha": "3e01ddf"
+ },
+ {
+  "date": "2015-05-08T19:33:18Z",
+  "kind": "review",
+  "peers": [
+   "alliewood@chromium.org"
+  ],
+  "additions": 475,
+  "deletions": 30,
+  "files": 10,
+  "sha": "6a3ea94"
+ },
+ {
+  "date": "2015-05-10T15:07:57Z",
+  "kind": "review",
+  "peers": [
+   "vapier@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 39,
+  "files": 5,
+  "sha": "6fad6c7"
+ },
+ {
+  "date": "2015-06-04T10:43:16Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 191,
+  "deletions": 126,
+  "files": 14,
+  "sha": "c1e19dd"
+ },
+ {
+  "date": "2015-06-04T10:43:26Z",
+  "kind": "author",
+  "peers": [
+   "vapier@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1,
+  "sha": "e4a4d46"
+ },
+ {
+  "date": "2015-06-08T19:25:46Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 9,
+  "files": 1,
+  "sha": "e783124"
+ },
+ {
+  "date": "2015-06-09T05:29:05Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 149,
+  "deletions": 44,
+  "files": 8,
+  "sha": "639e7e1"
+ },
+ {
+  "date": "2015-06-09T06:42:06Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 113,
+  "deletions": 0,
+  "files": 3,
+  "sha": "4138cdb"
+ },
+ {
+  "date": "2015-06-12T16:37:45Z",
+  "kind": "author",
+  "peers": [
+   "dgarrett@chromium.org"
+  ],
+  "additions": 962,
+  "deletions": 2,
+  "files": 15,
+  "sha": "05dd492"
+ },
+ {
+  "date": "2015-06-12T16:37:49Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 648,
+  "deletions": 2678,
+  "files": 22,
+  "sha": "c621624"
+ },
+ {
+  "date": "2015-06-12T16:37:58Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 140,
+  "deletions": 182,
+  "files": 9,
+  "sha": "488b0ac"
+ },
+ {
+  "date": "2015-06-12T16:38:10Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 19,
+  "deletions": 76,
+  "files": 16,
+  "sha": "6883e67"
+ },
+ {
+  "date": "2015-06-12T19:36:27Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 29,
+  "files": 2,
+  "sha": "627015b"
+ },
+ {
+  "date": "2015-06-12T19:36:32Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 6,
+  "deletions": 3,
+  "files": 1,
+  "sha": "ee10690"
+ },
+ {
+  "date": "2015-06-12T23:51:58Z",
+  "kind": "author",
+  "peers": [
+   "dnojiri@chromium.org",
+   "dgarrett@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1,
+  "sha": "d83138b"
+ },
+ {
+  "date": "2015-06-13T02:53:12Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 571,
+  "deletions": 0,
+  "files": 10,
+  "sha": "cd7cc65"
+ },
+ {
+  "date": "2015-06-13T02:53:19Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 20,
+  "deletions": 24,
+  "files": 1,
+  "sha": "94e2146"
+ },
+ {
+  "date": "2015-06-13T02:53:26Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 152,
+  "deletions": 274,
+  "files": 19,
+  "sha": "76f84b9"
+ },
+ {
+  "date": "2015-06-16T20:58:46Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 37,
+  "deletions": 9,
+  "files": 3,
+  "sha": "1d95496"
+ },
+ {
+  "date": "2015-06-20T02:19:36Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org",
+   "wiley@chromium.org"
+  ],
+  "additions": 196,
+  "deletions": 27,
+  "files": 10,
+  "sha": "f71f10e"
+ },
+ {
+  "date": "2015-06-20T02:19:40Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 18,
+  "deletions": 7,
+  "files": 7,
+  "sha": "fe95344"
+ },
+ {
+  "date": "2015-06-20T02:19:44Z",
+  "kind": "author",
+  "peers": [
+   "jorgelo@chromium.org"
+  ],
+  "additions": 28,
+  "deletions": 8,
+  "files": 2,
+  "sha": "5e61d39"
+ },
+ {
+  "date": "2015-06-20T02:20:00Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 1,
+  "files": 1,
+  "sha": "92dcf3a"
+ },
+ {
+  "date": "2015-06-22T19:27:51Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 18,
+  "deletions": 18,
+  "files": 2,
+  "sha": "7f4e9fa"
+ },
+ {
+  "date": "2015-06-23T01:54:10Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 15,
+  "deletions": 1,
+  "files": 2,
+  "sha": "c458e5a"
+ },
+ {
+  "date": "2015-06-24T03:07:05Z",
+  "kind": "author",
+  "peers": [
+   "dgarrett@chromium.org",
+   "avakulenko@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 70,
+  "files": 3,
+  "sha": "e6c4e9b"
+ },
+ {
+  "date": "2015-06-25T16:09:05Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 335,
+  "deletions": 447,
+  "files": 2,
+  "sha": "0998f14"
+ },
+ {
+  "date": "2015-06-25T17:21:50Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 7,
+  "deletions": 0,
+  "files": 1,
+  "sha": "310daa4"
+ },
+ {
+  "date": "2015-06-26T01:47:39Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 770,
+  "deletions": 958,
+  "files": 25,
+  "sha": "8c73cc8"
+ },
+ {
+  "date": "2015-06-26T01:47:46Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 37,
+  "deletions": 37,
+  "files": 5,
+  "sha": "b4d8bcf"
+ },
+ {
+  "date": "2015-06-30T10:47:56Z",
+  "kind": "review",
+  "peers": [
+   "cernekee@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 1,
+  "files": 1,
+  "sha": "def5fe3"
+ },
+ {
+  "date": "2015-06-30T12:21:23Z",
+  "kind": "author",
+  "peers": [
+   "dgarrett@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 21,
+  "files": 1,
+  "sha": "5086fef"
+ },
+ {
+  "date": "2015-06-30T12:22:05Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 366,
+  "deletions": 26,
+  "files": 7,
+  "sha": "36558e9"
+ },
+ {
+  "date": "2015-06-30T12:22:15Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 7,
+  "deletions": 5,
+  "files": 1,
+  "sha": "38d3079"
+ },
+ {
+  "date": "2015-06-30T12:22:23Z",
+  "kind": "author",
+  "peers": [
+   "dgarrett@chromium.org"
+  ],
+  "additions": 47,
+  "deletions": 13,
+  "files": 2,
+  "sha": "8c485f5"
+ },
+ {
+  "date": "2015-07-01T05:27:51Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1,
+  "deletions": 2,
+  "files": 1,
+  "sha": "ce348b4"
+ },
+ {
+  "date": "2015-07-01T08:01:51Z",
+  "kind": "author",
+  "peers": [
+   "gabeblack@chromium.org",
+   "dgarrett@chromium.org"
+  ],
+  "additions": 75,
+  "deletions": 28,
+  "files": 2,
+  "sha": "5f0429a"
+ },
+ {
+  "date": "2015-07-01T09:35:37Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 2372,
+  "deletions": 2147,
+  "files": 23,
+  "sha": "9daff83"
+ },
+ {
+  "date": "2015-07-01T19:48:17Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 57,
+  "deletions": 63,
+  "files": 3,
+  "sha": "eaa50fc"
+ },
+ {
+  "date": "2015-07-01T19:48:24Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 39,
+  "deletions": 8,
+  "files": 1,
+  "sha": "8eaa503"
+ },
+ {
+  "date": "2015-07-02T03:02:58Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 161,
+  "deletions": 25,
+  "files": 12,
+  "sha": "7db5018"
+ },
+ {
+  "date": "2015-07-09T01:17:52Z",
+  "kind": "author",
+  "peers": [
+   "dgarrett@chromium.org"
+  ],
+  "additions": 170,
+  "deletions": 189,
+  "files": 14,
+  "sha": "c2c2e90"
+ },
+ {
+  "date": "2015-07-11T00:28:15Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 55,
+  "deletions": 6,
+  "files": 2,
+  "sha": "5e2324b"
+ },
+ {
+  "date": "2015-07-11T09:33:04Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 241,
+  "deletions": 323,
+  "files": 7,
+  "sha": "0546f91"
+ },
+ {
+  "date": "2015-07-11T09:33:10Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 95,
+  "deletions": 121,
+  "files": 4,
+  "sha": "10cfa81"
+ },
+ {
+  "date": "2015-07-11T09:33:15Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 46,
+  "deletions": 71,
+  "files": 2,
+  "sha": "e8a2ef4"
+ },
+ {
+  "date": "2015-07-11T09:33:20Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 49,
+  "deletions": 109,
+  "files": 2,
+  "sha": "6e3395b"
+ },
+ {
+  "date": "2015-07-15T20:29:26Z",
+  "kind": "review",
+  "peers": [
+   "wiley@google.com"
+  ],
+  "additions": 72,
+  "deletions": 29,
+  "files": 17,
+  "sha": "05c972a"
+ },
+ {
+  "date": "2015-07-15T21:57:52Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 5,
+  "deletions": 0,
+  "files": 1,
+  "sha": "e7ee444"
+ },
+ {
+  "date": "2015-07-16T05:15:35Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 943,
+  "deletions": 58,
+  "files": 10,
+  "sha": "a1f8362"
+ },
+ {
+  "date": "2015-07-16T05:15:41Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 711,
+  "deletions": 177,
+  "files": 9,
+  "sha": "70afdef"
+ },
+ {
+  "date": "2015-07-17T10:57:24Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 94,
+  "deletions": 48,
+  "files": 2,
+  "sha": "01aaaeb"
+ },
+ {
+  "date": "2015-07-17T10:57:30Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 160,
+  "deletions": 137,
+  "files": 10,
+  "sha": "d849f91"
+ },
+ {
+  "date": "2015-07-21T01:34:30Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 196,
+  "deletions": 109,
+  "files": 8,
+  "sha": "2de7bf0"
+ },
+ {
+  "date": "2015-07-21T19:56:25Z",
+  "kind": "author",
+  "peers": [
+   "dgarrett@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 14,
+  "files": 1,
+  "sha": "b4489e8"
+ },
+ {
+  "date": "2015-07-23T09:59:16Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 28,
+  "deletions": 18,
+  "files": 1,
+  "sha": "5da6ad3"
+ },
+ {
+  "date": "2015-07-23T09:59:31Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 104,
+  "deletions": 61,
+  "files": 16,
+  "sha": "36a2837"
+ },
+ {
+  "date": "2015-07-23T09:59:35Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 1,
+  "files": 1,
+  "sha": "73cd038"
+ },
+ {
+  "date": "2015-07-23T16:07:40Z",
+  "kind": "review",
+  "peers": [
+   "bsimonnet@google.com"
+  ],
+  "additions": 2,
+  "deletions": 971,
+  "files": 7,
+  "sha": "ffaf39e"
+ },
+ {
+  "date": "2015-07-23T16:07:49Z",
+  "kind": "author",
+  "peers": [
+   "jorgelo@chromium.org",
+   "derat@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 13282,
+  "files": 159,
+  "sha": "4406986"
+ },
+ {
+  "date": "2015-07-24T04:17:15Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 202,
+  "deletions": 136,
+  "files": 4,
+  "sha": "00d36b6"
+ },
+ {
+  "date": "2015-07-24T21:53:39Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 47,
+  "deletions": 34,
+  "files": 4,
+  "sha": "1eaac0b"
+ },
+ {
+  "date": "2015-07-24T21:53:45Z",
+  "kind": "author",
+  "peers": [
+   "tbarzic@chromium.org"
+  ],
+  "additions": 13,
+  "deletions": 18,
+  "files": 4,
+  "sha": "dd7b853"
+ },
+ {
+  "date": "2015-07-24T21:53:49Z",
+  "kind": "author",
+  "peers": [
+   "derat@chromium.org",
+   "mnissler@chromium.org"
+  ],
+  "additions": 49,
+  "deletions": 82,
+  "files": 10,
+  "sha": "a11a6e7"
+ },
+ {
+  "date": "2015-07-24T21:53:52Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 41,
+  "deletions": 40,
+  "files": 4,
+  "sha": "79a6978"
+ },
+ {
+  "date": "2015-07-25T17:45:18Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 299,
+  "deletions": 1,
+  "files": 5,
+  "sha": "c28bf7f"
+ },
+ {
+  "date": "2015-07-28T00:59:21Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 80,
+  "deletions": 66,
+  "files": 7,
+  "sha": "0f9f5b7"
+ },
+ {
+  "date": "2015-07-28T21:31:44Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 213,
+  "deletions": 27,
+  "files": 4,
+  "sha": "e45b884"
+ },
+ {
+  "date": "2015-07-29T08:45:26Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 126,
+  "deletions": 21,
+  "files": 6,
+  "sha": "34b2c95"
+ },
+ {
+  "date": "2015-07-29T08:45:30Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1,
+  "sha": "e6ec59f"
+ },
+ {
+  "date": "2015-07-29T08:45:40Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 1,
+  "files": 1,
+  "sha": "082a8db"
+ },
+ {
+  "date": "2015-07-29T08:45:45Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 2,
+  "files": 1,
+  "sha": "27a707f"
+ },
+ {
+  "date": "2015-07-29T21:18:25Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 157,
+  "deletions": 46,
+  "files": 7,
+  "sha": "f919299"
+ },
+ {
+  "date": "2015-07-29T21:18:40Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 317,
+  "deletions": 331,
+  "files": 16,
+  "sha": "bce124d"
+ },
+ {
+  "date": "2015-07-29T22:55:05Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org",
+   "wiley@chromium.org"
+  ],
+  "additions": 25,
+  "deletions": 34,
+  "files": 2,
+  "sha": "56f770b"
+ },
+ {
+  "date": "2015-07-30T00:19:03Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 128,
+  "deletions": 99,
+  "files": 7,
+  "sha": "7e54e90"
+ },
+ {
+  "date": "2015-08-01T02:51:36Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 106,
+  "deletions": 27,
+  "files": 3,
+  "sha": "240e46d"
+ },
+ {
+  "date": "2015-08-01T02:52:46Z",
+  "kind": "author",
+  "peers": [
+   "derat@chromium.org",
+   "mnissler@chromium.org"
+  ],
+  "additions": 29,
+  "deletions": 3,
+  "files": 2,
+  "sha": "9f890c4"
+ },
+ {
+  "date": "2015-08-01T02:53:04Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 106,
+  "deletions": 78,
+  "files": 16,
+  "sha": "630c9d1"
+ },
+ {
+  "date": "2015-08-05T22:28:57Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 115,
+  "deletions": 83,
+  "files": 10,
+  "sha": "8f3af00"
+ },
+ {
+  "date": "2015-08-06T09:44:23Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 111,
+  "deletions": 98,
+  "files": 3,
+  "sha": "cb5a598"
+ },
+ {
+  "date": "2015-08-06T18:48:15Z",
+  "kind": "author",
+  "peers": [
+   "vitalybuka@chromium.org"
+  ],
+  "additions": 173,
+  "deletions": 173,
+  "files": 12,
+  "sha": "78c1743"
+ },
+ {
+  "date": "2015-08-08T04:26:33Z",
+  "kind": "author",
+  "peers": [
+   "wiley@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 1,
+  "files": 2,
+  "sha": "335be8b"
+ },
+ {
+  "date": "2015-08-08T04:26:40Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1,
+  "sha": "9ef1986"
+ },
+ {
+  "date": "2015-08-08T04:26:46Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 55,
+  "deletions": 75,
+  "files": 1,
+  "sha": "1893253"
+ },
+ {
+  "date": "2015-08-10T20:42:18Z",
+  "kind": "review",
+  "peers": [
+   "tbarzic@chromium.org"
+  ],
+  "additions": 362,
+  "deletions": 603,
+  "files": 9,
+  "sha": "4852b77"
+ },
+ {
+  "date": "2015-08-11T21:21:42Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 317,
+  "deletions": 73,
+  "files": 5,
+  "sha": "cd6dfe2"
+ },
+ {
+  "date": "2015-08-13T21:40:57Z",
+  "kind": "review",
+  "peers": [
+   "senj@chromium.org"
+  ],
+  "additions": 248,
+  "deletions": 237,
+  "files": 20,
+  "sha": "1eb5a7d"
+ },
+ {
+  "date": "2015-08-14T01:06:27Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@chromium.org"
+  ],
+  "additions": 226,
+  "deletions": 28,
+  "files": 3,
+  "sha": "3f609ab"
+ },
+ {
+  "date": "2015-08-14T02:25:47Z",
+  "kind": "author",
+  "peers": [
+   "garnold@chromium.org"
+  ],
+  "additions": 679,
+  "deletions": 659,
+  "files": 16,
+  "sha": "998e335"
+ },
+ {
+  "date": "2015-08-14T02:25:54Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 1360,
+  "deletions": 1770,
+  "files": 48,
+  "sha": "75a709b"
+ },
+ {
+  "date": "2015-08-14T02:26:00Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 27,
+  "deletions": 46,
+  "files": 23,
+  "sha": "0a01744"
+ },
+ {
+  "date": "2015-08-14T14:34:26Z",
+  "kind": "author",
+  "peers": [
+   "vapier@chromium.org"
+  ],
+  "additions": 58,
+  "deletions": 44,
+  "files": 8,
+  "sha": "72eb08d"
+ },
+ {
+  "date": "2015-08-14T21:04:31Z",
+  "kind": "author",
+  "peers": [
+   "wiley@chromium.org"
+  ],
+  "additions": 24,
+  "deletions": 19,
+  "files": 1,
+  "sha": "abcc559"
+ },
+ {
+  "date": "2015-08-14T22:37:42Z",
+  "kind": "review",
+  "peers": [
+   "bsimonnet@chromium.org"
+  ],
+  "additions": 9,
+  "deletions": 1,
+  "files": 1,
+  "sha": "7b4a308"
+ },
+ {
+  "date": "2015-08-14T22:37:51Z",
+  "kind": "review",
+  "peers": [
+   "bsimonnet@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 1,
+  "files": 1,
+  "sha": "ca5b39a"
+ },
+ {
+  "date": "2015-08-15T03:05:38Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 21,
+  "deletions": 17,
+  "files": 8,
+  "sha": "515c129"
+ },
+ {
+  "date": "2015-08-15T04:26:36Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 366,
+  "deletions": 402,
+  "files": 20,
+  "sha": "79095df"
+ },
+ {
+  "date": "2015-08-15T04:26:42Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 56,
+  "deletions": 2,
+  "files": 2,
+  "sha": "830d80a"
+ },
+ {
+  "date": "2015-08-16T15:22:23Z",
+  "kind": "review",
+  "peers": [
+   "derat@chromium.org"
+  ],
+  "additions": 50,
+  "deletions": 50,
+  "files": 21,
+  "sha": "fba8c48"
+ },
+ {
+  "date": "2015-08-18T01:45:36Z",
+  "kind": "review",
+  "peers": [
+   "bsimonnet@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 37155,
+  "files": 226,
+  "sha": "b884f51"
+ },
+ {
+  "date": "2015-08-18T01:47:34Z",
+  "kind": "author",
+  "peers": [
+   "bsimonnet@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 5033,
+  "files": 54,
+  "sha": "0ed7532"
+ },
+ {
+  "date": "2015-08-18T03:17:03Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 43,
+  "deletions": 2,
+  "files": 5,
+  "sha": "448bea7"
+ },
+ {
+  "date": "2015-08-20T00:13:29Z",
+  "kind": "author",
+  "peers": [
+   "gauravsh@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 62301,
+  "files": 316,
+  "sha": "5a5a86f"
+ },
+ {
+  "date": "2015-08-20T04:43:46Z",
+  "kind": "review",
+  "peers": [
+   "bsimonnet@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 6604,
+  "files": 30,
+  "sha": "e94657a"
+ },
+ {
+  "date": "2015-08-22T09:31:39Z",
+  "kind": "review",
+  "peers": [
+   "wiley@google.com"
+  ],
+  "additions": 2,
+  "deletions": 1,
+  "files": 1,
+  "sha": "bac2e81"
+ },
+ {
+  "date": "2015-08-25T20:10:56Z",
+  "kind": "author",
+  "peers": [
+   "vapier@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 0,
+  "files": 1,
+  "sha": "9952ba0"
+ },
+ {
+  "date": "2015-08-25T20:11:01Z",
+  "kind": "author",
+  "peers": [
+   "vapier@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 1,
+  "sha": "4797c75"
+ },
+ {
+  "date": "2015-08-28T04:27:43Z",
+  "kind": "author",
+  "peers": [
+   "derat@chromium.org"
+  ],
+  "additions": 1316,
+  "deletions": 1226,
+  "files": 11,
+  "sha": "c4e04b6"
+ },
+ {
+  "date": "2015-09-03T05:07:50Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 252,
+  "deletions": 199,
+  "files": 45,
+  "sha": "2792a79"
+ },
+ {
+  "date": "2015-09-03T05:08:02Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 9,
+  "deletions": 0,
+  "files": 1,
+  "sha": "af5b6f9"
+ },
+ {
+  "date": "2015-09-05T03:19:18Z",
+  "kind": "author",
+  "peers": [
+   "derat@chromium.org"
+  ],
+  "additions": 86,
+  "deletions": 72,
+  "files": 6,
+  "sha": "2544da2"
+ },
+ {
+  "date": "2015-09-10T05:11:53Z",
+  "kind": "review",
+  "peers": [
+   "zqiu@google.com"
+  ],
+  "additions": 30,
+  "deletions": 29,
+  "files": 20,
+  "sha": "d3baeaa"
+ },
+ {
+  "date": "2015-09-10T19:35:34Z",
+  "kind": "review",
+  "peers": [
+   "zqiu@google.com"
+  ],
+  "additions": 25,
+  "deletions": 51,
+  "files": 3,
+  "sha": "64203c5"
+ },
+ {
+  "date": "2015-09-10T19:35:35Z",
+  "kind": "review",
+  "peers": [
+   "zqiu@google.com"
+  ],
+  "additions": 21,
+  "deletions": 13,
+  "files": 5,
+  "sha": "ed45fda"
+ },
+ {
+  "date": "2015-09-22T17:14:10Z",
+  "kind": "review",
+  "peers": [
+   "yyefet@google.com"
+  ],
+  "additions": 46,
+  "deletions": 18,
+  "files": 1,
+  "sha": "00f3961"
+ },
+ {
+  "date": "2015-10-02T10:28:36Z",
+  "kind": "review",
+  "peers": [
+   "samueltan@google.com"
+  ],
+  "additions": 27,
+  "deletions": 0,
+  "files": 2,
+  "sha": "1ec8512"
+ },
+ {
+  "date": "2015-10-27T08:22:57Z",
+  "kind": "review",
+  "peers": [
+   "avakulenko@google.com"
+  ],
+  "additions": 2,
+  "deletions": 3,
+  "files": 2,
+  "sha": "993442f"
+ },
+ {
+  "date": "2015-10-29T03:44:38Z",
+  "kind": "review",
+  "peers": [
+   "yyefet@google.com"
+  ],
+  "additions": 64,
+  "deletions": 0,
+  "files": 1,
+  "sha": "3b3e367"
+ },
+ {
+  "date": "2015-11-25T00:40:52Z",
+  "kind": "author",
+  "peers": [
+   "zeuthen@chromium.org"
+  ],
+  "additions": 5,
+  "deletions": 9,
+  "files": 1,
+  "sha": "9d1ae25"
+ },
+ {
+  "date": "2016-01-08T22:52:59Z",
+  "kind": "author",
+  "peers": [
+   "avakulenko@google.com",
+   "vitalybuka@chromium.org"
+  ],
+  "additions": 8,
+  "deletions": 7,
+  "files": 1,
+  "sha": "bfe7e69"
+ },
+ {
+  "date": "2016-01-27T12:38:02Z",
+  "kind": "review",
+  "peers": [
+   "avakulenko@google.com"
+  ],
+  "additions": 14,
+  "deletions": 12,
+  "files": 8,
+  "sha": "f695ea0"
+ },
+ {
+  "date": "2016-01-29T22:00:30Z",
+  "kind": "author",
+  "peers": [
+   "wiley@chromium.org",
+   "avakulenko@google.com"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1,
+  "sha": "3c6ff74"
+ },
+ {
+  "date": "2016-02-17T00:08:29Z",
+  "kind": "author",
+  "peers": [
+   "senj@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1,
+  "sha": "e976d5b"
+ },
+ {
+  "date": "2016-02-24T22:13:25Z",
+  "kind": "review",
+  "peers": [
+   "afakhry@google.com"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1,
+  "sha": "821cd30"
+ },
+ {
+  "date": "2016-03-23T04:39:22Z",
+  "kind": "review",
+  "peers": [
+   "avakulenko@google.com"
+  ],
+  "additions": 17,
+  "deletions": 38,
+  "files": 12,
+  "sha": "12e79d8"
+ },
+ {
+  "date": "2016-04-05T03:04:59Z",
+  "kind": "author",
+  "peers": [
+   "derat@chromium.org"
+  ],
+  "additions": 5,
+  "deletions": 0,
+  "files": 1,
+  "sha": "4d3b175"
+ },
+ {
+  "date": "2016-05-18T01:35:32Z",
+  "kind": "author",
+  "peers": [
+   "colish@chromium.org"
+  ],
+  "additions": 7,
+  "deletions": 1,
+  "files": 1,
+  "sha": "bf012a0"
+ },
+ {
+  "date": "2016-05-18T01:35:33Z",
+  "kind": "author",
+  "peers": [
+   "vapier@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 1,
+  "sha": "f85f25d"
+ },
+ {
+  "date": "2017-01-28T09:52:16Z",
+  "kind": "review",
+  "peers": [
+   "manojgupta@google.com"
+  ],
+  "additions": 2,
+  "deletions": 2,
+  "files": 2,
+  "sha": "893824b"
+ },
+ {
+  "date": "2017-05-10T20:53:54Z",
+  "kind": "review",
+  "peers": [
+   "weidongg@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1,
+  "sha": "7ab1c77"
+ }
+]

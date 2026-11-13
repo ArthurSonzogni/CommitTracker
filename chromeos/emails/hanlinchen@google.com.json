@@ -1,0 +1,393 @@
+[
+ {
+  "date": "2019-11-04T12:47:07Z",
+  "kind": "author",
+  "peers": [
+   "tian.shu.qiu@intel.com",
+   "jcliang@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1,
+  "sha": "0e6c82f"
+ },
+ {
+  "date": "2020-01-13T07:16:16Z",
+  "kind": "author",
+  "peers": [
+   "hywu@chromium.org"
+  ],
+  "additions": 698,
+  "deletions": 931,
+  "files": 21,
+  "sha": "168c7b6"
+ },
+ {
+  "date": "2020-02-06T03:51:27Z",
+  "kind": "author",
+  "peers": [
+   "hywu@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 4,
+  "files": 1,
+  "sha": "2f31925"
+ },
+ {
+  "date": "2020-04-22T11:37:35Z",
+  "kind": "author",
+  "peers": [
+   "hywu@chromium.org"
+  ],
+  "additions": 23,
+  "deletions": 8,
+  "files": 3,
+  "sha": "545d505"
+ },
+ {
+  "date": "2020-04-27T10:56:05Z",
+  "kind": "author",
+  "peers": [
+   "shik@chromium.org"
+  ],
+  "additions": 23,
+  "deletions": 7,
+  "files": 3,
+  "sha": "ca16993"
+ },
+ {
+  "date": "2020-05-25T21:59:14Z",
+  "kind": "author",
+  "peers": [
+   "liang.l.yang@intel.com",
+   "shik@chromium.org"
+  ],
+  "additions": 2,
+  "deletions": 8,
+  "files": 1,
+  "sha": "c78eb98"
+ },
+ {
+  "date": "2020-12-26T01:25:12Z",
+  "kind": "review",
+  "peers": [
+   "mojahsu@google.com"
+  ],
+  "additions": 8,
+  "deletions": 8,
+  "files": 4,
+  "sha": "1446e20"
+ },
+ {
+  "date": "2021-01-28T12:37:13Z",
+  "kind": "author",
+  "peers": [
+   "ievlogiev@mm-sol.com",
+   "shik@chromium.org"
+  ],
+  "additions": 4,
+  "deletions": 1,
+  "files": 1,
+  "sha": "7fa17b9"
+ },
+ {
+  "date": "2021-02-26T14:22:18Z",
+  "kind": "author",
+  "peers": [
+   "ievlogiev@mm-sol.com",
+   "hywu@chromium.org"
+  ],
+  "additions": 1662,
+  "deletions": 684,
+  "files": 17,
+  "sha": "b45faae"
+ },
+ {
+  "date": "2021-03-02T13:00:11Z",
+  "kind": "review",
+  "peers": [
+   "hywu@google.com"
+  ],
+  "additions": 3,
+  "deletions": 2,
+  "files": 1,
+  "sha": "2c60e8c"
+ },
+ {
+  "date": "2021-03-17T06:46:21Z",
+  "kind": "author",
+  "peers": [
+   "hywu@chromium.org"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1,
+  "sha": "74e30d3"
+ },
+ {
+  "date": "2021-04-29T16:00:03Z",
+  "kind": "author",
+  "peers": [
+   "jcliang@chromium.org"
+  ],
+  "additions": 0,
+  "deletions": 8,
+  "files": 1,
+  "sha": "57615ac"
+ },
+ {
+  "date": "2021-04-29T16:00:06Z",
+  "kind": "author",
+  "peers": [
+   "shik@chromium.org",
+   "jcliang@chromium.org"
+  ],
+  "additions": 48,
+  "deletions": 38,
+  "files": 3,
+  "sha": "ab7631a"
+ },
+ {
+  "date": "2021-09-06T15:16:34Z",
+  "kind": "author",
+  "peers": [
+   "wtlee@chromium.org"
+  ],
+  "additions": 8,
+  "deletions": 8,
+  "files": 1,
+  "sha": "9b2b48b"
+ },
+ {
+  "date": "2021-10-12T08:31:06Z",
+  "kind": "author",
+  "peers": [
+   "hywu@chromium.org",
+   "wtlee@chromium.org"
+  ],
+  "additions": 12,
+  "deletions": 1,
+  "files": 4,
+  "sha": "745cded"
+ },
+ {
+  "date": "2023-11-20T16:17:31Z",
+  "kind": "review",
+  "peers": [
+   "chenghaoyang@google.com"
+  ],
+  "additions": 1,
+  "deletions": 5,
+  "files": 4,
+  "sha": "ace2846"
+ },
+ {
+  "date": "2023-12-22T09:26:42Z",
+  "kind": "review",
+  "peers": [
+   "beckerh@google.com"
+  ],
+  "additions": 1,
+  "deletions": 0,
+  "files": 1,
+  "sha": "40a2e50"
+ },
+ {
+  "date": "2024-03-04T10:37:32Z",
+  "kind": "review",
+  "peers": [
+   "beckerh@google.com"
+  ],
+  "additions": 13,
+  "deletions": 0,
+  "files": 1,
+  "sha": "1942d98"
+ },
+ {
+  "date": "2024-03-08T20:54:21Z",
+  "kind": "review",
+  "peers": [
+   "chenghaoyang@google.com"
+  ],
+  "additions": 0,
+  "deletions": 2,
+  "files": 1,
+  "sha": "bf5e510"
+ },
+ {
+  "date": "2024-05-09T16:20:17Z",
+  "kind": "review",
+  "peers": [
+   "chenghaoyang@google.com"
+  ],
+  "additions": 7,
+  "deletions": 1,
+  "files": 1,
+  "sha": "c74a303"
+ },
+ {
+  "date": "2024-05-10T19:28:19Z",
+  "kind": "review",
+  "peers": [
+   "chenghaoyang@google.com"
+  ],
+  "additions": 164,
+  "deletions": 0,
+  "files": 5,
+  "sha": "b92d049"
+ },
+ {
+  "date": "2024-06-03T12:48:07Z",
+  "kind": "review",
+  "peers": [
+   "beckerh@google.com"
+  ],
+  "additions": 1,
+  "deletions": 1,
+  "files": 1,
+  "sha": "010d23a"
+ },
+ {
+  "date": "2024-06-07T09:57:14Z",
+  "kind": "review",
+  "peers": [
+   "yerlandinata@google.com"
+  ],
+  "additions": 96,
+  "deletions": 0,
+  "files": 1,
+  "sha": "ae0c5be"
+ },
+ {
+  "date": "2024-06-07T09:57:18Z",
+  "kind": "review",
+  "peers": [
+   "yerlandinata@google.com"
+  ],
+  "additions": 3,
+  "deletions": 1,
+  "files": 1,
+  "sha": "06d8fe5"
+ },
+ {
+  "date": "2024-07-24T06:41:17Z",
+  "kind": "review",
+  "peers": [
+   "chenghaoyang@google.com"
+  ],
+  "additions": 12,
+  "deletions": 8,
+  "files": 4,
+  "sha": "71e4c12"
+ },
+ {
+  "date": "2024-09-20T09:50:04Z",
+  "kind": "review",
+  "peers": [
+   "esker@google.com"
+  ],
+  "additions": 6,
+  "deletions": 0,
+  "files": 1,
+  "sha": "7e94730"
+ },
+ {
+  "date": "2024-10-24T03:14:06Z",
+  "kind": "review",
+  "peers": [
+   "xinggu@google.com"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1,
+  "sha": "b217bf7"
+ },
+ {
+  "date": "2024-11-26T12:24:26Z",
+  "kind": "review",
+  "peers": [
+   "xinggu@google.com"
+  ],
+  "additions": 1,
+  "deletions": 3,
+  "files": 1,
+  "sha": "30c5bd2"
+ },
+ {
+  "date": "2025-05-16T18:23:54Z",
+  "kind": "review",
+  "peers": [
+   "ballway@google.com"
+  ],
+  "additions": 10,
+  "deletions": 2,
+  "files": 1,
+  "sha": "7a8eac7"
+ },
+ {
+  "date": "2025-06-12T09:22:59Z",
+  "kind": "review",
+  "peers": [
+   "byronlee@chromium.org"
+  ],
+  "additions": 3,
+  "deletions": 1,
+  "files": 1,
+  "sha": "6597a43"
+ },
+ {
+  "date": "2025-10-20T07:31:45Z",
+  "kind": "review",
+  "peers": [
+   "xinggu@google.com"
+  ],
+  "additions": 4,
+  "deletions": 0,
+  "files": 1,
+  "sha": "7db6e74"
+ },
+ {
+  "date": "2025-11-14T09:08:06Z",
+  "kind": "review",
+  "peers": [
+   "xinggu@google.com"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 1,
+  "sha": "bf5359f"
+ },
+ {
+  "date": "2026-01-20T08:00:13Z",
+  "kind": "review",
+  "peers": [
+   "diwux@google.com"
+  ],
+  "additions": 68,
+  "deletions": 81,
+  "files": 18,
+  "sha": "92b0e68"
+ },
+ {
+  "date": "2026-03-02T19:21:54Z",
+  "kind": "review",
+  "peers": [
+   "beckerh@google.com"
+  ],
+  "additions": 53,
+  "deletions": 76,
+  "files": 21,
+  "sha": "fb8dea8"
+ },
+ {
+  "date": "2026-05-27T03:07:22Z",
+  "kind": "review",
+  "peers": [
+   "xinggu@google.com"
+  ],
+  "additions": 5,
+  "deletions": 0,
+  "files": 1,
+  "sha": "21ace47"
+ }
+]

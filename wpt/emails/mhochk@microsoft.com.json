@@ -1,0 +1,273 @@
+[
+ {
+  "date": "2026-02-20T08:40:48Z",
+  "kind": "author",
+  "peers": [],
+  "additions": 71,
+  "deletions": 0,
+  "files": 1,
+  "sha": "fac5318"
+ },
+ {
+  "date": "2026-06-10T21:55:15Z",
+  "kind": "author",
+  "peers": [
+   "kschmi@microsoft.com",
+   "drott@chromium.org"
+  ],
+  "additions": 10,
+  "deletions": 2,
+  "files": 1,
+  "sha": "005e343"
+ },
+ {
+  "date": "2026-06-11T04:34:10Z",
+  "kind": "author",
+  "peers": [
+   "kojii@chromium.org",
+   "almaher@microsoft.com"
+  ],
+  "additions": 2,
+  "deletions": 0,
+  "files": 2,
+  "sha": "b7c7bf6"
+ },
+ {
+  "date": "2026-07-28T20:10:45Z",
+  "kind": "author",
+  "peers": [
+   "kschmi@microsoft.com",
+   "almaher@microsoft.com"
+  ],
+  "additions": 532,
+  "deletions": 447,
+  "files": 19,
+  "sha": "cd0e4e4"
+ },
+ {
+  "date": "2026-08-10T17:50:45Z",
+  "kind": "author",
+  "peers": [
+   "kschmi@microsoft.com",
+   "mstensho@chromium.org"
+  ],
+  "additions": 13,
+  "deletions": 0,
+  "files": 1,
+  "sha": "26bc001"
+ },
+ {
+  "date": "2026-08-12T17:50:39Z",
+  "kind": "author",
+  "peers": [
+   "kojii@chromium.org",
+   "drott@chromium.org",
+   "kschmi@microsoft.com"
+  ],
+  "additions": 8,
+  "deletions": 6,
+  "files": 2,
+  "sha": "6d45c40"
+ },
+ {
+  "date": "2026-08-18T04:59:21Z",
+  "kind": "author",
+  "peers": [
+   "kschmi@microsoft.com",
+   "masonf@chromium.org"
+  ],
+  "additions": 34,
+  "deletions": 0,
+  "files": 1,
+  "sha": "3441505"
+ },
+ {
+  "date": "2026-09-02T03:57:07Z",
+  "kind": "author",
+  "peers": [
+   "kschmi@microsoft.com"
+  ],
+  "additions": 6,
+  "deletions": 0,
+  "files": 1,
+  "sha": "77f2ae0"
+ },
+ {
+  "date": "2026-09-03T16:53:36Z",
+  "kind": "author",
+  "peers": [
+   "kojii@chromium.org"
+  ],
+  "additions": 39,
+  "deletions": 0,
+  "files": 1,
+  "sha": "105b6a3"
+ },
+ {
+  "date": "2026-09-18T01:15:56Z",
+  "kind": "author",
+  "peers": [
+   "kschmi@microsoft.com"
+  ],
+  "additions": 4,
+  "deletions": 1,
+  "files": 1,
+  "sha": "4a9699f"
+ },
+ {
+  "date": "2026-09-18T07:21:33Z",
+  "kind": "author",
+  "peers": [
+   "gerchiko@microsoft.com"
+  ],
+  "additions": 3,
+  "deletions": 2,
+  "files": 1,
+  "sha": "8e67869"
+ },
+ {
+  "date": "2026-09-21T22:47:50Z",
+  "kind": "author",
+  "peers": [
+   "kschmi@microsoft.com"
+  ],
+  "additions": 6,
+  "deletions": 3,
+  "files": 1,
+  "sha": "34cfec8"
+ },
+ {
+  "date": "2026-09-22T23:20:08Z",
+  "kind": "author",
+  "peers": [
+   "kschmi@microsoft.com"
+  ],
+  "additions": 46,
+  "deletions": 6,
+  "files": 6,
+  "sha": "4c63350"
+ },
+ {
+  "date": "2026-10-25T03:07:37Z",
+  "kind": "author",
+  "peers": [
+   "kschmi@microsoft.com"
+  ],
+  "additions": 7,
+  "deletions": 4,
+  "files": 3,
+  "sha": "48c7a48"
+ },
+ {
+  "date": "2026-10-30T11:48:00Z",
+  "kind": "author",
+  "peers": [
+   "kschmi@microsoft.com"
+  ],
+  "additions": 639,
+  "deletions": 0,
+  "files": 16,
+  "sha": "f5d40ab"
+ },
+ {
+  "date": "2026-11-03T19:23:52Z",
+  "kind": "author",
+  "peers": [
+   "kbabbitt@microsoft.com",
+   "kschmi@microsoft.com"
+  ],
+  "additions": 85,
+  "deletions": 54,
+  "files": 30,
+  "sha": "b08e29b"
+ },
+ {
+  "date": "2026-11-04T18:17:02Z",
+  "kind": "author",
+  "peers": [
+   "javiercon@microsoft.com"
+  ],
+  "additions": 14,
+  "deletions": 48,
+  "files": 43,
+  "sha": "0a7bc2a"
+ },
+ {
+  "date": "2026-11-04T19:05:09Z",
+  "kind": "author",
+  "peers": [
+   "javiercon@microsoft.com"
+  ],
+  "additions": 20,
+  "deletions": 26,
+  "files": 46,
+  "sha": "6598459"
+ },
+ {
+  "date": "2026-11-05T00:55:18Z",
+  "kind": "author",
+  "peers": [
+   "yanlingwang@microsoft.com"
+  ],
+  "additions": 5,
+  "deletions": 12,
+  "files": 13,
+  "sha": "711c4c6"
+ },
+ {
+  "date": "2026-11-05T01:18:10Z",
+  "kind": "author",
+  "peers": [
+   "yanlingwang@microsoft.com"
+  ],
+  "additions": 18,
+  "deletions": 28,
+  "files": 33,
+  "sha": "177cecc"
+ },
+ {
+  "date": "2026-11-05T06:43:17Z",
+  "kind": "author",
+  "peers": [
+   "yanlingwang@microsoft.com"
+  ],
+  "additions": 6,
+  "deletions": 27,
+  "files": 28,
+  "sha": "ad1fa43"
+ },
+ {
+  "date": "2026-11-07T00:20:30Z",
+  "kind": "author",
+  "peers": [
+   "javiercon@microsoft.com"
+  ],
+  "additions": 16,
+  "deletions": 13,
+  "files": 1,
+  "sha": "be1317d"
+ },
+ {
+  "date": "2026-11-11T19:42:47Z",
+  "kind": "author",
+  "peers": [
+   "kojii@chromium.org",
+   "ikilpatrick@chromium.org"
+  ],
+  "additions": 56,
+  "deletions": 0,
+  "files": 1,
+  "sha": "9430c80"
+ },
+ {
+  "date": "2026-11-12T04:47:02Z",
+  "kind": "author",
+  "peers": [
+   "kbabbitt@microsoft.com"
+  ],
+  "additions": 104,
+  "deletions": 0,
+  "files": 2,
+  "sha": "64af7e0"
+ }
+]
