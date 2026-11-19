@@ -1,5 +1,6 @@
 <template>
   <div class="report">
+    <div :class="['warning-vignette', { persistent: hasWarning, flash: warningGlow }]" aria-hidden="true" />
     <section class="section">
       <SplitLayout :width="1080" aside-label="Report parameters">
         <template #header>
@@ -30,7 +31,7 @@
           <aside
             v-if="caveats.length"
             ref="overlay"
-            :class="['caveat-overlay', { floating }]"
+            :class="['caveat-overlay', { floating, flashing: warningGlow }]"
             :style="floating ? {
               top: `${floatingTop}px`,
               right: `${floatingRight}px`,
@@ -58,11 +59,31 @@
           </div>
           <div class="selector repository">
             <h2 class="panel-title">Repository</h2>
-            <RepositorySelector
-              v-model="repositorySelection"
-              :filter="(repo: { dirname: string }) => available.has(repo.dirname)" />
+            <div class="repo-groups">
+              <div class="repo-group">
+                <span class="repo-group-label">Large</span>
+                <RepositorySelector
+                  v-model="repositorySelection"
+                  :filter="(repo: { dirname: string }) => available.has(repo.dirname) && !repoWarnings.has(repo.dirname)" />
+              </div>
+              <div v-if="repoWarnings.size" class="repo-group smaller">
+                <span
+                  class="repo-group-label is-warning"
+                  title="Fewer than 20 people active in both years, or stopped updating: figures swing more.">
+                  <UiIcon name="alert-outline" size="small" />
+                  Smaller
+                </span>
+                <RepositorySelector
+                  v-model="repositorySelection"
+                  :filter="(repo: { dirname: string }) => available.has(repo.dirname) && repoWarnings.has(repo.dirname)">
+                  <template #chip="{ item }">
+                    <span class="repo-chip-name" :title="repoWarnings.get(item.id)">{{ item.label }}</span>
+                  </template>
+                </RepositorySelector>
+              </div>
+            </div>
           </div>
-          <div class="selector">
+          <div v-if="groupOptions.length > 1" class="selector">
             <h2 class="panel-title">Organization</h2>
             <UiSegmented v-model="groupId" :options="groupOptions" aria-label="Organization" />
           </div>
@@ -128,6 +149,11 @@
                 v-model="metric"
                 :options="metricOptions"
                 aria-label="Measure" />
+              <UiSegmented
+                v-if="trendView === 'yoy' && metric === 'msg'"
+                v-model="msgStat"
+                :options="MSG_STATS"
+                aria-label="Message length statistic" />
             </div>
             <template v-if="trendView === 'yoy'">
               <p v-if="METRIC_TEXT[metric]" class="metric-note">
@@ -267,7 +293,42 @@
               :rows="sizeTable" />
           </section>
 
-          <section class="panel">
+          <section v-if="repository!.has_msg && traitOptions.length" class="panel">
+            <div>
+              <h2 class="panel-title">{{ traitPanelTitle }}</h2>
+              <p class="panel-text">{{ traitPanelText }}</p>
+            </div>
+            <dl v-if="traitFacts.length" class="trait-facts">
+              <div v-for="fact in traitFacts" :key="fact.label">
+                <dt>{{ fact.label }}</dt>
+                <dd>
+                  <span class="fact-value">{{ fact.previous }} → {{ fact.current }}</span>
+                  <span class="fact-detail">{{ fact.detail }}</span>
+                </dd>
+              </div>
+            </dl>
+            <div class="switches">
+              <UiSegmented v-model="traitView" :options="traitOptions" aria-label="Commit trait" />
+            </div>
+            <div class="legend">
+              <span v-for="s in traitSeries" :key="s.label">
+                <span class="legend-line" :style="{ background: s.color }" />{{ s.label }}
+              </span>
+            </div>
+            <ReportTraitChart
+              :months="data.months"
+              :series="traitSeries"
+              :from="indexFrom"
+              :highlight-from="`${lastYear}-01`"
+              :format="traitFormat"
+              :axis-format="traitAxisFormat"
+              :aria-label="traitPanelTitle" />
+            <ReportDataTable
+              :columns="['Month', ...traitSeries.map(s => s.label)]"
+              :rows="traitTable" />
+          </section>
+
+          <section v-if="repository!.organizations.length > 1" class="panel">
             <div>
               <h2 class="panel-title">The largest organizations</h2>
               <p class="panel-text">
@@ -287,6 +348,7 @@
                     <th>Commits per author</th>
                     <th>Commits by the same people</th>
                     <th>Lines per commit</th>
+                    <th v-if="repository!.has_msg">Message length</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -325,8 +387,13 @@
                         <span class="cell-detail">{{ row.linesDetail }} lines</span>
                         <span class="cell-usual">{{ row.usual.lines }}</span>
                       </td>
+                      <td v-if="repository!.has_msg">
+                        <span class="figure">{{ row.msg }}</span>
+                        <span class="cell-detail">{{ row.msgDetail }} chars</span>
+                        <span class="cell-usual">{{ row.usual.msg }}</span>
+                      </td>
                     </template>
-                    <td v-else colspan="3" class="too-few">
+                    <td v-else :colspan="repository!.has_msg ? 4 : 3" class="too-few">
                       Too few people to measure ({{ row.people }} active in both years)
                     </td>
                   </tr>
@@ -383,6 +450,16 @@
                 </template>
               </li>
               <li>
+                Commit message length counts the characters of the headline and body with trailing
+                footers and trailers removed, excluding reverts, rolls, and commits carrying an AI
+                disclosure tag (<code>TAG=agy</code>, <code>CONV=</code>,
+                <code>Agent-Generated: true</code>, <code>Co-authored-by</code>,
+                <code>Assisted-by</code>, <code>Claude-Session</code>). Reverts, check bypasses
+                (<code>No-Try</code>, <code>No-Presubmit</code>, <code>Owners-Override</code>,
+                <code>Bypass-*</code>, <code>Low-Coverage-Reason</code>), and bug links are parsed
+                directly from commit messages.
+              </li>
+              <li>
                 This shows when and how much output changed, not why: the commit history doesn't
                 say how a change was written. Commits and lines measure output, not value.
               </li>
@@ -400,6 +477,20 @@ import { useUrlState, urlCodecs } from "~/composables/useUrlState";
 import type { CohortRow } from "~/components/ReportCohortChart.vue";
 import type { CohortMonthly } from "~/components/ReportCohortMonthlyChart.vue";
 import type { IndexSeries } from "~/components/ReportIndexChart.vue";
+import type { TraitSeries } from "~/components/ReportTraitChart.vue";
+
+interface GroupTraits {
+  revert: (number | null)[];
+  reland: (number | null)[];
+  ai: (number | null)[];
+  bypass: (number | null)[];
+  no_try: (number | null)[];
+  bot_commit: (number | null)[];
+  bug: (number | null)[];
+  fix: (number | null)[];
+  commits_per_bug: (number | null)[];
+  bugs_per_author: (number | null)[];
+}
 
 interface Group {
   id: string;
@@ -409,6 +500,11 @@ interface Group {
   reviews: number[];
   reviewers: number[];
   lines: (number | null)[];
+  msg: (number | null)[];
+  msg_mean: (number | null)[];
+  msg_p95: (number | null)[];
+  msg_window: Record<string, { p50: number; mean: number; p95: number }>;
+  traits: GroupTraits;
   cohort: CohortRow[];
   cohort_monthly: CohortMonthly;
   // year -> the size of the commits of the window.
@@ -421,6 +517,9 @@ interface Group {
     person_months: [number, number];
     authors: [number, number];
     lines: [number | null, number | null];
+    msg: [number | null, number | null];
+    msg_mean: [number | null, number | null];
+    msg_p95: [number | null, number | null];
   };
 }
 
@@ -433,8 +532,12 @@ interface Repository {
   github_logins: boolean;
   // The first full year of data, as "YYYY-01".
   data_from: string;
+  // Last month of data when the repository stopped updating before the latest month.
+  last_month: string | null;
   // The first month the reviews are compared, or null when they aren't.
   reviews_from: string | null;
+  has_msg: boolean;
+  has_bypass: boolean;
   groups: Group[];
   organizations: Organization[];
 }
@@ -448,8 +551,9 @@ interface Organization {
   people: number;
   same: number | null;
   lines: [number | null, number | null];
+  msg: [number | null, number | null];
   // The changes of the usual years, the USUAL_SPAN before the end's.
-  usual: { per_author: number[]; same: number[]; lines: number[] };
+  usual: { per_author: number[]; same: number[]; lines: number[]; msg: number[] };
 }
 
 interface Report {
@@ -474,6 +578,11 @@ interface RawGroup {
   reviews: number[];
   reviewers: number[];
   lines: Column;
+  msg?: Column;
+  msg_mean?: Column;
+  msg_p95?: Column;
+  msg_window?: { p50: Column; mean: Column; p95: Column };
+  traits?: Partial<GroupTraits>;
   cohort: Record<"n" | "p25" | "p50" | "p75" | "mean" | "up", Column>;
   size: { q: (number[] | null)[]; tiny: Column; files: Column; added: Column };
   percentiles: (number[] | null)[];
@@ -486,6 +595,7 @@ interface RawOrganization {
   people: Column;
   same: Column;
   lines: Column;
+  msg?: Column;
 }
 interface RawRepository {
   dirname: string;
@@ -493,7 +603,10 @@ interface RawRepository {
   parent: string | null;
   github_logins: boolean;
   data_from: string;
+  last_month?: string | null;
   reviews_from: string | null;
+  has_msg?: boolean;
+  has_bypass?: boolean;
   groups: RawGroup[];
   organizations: RawOrganization[];
 }
@@ -540,16 +653,20 @@ const reportAt = (raw: RawReport, end: number): Report => {
     const authors = [sum(o.authors, i - 12), sum(o.authors, i)];
     return {
       authors: [authors[0] / W, authors[1] / W] as [number, number],
-      per_author: [sum(o.commits, i - 12) / authors[0], sum(o.commits, i) / authors[1]] as [number, number],
+      per_author: [
+        authors[0] ? sum(o.commits, i - 12) / authors[0] : 0,
+        authors[1] ? sum(o.commits, i) / authors[1] : 0,
+      ] as [number, number],
       people: o.people[i] ?? 0,
       same: o.same[i],
       lines: [o.lines[i - 12], o.lines[i]] as [number | null, number | null],
+      msg: [o.msg?.[i - 12] ?? null, o.msg?.[i] ?? null] as [number | null, number | null],
     };
   };
   const organization = (o: RawOrganization, dataFrom: string): Organization => {
     const change = ([before, after]: [number | null, number | null]) =>
       before && after !== null && Number.isFinite(after / before) ? [after / before - 1] : [];
-    const usual: Organization["usual"] = { per_author: [], same: [], lines: [] };
+    const usual: Organization["usual"] = { per_author: [], same: [], lines: [], msg: [] };
     for (let back = 1; back <= USUAL_SPAN; back++) {
       const i = end - 12 * back;
       if (i - 12 < 0 || months[i - 12] < dataFrom) break;
@@ -557,6 +674,7 @@ const reportAt = (raw: RawReport, end: number): Report => {
       usual.per_author.push(...change(v.per_author));
       if (v.people >= MIN_COMPARED && v.same !== null) usual.same.push(2 ** v.same - 1);
       usual.lines.push(...change(v.lines));
+      usual.msg.push(...change(v.msg));
     }
     return { label: o.label, ...organizationAt(o, end), usual };
   };
@@ -568,11 +686,16 @@ const reportAt = (raw: RawReport, end: number): Report => {
     people: g.cohort.n,
     same: g.cohort.p50,
     lines: g.size.q.map(q => q?.[median] ?? null),
+    msg: g.msg_window?.p50,
   });
   const groupAt = (g: RawGroup): Group => {
     const cut = <T>(values: T[]) => values.slice(0, end + 1);
+    const emptyCol = () => new Array<number | null>(end + 1).fill(null);
+    const cutCol = (values?: Column) => values ? cut(values) : emptyCol();
     const c = g.cohort;
     const personMonths: [number, number] = [sum(g.authors, end - 12), sum(g.authors, end)];
+    const mw = g.msg_window;
+    const t = g.traits ?? {};
     return {
       id: g.id,
       label: g.label,
@@ -581,6 +704,26 @@ const reportAt = (raw: RawReport, end: number): Report => {
       reviews: cut(g.reviews),
       reviewers: cut(g.reviewers),
       lines: cut(g.lines),
+      msg: cutCol(g.msg),
+      msg_mean: cutCol(g.msg_mean),
+      msg_p95: cutCol(g.msg_p95),
+      msg_window: mw
+        ? Object.fromEntries(yearly(i => mw.p50[i] !== null
+          ? [yearOf(i), { p50: mw.p50[i]!, mean: mw.mean[i]!, p95: mw.p95[i]! }]
+          : null))
+        : {},
+      traits: {
+        revert: cutCol(t.revert),
+        reland: cutCol(t.reland),
+        ai: cutCol(t.ai),
+        bypass: cutCol(t.bypass),
+        no_try: cutCol(t.no_try),
+        bot_commit: cutCol(t.bot_commit),
+        bug: cutCol(t.bug),
+        fix: cutCol(t.fix),
+        commits_per_bug: cutCol(t.commits_per_bug),
+        bugs_per_author: cutCol(t.bugs_per_author),
+      },
       cohort: yearly(i => c.n[i] === null ? null : {
         year: yearOf(i), n: c.n[i]!, p25: c.p25[i], p50: c.p50[i], p75: c.p75[i], up: c.up[i] ?? 0,
       }),
@@ -596,6 +739,9 @@ const reportAt = (raw: RawReport, end: number): Report => {
         person_months: personMonths,
         authors: [personMonths[0] / W, personMonths[1] / W],
         lines: [g.size.q[end - 12]?.[median] ?? null, g.size.q[end]?.[median] ?? null],
+        msg: [mw?.p50[end - 12] ?? null, mw?.p50[end] ?? null],
+        msg_mean: [mw?.mean[end - 12] ?? null, mw?.mean[end] ?? null],
+        msg_p95: [mw?.p95[end - 12] ?? null, mw?.p95[end] ?? null],
       },
     };
   };
@@ -612,7 +758,14 @@ const reportAt = (raw: RawReport, end: number): Report => {
       const groups = repository.groups.map(groupAt);
       const organizations = [everyone(repository.groups[0]), ...repository.organizations]
         .map(o => organization(o, repository.data_from));
-      return { ...repository, groups, organizations };
+      return {
+        ...repository,
+        last_month: repository.last_month ?? null,
+        has_msg: !!repository.has_msg,
+        has_bypass: !!repository.has_bypass,
+        groups,
+        organizations,
+      };
     }),
   };
 };
@@ -621,15 +774,23 @@ const METRICS = {
   commits: "Commits",
   per_author: "Commits per author",
   lines: "Lines per commit",
+  msg: "Message length",
   per_reviewer: "Reviews per reviewer",
   authors: "Active authors",
 } as const;
 type Metric = keyof typeof METRICS;
+type MsgStat = "p50" | "mean";
+const MSG_STATS: { value: MsgStat; label: string }[] = [
+  { value: "p50", label: "Median" },
+  { value: "mean", label: "Mean" },
+];
+type TraitView = "msg" | "reverts" | "bypasses" | "bugs" | "bugs_per_author" | "bug_churn";
 // What each measure is, in the month.
 // Only the ones that need a definition.
 const METRIC_TEXT: Partial<Record<Metric, string>> = {
   per_author: "the commits divided by the people who landed at least one.",
   lines: "the median of the lines added plus deleted by each commit.",
+  msg: "characters of the commit description without footers/trailers, excluding reverts, rolls, and AI-tagged commits.",
   per_reviewer: "the reviews divided by the people who reviewed at least one commit. A review is " +
     "a reviewer named in a commit message.",
 };
@@ -644,14 +805,20 @@ const PEOPLE_VIEWS = [
 ];
 
 // Each change is a new history entry: Back returns to the previous view.
-const { endMonth, repositoryId, groupId, metric, trendView, peopleView } = useUrlState({
+const { endMonth, repositoryId, groupId, metric, msgStat, trendView, peopleView, traitView } = useUrlState({
   // The last month of the period, "YYYY-MM"; empty for the latest.
   endMonth: { ...urlCodecs.string(""), key: "end", history: "push" },
   repositoryId: { ...urlCodecs.string("chromium"), key: "repository", history: "push" },
   groupId: { ...urlCodecs.string("all"), key: "organization", history: "push" },
   metric: { ...urlCodecs.enum(Object.keys(METRICS) as Metric[], "per_author"), history: "push" },
+  msgStat: { ...urlCodecs.enum(["p50", "mean"] as MsgStat[], "p50"), key: "msg_stat", history: "push" },
   trendView: { ...urlCodecs.enum(["yoy", "index"] as const, "yoy"), key: "view", history: "push" },
   peopleView: { ...urlCodecs.enum(["year", "month"] as const, "year"), key: "people", history: "push" },
+  traitView: {
+    ...urlCodecs.enum(["msg", "reverts", "bypasses", "bugs", "bugs_per_author", "bug_churn"] as TraitView[], "msg"),
+    key: "trait",
+    history: "push",
+  },
 });
 
 const raw = shallowRef<RawReport | null>(null);
@@ -684,6 +851,24 @@ const repositorySelection = computed({
 // Few people in the same-people comparison: the figures are fragile.
 const FEW = 20;
 const repositoryName = computed(() => repository.value?.name ?? "Chromium");
+const repoWarnings = computed(() => {
+  const map = new Map<string, string>();
+  const d = data.value;
+  if (!d) return map;
+  const latestMonth = d.months.at(-1)!;
+  for (const r of d.repositories) {
+    const reasons: string[] = [];
+    if (r.last_month && r.last_month < latestMonth) {
+      reasons.push(`Data stopped in ${monthShort(r.last_month)}`);
+    }
+    const n = r.groups[0]?.cohort.at(-1)?.n ?? 0;
+    if (n < FEW) {
+      reasons.push(`Few people (${n} active in both years)`);
+    }
+    if (reasons.length) map.set(r.dirname, reasons.join(" · "));
+  }
+  return map;
+});
 
 const group = computed(() =>
   repository.value?.groups.find(g => g.id === groupId.value) ?? repository.value?.groups[0]);
@@ -697,6 +882,7 @@ watch(repository, r => {
   if (!r) return;
   if (!r.groups.some(g => g.id === groupId.value)) groupId.value = "all";
   if (metric.value === "per_reviewer" && !r.reviews_from) metric.value = "per_author";
+  if (metric.value === "msg" && !r.has_msg) metric.value = "per_author";
 });
 // The people of the selection in the same-people comparison.
 const people = computed(() => group.value?.cohort.at(-1)?.n ?? 0);
@@ -752,7 +938,12 @@ const pct = (v: number) => {
 const kpis = computed(() => {
   const g = group.value!;
   const k = g.kpi;
-  const perAuthor = [k.commits[0] / k.person_months[0], k.commits[1] / k.person_months[1]];
+  const perAuthor: [number | null, number | null] = [
+    k.person_months[0] ? k.commits[0] / k.person_months[0] : null,
+    k.person_months[1] ? k.commits[1] / k.person_months[1] : null,
+  ];
+  const ratioPct = (before: number | null, after: number | null) =>
+    before && before > 0 && after !== null && Number.isFinite(after / before) ? pct(after / before - 1) : "—";
   const latest = g.cohort.at(-1);
   const [u0, u1] = data.value!.usual_years;
   const usual = g.cohort
@@ -763,14 +954,14 @@ const kpis = computed(() => {
     {
       label: "Commits",
       metric: "commits" as Metric,
-      value: pct(k.commits[1] / k.commits[0] - 1),
+      value: ratioPct(k.commits[0], k.commits[1]),
       detail: `${integer.format(k.commits[0])} → ${integer.format(k.commits[1])}`,
     },
     {
       label: "Commits per author",
       metric: "per_author" as Metric,
-      value: pct(perAuthor[1] / perAuthor[0] - 1),
-      detail: `${decimal.format(perAuthor[0])} → ${decimal.format(perAuthor[1])} a month`,
+      value: ratioPct(perAuthor[0], perAuthor[1]),
+      detail: `${perAuthor[0] !== null ? decimal.format(perAuthor[0]) : "—"} → ${perAuthor[1] !== null ? decimal.format(perAuthor[1]) : "—"} a month`,
       // The same, without the people who came or left.
       extra: {
         label: "Commits by the same people",
@@ -787,14 +978,21 @@ const kpis = computed(() => {
     {
       label: "Lines per commit",
       metric: "lines" as Metric,
-      value: k.lines[0] && k.lines[1] !== null ? pct(k.lines[1] / k.lines[0] - 1) : "—",
+      value: ratioPct(k.lines[0], k.lines[1]),
       detail: `${k.lines[0] ?? "—"} → ${k.lines[1] ?? "—"} lines`,
       hint: "Lines added plus deleted by the median commit.",
     },
+    ...(repository.value?.has_msg ? [{
+      label: "Message length",
+      metric: "msg" as Metric,
+      value: ratioPct(k.msg[0], k.msg[1]),
+      detail: `${k.msg[0] !== null ? integer.format(k.msg[0]) : "—"} → ${k.msg[1] !== null ? integer.format(k.msg[1]) : "—"} chars`,
+      hint: "Median description without footers, reverts, rolls, or AI tags.",
+    }] : []),
     {
       label: "Active authors",
       metric: "authors" as Metric,
-      value: pct(k.authors[1] / k.authors[0] - 1),
+      value: ratioPct(k.authors[0], k.authors[1]),
       detail: `${integer.format(k.authors[0])} → ${integer.format(k.authors[1])} a month`,
     },
   ];
@@ -818,6 +1016,7 @@ const organizationRows = computed(() => {
         perAuthor: usual(o.usual.per_author),
         same: usual(o.usual.same),
         lines: usual(o.usual.lines),
+        msg: usual(o.usual.msg),
       },
       authors: measured && o.authors[0] ? pct(o.authors[1] / o.authors[0] - 1) : "",
       authorsDetail: `${integer.format(o.authors[0])} → ${integer.format(o.authors[1])}`,
@@ -827,6 +1026,8 @@ const organizationRows = computed(() => {
       people: integer.format(o.people),
       lines: ratio(o.lines),
       linesDetail: `${o.lines[0] ?? "—"} → ${o.lines[1] ?? "—"}`,
+      msg: ratio(o.msg),
+      msgDetail: `${o.msg[0] !== null ? integer.format(o.msg[0]) : "—"} → ${o.msg[1] !== null ? integer.format(o.msg[1]) : "—"}`,
     };
   });
 });
@@ -840,7 +1041,7 @@ const selectGroup = (id: string) => {
 // Charts -------------------------------------------------------------------
 
 const metrics = computed(() => (Object.keys(METRICS) as Metric[])
-  .filter(m => m !== "per_reviewer" || repository.value?.reviews_from));
+  .filter(m => (m !== "per_reviewer" || repository.value?.reviews_from) && (m !== "msg" || repository.value?.has_msg)));
 const metricOptions = computed(() => metrics.value.map(value => ({ value, label: METRICS[value] })));
 // A year after the first full year of data, to compare with it.
 const metricFrom = (m: Metric) => {
@@ -854,14 +1055,21 @@ const indexFrom = computed(() => {
   const from = repository.value!.data_from;
   return from > "2016-01" ? `${from.slice(0, 4)}-03` : "2016-01";
 });
-const metricLabel = computed(() => METRICS[metric.value]);
+const metricLabel = computed(() => {
+  if (metric.value !== "msg") return METRICS[metric.value];
+  const stat = MSG_STATS.find(s => s.value === msgStat.value)?.label.toLowerCase() ?? "median";
+  return `Message length (${stat})`;
+});
 const perAuthor = (g: Group) => g.commits.map((c, i) => g.authors[i] ? c / g.authors[i] : null);
 const perReviewer = (g: Group) => g.reviews.map((r, i) => g.reviewers[i] ? r / g.reviewers[i] : null);
+const msgSeriesOf = (g: Group, stat: MsgStat) =>
+  stat === "mean" ? g.msg_mean : g.msg;
 const valuesOf = (g: Group, m: Metric): (number | null)[] => {
   switch (m) {
     case "commits": return g.commits;
     case "per_author": return perAuthor(g);
     case "lines": return g.lines;
+    case "msg": return msgSeriesOf(g, msgStat.value);
     case "per_reviewer": return perReviewer(g);
     case "authors": return g.authors;
   }
@@ -872,14 +1080,20 @@ const metricScale = computed(() => metrics.value.map(m => ({
   values: valuesOf(group.value!, m),
   from: metricFrom(m),
 })));
-const metricFormat = computed(() =>
-  metric.value === "per_author" || metric.value === "per_reviewer" ? (v: number) => decimal.format(v) : (v: number) => integer.format(v));
+const metricFormat = computed(() => {
+  if (metric.value === "per_author" || metric.value === "per_reviewer") return (v: number) => decimal.format(v);
+  if (metric.value === "msg") return (v: number) => `${integer.format(v)} chars`;
+  return (v: number) => integer.format(v);
+});
 
 const indexSeries = computed<IndexSeries[]>(() => {
   const g = group.value!;
   return [
     { label: "Commits per author", color: "var(--series-1)", values: perAuthor(g) },
     { label: "Lines per commit", color: "var(--series-2)", values: g.lines },
+    ...(repository.value?.has_msg
+      ? [{ label: "Message length", color: "var(--series-4)", values: g.msg }]
+      : []),
     { label: "Active authors", color: "var(--series-3)", values: g.authors },
   ];
 });
@@ -947,6 +1161,10 @@ const windowValue = (g: Group, m: Metric, last: number): number | null => {
     case "lines": {
       const size = g.commit_size[+data.value!.months[last].slice(0, 4)];
       return size ? size.q[data.value!.size_quantiles.indexOf(0.5)] : null;
+    }
+    case "msg": {
+      const mw = g.msg_window[+data.value!.months[last].slice(0, 4)];
+      return mw ? mw[msgStat.value] : null;
     }
     case "per_reviewer": {
       const reviewers = windowSum(g.reviewers, last);
@@ -1034,6 +1252,13 @@ const sizeTitle = computed(() => ({
 const caveats = computed(() => {
   const r = repository.value, out: { kind: "warning" | "info"; label: string; text: string }[] = [];
   if (!r || !data.value) return out;
+  if (r.last_month && r.last_month < data.value.months.at(-1)!) {
+    out.push({
+      kind: "warning",
+      label: "Data stopped",
+      text: `This repository's data ends in ${monthShort(r.last_month)}. Pick an earlier period on the side to inspect it.`,
+    });
+  }
   if (few.value) {
     out.push({
       kind: "warning",
@@ -1066,6 +1291,14 @@ const caveats = computed(() => {
 // of the window, or at its place in the header once that is in view (below the
 // navigation bar, which scrolls with the page). It slides from the header and
 // back to it, so that the switch to and from `fixed` doesn't jump.
+const hasWarning = computed(() => caveats.value.some(c => c.kind === "warning"));
+const isLargeScreen = ref(false);
+let largeMedia: MediaQueryList | null = null;
+const onMediaChange = (e: MediaQueryListEvent) => {
+  isLargeScreen.value = e.matches;
+  syncPinnedWarning();
+};
+
 const FLOATING_MS = 6000;
 const MOVE_MS = 450;
 const STICKY_TOP = 16;
@@ -1076,13 +1309,46 @@ const floatingTop = ref(0);
 const floatingRight = ref(STICKY_TOP);
 // Whether `top` transitions: while sliding in or back, not while scrolling.
 const floatingMoves = ref(false);
+const warningGlow = ref(false);
 let floatingTimer: ReturnType<typeof setTimeout> | undefined;
 let moveTimer: ReturnType<typeof setTimeout> | undefined;
+let glowTimer: ReturnType<typeof setTimeout> | undefined;
 let docking = false;
+const triggerWarningGlow = () => {
+  warningGlow.value = false;
+  clearTimeout(glowTimer);
+  requestAnimationFrame(() => {
+    warningGlow.value = true;
+    glowTimer = setTimeout(() => {
+      warningGlow.value = false;
+    }, 650);
+  });
+};
 const headTop = () => head.value?.getBoundingClientRect().top ?? 0;
+const headRightOffset = () => {
+  const rect = head.value?.getBoundingClientRect();
+  return rect ? Math.max(STICKY_TOP, window.innerWidth - rect.right) : STICKY_TOP;
+};
 const stickyTop = () => Math.max(STICKY_TOP, headTop());
+const syncPinnedWarning = () => {
+  if (!hasWarning.value || !isLargeScreen.value) return;
+  clearTimeout(floatingTimer);
+  docking = false;
+  if (headTop() < STICKY_TOP) {
+    floatingMoves.value = false;
+    floatingRight.value = headRightOffset();
+    floatingTop.value = STICKY_TOP;
+    floating.value = true;
+  } else {
+    floating.value = false;
+  }
+};
 const onScroll = () => {
-  if (floating.value && !docking) floatingTop.value = stickyTop();
+  if (hasWarning.value && isLargeScreen.value) {
+    syncPinnedWarning();
+  } else if (floating.value && !docking) {
+    floatingTop.value = stickyTop();
+  }
 };
 const moveTo = (top: number, done?: () => void) => {
   floatingMoves.value = true;
@@ -1095,16 +1361,46 @@ const moveTo = (top: number, done?: () => void) => {
   }, MOVE_MS + 50);
 };
 const dock = () => {
+  if (hasWarning.value && isLargeScreen.value && headTop() < STICKY_TOP) return;
   docking = true;
   moveTo(headTop(), () => {
     floating.value = false;
     docking = false;
   });
 };
+watch(
+  () => caveats.value.filter(c => c.kind === "warning").map(c => `${repository.value?.dirname}:${c.label}`).join("|"),
+  (warnings, previous) => {
+    if (warnings && warnings !== previous) triggerWarningGlow();
+  },
+);
 watch(() => caveats.value.map(c => c.label).join("|"), async (labels, previous) => {
   const rect = head.value?.getBoundingClientRect();
-  if (!labels || labels === previous || !rect || rect.top >= 0) return;
-  floatingRight.value = Math.max(STICKY_TOP, window.innerWidth - rect.right);
+  if (!labels) {
+    clearTimeout(floatingTimer);
+    floating.value = false;
+    return;
+  }
+  if (hasWarning.value && isLargeScreen.value) {
+    clearTimeout(floatingTimer);
+    if (!rect || rect.top >= STICKY_TOP) {
+      floating.value = false;
+      return;
+    }
+    floatingRight.value = headRightOffset();
+    docking = false;
+    if (!floating.value) {
+      floatingMoves.value = false;
+      floatingTop.value = rect.top;
+      floating.value = true;
+      await nextTick();
+      overlay.value?.getBoundingClientRect();
+    }
+    moveTo(STICKY_TOP);
+    return;
+  }
+  if (labels === previous || !rect || rect.top >= 0) return;
+  floatingRight.value = headRightOffset();
   docking = false;
   if (!floating.value) {
     // From the header, where it is.
@@ -1120,11 +1416,21 @@ watch(() => caveats.value.map(c => c.label).join("|"), async (labels, previous) 
   clearTimeout(floatingTimer);
   floatingTimer = setTimeout(dock, FLOATING_MS);
 });
-onMounted(() => window.addEventListener("scroll", onScroll, { passive: true }));
+onMounted(() => {
+  largeMedia = window.matchMedia("(min-width: 1280px)");
+  isLargeScreen.value = largeMedia.matches;
+  largeMedia.addEventListener("change", onMediaChange);
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", syncPinnedWarning, { passive: true });
+  syncPinnedWarning();
+});
 onBeforeUnmount(() => {
+  largeMedia?.removeEventListener("change", onMediaChange);
   window.removeEventListener("scroll", onScroll);
+  window.removeEventListener("resize", syncPinnedWarning);
   clearTimeout(floatingTimer);
   clearTimeout(moveTimer);
+  clearTimeout(glowTimer);
 });
 
 const findings = computed(() => {
@@ -1164,6 +1470,14 @@ const findings = computed(() => {
       text: `(the median commit: ${before} → ${after} lines)` +
         (level === 1 ? ", bigger at every activity level, including the people who land the most."
           : level === -1 ? ", smaller at every activity level." : "."),
+    });
+  }
+  const mwCur = g.msg_window[lastYear.value], mwPrev = g.msg_window[lastYear.value - 1];
+  if (repository.value?.has_msg && mwCur && mwPrev && mwPrev.p50 > 0) {
+    out.push({
+      lead: `${pct(mwCur.p50 / mwPrev.p50 - 1)} commit message length`,
+      text: `(median ${integer.format(mwPrev.p50)} → ${integer.format(mwCur.p50)} chars; ` +
+        `mean ${integer.format(mwPrev.mean)} → ${integer.format(mwCur.mean)}), excluding footers, reverts, rolls, and AI tags.`,
     });
   }
   return out;
@@ -1229,6 +1543,231 @@ const sizeTable = computed(() => Object.entries(group.value!.commit_size)
     `${size.files}`,
     share(size.added),
   ]));
+
+// Commit messages and traits -----------------------------------------------
+
+const pct1 = (v: number | null) => v === null ? "—" : `${(v * 100).toFixed(1)}%`;
+
+// Whether a monthly series has any tracked (positive) values in the visible range.
+const hasTracked = (values: (number | null)[]) => {
+  if (!data.value) return false;
+  const start = Math.max(0, data.value.months.findIndex(m => m >= indexFrom.value));
+  for (let i = start; i < values.length; i++) {
+    if (values[i] !== null && values[i]! > 0) return true;
+  }
+  return false;
+};
+
+const trackedTraits = computed(() => {
+  const g = group.value;
+  if (!g || !repository.value?.has_msg) {
+    return {
+      msg: false,
+      revert: false,
+      reland: false,
+      bypass: false,
+      no_try: false,
+      bug: false,
+      fix: false,
+      bugs_per_author: false,
+      bug_churn: false,
+    };
+  }
+  const hasBypass = !!repository.value.has_bypass && hasTracked(g.traits.bypass);
+  return {
+    msg: hasTracked(g.msg),
+    revert: hasTracked(g.traits.revert),
+    reland: hasTracked(g.traits.reland),
+    bypass: hasBypass,
+    no_try: hasBypass && hasTracked(g.traits.no_try),
+    bug: hasTracked(g.traits.bug),
+    fix: hasTracked(g.traits.fix),
+    bugs_per_author: hasTracked(g.traits.bugs_per_author),
+    bug_churn: hasTracked(g.traits.commits_per_bug),
+  };
+});
+
+const windowWeightedShare = (values: (number | null)[], weights: number[], last: number) => {
+  const w = data.value!.window.length;
+  let num = 0, den = 0;
+  for (let i = Math.max(0, last - w + 1); i <= last; i++) {
+    if (values[i] === null || !weights[i]) continue;
+    num += values[i]! * weights[i];
+    den += weights[i];
+  }
+  return den ? num / den : null;
+};
+
+const windowAvg = (values: (number | null)[], last: number) => {
+  const w = data.value!.window.length;
+  let sum = 0, n = 0;
+  for (let i = Math.max(0, last - w + 1); i <= last; i++) {
+    if (values[i] === null) continue;
+    sum += values[i]!;
+    n++;
+  }
+  return n ? sum / n : null;
+};
+
+const traitFacts = computed(() => {
+  const g = group.value!;
+  const tracked = trackedTraits.value;
+  const end = endOf(), prev = end - 12;
+  if (prev < 0) return [];
+  const mwCur = g.msg_window[lastYear.value], mwPrev = g.msg_window[lastYear.value - 1];
+  const revPrev = windowWeightedShare(g.traits.revert, g.commits, prev);
+  const revCur = windowWeightedShare(g.traits.revert, g.commits, end);
+  const bypPrev = windowWeightedShare(g.traits.bypass, g.commits, prev);
+  const bypCur = windowWeightedShare(g.traits.bypass, g.commits, end);
+  const bugPrev = windowWeightedShare(g.traits.bug, g.commits, prev);
+  const bugCur = windowWeightedShare(g.traits.bug, g.commits, end);
+  const cpbPrev = windowAvg(g.traits.commits_per_bug, prev);
+  const cpbCur = windowAvg(g.traits.commits_per_bug, end);
+  const bpaPrev = windowAvg(g.traits.bugs_per_author, prev);
+  const bpaCur = windowAvg(g.traits.bugs_per_author, end);
+
+  return [
+    ...(tracked.msg && mwCur && mwPrev ? [{
+      label: "Message length",
+      previous: `${integer.format(mwPrev.p50)}`,
+      current: `${integer.format(mwCur.p50)} chars`,
+      detail: `median (mean ${integer.format(mwPrev.mean)} → ${integer.format(mwCur.mean)})`,
+    }] : []),
+    ...(tracked.revert && revPrev !== null && revCur !== null ? [{
+      label: "Revert rate",
+      previous: pct1(revPrev),
+      current: pct1(revCur),
+      detail: "of commits revert an earlier change",
+    }] : []),
+    ...(tracked.bypass && bypPrev !== null && bypCur !== null ? [{
+      label: "Check bypasses",
+      previous: pct1(bypPrev),
+      current: pct1(bypCur),
+      detail: "use No-Try, No-Presubmit, Owners-Override, or Bypass-*",
+    }] : []),
+    ...(tracked.bugs_per_author && bpaPrev !== null && bpaCur !== null ? [{
+      label: "Bugs per author",
+      previous: decimal.format(bpaPrev),
+      current: `${decimal.format(bpaCur)} / mo`,
+      detail: cpbCur !== null && cpbPrev !== null
+        ? `distinct bugs touched (${decimal.format(cpbPrev)} → ${decimal.format(cpbCur)} commits/bug)`
+        : "distinct bugs touched per active author",
+    }] : tracked.bug && bugPrev !== null && bugCur !== null ? [{
+      label: "Bug-linked",
+      previous: pct1(bugPrev),
+      current: pct1(bugCur),
+      detail: cpbCur !== null && cpbPrev !== null
+        ? `reference a bug (${decimal.format(cpbPrev)} → ${decimal.format(cpbCur)} commits/bug)`
+        : "reference a numeric bug ID",
+    }] : []),
+  ];
+});
+
+const traitOptions = computed(() => {
+  const t = trackedTraits.value;
+  return [
+    ...(t.msg ? [{ value: "msg", label: "Message length" }] : []),
+    ...(t.revert ? [{ value: "reverts", label: "Revert rate" }] : []),
+    ...(t.bypass ? [{ value: "bypasses", label: "Check bypasses" }] : []),
+    ...(t.bugs_per_author ? [{ value: "bugs_per_author", label: "Bugs per author" }] : []),
+    ...(t.bug_churn ? [{ value: "bug_churn", label: "Commits per bug" }] : []),
+    ...(t.bug ? [{ value: "bugs", label: "Bug links" }] : []),
+  ];
+});
+
+watch(traitOptions, opts => {
+  if (opts.length && !opts.some(o => o.value === traitView.value)) {
+    traitView.value = opts[0].value as TraitView;
+  }
+});
+
+const traitPanelTitle = computed(() => ({
+  msg: "Commit message length over time",
+  reverts: "Revert and reland rate",
+  bypasses: "Check and review bypasses",
+  bugs: "Bug-linked and bug-closing commits",
+  bugs_per_author: "Distinct bugs touched per author",
+  bug_churn: "Commits per bug",
+})[traitView.value]);
+
+const traitPanelText = computed(() => ({
+  msg: "Monthly character length (median and mean) of commit descriptions without footers/trailers, excluding reverts, rolls, and AI-tagged commits.",
+  reverts: "Share of authored commits each month that revert or reland a previous commit.",
+  bypasses: "Share of authored commits using No-Try, No-Presubmit, No-Tree-Checks, Owners-Override, Bypass-*, or Low-Coverage-Reason.",
+  bugs: "Share of authored commits referencing a numeric bug ID, and share explicitly closing one (Fixed/Fixes/Closes).",
+  bugs_per_author: "Distinct numeric bug IDs referenced in a month, divided by the number of active authors that month.",
+  bug_churn: "Average authored commits per distinct bug ID touched in each month.",
+})[traitView.value]);
+
+const traitSeries = computed<TraitSeries[]>(() => {
+  const g = group.value!;
+  const t = trackedTraits.value;
+  switch (traitView.value) {
+    case "msg":
+      return [
+        { label: "Median", color: "var(--series-1)", values: g.msg },
+        { label: "Mean", color: "var(--series-2)", values: g.msg_mean },
+      ];
+    case "reverts":
+      return [
+        { label: "Reverts", color: "var(--series-8)", values: g.traits.revert },
+        ...(t.reland ? [{ label: "Relands", color: "var(--series-4)", values: g.traits.reland }] : []),
+      ];
+    case "bypasses":
+      return [
+        { label: "Any bypass", color: "var(--series-2)", values: g.traits.bypass },
+        ...(t.no_try ? [{ label: "No-Try", color: "var(--series-1)", values: g.traits.no_try }] : []),
+      ];
+    case "bugs":
+      return [
+        { label: "Has bug", color: "var(--series-1)", values: g.traits.bug },
+        ...(t.fix ? [{ label: "Closes bug", color: "var(--series-3)", values: g.traits.fix }] : []),
+      ];
+    case "bugs_per_author":
+      return [
+        { label: "Bugs / author", color: "var(--series-3)", values: g.traits.bugs_per_author },
+      ];
+    case "bug_churn":
+      return [
+        { label: "Commits / bug", color: "var(--series-1)", values: g.traits.commits_per_bug },
+      ];
+  }
+});
+
+const traitFormat = computed(() => {
+  if (traitView.value === "msg") {
+    return (v: number) => `${integer.format(v)} chars`;
+  }
+  if (traitView.value === "bug_churn" || traitView.value === "bugs_per_author") {
+    return (v: number) => decimal.format(v);
+  }
+  return (v: number) => pct1(v);
+});
+
+const traitAxisFormat = computed(() => {
+  if (traitView.value === "msg") {
+    return (v: number) => integer.format(v);
+  }
+  if (traitView.value === "bug_churn" || traitView.value === "bugs_per_author") {
+    return (v: number) => decimal.format(v);
+  }
+  return (v: number) => {
+    const p = v * 100;
+    return p < 1 && p > 0 ? `${p.toFixed(2)}%` : `${+p.toFixed(1)}%`;
+  };
+});
+
+const traitTable = computed(() => {
+  const months = data.value!.months, series = traitSeries.value, rows: string[][] = [];
+  for (let i = months.length - 1; i >= 0 && months[i] >= indexFrom.value; i--) {
+    if (series.every(s => s.values[i] === null)) continue;
+    rows.push([
+      monthShort(months[i]),
+      ...series.map(s => s.values[i] === null ? "—" : traitFormat.value(s.values[i]!)),
+    ]);
+  }
+  return rows;
+});
 </script>
 
 <style scoped>
@@ -1256,6 +1795,10 @@ const sizeTable = computed(() => Object.entries(group.value!.commit_size)
 /* On large screens, the parameters are in the column on the left: their
  * options one per line, as they are few. */
 @media (min-width: 1280px) {
+  .report :deep(.container.split-layout) {
+    --aside-width: 316px;
+  }
+
   .group-bar {
     border-bottom: none;
     display: grid;
@@ -1281,6 +1824,31 @@ const sizeTable = computed(() => Object.entries(group.value!.commit_size)
   .group-bar .selector :deep(.chip-track .chip),
   .group-bar .selector :deep(.segmented-option) {
     justify-content: flex-start;
+  }
+
+  .repo-groups {
+    align-items: start;
+    display: grid;
+    gap: 0.65rem;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  }
+
+  .repo-group.smaller {
+    border-right: 1px solid var(--line);
+    order: -1;
+    padding-right: 0.65rem;
+  }
+
+  .repo-group :deep(.chip-track .chip) {
+    min-width: 0;
+    padding: 0 0.45rem;
+    width: 100%;
+  }
+}
+
+@media (min-width: 1408px) {
+  .report :deep(.container.split-layout) {
+    --aside-width: 336px;
   }
 }
 
@@ -1334,6 +1902,40 @@ const sizeTable = computed(() => Object.entries(group.value!.commit_size)
 
 .selector.repository :deep(.repository-selector) {
   padding: 0;
+}
+
+.repo-groups {
+  display: grid;
+  gap: 0.65rem;
+  width: 100%;
+}
+
+.repo-group {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.repo-group-label {
+  align-items: center;
+  color: var(--muted);
+  display: inline-flex;
+  font-size: 0.7rem;
+  font-weight: 600;
+  gap: 0.25rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.repo-group-label.is-warning {
+  color: var(--tag-warning-ink);
+  cursor: help;
+}
+
+.repo-chip-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .caveat {
@@ -1394,9 +1996,42 @@ const sizeTable = computed(() => Object.entries(group.value!.commit_size)
   z-index: 20;
 }
 
+/* Orange edge shadow around the viewport: flashes on new warning, and stays
+ * softly visible on large screens while a warning is active. */
+.warning-vignette {
+  --warn-orange: color-mix(in srgb, var(--series-2) 48%, var(--series-4) 52%);
+  box-shadow: inset 0 0 85px 14px var(--warn-orange);
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: fixed;
+  transition: opacity 1.1s ease-out, box-shadow 1.1s ease-out;
+  z-index: 19;
+}
+
+@media (min-width: 1280px) {
+  .warning-vignette.persistent {
+    opacity: 0.16;
+  }
+}
+
+.warning-vignette.flash {
+  box-shadow: inset 0 0 115px 24px var(--warn-orange);
+  opacity: 0.46;
+  transition: opacity 0.22s ease-in, box-shadow 0.22s ease-in;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .caveat-overlay.floating {
     transition: none !important;
+  }
+
+  .warning-vignette {
+    transition: none !important;
+  }
+
+  .warning-vignette.flash {
+    opacity: 0.16;
   }
 }
 
@@ -1410,6 +2045,7 @@ const sizeTable = computed(() => Object.entries(group.value!.commit_size)
   line-height: 1.35;
   margin: 0;
   padding: 0.4rem 0.65rem;
+  transition: box-shadow 0.9s ease-out, border-color 0.9s ease-out;
 }
 
 .caveat-note :deep(.icon) {
@@ -1418,9 +2054,21 @@ const sizeTable = computed(() => Object.entries(group.value!.commit_size)
 }
 
 .caveat-note.warning {
+  --warn-orange: color-mix(in srgb, var(--series-2) 48%, var(--series-4) 52%);
   background: var(--tag-warning-bg);
-  border: 1px solid color-mix(in srgb, var(--tag-warning-ink) 35%, transparent);
+  border: 1px solid color-mix(in srgb, var(--warn-orange) 55%, transparent);
+  box-shadow:
+    0 4px 18px color-mix(in srgb, var(--warn-orange) 26%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--warn-orange) 18%, transparent);
   color: var(--ink);
+}
+
+.caveat-overlay.flashing .caveat-note.warning {
+  border-color: var(--warn-orange);
+  box-shadow:
+    0 0 28px 6px color-mix(in srgb, var(--warn-orange) 42%, transparent),
+    0 0 0 2px color-mix(in srgb, var(--warn-orange) 40%, transparent);
+  transition: box-shadow 0.22s ease-in, border-color 0.22s ease-in;
 }
 
 .caveat-note.warning :deep(.icon) {
@@ -1458,9 +2106,9 @@ const sizeTable = computed(() => Object.entries(group.value!.commit_size)
 }
 
 /* On one row, the card with more to say gets twice the width. */
-@container (min-width: 760px) {
+@container (min-width: 860px) {
   .kpi-grid {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 
   .kpi-card.wide {
@@ -1731,6 +2379,26 @@ button.kpi-card:focus-visible {
 }
 
 .size-facts dd {
+  display: grid;
+  margin: 0;
+}
+
+.trait-facts {
+  display: grid;
+  gap: 0.75rem 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+  margin: 0;
+}
+
+.trait-facts dt {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.trait-facts dd {
   display: grid;
   margin: 0;
 }

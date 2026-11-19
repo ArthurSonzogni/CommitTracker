@@ -3,6 +3,7 @@
 import fs from "fs/promises";
 import JSON5 from "json5";
 import statusLine from '@alt-jero/status-line';
+import { COMMIT_FLAGS } from "./parse_commit_message.mjs";
 
 // Retrieve the list of usernames from every repository.
 const usernames = new Set();
@@ -361,6 +362,153 @@ const YEAR = 365.25 * DAY;
     }
     if (net > 0) {
       GiveUserBadge(username, [net]);
+    }
+  }
+}
+
+// Badges about bug fixing and long-running bugs.
+{
+  statusLine.logString(`Processing bug badges...`);
+  const exterminator_levels = [10, 100, 500];
+  const user_closed_bugs = new Map();
+  const user_top_bug = new Map();
+  for (const username of authors) {
+    const closed = new Set();
+    const bug_counts = new Map();
+    for (const commit of user_commits.get(username)) {
+      if (commit.bug == null) continue;
+      bug_counts.set(commit.bug, (bug_counts.get(commit.bug) ?? 0) + 1);
+      if ((commit.flags || 0) & COMMIT_FLAGS.FIX) {
+        closed.add(commit.bug);
+      }
+    }
+    if (closed.size > 0) user_closed_bugs.set(username, closed.size);
+    let best_bug = null, best_count = 0;
+    for (const [bug, count] of bug_counts) {
+      if (count > best_count) {
+        best_bug = bug;
+        best_count = count;
+      }
+    }
+    if (best_count > 0) user_top_bug.set(username, [best_count, best_bug]);
+  }
+
+  for (let level = 1; level <= exterminator_levels.length; level++) {
+    const target = exterminator_levels[level - 1];
+    badges.push({
+      category: "bugs",
+      name: `Exterminator n°${level}`,
+      description: `I closed ${target}+ distinct bugs!`,
+      details: "I closed $0 distinct bugs.",
+      image: `/img/badges/exterminator_l${level}.webp`,
+    });
+    for (const [username, count] of user_closed_bugs) {
+      if (count >= target) {
+        GiveUserBadge(username, [count]);
+      }
+    }
+  }
+
+  badges.push({
+    category: "bugs",
+    name: "White Whale",
+    description: "I landed 50+ commits on a single bug!",
+    details: "I landed $0 commits on bug #$1.",
+    image: "/img/badges/white_whale.webp",
+  });
+  for (const [username, [count, bug]] of user_top_bug) {
+    if (count >= 50) {
+      GiveUserBadge(username, [count, bug]);
+    }
+  }
+}
+
+// Badges about commit craft: descriptions, sheriffs, bypasses, collaboration.
+{
+  statusLine.logString(`Processing commit craft badges...`);
+  const MSG_EXCLUDE = COMMIT_FLAGS.REVERT | COMMIT_FLAGS.ROLL;
+
+  badges.push({
+    category: "craft",
+    name: "Novelist",
+    description: "My commit descriptions are thorough: 500+ characters in the median.",
+    details: "My median commit message is $0 characters, over $1 commits.",
+    image: "/img/badges/novelist.webp",
+  });
+  for (const username of authors) {
+    const lens = user_commits.get(username)
+      .filter(c => typeof c.msg === "number" && ((c.flags || 0) & MSG_EXCLUDE) === 0)
+      .map(c => c.msg);
+    if (lens.length < 50) continue;
+    lens.sort((a, b) => a - b);
+    const median = lens[Math.floor(lens.length / 2)];
+    if (median >= 500) {
+      GiveUserBadge(username, [median, lens.length]);
+    }
+  }
+
+  badges.push({
+    category: "craft",
+    name: "Minimalist",
+    description: "Short and sweet: under 100 characters in the median commit description.",
+    details: "My median commit message is $0 characters, over $1 commits.",
+    image: "/img/badges/minimalist.webp",
+  });
+  for (const username of authors) {
+    const lens = user_commits.get(username)
+      .filter(c => typeof c.msg === "number" && ((c.flags || 0) & MSG_EXCLUDE) === 0)
+      .map(c => c.msg);
+    if (lens.length < 50) continue;
+    lens.sort((a, b) => a - b);
+    const median = lens[Math.floor(lens.length / 2)];
+    if (median < 100) {
+      GiveUserBadge(username, [median, lens.length]);
+    }
+  }
+
+  badges.push({
+    category: "craft",
+    name: "Tree Sheriff",
+    description: "Keeping the tree green! I landed 20+ reverts.",
+    details: "I landed $0 reverts.",
+    image: "/img/badges/tree_sheriff.webp",
+  });
+  for (const username of authors) {
+    const count = user_commits.get(username)
+      .filter(c => (c.flags || 0) & COMMIT_FLAGS.REVERT).length;
+    if (count >= 20) {
+      GiveUserBadge(username, [count]);
+    }
+  }
+
+  badges.push({
+    category: "craft",
+    name: "Living Dangerously",
+    description: "Who needs trybots? I landed 10+ commits with No-Try or Owners-Override.",
+    details: "I did $0.",
+    image: "/img/badges/living_dangerously.webp",
+  });
+  const DANGER_MASK = COMMIT_FLAGS.NO_TRY | COMMIT_FLAGS.OWNERS_OVERRIDE;
+  for (const username of authors) {
+    const count = user_commits.get(username)
+      .filter(c => (c.flags || 0) & DANGER_MASK).length;
+    if (count >= 10) {
+      GiveUserBadge(username, [count]);
+    }
+  }
+
+  badges.push({
+    category: "craft",
+    name: "Pair Programmer",
+    description: "Two heads are better than one! I landed 10+ human co-authored commits.",
+    details: "I landed $0 co-authored commits.",
+    image: "/img/badges/pair_programmer.webp",
+  });
+  for (const username of authors) {
+    const count = user_commits.get(username)
+      .filter(c => (c.flags || 0) & COMMIT_FLAGS.CO_AUTHORED).length;
+    if (count >= 10) {
+      GiveUserBadge(username, [count]);
     }
   }
 }

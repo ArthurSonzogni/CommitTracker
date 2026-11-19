@@ -41,7 +41,7 @@ async function main() {
     : `${existingNodeOptions} --max-old-space-size=8192`.trim();
 
   const nuxtBin = path.join(projectRoot, 'node_modules', 'nuxt', 'bin', 'nuxt.mjs');
-  const nuxtDev = spawn(process.execPath, [nuxtBin, 'dev'], {
+  const nuxtDev = spawn(process.execPath, [nuxtBin, 'dev', ...process.argv.slice(2)], {
     stdio: 'inherit',
     env: {
       ...process.env,

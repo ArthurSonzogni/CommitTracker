@@ -125,7 +125,7 @@ export const processRepository = async (repository, dataRoot = '../public/data')
       const cleaned = dedupAndSortCommits(oldData, mapped);
       await fs.unlink(oldFile);
       if (cleaned.length > 0) {
-        await fs.writeFile(newFile, JSON.stringify(cleaned, null, 1));
+        await fs.writeFile(newFile, JSON.stringify(cleaned));
         candidateEmails.add(mapped);
       }
     } else {
@@ -134,7 +134,7 @@ export const processRepository = async (repository, dataRoot = '../public/data')
       const combined = dedupAndSortCommits(newData.concat(oldData), mapped);
       await fs.unlink(oldFile);
       if (combined.length > 0) {
-        await fs.writeFile(newFile, JSON.stringify(combined, null, 1));
+        await fs.writeFile(newFile, JSON.stringify(combined));
         candidateEmails.add(mapped);
       } else {
         await fs.unlink(newFile);
@@ -155,7 +155,7 @@ export const processRepository = async (repository, dataRoot = '../public/data')
       return;
     }
     surviving.add(email);
-    const serialized = JSON.stringify(cleaned, null, 1);
+    const serialized = JSON.stringify(cleaned);
     if (serialized !== raw) {
       await fs.writeFile(file, serialized);
       rewritten++;

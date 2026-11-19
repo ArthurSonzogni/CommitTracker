@@ -70,6 +70,24 @@
             <li>The longest streak of working days: <strong>{{ plural(longestWorkingStreak.length, "day") }}</strong> in a row, from {{ formatDay(new Date(longestWorkingStreak.from)) }} to {{ formatDay(new Date(longestWorkingStreak.to)) }}.</li>
             <li>The busiest day: <strong>{{ plural(busiestDay.count, "contribution") }}</strong> on <strong>{{ formatDay(new Date(busiestDay.day)) }}</strong>.</li>
             <li>The first contribution of the year on <strong>{{ formatDay(first) }}</strong>, the last on <strong>{{ formatDay(last) }}</strong>.</li>
+            <li v-if="medianMsg !== null">
+              Median commit description: <strong>{{ number(medianMsg) }} characters</strong>
+              <template v-if="msgDelta !== null">
+                ({{ msgDelta > 0 ? "+" : "" }}{{ msgDelta }}% vs {{ year - 1 }})
+              </template>.
+            </li>
+            <li v-if="bugsTouched > 0">
+              Referenced <strong>{{ plural(bugsTouched, "distinct bug") }}</strong><template v-if="bugsClosed > 0">
+                (closing <strong>{{ number(bugsClosed) }}</strong>)</template><template v-if="topBug">
+                — most worked:
+                <a v-if="topBug.url" :href="topBug.url" target="_blank" rel="noopener"><strong>#{{ topBug.id }}</strong></a>
+                <strong v-else>#{{ topBug.id }}</strong>
+                ({{ plural(topBug.count, "commit") }})</template>.
+            </li>
+            <li v-if="revertsCount > 0">
+              Landed <strong>{{ plural(revertsCount, "revert") }}</strong>
+              ({{ ((100 * revertsCount) / authored.length).toFixed(1) }}% of authored commits).
+            </li>
           </ul>
 
           <div class="review-people">
@@ -139,7 +157,32 @@ type YearRecord = {
   additions: number;
   deletions: number;
   files: number;
+  msg?: number;
+  flags?: number;
+  bug?: number;
   repository: string;
+};
+
+// Bit positions from importer/parse_commit_message.mjs.
+const FLAG_REVERT = 1 << 1;
+const FLAG_ROLL = 1 << 3;
+const FLAG_FIX = 1 << 4;
+
+const bugUrlOf = (dirname: string, id: number): string | null => {
+  if (dirname === "firefox" || dirname === "spidermonkey") {
+    return `https://bugzilla.mozilla.org/show_bug.cgi?id=${id}`;
+  }
+  if (dirname === "webkit" || dirname === "jsc") {
+    return `https://bugs.webkit.org/show_bug.cgi?id=${id}`;
+  }
+  const repo = repositories_json.find(r => r.dirname === dirname);
+  if (repo?.reviewers === true) {
+    return `https://crbug.com/${id}`;
+  }
+  if (repo?.owner && repo?.repository) {
+    return `https://github.com/${repo.owner}/${repo.repository}/issues/${id}`;
+  }
+  return null;
 };
 
 // scripts/derive-developers.mjs: {repository: [authored, reviews, first year, last year]}
@@ -198,6 +241,9 @@ const load = async () => {
             additions: record.additions ?? 0,
             deletions: record.deletions ?? 0,
             files: record.files ?? 0,
+            msg: record.msg,
+            flags: record.flags,
+            bug: record.bug,
             repository: dirname,
           }));
       }),
@@ -247,7 +293,62 @@ const stats = computed(() => [
   { label: "Reviews", value: number(reviewed.value.length), delta: delta(reviewed.value.length, "review") },
   { label: "Lines added", value: number(sum(authored.value, "additions")) },
   { label: "Lines removed", value: number(sum(authored.value, "deletions")) },
+  ...(bugsTouched.value > 0
+    ? [{ label: "Bugs touched", value: number(bugsTouched.value), delta: bugsDelta.value }]
+    : []),
 ]);
+
+const prevAuthored = computed(() =>
+  records.value.filter(r => Number(r.date.slice(0, 4)) === year.value - 1 && r.kind === "author"),
+);
+
+const medianOfMsgs = (list: YearRecord[]) => {
+  const lens = list
+    .filter(r => typeof r.msg === "number" && ((r.flags ?? 0) & (FLAG_REVERT | FLAG_ROLL)) === 0)
+    .map(r => r.msg!)
+    .sort((a, b) => a - b);
+  return lens.length ? lens[Math.floor(lens.length / 2)] : null;
+};
+const medianMsg = computed(() => medianOfMsgs(authored.value));
+const msgDelta = computed(() => {
+  const cur = medianMsg.value;
+  const prev = medianOfMsgs(prevAuthored.value);
+  if (cur === null || !prev || prevAuthored.value.length < 5) return null;
+  return Math.round(100 * (cur - prev) / prev);
+});
+
+const bugSummary = computed(() => {
+  const counts = new Map<string, { id: number; repository: string; count: number }>();
+  const closed = new Set<string>();
+  for (const r of authored.value) {
+    if (r.bug == null) continue;
+    const key = `${r.repository}:${r.bug}`;
+    const existing = counts.get(key);
+    if (existing) existing.count++;
+    else counts.set(key, { id: r.bug, repository: r.repository, count: 1 });
+    if ((r.flags ?? 0) & FLAG_FIX) closed.add(key);
+  }
+  let top: { id: number; repository: string; count: number; url: string | null } | null = null;
+  for (const item of counts.values()) {
+    if (!top || item.count > top.count) {
+      top = { ...item, url: bugUrlOf(item.repository, item.id) };
+    }
+  }
+  return { touched: counts.size, closed: closed.size, top };
+});
+const bugsTouched = computed(() => bugSummary.value.touched);
+const bugsClosed = computed(() => bugSummary.value.closed);
+const topBug = computed(() => bugSummary.value.top);
+const bugsDelta = computed(() => {
+  if (isCurrentYear.value) return 0;
+  const prevBugs = new Set(
+    prevAuthored.value.filter(r => r.bug != null).map(r => `${r.repository}:${r.bug}`),
+  ).size;
+  return prevBugs ? Math.round(100 * (bugsTouched.value - prevBugs) / prevBugs) : 0;
+});
+const revertsCount = computed(() =>
+  authored.value.filter(r => ((r.flags ?? 0) & FLAG_REVERT) !== 0).length,
+);
 
 const months = computed(() => {
   const out = Array.from({ length: 12 }, () => ({ author: 0, review: 0 }));

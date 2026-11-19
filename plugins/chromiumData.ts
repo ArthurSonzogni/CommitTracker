@@ -6,6 +6,9 @@ export interface DeveloperCommit {
   additions?: number;
   deletions?: number;
   files?: number;
+  msg?: number;
+  flags?: number;
+  bug?: number;
 }
 
 export interface DeveloperCommitsEntry {

@@ -6,7 +6,11 @@
     :all-ids="topLevelIds"
     :allow-multiple="allowMultiple"
     :allow-all="allowAll"
-    scroll-selected-into-view />
+    scroll-selected-into-view>
+    <template v-if="$slots.chip" #chip="slotProps">
+      <slot name="chip" v-bind="slotProps" />
+    </template>
+  </ChipSelector>
 </template>
 
 <script setup lang="ts">

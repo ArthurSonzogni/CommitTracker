@@ -226,9 +226,11 @@ const tests = [
       link.click();
       const ok = await __t.until(() =>
         location.pathname === '/developers/arthursonzogni/2025' &&
-        document.querySelectorAll('.review-stat dd').length === 4 &&
+        document.querySelectorAll('.review-stat dd').length === 5 &&
         document.querySelectorAll('.review-month').length === 12 &&
-        document.querySelectorAll('.review-peers li').length > 0, 20000);
+        document.querySelectorAll('.review-peers li').length > 0 &&
+        document.body.innerText.includes('Median commit description:') &&
+        document.body.innerText.includes('distinct bug'), 20000);
       const stats = [...document.querySelectorAll('.review-stat dd')].map(e => e.textContent.trim()).join(' / ');
       return { ok: !!ok && document.title.startsWith('arthursonzogni in 2025'), detail: stats + ' / title=' + document.title };
     `,
@@ -423,7 +425,7 @@ const tests = [
       const dashedLines = document.querySelectorAll('path.line[stroke-dasharray]').length;
       const calloutTexts = [...document.querySelectorAll('.end-callout text')]
         .map(t => t.textContent).join(' | ');
-      const hasEtas = calloutTexts.includes('ETA 2027-') && calloutTexts.includes('ETA 2033-');
+      const hasEtas = (calloutTexts.match(/ETA 20\\d\\d-/g) || []).length >= 2;
 
       // 4. Verified raw_ptr jump markers on MiraclePtr chart
       const miracleMilestones = [...document.querySelectorAll('#miracleptr .milestone text')]
@@ -485,13 +487,14 @@ const tests = [
     url: 'developer-output?end=2026-10',
     run: `
       const ready = await __t.until(() =>
-        __t.count('.kpi-card') === 4 &&
-        __t.count('.findings li') === 3 &&
+        __t.count('.kpi-card') === 5 &&
+        __t.count('.findings li') === 4 &&
         __t.count('.yoy-chart rect.bar') > 100 &&
         __t.text('.yoy-chart .end-label')?.includes('Aug–Oct 2026') &&
         __t.count('.cohort-chart circle.median') >= 10 &&
         __t.count('.percentile-chart path.line') >= 10 &&
-        __t.count('.percentile-chart text.factor') >= 3, 20000);
+        __t.count('.percentile-chart text.factor') >= 3 &&
+        __t.count('.trait-chart path.line') >= 1, 20000);
       const value = () => [...document.querySelectorAll('.kpi-value')].map(e => e.textContent.trim()).join(' ');
       const all = value();
 
@@ -514,8 +517,22 @@ const tests = [
         __t.text('.kpi-card.selected .kpi-label') === 'Lines per commit' &&
         __t.text('.metric-note').startsWith('Lines per commit:'));
 
-      // The size of the commits.
-      const sizes = __t.count('.size-facts dd') === 3 && __t.count('.percentile-chart') === 2;
+      // The size of the commits, and commit messages & traits.
+      const sizes = __t.count('.size-facts dd') === 3 && __t.count('.percentile-chart') === 2 &&
+        __t.count('.trait-facts dd') >= 4;
+
+      // Selecting Message length shows median / mean options.
+      [...document.querySelectorAll('.kpi-card')]
+        .find(card => card.querySelector('.kpi-label').textContent.trim() === 'Message length').click();
+      const msgMeasure = await __t.until(() =>
+        location.search.includes('metric=msg') &&
+        __t.text('.kpi-card.selected .kpi-label') === 'Message length' &&
+        !!__t.byText('.segmented-option', 'Mean'));
+      __t.byText('.segmented-option', 'Revert rate').click();
+      const traitsOk = await __t.until(() =>
+        location.search.includes('trait=reverts') && __t.count('.trait-chart path.line') === 2);
+      __t.byText('[aria-label="Commit trait"] .segmented-option', 'Message length').click();
+      await __t.until(() => !location.search.includes('trait=') && __t.count('.trait-chart path.line') === 2);
 
       // The organizations side by side: the small ones without figures.
       const organizations = __t.count('table.organizations tbody tr') > 3 &&
@@ -528,7 +545,7 @@ const tests = [
       __t.byText('.segmented-option', 'Month by month').click();
       const views = await __t.until(() =>
         location.search.includes('view=index') && location.search.includes('people=month') &&
-        __t.count('.index-chart path.line') === 3 && __t.count('.cohort-monthly-chart path.median') === 1 &&
+        __t.count('.index-chart path.line') === 4 && __t.count('.cohort-monthly-chart path.median') === 1 &&
         !__t.count('.yoy-chart') && !__t.count('.cohort-chart'));
       __t.byText('.segmented-option', 'Against a year earlier').click();
       __t.byText('.segmented-option', 'By year').click();
@@ -560,7 +577,7 @@ const tests = [
         location.search.includes('repository=dawn') && __t.text('.kicker .caveat.warning')?.includes('Few people') &&
         __t.text('.caveat-overlay .caveat-note.warning')?.includes('Read the direction') &&
         __t.count('.caveat-overlay.floating') === 1 &&
-        __t.count('.findings li') === 3 && __t.text('.findings').includes('too few people'));
+        __t.count('.findings li') === 4 && __t.text('.findings').includes('too few people'));
 
       // Another period: a year earlier, kept in the link.
       chip('Chromium').click();
@@ -583,7 +600,7 @@ const tests = [
       const forward = await __t.until(() =>
         location.search.includes('end=2025-10') && value() === after);
 
-      return { ok: !!ready && !!grown && !!org && !!measure && !!table && !!repository && !!warning && sizes && organizations && !!views && !!period && !!back && !!forward, detail: 'all=' + all + ' 2025=' + value() };
+      return { ok: !!ready && !!grown && !!org && !!measure && !!msgMeasure && !!traitsOk && !!table && !!repository && !!warning && sizes && organizations && !!views && !!period && !!back && !!forward, detail: 'all=' + all + ' 2025=' + value() };
     `,
   },
   {
@@ -672,7 +689,12 @@ const tests = [
       const mid = sig();
       __t.byText('.segmented-option', 'Monthly').click();
       const ok2 = await __t.until(() => sig() !== mid, 10000);
-      return { ok: !!ok1 && !!ok2, detail: [before, mid, sig()].map(t => t.replace(/\\s+/g, ' ').slice(0, 45)).join(' -> ') };
+      __t.byText('.segmented-option', 'Revert rate').click();
+      const ok3 = await __t.until(() =>
+        location.search.includes('what=revert_rate') &&
+        document.querySelectorAll('.culture-panel .trait-chart path.line').length >= 3 &&
+        document.querySelectorAll('.culture-table tbody tr').length >= 3, 15000);
+      return { ok: !!ok1 && !!ok2 && !!ok3, detail: [before, mid, sig()].map(t => t.replace(/\\s+/g, ' ').slice(0, 45)).join(' -> ') };
     `,
   },
   {

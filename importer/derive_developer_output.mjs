@@ -69,6 +69,11 @@ import fs from "fs/promises";
 import JSON5 from "json5";
 import { loadOrganizations } from "./organizations.mjs";
 import { canonicalEmails, usernameOfEmail } from "./usernames.mjs";
+import { COMMIT_FLAGS } from "./parse_commit_message.mjs";
+
+const MSG_EXCLUDE = COMMIT_FLAGS.REVERT | COMMIT_FLAGS.ROLL | COMMIT_FLAGS.AI;
+const BYPASS_MASK = COMMIT_FLAGS.NO_TRY | COMMIT_FLAGS.NO_PRESUBMIT |
+  COMMIT_FLAGS.NO_TREE_CHECKS | COMMIT_FLAGS.OWNERS_OVERRIDE | COMMIT_FLAGS.BYPASS;
 
 const FIRST_MONTH = "2015-01";
 const WINDOW = 3;
@@ -82,9 +87,6 @@ const SIZE_QUANTILES = [0.1, 0.25, 0.5, 0.75, 0.9];
 // A commit of at most this many lines is tiny.
 const TINY_COMMIT = 5;
 const FIRST_PERCENTILE_YEAR = 2016;
-// Repositories shown: enough people in the same-people comparison. Below 20,
-// the page warns that a few people move the figures.
-const MIN_REPOSITORY_PEOPLE = 10;
 
 const repositories = JSON5.parse(await fs.readFile("../repositories.json5", "utf8"));
 
@@ -139,6 +141,10 @@ const deriveRepository = async repository => {
   const reviewed = new Map();
   // org -> month index -> [lines changed, files, lines added] of each commit.
   const lines = new Map();
+  // org -> month index -> [message length] of commits excluding reverts, rolls, and AI-tagged.
+  const msgLens = new Map();
+  // org -> month index -> trait counters + distinct bug IDs.
+  const traitsByOrg = new Map();
   // username -> month index -> [lines changed of each commit].
   const authoredSizes = new Map();
 
@@ -155,10 +161,15 @@ const deriveRepository = async repository => {
   if (!emails) return null;
   const { canonical } = await canonicalEmails(repository, repositoryDir, emails);
   let last = "";
-  for (const email of emails) {
-    const user = usernameOfEmail(repository, canonical(email));
-    const commits = JSON.parse(await fs.readFile(`${repositoryDir}/emails/${email}.json`, "utf8"));
-    for (const commit of commits) {
+  for (let start = 0; start < emails.length; start += 64) {
+    const batch = emails.slice(start, start + 64);
+    const loaded = await Promise.all(batch.map(async email => [
+      email,
+      JSON.parse(await fs.readFile(`${repositoryDir}/emails/${email}.json`, "utf8")),
+    ]));
+    for (const [email, commits] of loaded) {
+      const user = usernameOfEmail(repository, canonical(email));
+      for (const commit of commits) {
       if (commit.date > last) last = commit.date;
       const i = monthIndex.get(commit.date.slice(0, 7));
       if (i === undefined) continue;
@@ -176,13 +187,55 @@ const deriveRepository = async repository => {
         let sizes = sizesByMonth.get(i);
         if (!sizes) sizesByMonth.set(i, sizes = []);
         sizes.push(changed);
+
+        if (typeof commit.msg === "number") {
+          const flags = commit.flags || 0;
+          if ((flags & MSG_EXCLUDE) === 0) {
+            let mByMonth = msgLens.get(org);
+            if (!mByMonth) msgLens.set(org, mByMonth = new Map());
+            let mList = mByMonth.get(i);
+            if (!mList) mByMonth.set(i, mList = []);
+            mList.push(commit.msg);
+          }
+          let tByMonth = traitsByOrg.get(org);
+          if (!tByMonth) traitsByOrg.set(org, tByMonth = new Map());
+          let t = tByMonth.get(i);
+          if (!t) {
+            t = {
+              total: 0,
+              revert: 0,
+              reland: 0,
+              ai: 0,
+              bypass: 0,
+              noTry: 0,
+              botCommit: 0,
+              withBug: 0,
+              fix: 0,
+              bugs: new Set(),
+            };
+            tByMonth.set(i, t);
+          }
+          t.total++;
+          if (flags & COMMIT_FLAGS.REVERT) t.revert++;
+          if (flags & COMMIT_FLAGS.RELAND) t.reland++;
+          if (flags & COMMIT_FLAGS.AI) t.ai++;
+          if (flags & BYPASS_MASK) t.bypass++;
+          if (flags & COMMIT_FLAGS.NO_TRY) t.noTry++;
+          if (flags & COMMIT_FLAGS.BOT_COMMIT) t.botCommit++;
+          if (commit.bug != null) {
+            t.withBug++;
+            t.bugs.add(commit.bug);
+            if (flags & COMMIT_FLAGS.FIX) t.fix++;
+          }
+        }
       } else if (commit.kind === "review") {
         add(reviewed, user, i, org);
       }
+      }
     }
   }
-  // Skip the repositories whose data stops before the last month.
-  if (last.slice(0, 7) < months[M - 1]) return null;
+  const lastMonth = last ? last.slice(0, 7) : null;
+  const stale = !lastMonth || lastMonth < months[M - 1];
 
   // username -> month index -> [commits, org of most of them].
   const resolve = table => {
@@ -263,8 +316,71 @@ const deriveRepository = async repository => {
     const medianLines = months.map((_, i) =>
       quantile(commitsIn(i, i).map(c => c[0]).sort((a, b) => a - b), 0.5));
 
+    // Message lengths (excluding reverts, rolls, and AI-tagged commits).
+    const msgsIn = (first, last) => {
+      const all = [];
+      for (const [org, byMonth] of msgLens) {
+        if (!group.test(org)) continue;
+        for (let i = Math.max(0, first); i <= last; i++) all.push(...(byMonth.get(i) || []));
+      }
+      return all;
+    };
+    const msgStats = (arr) => {
+      if (!arr.length) return { p50: null, mean: null, p95: null };
+      arr.sort((a, b) => a - b);
+      const sum = arr.reduce((a, b) => a + b, 0);
+      return {
+        p50: quantile(arr, 0.5),
+        mean: Math.round(sum / arr.length),
+        p95: quantile(arr, 0.95),
+      };
+    };
+    const monthlyMsg = months.map((_, i) => msgStats(msgsIn(i, i)));
+    const msgMedian = monthlyMsg.map(s => s.p50);
+    const msgMean = monthlyMsg.map(s => s.mean);
+    const msgP95 = monthlyMsg.map(s => s.p95);
+
+    // Monthly commit traits (shares in 0..1, and commits per distinct bug).
+    const monthlyTraits = months.map((_, i) => {
+      let total = 0, revert = 0, reland = 0, ai = 0, bypass = 0, noTry = 0, botCommit = 0, withBug = 0, fix = 0;
+      const bugs = new Set();
+      for (const [org, byMonth] of traitsByOrg) {
+        if (!group.test(org)) continue;
+        const t = byMonth.get(i);
+        if (!t) continue;
+        total += t.total;
+        revert += t.revert;
+        reland += t.reland;
+        ai += t.ai;
+        bypass += t.bypass;
+        noTry += t.noTry;
+        botCommit += t.botCommit;
+        withBug += t.withBug;
+        fix += t.fix;
+        for (const b of t.bugs) bugs.add(b);
+      }
+      if (!total) return null;
+      return {
+        revert: round(revert / total, 4),
+        reland: round(reland / total, 4),
+        ai: round(ai / total, 4),
+        bypass: round(bypass / total, 4),
+        no_try: round(noTry / total, 4),
+        bot_commit: round(botCommit / total, 4),
+        bug: round(withBug / total, 4),
+        fix: round(fix / total, 4),
+        commits_per_bug: bugs.size ? round(withBug / bugs.size, 2) : null,
+        bugs_per_author: bugs.size && authorCount[i] ? round(bugs.size / authorCount[i], 2) : null,
+      };
+    });
+
     // The windows ending at each month, from `from`: their value, or null.
     const byWindow = (from, f) => months.map((_, end) => end >= from ? f(end) : null);
+
+    const msgWindowAt = byWindow(WINDOW - 1, end => {
+      const all = msgsIn(end - WINDOW + 1, end);
+      return all.length ? msgStats(all) : null;
+    });
 
     // The size of the commits.
     const sizeAt = byWindow(WINDOW - 1, end => {
@@ -337,6 +453,11 @@ const deriveRepository = async repository => {
       reviews,
       reviewers: reviewerCount,
       lines: medianLines,
+      msg: msgMedian,
+      msg_mean: msgMean,
+      msg_p95: msgP95,
+      msgWindowAt,
+      monthlyTraits,
       cohortAt,
       sizeAt,
       percentiles,
@@ -345,15 +466,15 @@ const deriveRepository = async repository => {
   }
 
   const all = output[0];
-  if ((all.cohortAt[M - 1]?.n ?? 0) < MIN_REPOSITORY_PEOPLE) return null;
 
   // The first full year of data: the first one with at least a quarter of the
-  // commits of the last 12 months. A young repository, or a directory created
-  // later, compares nothing before it.
+  // commits of the last 12 months (or the first active year if stale).
   const yearly = year => all.commits.reduce((a, c, i) => a + (months[i].startsWith(year) ? c : 0), 0);
   const reference = all.commits.slice(-12).reduce((a, b) => a + b, 0);
+  const maxYear = +months[M - 1].slice(0, 4);
   let firstYear = +months[0].slice(0, 4);
-  while (yearly(firstYear) < reference / 4) firstYear++;
+  const threshold = reference > 0 ? reference / 4 : 1;
+  while (firstYear < maxYear && yearly(firstYear) < threshold) firstYear++;
   const first = monthIndex.get(`${firstYear}-01`);
   // The windows that start within the first full year of data, and from
   // FIRST_PERCENTILE_YEAR for the distributions.
@@ -365,10 +486,18 @@ const deriveRepository = async repository => {
   for (const group of output) {
     group.cohort = columns(group.cohortAt, ["n", "p25", "p50", "p75", "mean", "up"], cohortFrom);
     group.size = columns(group.sizeAt, ["q", "tiny", "files", "added"], windowFrom);
+    group.msg_window = columns(group.msgWindowAt, ["p50", "mean", "p95"], windowFrom);
+    group.traits = columns(
+      group.monthlyTraits,
+      ["revert", "reland", "ai", "bypass", "no_try", "bot_commit", "bug", "fix", "commits_per_bug", "bugs_per_author"],
+      0,
+    );
     group.percentiles = group.percentiles.map((row, i) => i >= windowFrom ? row : null);
     group.size_by_activity = group.size_by_activity.map((row, i) => i >= windowFrom ? row : null);
     delete group.cohortAt;
     delete group.sizeAt;
+    delete group.msgWindowAt;
+    delete group.monthlyTraits;
   }
 
   // The organizations compared: their commits and authors by month, and by
@@ -395,6 +524,7 @@ const deriveRepository = async repository => {
       return cohortRow(ratios);
     });
     const byMonth = lines.get(org) || new Map();
+    const msgByMonth = msgLens.get(org) || new Map();
     return {
       label: org,
       commits,
@@ -408,6 +538,14 @@ const deriveRepository = async repository => {
           for (const c of byMonth.get(i) || []) sizes.push(c[0]);
         }
         return sizes.length ? quantile(sizes.sort((a, b) => a - b), 0.5) : null;
+      }),
+      msg: months.map((_, end) => {
+        if (end < windowFrom) return null;
+        const lens = [];
+        for (let i = end - WINDOW + 1; i <= end; i++) {
+          for (const m of msgByMonth.get(i) || []) lens.push(m);
+        }
+        return lens.length ? quantile(lens.sort((a, b) => a - b), 0.5) : null;
       }),
     };
   });
@@ -428,7 +566,10 @@ const deriveRepository = async repository => {
     parent: repositories.find(r => r.dirname === repository.parent)?.name ?? null,
     github_logins: repository.reviewers === "github",
     data_from: `${firstYear}-01`,
+    last_month: stale ? lastMonth : null,
     reviews_from: reviewsFrom,
+    has_msg: all.msg.some(v => v !== null),
+    has_bypass: repository.reviewers === true,
     groups: output,
     organizations,
   };
@@ -439,8 +580,9 @@ for (const repository of repositories) {
   const result = await deriveRepository(repository);
   if (result) output.push(result);
 }
-const people = r => r.groups[0].cohort.n[M - 1];
-output.sort((a, b) => people(b) - people(a));
+const people = r => r.groups[0].cohort.n[M - 1] ?? 0;
+const recentCommits = r => r.groups[0].commits.slice(-12).reduce((a, b) => a + b, 0);
+output.sort((a, b) => (people(b) - people(a)) || (recentCommits(b) - recentCommits(a)));
 
 await fs.writeFile("../public/data/developer-output.json", JSON.stringify({
   months,

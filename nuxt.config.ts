@@ -65,6 +65,9 @@ export default defineNuxtConfig({
 
   vite: {
     server: {
+      allowedHosts: process.env.DEV_ALLOWED_HOSTS === 'true'
+        ? true
+        : process.env.DEV_ALLOWED_HOSTS?.split(',').filter(Boolean),
       fs: {
         allow: [
           path.resolve(),

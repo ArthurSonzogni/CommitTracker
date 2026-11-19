@@ -248,8 +248,9 @@ for (const repository of repositories) {
           } else if (commit.peers.length > 1) {
             commit.peers = [...new Set(commit.peers.map(usernameOf))].sort();
           }
-          // The hash only identifies the commit for the importer: it would
-          // grow the files of the usernames for nothing.
+          // The hash only identifies the commit for the importer: strip it so
+          // usernames/*.json stays lean. Keep msg/flags/bug for badges and
+          // developer year-in-review pages.
           delete commit.sha;
           if (perEmail.length > 1) {
             userCommits.push(commit);
@@ -266,7 +267,7 @@ for (const repository of repositories) {
       }
       recordEntityIntoTables(usernameTables, NUMERIC_METRICS, username, userAcc);
       userWrites.push(
-        fs.writeFile(`${usernames_dir}/${username}.json`, JSON.stringify(userCommits, null, 1)),
+        fs.writeFile(`${usernames_dir}/${username}.json`, JSON.stringify(userCommits)),
       );
     }
 

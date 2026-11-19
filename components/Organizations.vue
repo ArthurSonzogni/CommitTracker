@@ -82,12 +82,23 @@ for (const repo of repositories) {
   repositoriesColor.set(repo.dirname, repo.color);
 }
 
+const hashOrgName = (name: string): number => {
+  let hash = 2166136261;
+  for (let i = 0; i < name.length; ++i) {
+    hash ^= name.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+};
+
 const organizationsColor = new Map<string, string>();
-for (let i = 0; i < organizations.length; ++i) {
-  const hue = (i * 360) / organizations.length + (i % 4) * 90;
-  const luminance = 40 + 5 * (i % 3);
-  organizationsColor.set(organizations[i], `hsl(${hue}, 99%, ${luminance}%)`);
+for (const org of organizations) {
+  const hash = hashOrgName(org);
+  const hue = hash % 360;
+  const luminance = 40 + 5 * ((hash >>> 9) % 3);
+  organizationsColor.set(org, `hsl(${hue}, 99%, ${luminance}%)`);
 }
+organizationsColor.set("Google", "hsl(210, 99%, 45%)");
 organizationsColor.set("Others", "hsl(0, 0%, 50%)");
 
 const bar_chart_data = shallowRef<BarBucket[]>([]);

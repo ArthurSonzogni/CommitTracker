@@ -5,6 +5,7 @@ import {mailMap} from './mailmap.mjs';
 import {octokit} from './octokit.mjs';
 import {IsEmailValid} from './is_email_valid.mjs';
 import {ParseReviewers, ParsePhabricatorReviewers} from './parse_reviewers.mjs';
+import {parseCommitMessage} from './parse_commit_message.mjs';
 
 const fs = filesystem.promises;
 
@@ -75,11 +76,13 @@ const ProcessCommit = (data, logins, commit, repository) => {
   //
   // https://github.com/ArthurSonzogni/CommitTracker/issues/7
   const reviewers = [...new Set([
-    ...ParseReviewers(commit.messageBody),
+    ...ParseReviewers(commit.message),
     ...(github ? GitHubReviewers(commit) : []),
-    ...(github ? ParsePhabricatorReviewers(commit.messageBody) : []),
+    ...(github ? ParsePhabricatorReviewers(commit.message) : []),
   ])].filter(reviewer => reviewer != author &&
     reviewer != `${logins[author]}@users.noreply.github.com`);
+
+  const { msg, flags, bug } = parseCommitMessage(commit.message);
 
   data[author] ||= [];
 
@@ -91,6 +94,9 @@ const ProcessCommit = (data, logins, commit, repository) => {
     'deletions': commit.deletions,
     'files': commit.changedFilesIfAvailable,
     'sha': sha,
+    'msg': msg,
+    ...(flags ? { flags } : {}),
+    ...(bug ? { bug } : {}),
   };
 
   // The entry of this commit among the ones of a developer, if any. A commit
@@ -145,6 +151,11 @@ const ProcessCommit = (data, logins, commit, repository) => {
     const missing = reviewers.filter(reviewer => !existing.peers.includes(reviewer));
     if (missing.length > 0) {
       existing.peers = [...existing.peers, ...missing];
+    }
+    if (existing.msg === undefined) {
+      existing.msg = msg;
+      if (flags) existing.flags = flags;
+      if (bug) existing.bug = bug;
     }
     // Also stamp the hash onto existing review entries on an in-place backfill.
     reviewers.forEach(AddReview);
@@ -246,7 +257,7 @@ const ProcessRepository = async (repository) => {
       }
       data[email] = Array.from(map.values()).sort((a, b) => a.date.localeCompare(b.date));
 
-      await fs.writeFile(email_file, JSON.stringify(data[email], null, 1));
+      await fs.writeFile(email_file, JSON.stringify(data[email]));
     }
   }
 
@@ -323,7 +334,7 @@ const ProcessRepository = async (repository) => {
                         node {
                           ... on Commit {
                             oid
-                            messageBody
+                            message
                             committedDate
                             committer {
                               email
