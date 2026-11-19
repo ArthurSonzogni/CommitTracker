@@ -451,10 +451,7 @@
               </li>
               <li>
                 Commit message length counts the characters of the headline and body with trailing
-                footers and trailers removed, excluding reverts, rolls, and commits carrying an AI
-                disclosure tag (<code>TAG=agy</code>, <code>CONV=</code>,
-                <code>Agent-Generated: true</code>, <code>Co-authored-by</code>,
-                <code>Assisted-by</code>, <code>Claude-Session</code>). Reverts, check bypasses
+                footers and trailers removed, excluding reverts and rolls. Reverts, check bypasses
                 (<code>No-Try</code>, <code>No-Presubmit</code>, <code>Owners-Override</code>,
                 <code>Bypass-*</code>, <code>Low-Coverage-Reason</code>), and bug links are parsed
                 directly from commit messages.
@@ -790,7 +787,7 @@ type TraitView = "msg" | "reverts" | "bypasses" | "bugs" | "bugs_per_author" | "
 const METRIC_TEXT: Partial<Record<Metric, string>> = {
   per_author: "the commits divided by the people who landed at least one.",
   lines: "the median of the lines added plus deleted by each commit.",
-  msg: "characters of the commit description without footers/trailers, excluding reverts, rolls, and AI-tagged commits.",
+  msg: "characters of the commit description without footers/trailers, excluding reverts and rolls.",
   per_reviewer: "the reviews divided by the people who reviewed at least one commit. A review is " +
     "a reviewer named in a commit message.",
 };
@@ -987,7 +984,7 @@ const kpis = computed(() => {
       metric: "msg" as Metric,
       value: ratioPct(k.msg[0], k.msg[1]),
       detail: `${k.msg[0] !== null ? integer.format(k.msg[0]) : "—"} → ${k.msg[1] !== null ? integer.format(k.msg[1]) : "—"} chars`,
-      hint: "Median description without footers, reverts, rolls, or AI tags.",
+      hint: "Median description without footers, reverts, or rolls.",
     }] : []),
     {
       label: "Active authors",
@@ -1477,7 +1474,7 @@ const findings = computed(() => {
     out.push({
       lead: `${pct(mwCur.p50 / mwPrev.p50 - 1)} commit message length`,
       text: `(median ${integer.format(mwPrev.p50)} → ${integer.format(mwCur.p50)} chars; ` +
-        `mean ${integer.format(mwPrev.mean)} → ${integer.format(mwCur.mean)}), excluding footers, reverts, rolls, and AI tags.`,
+        `mean ${integer.format(mwPrev.mean)} → ${integer.format(mwCur.mean)}), excluding footers, reverts, and rolls.`,
     });
   }
   return out;
@@ -1691,7 +1688,7 @@ const traitPanelTitle = computed(() => ({
 })[traitView.value]);
 
 const traitPanelText = computed(() => ({
-  msg: "Monthly character length (median and mean) of commit descriptions without footers/trailers, excluding reverts, rolls, and AI-tagged commits.",
+  msg: "Monthly character length (median and mean) of commit descriptions without footers/trailers, excluding reverts and rolls.",
   reverts: "Share of authored commits each month that revert or reland a previous commit.",
   bypasses: "Share of authored commits using No-Try, No-Presubmit, No-Tree-Checks, Owners-Override, Bypass-*, or Low-Coverage-Reason.",
   bugs: "Share of authored commits referencing a numeric bug ID, and share explicitly closing one (Fixed/Fixes/Closes).",

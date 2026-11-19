@@ -327,7 +327,7 @@ const traitMeta = computed(() => {
   }
   return {
     title: "Commit message length across repositories",
-    text: "Median character length of commit descriptions without footers/trailers, excluding reverts, rolls, and AI-tagged commits.",
+    text: "Median character length of commit descriptions without footers/trailers, excluding reverts and rolls.",
     format: (v: number) => `${integer.format(v)} chars`,
     axisFormat: (v: number) => integer.format(v),
   };

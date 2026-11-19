@@ -71,7 +71,7 @@ import { loadOrganizations } from "./organizations.mjs";
 import { canonicalEmails, usernameOfEmail } from "./usernames.mjs";
 import { COMMIT_FLAGS } from "./parse_commit_message.mjs";
 
-const MSG_EXCLUDE = COMMIT_FLAGS.REVERT | COMMIT_FLAGS.ROLL | COMMIT_FLAGS.AI;
+const MSG_EXCLUDE = COMMIT_FLAGS.REVERT | COMMIT_FLAGS.ROLL;
 const BYPASS_MASK = COMMIT_FLAGS.NO_TRY | COMMIT_FLAGS.NO_PRESUBMIT |
   COMMIT_FLAGS.NO_TREE_CHECKS | COMMIT_FLAGS.OWNERS_OVERRIDE | COMMIT_FLAGS.BYPASS;
 
@@ -141,7 +141,7 @@ const deriveRepository = async repository => {
   const reviewed = new Map();
   // org -> month index -> [lines changed, files, lines added] of each commit.
   const lines = new Map();
-  // org -> month index -> [message length] of commits excluding reverts, rolls, and AI-tagged.
+  // org -> month index -> [message length] of commits excluding reverts and rolls.
   const msgLens = new Map();
   // org -> month index -> trait counters + distinct bug IDs.
   const traitsByOrg = new Map();
@@ -316,7 +316,7 @@ const deriveRepository = async repository => {
     const medianLines = months.map((_, i) =>
       quantile(commitsIn(i, i).map(c => c[0]).sort((a, b) => a - b), 0.5));
 
-    // Message lengths (excluding reverts, rolls, and AI-tagged commits).
+    // Message lengths (excluding reverts and rolls).
     const msgsIn = (first, last) => {
       const all = [];
       for (const [org, byMonth] of msgLens) {
