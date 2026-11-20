@@ -148,6 +148,16 @@
         </div>
       </section>
 
+      <section v-if="options.includes('author')" class="section">
+        <div class="container">
+          <h2 class="title">Patch profile</h2>
+          <DeveloperPatchProfile
+            :commits="raw"
+            :dates="dates"
+            />
+        </div>
+      </section>
+
       <section class="section">
         <div class="container">
           <h2 class="title">Heatmap</h2>

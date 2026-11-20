@@ -24,6 +24,7 @@ import {
   useDeveloperCommits,
   type DeveloperCommitsEntry,
 } from "~/composables/useDeveloperCommits";
+import { COMMIT_FLAGS, BYPASS_MASK, MSG_EXCLUDE_MASK } from "~/utils/commitFlags";
 
 const props = defineProps({
   repositories: {
@@ -51,8 +52,15 @@ const full = ref(false);
 
 const intFormat = format(",d");
 const floatFormat = format(",.2f");
+const pctFormat = format(".1%");
 const formatInt = (v: unknown) => intFormat(typeof v === "number" && Number.isFinite(v) ? v : 0);
 const formatFloat = (v: unknown) => floatFormat(typeof v === "number" && Number.isFinite(v) ? v : 0);
+const formatOptionalInt = (v: unknown) =>
+  typeof v === "number" && Number.isFinite(v) ? intFormat(v) : "—";
+const formatOptionalFloat = (v: unknown) =>
+  typeof v === "number" && Number.isFinite(v) ? floatFormat(v) : "—";
+const formatOptionalPct = (v: unknown) =>
+  typeof v === "number" && Number.isFinite(v) ? pctFormat(v) : "—";
 
 const { filtered: fetchedFiltered } = useDeveloperCommits({
   repo: () => (props.commits !== undefined ? "" : props.repositories),
@@ -163,6 +171,84 @@ const columns = computed<Column[]>(() => {
     }
   }
 
+  // Message length & craft columns (authored commits with message metadata).
+  cols.push({
+    field: "msg_median",
+    label: "Median(Msg)",
+    sortable: true,
+    visible: true,
+    numeric: true,
+    formatter: formatOptionalInt,
+    cellClass: "table-style-msg",
+    headerClass: "table-style-header",
+  });
+  if (full.value) {
+    cols.push(
+      {
+        field: "msg_mean",
+        label: "Mean(Msg)",
+        sortable: true,
+        visible: true,
+        numeric: true,
+        formatter: formatOptionalFloat,
+        cellClass: "table-style-msg",
+        headerClass: "table-style-header",
+      },
+      {
+        field: "msg_min",
+        label: "Min(Msg)",
+        sortable: true,
+        visible: true,
+        numeric: true,
+        formatter: formatOptionalInt,
+        cellClass: "table-style-msg",
+        headerClass: "table-style-header",
+      },
+      {
+        field: "msg_max",
+        label: "Max(Msg)",
+        sortable: true,
+        visible: true,
+        numeric: true,
+        formatter: formatOptionalInt,
+        cellClass: "table-style-msg",
+        headerClass: "table-style-header",
+      },
+    );
+  }
+  cols.push(
+    {
+      field: "bugs",
+      label: "Bugs",
+      sortable: true,
+      visible: true,
+      numeric: true,
+      formatter: formatInt,
+      cellClass: "table-style-craft",
+      headerClass: "table-style-header",
+    },
+    {
+      field: "revert_rate",
+      label: "Reverts",
+      sortable: true,
+      visible: true,
+      numeric: true,
+      formatter: formatOptionalPct,
+      cellClass: "table-style-craft",
+      headerClass: "table-style-header",
+    },
+    {
+      field: "bypass_rate",
+      label: "Bypasses",
+      sortable: true,
+      visible: true,
+      numeric: true,
+      formatter: formatOptionalPct,
+      cellClass: "table-style-craft",
+      headerClass: "table-style-header",
+    },
+  );
+
   return cols;
 });
 
@@ -210,6 +296,21 @@ const filteredData = computed(() => {
     const modified = calcStats(commits.map((c) => (c.additions ?? 0) + (c.deletions ?? 0)));
     const files = calcStats(commits.map((c) => c.files ?? 0));
 
+    const authoredWithMeta = commits.filter((c) => c.kind === "author" && typeof c.msg === "number");
+    const msgLens = authoredWithMeta
+      .filter((c) => ((c.flags ?? 0) & MSG_EXCLUDE_MASK) === 0)
+      .map((c) => c.msg!);
+    const msgStats = msgLens.length ? calcStats(msgLens) : null;
+    const distinctBugs = new Set<number>();
+    let reverts = 0;
+    let bypasses = 0;
+    for (const c of authoredWithMeta) {
+      if (c.bug != null) distinctBugs.add(c.bug);
+      const f = c.flags ?? 0;
+      if (f & COMMIT_FLAGS.REVERT) reverts++;
+      if (f & BYPASS_MASK) bypasses++;
+    }
+
     return {
       developer: entry.developer,
       commit: commits.length,
@@ -243,6 +344,14 @@ const filteredData = computed(() => {
       files_median: files.median,
       files_min: files.min,
       files_max: files.max,
+
+      msg_median: msgStats?.median ?? null,
+      msg_mean: msgStats?.mean ?? null,
+      msg_min: msgStats?.min ?? null,
+      msg_max: msgStats?.max ?? null,
+      bugs: distinctBugs.size,
+      revert_rate: authoredWithMeta.length ? reverts / authoredWithMeta.length : null,
+      bypass_rate: authoredWithMeta.length ? bypasses / authoredWithMeta.length : null,
     };
   });
 });
@@ -277,5 +386,15 @@ const filteredData = computed(() => {
 .timeline-count :deep(.table-style-files) {
   font-family: var(--font-mono);
   background-color: rgba(128, 128, 128, 0.12);
+}
+
+.timeline-count :deep(.table-style-msg) {
+  font-family: var(--font-mono);
+  background-color: rgba(0, 180, 180, 0.1);
+}
+
+.timeline-count :deep(.table-style-craft) {
+  font-family: var(--font-mono);
+  background-color: rgba(235, 130, 20, 0.1);
 }
 </style>

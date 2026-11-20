@@ -229,6 +229,7 @@ const tests = [
         document.querySelectorAll('.review-stat dd').length === 5 &&
         document.querySelectorAll('.review-month').length === 12 &&
         document.querySelectorAll('.review-peers li').length > 0 &&
+        document.body.innerText.includes('Median patch size:') &&
         document.body.innerText.includes('Median commit description:') &&
         document.body.innerText.includes('distinct bug'), 20000);
       const stats = [...document.querySelectorAll('.review-stat dd')].map(e => e.textContent.trim()).join(' / ');
@@ -241,6 +242,7 @@ const tests = [
     run: `
       const ok = await __t.until(() =>
         document.querySelectorAll('.profile-stat dd').length === 4 &&
+        document.querySelectorAll('.style-stat dd').length >= 4 &&
         document.querySelectorAll('.profile-repository').length > 3 &&
         document.querySelectorAll('.profile-chart svg path').length > 2 &&
         document.querySelectorAll('.profile-badge').length > 0, 20000);
@@ -274,9 +276,15 @@ const tests = [
       await __t.sleep(300);
       input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13, bubbles: true }));
       const added = await __t.until(() => location.search.includes('arthursonzogni'));
-      const lines = await __t.until(() => document.querySelectorAll('.container svg path').length > 10 && document.querySelectorAll('svg rect').length > 500, 20000);
+      const lines = await __t.until(() =>
+        document.querySelectorAll('.container svg path').length > 10 &&
+        document.querySelectorAll('svg rect').length > 500 &&
+        document.querySelectorAll('.patch-profile .hist-card').length === 2 &&
+        document.querySelectorAll('.patch-profile .trait-chart path.line').length >= 1, 20000);
+      __t.byText('.patch-profile .segmented-option', 'Description length (chars)').click();
+      const switched = await __t.until(() => document.querySelectorAll('.patch-profile .trait-chart path.line').length >= 1, 5000);
       const counts = [...document.querySelectorAll('table td')].map(td => td.textContent.trim()).join(' ');
-      return { ok: !!added && !!lines, detail: 'counts: ' + counts + ' paths=' + __t.count('svg path') + ' rects=' + __t.count('svg rect') };
+      return { ok: !!added && !!lines && !!switched, detail: 'counts: ' + counts + ' paths=' + __t.count('svg path') + ' rects=' + __t.count('svg rect') };
     `,
   },
   {

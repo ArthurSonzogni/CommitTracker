@@ -70,6 +70,12 @@
             <li>The longest streak of working days: <strong>{{ plural(longestWorkingStreak.length, "day") }}</strong> in a row, from {{ formatDay(new Date(longestWorkingStreak.from)) }} to {{ formatDay(new Date(longestWorkingStreak.to)) }}.</li>
             <li>The busiest day: <strong>{{ plural(busiestDay.count, "contribution") }}</strong> on <strong>{{ formatDay(new Date(busiestDay.day)) }}</strong>.</li>
             <li>The first contribution of the year on <strong>{{ formatDay(first) }}</strong>, the last on <strong>{{ formatDay(last) }}</strong>.</li>
+            <li v-if="medianLines !== null">
+              Median patch size: <strong>{{ plural(medianLines, "line") }}</strong> across
+              <strong>{{ plural(medianFiles ?? 0, "file") }}</strong><template v-if="linesDelta !== null">
+                ({{ linesDelta > 0 ? "+" : "" }}{{ linesDelta }}% vs {{ year - 1 }})</template><template v-if="largestPatch">
+                — largest patch: <strong>{{ plural(largestPatch.lines, "line") }}</strong> across {{ plural(largestPatch.files, "file") }}</template>.
+            </li>
             <li v-if="medianMsg !== null">
               Median commit description: <strong>{{ number(medianMsg) }} characters</strong>
               <template v-if="msgDelta !== null">
@@ -129,6 +135,7 @@ import repositories_json from '../../../public/data/repositories.json';
 import { shardOf } from '~/utils/badges';
 import { formatDeveloperYearDescription, formatDeveloperYearTitle } from '~/utils/pageMeta';
 import { fetchUsernamesSummary } from '~/utils/usernamesSummary';
+import { COMMIT_FLAGS, MSG_EXCLUDE_MASK, medianOf } from '~/utils/commitFlags';
 
 // A developer's year: computed from their commits and reviews in each
 // repository (/data/<repository>/usernames/<name>.json).
@@ -162,11 +169,6 @@ type YearRecord = {
   bug?: number;
   repository: string;
 };
-
-// Bit positions from importer/parse_commit_message.mjs.
-const FLAG_REVERT = 1 << 1;
-const FLAG_ROLL = 1 << 3;
-const FLAG_FIX = 1 << 4;
 
 const bugUrlOf = (dirname: string, id: number): string | null => {
   if (dirname === "firefox" || dirname === "spidermonkey") {
@@ -302,19 +304,39 @@ const prevAuthored = computed(() =>
   records.value.filter(r => Number(r.date.slice(0, 4)) === year.value - 1 && r.kind === "author"),
 );
 
-const medianOfMsgs = (list: YearRecord[]) => {
-  const lens = list
-    .filter(r => typeof r.msg === "number" && ((r.flags ?? 0) & (FLAG_REVERT | FLAG_ROLL)) === 0)
-    .map(r => r.msg!)
-    .sort((a, b) => a - b);
-  return lens.length ? lens[Math.floor(lens.length / 2)] : null;
-};
+const medianOfMsgs = (list: YearRecord[]) =>
+  medianOf(
+    list
+      .filter(r => typeof r.msg === "number" && ((r.flags ?? 0) & MSG_EXCLUDE_MASK) === 0)
+      .map(r => r.msg!),
+  );
 const medianMsg = computed(() => medianOfMsgs(authored.value));
 const msgDelta = computed(() => {
   const cur = medianMsg.value;
   const prev = medianOfMsgs(prevAuthored.value);
   if (cur === null || !prev || prevAuthored.value.length < 5) return null;
   return Math.round(100 * (cur - prev) / prev);
+});
+
+const medianLines = computed(() =>
+  medianOf(authored.value.map(r => (r.additions ?? 0) + (r.deletions ?? 0))),
+);
+const medianFiles = computed(() =>
+  medianOf(authored.value.map(r => r.files ?? 0)),
+);
+const linesDelta = computed(() => {
+  const cur = medianLines.value;
+  const prev = medianOf(prevAuthored.value.map(r => (r.additions ?? 0) + (r.deletions ?? 0)));
+  if (cur === null || !prev || prevAuthored.value.length < 5) return null;
+  return Math.round(100 * (cur - prev) / prev);
+});
+const largestPatch = computed(() => {
+  let best: { lines: number; files: number } | null = null;
+  for (const r of authored.value) {
+    const lines = (r.additions ?? 0) + (r.deletions ?? 0);
+    if (!best || lines > best.lines) best = { lines, files: r.files ?? 0 };
+  }
+  return best && best.lines > 0 ? best : null;
 });
 
 const bugSummary = computed(() => {
@@ -326,7 +348,7 @@ const bugSummary = computed(() => {
     const existing = counts.get(key);
     if (existing) existing.count++;
     else counts.set(key, { id: r.bug, repository: r.repository, count: 1 });
-    if ((r.flags ?? 0) & FLAG_FIX) closed.add(key);
+    if ((r.flags ?? 0) & COMMIT_FLAGS.FIX) closed.add(key);
   }
   let top: { id: number; repository: string; count: number; url: string | null } | null = null;
   for (const item of counts.values()) {
@@ -347,7 +369,7 @@ const bugsDelta = computed(() => {
   return prevBugs ? Math.round(100 * (bugsTouched.value - prevBugs) / prevBugs) : 0;
 });
 const revertsCount = computed(() =>
-  authored.value.filter(r => ((r.flags ?? 0) & FLAG_REVERT) !== 0).length,
+  authored.value.filter(r => ((r.flags ?? 0) & COMMIT_FLAGS.REVERT) !== 0).length,
 );
 
 const months = computed(() => {

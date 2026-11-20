@@ -130,6 +130,57 @@
             <span class="dot bar-review"></span> Reviews
           </p>
 
+          <template v-if="commitStyle">
+            <h2 class="title">Commit style in {{ primaryRepository.name }}</h2>
+            <dl class="style-stats">
+              <div class="style-stat">
+                <dt>Median patch</dt>
+                <dd>{{ number(commitStyle.medianLines) }} lines</dd>
+                <span class="style-detail">
+                  {{ number(commitStyle.medianFiles) }} {{ commitStyle.medianFiles === 1 ? "file" : "files" }} median
+                  <template v-if="repoBenchmark?.lines !== null && repoBenchmark?.lines !== undefined">
+                    · repo {{ number(repoBenchmark.lines) }} lines
+                  </template>
+                </span>
+              </div>
+              <div v-if="commitStyle.medianMsg !== null" class="style-stat">
+                <dt>Median description</dt>
+                <dd>{{ number(commitStyle.medianMsg) }} chars</dd>
+                <span class="style-detail">
+                  mean {{ number(Math.round(commitStyle.meanMsg ?? 0)) }}
+                  <template v-if="repoBenchmark?.msg !== null && repoBenchmark?.msg !== undefined">
+                    · repo {{ number(repoBenchmark.msg) }}
+                  </template>
+                </span>
+              </div>
+              <div class="style-stat">
+                <dt>Tiny patches (≤ 5 lines)</dt>
+                <dd>{{ Math.round(commitStyle.tinyShare * 100) }}%</dd>
+                <span class="style-detail">
+                  {{ number(commitStyle.tinyCount) }} of {{ number(commitStyle.authoredCount) }} commits
+                  <template v-if="repoBenchmark?.tiny !== null && repoBenchmark?.tiny !== undefined">
+                    · repo {{ Math.round(repoBenchmark.tiny * 100) }}%
+                  </template>
+                </span>
+              </div>
+              <div class="style-stat">
+                <dt>Net code</dt>
+                <dd>{{ commitStyle.netLines > 0 ? "+" : commitStyle.netLines < 0 ? "−" : "" }}{{ compactNum(Math.abs(commitStyle.netLines)) }}</dd>
+                <span class="style-detail">
+                  +{{ compactNum(commitStyle.addedLines) }} / −{{ compactNum(commitStyle.deletedLines) }} lines
+                </span>
+              </div>
+              <div v-if="commitStyle.bugs > 0 || commitStyle.reverts > 0" class="style-stat">
+                <dt>Bugs &amp; reverts</dt>
+                <dd>{{ number(commitStyle.bugs) }} {{ commitStyle.bugs === 1 ? "bug" : "bugs" }}</dd>
+                <span class="style-detail">
+                  <template v-if="commitStyle.bugsClosed > 0">{{ number(commitStyle.bugsClosed) }} closed · </template>
+                  {{ (commitStyle.revertRate * 100).toFixed(1) }}% reverts
+                </span>
+              </div>
+            </dl>
+          </template>
+
           <h2 class="title">Timeline in {{ primaryRepository.name }}</h2>
           <div class="profile-chart">
             <DeveloperTimelineChart
@@ -183,24 +234,37 @@
 import repositories_json from '../../../public/data/repositories.json';
 import { fetchResolvedDeveloperBadges, shardOf } from '~/utils/badges';
 import { formatDeveloperDescription, formatDeveloperTitle } from '~/utils/pageMeta';
+import { COMMIT_FLAGS, MSG_EXCLUDE_MASK, medianOf, meanOf } from '~/utils/commitFlags';
+import type { DeveloperCommit } from '~/plugins/chromiumData';
 
 const route = useRoute();
+const { $chromiumData } = useNuxtApp();
 const name = computed(() => String(route.params.name));
 
 // scripts/derive-developers.mjs:
 // {repository: [commits authored, reviews, first year, last year, GitHub login?]}
 const entry = shallowRef<Record<string, (number | string)[]> | null>(null);
 const badges = shallowRef<{ name: string, image: string }[]>([]);
+const primaryCommits = shallowRef<DeveloperCommit[]>([]);
+const repoBenchmark = shallowRef<{ lines: number | null; msg: number | null; tiny: number | null } | null>(null);
 const loaded = ref(false);
 
 const dates = [new Date("2000-01-01"), new Date()];
 const number = new Intl.NumberFormat("en").format;
+const compactNum = (n: number) =>
+  n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1e4 ? `${Math.round(n / 1e3)}k` : n >= 1e3 ? `${(n / 1e3).toFixed(1)}k` : number(n);
 const plural = (count: number, word: string) =>
   `${number(count)} ${word}${count === 1 ? "" : "s"}`;
 
 const fetchJson = async (url: string) => {
   const response = await fetch(url);
   return response.ok ? response.json() : null;
+};
+
+let devOutputCache: Promise<any> | null = null;
+const fetchDevOutput = () => {
+  devOutputCache ??= fetchJson("/data/developer-output.json");
+  return devOutputCache;
 };
 
 let requestId = 0;
@@ -210,17 +274,94 @@ const load = async () => {
   const devName = name.value;
   loaded.value = false;
   badges.value = [];
+  primaryCommits.value = [];
+  repoBenchmark.value = null;
 
   const shard = await fetchJson(`/data/developers/${shardOf(devName)}.json`);
   if (id !== requestId) return;
   entry.value = shard?.[devName] ?? null;
   loaded.value = true;
 
-  const resolved = await fetchResolvedDeveloperBadges(devName);
+  const primary = primaryRepository.value;
+  const [resolved, commitsRes, devOutput] = await Promise.all([
+    fetchResolvedDeveloperBadges(devName),
+    primary ? $chromiumData(primary.dirname, devName) : Promise.resolve({ developer: devName, data: [] }),
+    primary ? fetchDevOutput() : Promise.resolve(null),
+  ]);
   if (id !== requestId) return;
   badges.value = resolved;
+  primaryCommits.value = commitsRes.data;
+
+  if (primary && devOutput?.repositories) {
+    const repo = devOutput.repositories.find((r: any) => r.dirname === primary.dirname);
+    const all = repo?.groups?.[0];
+    if (all) {
+      const medianIdx = devOutput.size_quantiles?.indexOf(0.5) ?? 2;
+      const lastNonNull = (arr: any[]) => {
+        for (let i = (arr?.length ?? 0) - 1; i >= 0; i--) {
+          if (arr[i] !== null && arr[i] !== undefined) return arr[i];
+        }
+        return null;
+      };
+      const q = lastNonNull(all.size?.q);
+      repoBenchmark.value = {
+        lines: Array.isArray(q) ? q[medianIdx] ?? null : null,
+        msg: lastNonNull(all.msg_window?.p50),
+        tiny: lastNonNull(all.size?.tiny),
+      };
+    }
+  }
 };
 watch(name, load, { immediate: true });
+
+const commitStyle = computed(() => {
+  const authored = primaryCommits.value.filter(c => c.kind === "author");
+  if (authored.length < 3) return null;
+  const sizes: number[] = [];
+  const files: number[] = [];
+  const msgs: number[] = [];
+  let addedLines = 0;
+  let deletedLines = 0;
+  let tinyCount = 0;
+  let reverts = 0;
+  const bugs = new Set<number>();
+  const bugsClosed = new Set<number>();
+  for (const c of authored) {
+    const add = c.additions ?? 0;
+    const del = c.deletions ?? 0;
+    const changed = add + del;
+    sizes.push(changed);
+    files.push(c.files ?? 0);
+    addedLines += add;
+    deletedLines += del;
+    if (changed <= 5) tinyCount++;
+    const f = c.flags ?? 0;
+    if (f & COMMIT_FLAGS.REVERT) reverts++;
+    if (typeof c.msg === "number" && (f & MSG_EXCLUDE_MASK) === 0) {
+      msgs.push(c.msg);
+    }
+    if (c.bug != null) {
+      bugs.add(c.bug);
+      if (f & COMMIT_FLAGS.FIX) bugsClosed.add(c.bug);
+    }
+  }
+  return {
+    authoredCount: authored.length,
+    medianLines: medianOf(sizes) ?? 0,
+    medianFiles: medianOf(files) ?? 0,
+    medianMsg: medianOf(msgs),
+    meanMsg: meanOf(msgs),
+    tinyCount,
+    tinyShare: tinyCount / authored.length,
+    addedLines,
+    deletedLines,
+    netLines: addedLines - deletedLines,
+    bugs: bugs.size,
+    bugsClosed: bugsClosed.size,
+    reverts,
+    revertRate: reverts / authored.length,
+  };
+});
 
 const byActivity = (a, b) => (b.author + b.review) - (a.author + a.review);
 
@@ -415,6 +556,46 @@ useSeoMeta({
   grid-template-columns: repeat(2, minmax(0, 1fr));
   margin-bottom: 3rem;
   overflow: hidden;
+}
+
+.style-stats {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+  margin: 0 0 2.5rem;
+}
+
+.style-stat {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.85rem 1rem;
+}
+
+.style-stat dt {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.style-stat dd {
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 1.35rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  margin: 0;
+}
+
+.style-detail {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
 }
 
 @media (min-width: 769px) {
