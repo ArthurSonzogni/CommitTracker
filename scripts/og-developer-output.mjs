@@ -39,10 +39,14 @@ const perAuthorAt = last => sum(all.commits, last) / sum(all.authors, last);
 const perAuthor = perAuthorAt(end) / perAuthorAt(end - 12) - 1;
 const samePeople = 2 ** all.cohort.p50[end] - 1;
 const median = data.size_quantiles.indexOf(0.5);
+const msgChange = all.msg_window?.p50?.[end] && all.msg_window?.p50?.[end - 12]
+  ? all.msg_window.p50[end] / all.msg_window.p50[end - 12] - 1
+  : null;
 const figures = [
   [pct(perAuthor), 'commits per author'],
   [pct(samePeople), 'commits by the same people'],
   [pct(all.size.q[end][median] / all.size.q[end - 12][median] - 1), 'lines per commit'],
+  ...(msgChange !== null ? [[pct(msgChange), 'message length']] : []),
 ];
 
 // The chart, as an SVG.
@@ -67,9 +71,9 @@ const html = `<!doctype html>
   body { width: 1200px; height: 630px; background: #ffffff; font-family: Geist, system-ui, sans-serif; color: #121216; padding: 52px 60px; display: flex; flex-direction: column; gap: 22px; }
   .kicker { font-family: 'Geist Mono', monospace; color: #4b3a9e; font-size: 20px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
   h1 { font-size: 60px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.05; }
-  .figures { display: flex; gap: 44px; }
-  .figure b { display: block; font-family: 'Geist Mono', monospace; font-size: 40px; font-weight: 500; }
-  .figure span { color: #3a3a44; font-size: 20px; }
+  .figures { display: flex; gap: 34px; }
+  .figure b { display: block; font-family: 'Geist Mono', monospace; font-size: 38px; font-weight: 500; }
+  .figure span { color: #3a3a44; font-size: 18px; }
   svg text { font-family: 'Geist Mono', monospace; font-size: 15px; fill: #6b6b78; }
   .caption { color: #6b6b78; font-size: 17px; margin-top: -10px; }
   .site { position: absolute; right: 60px; top: 56px; color: #6b6b78; font-size: 20px; }

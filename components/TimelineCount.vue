@@ -172,82 +172,84 @@ const columns = computed<Column[]>(() => {
   }
 
   // Message length & craft columns (authored commits with message metadata).
-  cols.push({
-    field: "msg_median",
-    label: "Median(Msg)",
-    sortable: true,
-    visible: true,
-    numeric: true,
-    formatter: formatOptionalInt,
-    cellClass: "table-style-msg",
-    headerClass: "table-style-header",
-  });
-  if (full.value) {
+  if (props.author) {
+    cols.push({
+      field: "msg_median",
+      label: "Median(Msg)",
+      sortable: true,
+      visible: true,
+      numeric: true,
+      formatter: formatOptionalInt,
+      cellClass: "table-style-msg",
+      headerClass: "table-style-header",
+    });
+    if (full.value) {
+      cols.push(
+        {
+          field: "msg_mean",
+          label: "Mean(Msg)",
+          sortable: true,
+          visible: true,
+          numeric: true,
+          formatter: formatOptionalFloat,
+          cellClass: "table-style-msg",
+          headerClass: "table-style-header",
+        },
+        {
+          field: "msg_min",
+          label: "Min(Msg)",
+          sortable: true,
+          visible: true,
+          numeric: true,
+          formatter: formatOptionalInt,
+          cellClass: "table-style-msg",
+          headerClass: "table-style-header",
+        },
+        {
+          field: "msg_max",
+          label: "Max(Msg)",
+          sortable: true,
+          visible: true,
+          numeric: true,
+          formatter: formatOptionalInt,
+          cellClass: "table-style-msg",
+          headerClass: "table-style-header",
+        },
+      );
+    }
     cols.push(
       {
-        field: "msg_mean",
-        label: "Mean(Msg)",
+        field: "bugs",
+        label: "Bugs",
         sortable: true,
         visible: true,
         numeric: true,
-        formatter: formatOptionalFloat,
-        cellClass: "table-style-msg",
+        formatter: formatInt,
+        cellClass: "table-style-craft",
         headerClass: "table-style-header",
       },
       {
-        field: "msg_min",
-        label: "Min(Msg)",
+        field: "revert_rate",
+        label: "Reverts",
         sortable: true,
         visible: true,
         numeric: true,
-        formatter: formatOptionalInt,
-        cellClass: "table-style-msg",
+        formatter: formatOptionalPct,
+        cellClass: "table-style-craft",
         headerClass: "table-style-header",
       },
       {
-        field: "msg_max",
-        label: "Max(Msg)",
+        field: "bypass_rate",
+        label: "Bypasses",
         sortable: true,
         visible: true,
         numeric: true,
-        formatter: formatOptionalInt,
-        cellClass: "table-style-msg",
+        formatter: formatOptionalPct,
+        cellClass: "table-style-craft",
         headerClass: "table-style-header",
       },
     );
   }
-  cols.push(
-    {
-      field: "bugs",
-      label: "Bugs",
-      sortable: true,
-      visible: true,
-      numeric: true,
-      formatter: formatInt,
-      cellClass: "table-style-craft",
-      headerClass: "table-style-header",
-    },
-    {
-      field: "revert_rate",
-      label: "Reverts",
-      sortable: true,
-      visible: true,
-      numeric: true,
-      formatter: formatOptionalPct,
-      cellClass: "table-style-craft",
-      headerClass: "table-style-header",
-    },
-    {
-      field: "bypass_rate",
-      label: "Bypasses",
-      sortable: true,
-      visible: true,
-      numeric: true,
-      formatter: formatOptionalPct,
-      cellClass: "table-style-craft",
-      headerClass: "table-style-header",
-    },
-  );
 
   return cols;
 });

@@ -32,6 +32,7 @@
         :key="line.label"
         class="line"
         :d="pathOf(line.values)"
+        :stroke-dasharray="line.dashed ? '5 4' : undefined"
         :style="{ stroke: line.color }" />
       <text
         v-for="label in endLabels"
@@ -68,6 +69,7 @@ export interface TraitSeries {
   label: string;
   short?: string;
   color: string;
+  dashed?: boolean;
   values: (number | null)[];
 }
 

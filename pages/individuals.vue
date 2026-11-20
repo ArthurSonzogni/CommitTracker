@@ -153,6 +153,7 @@
           <h2 class="title">Patch profile</h2>
           <DeveloperPatchProfile
             :commits="raw"
+            :repositories="repositories"
             :dates="dates"
             />
         </div>

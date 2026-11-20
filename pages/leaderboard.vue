@@ -22,7 +22,16 @@
         <!-- The settings of the chart, above it. -->
         <FilterPanel :summary="settingsSummary">
           <div class="form-row settings-row">
-            <UiField label="Count as">
+            <UiField label="Rank">
+              <UiSegmented
+                v-model="view"
+                :options="[
+                  { value: 'developers', label: 'Developers' },
+                  { value: 'bugs', label: 'Biggest bugs' },
+                ]" />
+            </UiField>
+
+            <UiField v-if="view === 'developers'" label="Count as">
               <UiSegmented
                 v-model="kind"
                 :options="[
@@ -32,7 +41,7 @@
               ]" />
             </UiField>
 
-            <UiField label="Grouping">
+            <UiField v-if="view === 'developers'" label="Grouping">
               <UiSegmented
                 v-model="grouping"
                 :options="[
@@ -44,7 +53,7 @@
               ]" />
             </UiField>
 
-            <UiField label="Measure">
+            <UiField v-if="view === 'developers'" label="Measure">
               <UiSelect v-model="type">
                 <option value="commit">Commits</option>
                 <option value="lines">Lines</option>
@@ -58,8 +67,13 @@
         <!--If props.type is "line", display a warning that this is heavily biased-->
         <!--around large scale refactoring and large deletion.-->
 
+        <BugLeaderboard
+          v-if="view === 'bugs'"
+          :repositories="repositories"
+          />
 
         <Leaderboard
+          v-else
           :repositories="repositories"
           :type="type"
           :grouping="grouping"
@@ -76,7 +90,8 @@ import { useUrlState, urlCodecs } from "~/composables/useUrlState";
 import { capitalize, listSummary, repositoryNames } from "~/utils/filter-summary";
 import { showToast } from "~/utils/toast";
 
-const { type, repositories, grouping, kind, timeIndex } = useUrlState({
+const { view, type, repositories, grouping, kind, timeIndex } = useUrlState({
+  view: urlCodecs.enum(["developers", "bugs"] as const, "developers"),
   type: urlCodecs.enum(
     ["commit", "lines", "added_lines", "deleted_lines"] as const,
     "commit",
@@ -98,11 +113,11 @@ const type_labels = {
 };
 
 const summary = computed(() => listSummary(repositoryNames(repositories.value), "repositories"));
-const settingsSummary = computed(() => [
-  capitalize(kind.value),
-  capitalize(grouping.value),
-  type_labels[type.value],
-].join(" · "));
+const settingsSummary = computed(() =>
+  view.value === "bugs"
+    ? "Biggest bugs"
+    : [capitalize(kind.value), capitalize(grouping.value), type_labels[type.value]].join(" · "),
+);
 
 const WARNING_MESSAGES: Record<string, string> = {
   lines:

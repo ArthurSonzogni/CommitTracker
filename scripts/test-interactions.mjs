@@ -215,7 +215,11 @@ const tests = [
       (await __t.until(() => __t.byText('button', 'Animate'), 8000)).click();
       const stopBtn = await __t.until(() => __t.byText('button', 'Stop'), 4000);
       const finished = await __t.until(() => !__t.byText('button', 'Stop') && timeLabel() === monthLabel, 8000);
-      return { ok: !!monthly && !!prev && !!blink && !!stopBtn && !!finished, detail: year + ' -> monthly ' + monthLabel + ' -> previous ' + prevLabel + ' -> animated / url ' + location.search };
+      __t.byText('.segmented-option', 'Biggest bugs').click();
+      const bugs = await __t.until(() =>
+        location.search.includes('view=bugs') &&
+        document.querySelectorAll('.bug-table tbody tr').length >= 10, 10000);
+      return { ok: !!monthly && !!prev && !!blink && !!stopBtn && !!finished && !!bugs, detail: year + ' -> monthly ' + monthLabel + ' -> previous ' + prevLabel + ' -> animated / url ' + location.search };
     `,
   },
   {
@@ -280,7 +284,8 @@ const tests = [
         document.querySelectorAll('.container svg path').length > 10 &&
         document.querySelectorAll('svg rect').length > 500 &&
         document.querySelectorAll('.patch-profile .hist-card').length === 2 &&
-        document.querySelectorAll('.patch-profile .trait-chart path.line').length >= 1, 20000);
+        document.querySelectorAll('.patch-profile .trait-chart path.line').length === 2 &&
+        document.querySelectorAll('.patch-profile .trait-chart path.line[stroke-dasharray]').length === 1, 20000);
       __t.byText('.patch-profile .segmented-option', 'Description length (chars)').click();
       const switched = await __t.until(() => document.querySelectorAll('.patch-profile .trait-chart path.line').length >= 1, 5000);
       const counts = [...document.querySelectorAll('table td')].map(td => td.textContent.trim()).join(' ');

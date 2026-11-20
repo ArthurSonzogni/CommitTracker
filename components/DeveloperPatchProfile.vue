@@ -17,7 +17,9 @@
     <div v-if="trendMonths.length >= 2 && trendSeries.length" class="trend-box">
       <div v-if="trendSeries.length > 1" class="legend">
         <span v-for="s in trendSeries" :key="s.label">
-          <span class="legend-line" :style="{ background: s.color }" />{{ s.label }}
+          <span
+            :class="['legend-line', { dashed: s.dashed }]"
+            :style="s.dashed ? { borderColor: s.color } : { background: s.color }" />{{ s.label }}
         </span>
       </div>
       <ReportTraitChart
@@ -102,10 +104,21 @@ const props = defineProps({
     type: Array as PropType<DeveloperCommitsEntry[]>,
     required: true,
   },
+  repositories: {
+    type: Array as PropType<string[]>,
+    default: () => ["chromium"],
+  },
   dates: {
     type: Array as PropType<Date[]>,
     default: undefined,
   },
+});
+
+let devOutputCache: Promise<any> | null = null;
+const devOutput = shallowRef<any>(null);
+onMounted(async () => {
+  devOutputCache ??= fetch("/data/developer-output.json").then(r => (r.ok ? r.json() : null), () => null);
+  devOutput.value = await devOutputCache;
 });
 
 type TrendMetric = "lines" | "msg" | "files";
@@ -224,7 +237,7 @@ const trendSeries = computed<TraitSeries[]>(() => {
   const mIndex = new Map(months.map((m, i) => [m, i]));
   const win = windowSize.value;
 
-  return authoredEntries.value
+  const devLines: TraitSeries[] = authoredEntries.value
     .map(entry => {
       const perMonth: number[][] = Array.from({ length: months.length }, () => []);
       for (const c of entry.data) {
@@ -252,6 +265,34 @@ const trendSeries = computed<TraitSeries[]>(() => {
       };
     })
     .filter(s => s.values.some(v => v !== null));
+
+  // Overlay dashed repository median when inspecting a single developer.
+  if (devLines.length === 1 && props.repositories.length === 1 && devOutput.value?.repositories) {
+    const repo = devOutput.value.repositories.find((r: any) => r.dirname === props.repositories[0]);
+    const all = repo?.groups?.[0];
+    const repoMonths: string[] | undefined = devOutput.value.months;
+    if (all && repoMonths) {
+      const src: (number | null)[] | undefined =
+        trendMetric.value === "lines" ? all.lines
+          : trendMetric.value === "msg" ? all.msg
+            : all.size?.files;
+      if (Array.isArray(src)) {
+        const repoMap = new Map<string, number | null>(repoMonths.map((m, i) => [m, src[i] ?? null]));
+        const aligned = months.map(m => repoMap.get(m) ?? null);
+        if (aligned.some(v => v !== null)) {
+          devLines.push({
+            label: `${repo.name} median`,
+            short: `${repo.name} median`,
+            color: "var(--muted)",
+            dashed: true,
+            values: aligned,
+          });
+        }
+      }
+    }
+  }
+
+  return devLines;
 });
 
 const trendFormat = computed(() => {
@@ -372,5 +413,11 @@ const trendAxisFormat = (v: number) => intFmt.format(v);
   margin-right: 0.35rem;
   vertical-align: middle;
   width: 14px;
+}
+
+.legend-line.dashed {
+  background: transparent;
+  border-top: 2px dashed var(--muted);
+  height: 0;
 }
 </style>
