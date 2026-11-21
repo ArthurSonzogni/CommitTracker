@@ -685,7 +685,7 @@ h3 {
   position: sticky;
   top: 0;
   background-color: var(--surface);
-  z-index: 100;
+  z-index: 10;
   padding-bottom:0.5em;
   padding-top:0.5em;
 }

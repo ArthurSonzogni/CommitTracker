@@ -69,7 +69,7 @@
           <div
             ref="tooltipRef"
             class="chart-tooltip card"
-            style="display: none; position: absolute; pointer-events: none; z-index: 100;"
+            style="display: none; position: absolute; pointer-events: none; z-index: 38;"
           >
             <div class="card-content p-3">
               <p class="title is-6 mb-1">{{ tooltipData.name }}</p>
