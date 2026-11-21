@@ -30,12 +30,9 @@ permissions:
   id-token: write
 
 jobs:
-  cd:
+  build:
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - name: Checkout main repository
         uses: actions/checkout@v4
@@ -70,6 +67,15 @@ jobs:
         with:
           path: .output/public
 
+  # Separate job so the github-pages artifact is finalized before deploy-pages
+  # queries for it, and so failed deploys can be re-run without rebuilding.
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
       - name: Deploy
         id: deploy
         uses: actions/deploy-pages@v4
