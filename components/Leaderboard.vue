@@ -1,6 +1,6 @@
 <template>
   <div ref="container">
-    <div class="form-row">
+    <div class="form-row controls-row">
       <UiField>
         <UiSelect v-model="timeIndexModel">
           <option v-for="(d, i) in date" :key="i" :value="i">{{ d }} </option>
@@ -14,26 +14,70 @@
           Next
         </button>
       </div>
-      <UiField v-if="!is_animating && grouping != 'forever' && timeIndexModel > 0">
+      <UiField v-if="!is_animating && !is_paused && grouping != 'forever' && timeIndexModel > 0">
         <button type="button" @click="animate(false)" class="button is-success">
           Animate
         </button>
       </UiField>
-      <UiField v-if="!is_animating && grouping != 'forever' && timeIndexModel > 0">
+      <UiField v-if="!is_animating && !is_paused && grouping != 'forever' && timeIndexModel > 0">
         <button type="button" @click="animate(true)" class="button is-warning">
           Animate with accumulation
         </button>
       </UiField>
 
       <UiField v-if="is_animating">
+        <button type="button" @click="pause" class="button">
+          Pause
+        </button>
+      </UiField>
+      <UiField v-if="is_paused">
+        <button type="button" @click="resume" class="button is-success">
+          Resume
+        </button>
+      </UiField>
+      <UiField v-if="is_animating || is_paused">
         <button type="button" @click="stop" class="button is-danger">
           Stop
         </button>
       </UiField>
+
+      <UiField v-if="grouping != 'forever' && date.length > 1">
+        <button
+          type="button"
+          class="button speed-btn"
+          title="Playback speed"
+          @click="cycleSpeed">
+          {{ playbackSpeed }}×
+        </button>
+      </UiField>
+
+      <UiField class="highlight-field">
+        <input
+          v-model="highlightQuery"
+          type="search"
+          class="input highlight-input"
+          placeholder="Highlight developer…"
+          aria-label="Highlight developer" />
+      </UiField>
+    </div>
+
+    <div v-if="grouping != 'forever' && date.length > 1" class="scrubber-row">
+      <span class="scrubber-label">{{ date[date.length - 1] }}</span>
+      <input
+        ref="scrubberEl"
+        type="range"
+        class="scrubber-slider"
+        :min="0"
+        :max="Math.max(0, date.length - 1)"
+        :step="is_animating || is_paused ? 0.01 : 1"
+        :value="date.length - 1 - (timeIndexModel || 0)"
+        aria-label="Timeline position"
+        @input="onScrub" />
+      <span class="scrubber-label">{{ date[0] }}</span>
     </div>
 
     <svg ref="svg_axis" width="100%" :height="31" class="sticky-top"></svg>
-    <svg ref="svg" width="100%" :height="svgHeight"></svg>
+    <svg ref="svg" width="100%" :height="dynamicSvgHeight"></svg>
     <svg ref="svg_title" width="100%" :height="80" class="sticky-bottom"> </svg>
   </div>
 </template>
@@ -46,6 +90,7 @@ import { range } from "d3-array";
 import { callLeaderboardWorker } from "~/utils/leaderboardWorkerClient";
 
 const { $color } = useNuxtApp();
+const router = useRouter();
 
 const timeIndexModel = defineModel<number>("timeIndex", { default: 0 });
 
@@ -60,10 +105,12 @@ const container = ref<HTMLElement | null>(null);
 const svg = ref<SVGSVGElement | null>(null);
 const svg_axis = ref<SVGSVGElement | null>(null);
 const svg_title = ref<SVGSVGElement | null>(null);
+const scrubberEl = ref<HTMLInputElement | null>(null);
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 const take_n = 100;
 const svgHeight = take_n * 50;
+const dynamicSvgHeight = ref<number>(svgHeight);
 const BUFFER = 4;
 
 let scrollY = 0;
@@ -89,12 +136,14 @@ const getVisibleRankBounds = (): [number, number] => {
 };
 
 const getPeriodDuration = () => {
+  let base: number;
   switch (props.grouping) {
-    case "monthly": return 400;
-    case "quarterly": return 750;
-    case "yearly": return 1400;
-    default: return 1800;
+    case "monthly": base = 400; break;
+    case "quarterly": base = 750; break;
+    case "yearly": base = 1400; break;
+    default: base = 1800; break;
   }
+  return base / playbackSpeed.value;
 };
 
 const STEP_DURATION = 420;            // ms for single-frame transitions
@@ -107,6 +156,21 @@ const smoothstep = (t: number) => t * t * (3 - 2 * t);
 
 const date = ref<string[]>([]);
 const is_animating = ref<boolean>(false);
+const is_paused = ref<boolean>(false);
+const playbackSpeed = ref<number>(1);
+const highlightQuery = ref<string>("");
+const normalizedHighlight = computed(() => highlightQuery.value.trim().toLowerCase());
+const intFmt = new Intl.NumberFormat("en", { maximumFractionDigits: 0 });
+
+const SPEED_STEPS = [1, 2, 0.5];
+const cycleSpeed = () => {
+  const idx = SPEED_STEPS.indexOf(playbackSpeed.value);
+  const next = SPEED_STEPS[(idx + 1) % SPEED_STEPS.length];
+  if (is_animating.value && animMode === "playback") {
+    playbackStartTime = performance.now() - playbackCursor * (getPeriodDuration() * playbackSpeed.value / next);
+  }
+  playbackSpeed.value = next;
+};
 
 let cachedSvgWidth = 800;
 const svgWidth = () => cachedSvgWidth;
@@ -152,10 +216,12 @@ interface RowDom {
   labelGroupEl: SVGGElement;
   nameText: Text;
   commitText: Text;
+  titleText: Text;
   lastUser: string;
   lastY: number;
   lastOpacity: number;
   lastRectOpacity: number;
+  lastHighlighted: boolean;
   lastWidth: number;
   lastTextX: number;
   lastAnchor: string;
@@ -290,6 +356,12 @@ let currentPlaybackDateIndex: number | null = null;
 
 const createRowDom = (): RowDom => {
   const el = document.createElementNS(SVG_NS, "g");
+  el.setAttribute("class", "bar-row");
+
+  const titleEl = document.createElementNS(SVG_NS, "title");
+  const titleText = document.createTextNode("");
+  titleEl.appendChild(titleText);
+  el.appendChild(titleEl);
 
   const rectEl = document.createElementNS(SVG_NS, "rect");
   rectEl.setAttribute("opacity", "0.5");
@@ -329,10 +401,12 @@ const createRowDom = (): RowDom => {
     labelGroupEl,
     nameText,
     commitText,
+    titleText,
     lastUser: "",
     lastY: NaN,
     lastOpacity: NaN,
     lastRectOpacity: 0.5,
+    lastHighlighted: false,
     lastWidth: NaN,
     lastTextX: NaN,
     lastAnchor: "",
@@ -344,6 +418,7 @@ const acquireRowDom = (user: string): RowDom => {
   const dom = rowDomPool.pop() || createRowDom();
   dom.el.style.display = "";
   if (dom.lastUser !== user) {
+    dom.el.setAttribute("data-user", user);
     dom.rectEl.setAttribute("fill", $color(user));
     dom.nameText.data = user;
     dom.lastUser = user;
@@ -459,7 +534,7 @@ const renderAxes = (force = false) => {
   const tickCount = Math.max(2, width / 100);
   const ticks: number[] = x.ticks(tickCount);
   const fmt = x.tickFormat(tickCount);
-  const gridHeightStr = String(svgHeight - 100);
+  const gridHeightStr = String(Math.max(40, dynamicSvgHeight.value - 20));
 
   if (axisStickyGroupEl) {
     while (stickyTicks.length < ticks.length) {
@@ -549,6 +624,7 @@ const flushDOM = (dt: number, immediate: boolean, skipRowAdvance = false): boole
   let allSettled = true;
   let activeCount = 0;
   const [minVisibleRank, maxVisibleRank] = getVisibleRankBounds();
+  const hlQuery = normalizedHighlight.value;
 
   for (const [user, row] of rows.entries()) {
     if (row.active) activeCount++;
@@ -633,16 +709,24 @@ const flushDOM = (dt: number, immediate: boolean, skipRowAdvance = false): boole
       dom.lastY = yPos;
     }
 
-    if (Math.abs(row.opacity - dom.lastOpacity) > 0.005 || isNaN(dom.lastOpacity)) {
-      dom.el.setAttribute("opacity", row.opacity.toFixed(3));
-      dom.lastOpacity = row.opacity;
+    const isHighlighted = hlQuery.length > 0 && user.toLowerCase().includes(hlQuery);
+    const effectiveOpacity = hlQuery.length > 0 && !isHighlighted ? row.opacity * 0.28 : row.opacity;
+    if (Math.abs(effectiveOpacity - dom.lastOpacity) > 0.005 || isNaN(dom.lastOpacity)) {
+      dom.el.setAttribute("opacity", effectiveOpacity.toFixed(3));
+      dom.lastOpacity = effectiveOpacity;
+    }
+
+    if (isHighlighted !== dom.lastHighlighted) {
+      dom.el.classList.toggle("is-highlighted", isHighlighted);
+      dom.lastHighlighted = isHighlighted;
     }
 
     // Subtle emphasis on rising bars and dimming on falling bars mid-swap.
     const deltaRank = row.targetRank - row.rank;
     const swapIntensity = Math.min(1, Math.abs(deltaRank));
-    const rectOpacity =
-      swapIntensity > 0.05
+    const rectOpacity = isHighlighted
+      ? 0.85
+      : swapIntensity > 0.05
         ? deltaRank < 0
           ? 0.5 + 0.18 * swapIntensity
           : 0.5 - 0.14 * swapIntensity
@@ -659,7 +743,14 @@ const flushDOM = (dt: number, immediate: boolean, skipRowAdvance = false): boole
       dom.lastWidth = barWidth;
     }
 
-    const isShort = xVal < 80;
+    const commitStr = formatValue(row.value);
+    if (commitStr !== dom.lastCommitText) {
+      dom.commitText.data = commitStr;
+      dom.lastCommitText = commitStr;
+    }
+
+    const minInsideWidth = Math.max(70, Math.max(user.length, commitStr.length) * 7.5 + 16);
+    const isShort = barWidth < minInsideWidth;
     const textX = xVal + (isShort ? 7 : -7);
     const anchor = isShort ? "start" : "end";
 
@@ -672,12 +763,6 @@ const flushDOM = (dt: number, immediate: boolean, skipRowAdvance = false): boole
       dom.labelGroupEl.setAttribute("text-anchor", anchor);
       dom.lastAnchor = anchor;
     }
-
-    const commitStr = formatValue(row.value);
-    if (commitStr !== dom.lastCommitText) {
-      dom.commitText.data = commitStr;
-      dom.lastCommitText = commitStr;
-    }
   }
 
   const visibleRanks = Math.min(take_n, activeCount);
@@ -687,6 +772,16 @@ const flushDOM = (dt: number, immediate: boolean, skipRowAdvance = false): boole
       if (el) el.style.display = i < visibleRanks ? "" : "none";
     }
     lastRankLabelCount = visibleRanks;
+    const nextHeight = visibleRanks >= take_n
+      ? svgHeight
+      : Math.max(160, Math.ceil(rankToY(visibleRanks) + 20));
+    if (nextHeight !== dynamicSvgHeight.value) {
+      dynamicSvgHeight.value = nextHeight;
+      const gridHeightStr = String(Math.max(40, nextHeight - 20));
+      for (let i = 0; i < gridTicks.length; i++) {
+        gridTicks[i].g.firstElementChild?.setAttribute("y2", gridHeightStr);
+      }
+    }
   }
 
   renderAxes();
@@ -849,6 +944,12 @@ const tick = (now: number) => {
 
     currentPlaybackDateIndex = playbackDateIndices[displayIdx] ?? null;
 
+    if (scrubberEl.value && date.value.length > 1) {
+      const startDesc = playbackDateIndices[0] ?? (date.value.length - 1);
+      const chronoPos = (date.value.length - 1) - startDesc + cursor;
+      scrubberEl.value.value = chronoPos.toFixed(2);
+    }
+
     const activeTracks: PlaybackTrack[] = [];
     for (let i = 0; i < intervalTracks.length; i++) {
       const track = intervalTracks[i];
@@ -981,6 +1082,7 @@ const transitionToFrame = (frame: FrameData | undefined) => {
 
 const loadData = (): Promise<void> => {
   is_animating.value = false;
+  is_paused.value = false;
   if (animMode === "playback") {
     animMode = "idle";
   }
@@ -1037,6 +1139,7 @@ const animate = async (should_accumulate = false) => {
   }
 
   const pGen = ++playbackGeneration;
+  is_paused.value = false;
   is_animating.value = true;
 
   if (activeLoadPromise) {
@@ -1094,9 +1197,34 @@ const animate = async (should_accumulate = false) => {
   ensureRaf();
 };
 
+const pause = () => {
+  if (!is_animating.value) return;
+  is_animating.value = false;
+  is_paused.value = true;
+  if (rafId !== null) {
+    cancelAnimationFrame(rafId);
+    rafId = null;
+  }
+};
+
+const resume = () => {
+  if (!is_paused.value || playbackDates.length < 2) return;
+  is_paused.value = false;
+  is_animating.value = true;
+  playbackStartTime = performance.now() - playbackCursor * getPeriodDuration();
+  animMode = "playback";
+  ensureRaf();
+};
+
 const stop = () => {
   playbackGeneration++;
   is_animating.value = false;
+  is_paused.value = false;
+  if (rafId !== null) {
+    cancelAnimationFrame(rafId);
+    rafId = null;
+  }
+  animMode = "idle";
   if (currentPlaybackDateIndex !== null && timeIndexModel.value !== currentPlaybackDateIndex) {
     updatingTimeIndexInternally = true;
     timeIndexModel.value = currentPlaybackDateIndex;
@@ -1104,14 +1232,103 @@ const stop = () => {
   }
 };
 
+const onScrub = (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const chronoVal = parseFloat(input.value);
+  if (isNaN(chronoVal) || date.value.length < 2) return;
+
+  if ((is_animating.value || is_paused.value) && playbackDates.length >= 2) {
+    const startDesc = playbackDateIndices[0] ?? (date.value.length - 1);
+    const startChrono = (date.value.length - 1) - startDesc;
+    const totalIntervals = playbackDates.length - 1;
+    const nextCursor = Math.min(totalIntervals, Math.max(0, chronoVal - startChrono));
+    playbackCursor = nextCursor;
+    if (is_animating.value) {
+      playbackStartTime = performance.now() - playbackCursor * getPeriodDuration();
+    } else {
+      // Render scrubbed frame immediately while paused.
+      const idx = Math.min(totalIntervals - 1, Math.floor(nextCursor));
+      const alpha = nextCursor - idx;
+      const displayIdx = alpha >= 0.5 ? idx + 1 : idx;
+      updateTitle(playbackDates[displayIdx], true);
+      currentPlaybackDateIndex = playbackDateIndices[displayIdx] ?? null;
+      const activeTracks: PlaybackTrack[] = [];
+      for (let i = 0; i < playbackTracks.length; i++) {
+        const track = playbackTracks[i];
+        const val = track.values[idx] + (track.values[idx + 1] - track.values[idx]) * alpha;
+        if (val > 0) {
+          track.currentVal = val;
+          track.lookVal = val;
+          activeTracks.push(track);
+        }
+      }
+      activeTracks.sort((a, b) => b.currentVal - a.currentVal);
+      assignTargetRanksFromTracks(activeTracks, true);
+      flushDOM(0, true);
+    }
+    return;
+  }
+
+  const nextDescIdx = Math.min(date.value.length - 1, Math.max(0, Math.round(date.value.length - 1 - chronoVal)));
+  if (timeIndexModel.value !== nextDescIdx) {
+    timeIndexModel.value = nextDescIdx;
+  }
+};
+
 const previous = () => {
-  if (is_animating.value) stop();
+  if (is_animating.value || is_paused.value) stop();
   timeIndexModel.value = Math.min((timeIndexModel.value || 0) + 1, date.value.length - 1);
 };
 
 const next = () => {
-  if (is_animating.value) stop();
+  if (is_animating.value || is_paused.value) stop();
   timeIndexModel.value = Math.max((timeIndexModel.value || 0) - 1, 0);
+};
+
+const onKeydown = (e: KeyboardEvent) => {
+  const tag = (e.target as HTMLElement | null)?.tagName;
+  if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA" || (e.target as HTMLElement | null)?.isContentEditable) {
+    return;
+  }
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === " " && props.grouping !== "forever") {
+    e.preventDefault();
+    if (is_animating.value) {
+      pause();
+    } else if (is_paused.value) {
+      resume();
+    } else if ((timeIndexModel.value || 0) > 0) {
+      animate(false);
+    }
+  } else if (e.key === "ArrowLeft") {
+    if ((timeIndexModel.value || 0) < date.value.length - 1) {
+      e.preventDefault();
+      previous();
+    }
+  } else if (e.key === "ArrowRight") {
+    if ((timeIndexModel.value || 0) > 0) {
+      e.preventDefault();
+      next();
+    }
+  }
+};
+
+const onBarsClick = (e: MouseEvent) => {
+  const target = (e.target as Element | null)?.closest(".bar-row");
+  const user = target?.getAttribute("data-user");
+  if (user) {
+    router.push(`/developers/${encodeURIComponent(user)}`);
+  }
+};
+
+const onBarsPointerOver = (e: PointerEvent) => {
+  const target = (e.target as Element | null)?.closest(".bar-row");
+  const user = target?.getAttribute("data-user");
+  if (!user) return;
+  const row = rows.get(user);
+  if (row?.dom) {
+    row.dom.titleText.data = `${user} — ${intFmt.format(Math.round(row.value))}`;
+  }
 };
 
 let resizeObserver: ResizeObserver | null = null;
@@ -1151,9 +1368,19 @@ watch(
 
 watch(timeIndexModel, (newIdx) => {
   if (updatingTimeIndexInternally || is_animating.value) return;
+  if (is_paused.value) {
+    is_paused.value = false;
+    animMode = "idle";
+  }
   if (framesDesc.length === 0) return;
   const clamped = Math.min(Math.max(newIdx || 0, 0), framesDesc.length - 1);
   transitionToFrame(framesDesc[clamped]);
+});
+
+watch(normalizedHighlight, () => {
+  if (hasRenderedOnce && animMode === "idle") {
+    flushDOM(0, false, true);
+  }
 });
 
 onMounted(() => {
@@ -1193,6 +1420,8 @@ onMounted(() => {
     svg.value.appendChild(ranksG);
     svg.value.appendChild(barsG);
     svg.value.appendChild(gridG);
+    barsG.addEventListener("click", onBarsClick);
+    barsG.addEventListener("pointerover", onBarsPointerOver);
     barsGroupEl = barsG;
     axisGridGroupEl = gridG;
   }
@@ -1206,12 +1435,16 @@ onMounted(() => {
     axisStickyGroupEl = stickyG;
   }
   window.addEventListener("resize", onResize);
+  window.addEventListener("keydown", onKeydown);
   loadData();
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener("resize", onResize);
   window.removeEventListener("scroll", onScroll);
+  window.removeEventListener("keydown", onKeydown);
+  barsGroupEl?.removeEventListener("click", onBarsClick);
+  barsGroupEl?.removeEventListener("pointerover", onBarsPointerOver);
   resizeObserver?.disconnect();
   resizeObserver = null;
   if (rafId !== null) {
@@ -1248,6 +1481,70 @@ onBeforeUnmount(() => {
   align-items: center;
   display: flex;
   gap: 0.5rem;
+}
+
+.controls-row {
+  align-items: center;
+}
+
+.speed-btn {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  min-width: 3rem;
+}
+
+.highlight-field {
+  margin-left: auto;
+}
+
+.highlight-input {
+  width: 12rem;
+}
+
+.scrubber-row {
+  align-items: center;
+  display: flex;
+  gap: 0.65rem;
+  margin: 0.5rem 0 0.25rem;
+}
+
+.scrubber-slider {
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex: 1;
+}
+
+.scrubber-label {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+svg :deep(.bar-row) {
+  cursor: pointer;
+}
+
+svg :deep(.bar-row:hover rect) {
+  filter: brightness(1.08);
+  stroke: var(--ink);
+  stroke-opacity: 0.35;
+  stroke-width: 1;
+}
+
+svg :deep(.bar-row:hover .name) {
+  text-decoration: underline;
+}
+
+svg :deep(.bar-row.is-highlighted rect) {
+  stroke: var(--ink);
+  stroke-opacity: 0.65;
+  stroke-width: 1.5;
+}
+
+svg :deep(.bar-row.is-highlighted .name) {
+  font-weight: 600;
 }
 
 .svg {
