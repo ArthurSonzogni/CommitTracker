@@ -15,12 +15,16 @@
     </div>
 
     <div class="bento">
-      <section v-for="category in categories" :key="category.name" class="bento-tile">
+      <section
+        v-for="category in categories"
+        :key="category.name"
+        class="bento-tile"
+        :style="{ viewTransitionName: selectedCategory === category.name ? 'treemap-frame' : undefined }">
         <h2>{{ category.name }}</h2>
         <p class="description">{{ category.description }}</p>
         <ul class="preset-list">
           <li v-for="preset in category.presets" :key="preset.name" class="preset-item">
-            <a :href="url(preset)" :title="preset.formula" @click.prevent="emit('select', preset)">{{ preset.name }}</a>
+            <a :href="url(preset)" :title="preset.formula" @click.prevent="onSelect(category.name, preset)">{{ preset.name }}</a>
             <span class="preset-formula" aria-hidden="true">{{ preset.shortFormula }}</span>
           </li>
         </ul>
@@ -54,6 +58,13 @@ type EnrichedPreset = Preset & {
 
 const props = defineProps<{ repository: string }>();
 const emit = defineEmits<{ select: [preset: Preset] }>();
+
+const selectedCategory = ref<string | null>(null);
+const onSelect = async (categoryName: string, preset: Preset) => {
+  selectedCategory.value = categoryName;
+  await nextTick();
+  emit('select', preset);
+};
 
 const CATEGORIES: {
   name: string; description: string; presets: Preset[];

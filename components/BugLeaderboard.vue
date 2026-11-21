@@ -5,14 +5,15 @@
     <template v-else>
       <div class="bug-controls">
         <UiSegmented
-          v-model="sortBy"
+          :model-value="sortBy"
           aria-label="Sort bugs by"
           :options="[
             { value: 'commits', label: 'Commits' },
             { value: 'authors', label: 'Authors' },
             { value: 'lines', label: 'Lines changed' },
             { value: 'span', label: 'Timespan' },
-          ]" />
+          ]"
+          @update:model-value="setSortBy" />
         <span class="bug-hint">Top {{ sortedRows.length }} bugs (5+ commits, ranked from primary bug IDs)</span>
       </div>
 
@@ -32,7 +33,10 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(row, i) in sortedRows.slice(0, limit)" :key="`${row.repo}:${row.id}`">
+            <tr
+              v-for="(row, i) in sortedRows.slice(0, limit)"
+              :key="`${row.repo}:${row.id}`"
+              :style="reordering && i < 30 ? { viewTransitionName: rowVtName(row.repo, row.id) } : undefined">
               <td class="rank">{{ i + 1 }}</td>
               <td class="bug-id">
                 <a v-if="row.url" :href="row.url" target="_blank" rel="noopener">#{{ row.id }}</a>
@@ -81,6 +85,7 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
 import repositoriesJson from "~/utils/repositories";
+import { runInPageTransition } from "~/utils/viewTransition";
 
 interface RawBug {
   id: number;
@@ -106,8 +111,28 @@ const rawData = shallowRef<Record<string, RawBug[]> | null>(null);
 const loaded = ref(false);
 const sortBy = ref<"commits" | "authors" | "lines" | "span">("commits");
 const limit = ref(50);
+const reordering = ref(false);
 
-watch([() => props.repositories, sortBy], () => { limit.value = 50; });
+const rowVtName = (repo: string, id: number) =>
+  `bug-row-${repo.replace(/[^a-z0-9]/gi, "_")}-${id}`;
+
+const setSortBy = async (next: "commits" | "authors" | "lines" | "span") => {
+  if (next === sortBy.value) return;
+  reordering.value = true;
+  await nextTick();
+  runInPageTransition(
+    async () => {
+      sortBy.value = next;
+      limit.value = 50;
+      await nextTick();
+    },
+    () => {
+      reordering.value = false;
+    },
+  );
+};
+
+watch(() => props.repositories, () => { limit.value = 50; });
 
 onMounted(async () => {
   try {

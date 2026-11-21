@@ -225,13 +225,13 @@ onMounted(() => {
     align-self: start;
     grid-column: 1;
     /* Taller than the window: it scrolls on its own. */
-    max-height: calc(100vh - 5.5rem);
+    max-height: calc(100vh - 3rem);
     overflow-y: auto;
     /* Room for the focus rings. */
     padding: 2px;
     position: sticky;
     scrollbar-width: thin;
-    top: 4.5rem;
+    top: 1.5rem;
   }
 
   .split-main {

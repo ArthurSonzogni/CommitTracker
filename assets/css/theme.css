@@ -444,7 +444,25 @@ h2.title:not(.is-1):not(.is-2):not(.is-3):not(.is-4):not(.is-5):not(.is-6) {
   max-width: 100%;
   overflow-x: auto;
   padding: 3px;
+  position: relative;
   scrollbar-width: none;
+}
+
+.segmented-thumb {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  left: 0;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  z-index: 0;
+}
+
+.segmented.thumb-animate .segmented-thumb {
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
+              width 240ms cubic-bezier(0.22, 1, 0.36, 1),
+              height 240ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .segmented-option {
@@ -463,6 +481,7 @@ h2.title:not(.is-1):not(.is-2):not(.is-3):not(.is-4):not(.is-5):not(.is-6) {
   transition: background 0.15s, box-shadow 0.15s, color 0.15s, transform 0.1s;
   user-select: none;
   white-space: nowrap;
+  z-index: 1;
 }
 
 .segmented-option:hover {
@@ -474,6 +493,11 @@ h2.title:not(.is-1):not(.is-2):not(.is-3):not(.is-4):not(.is-5):not(.is-6) {
   background: var(--surface);
   box-shadow: var(--shadow-sm);
   color: var(--ink);
+}
+
+.segmented.has-thumb .segmented-option.is-selected {
+  background: transparent;
+  box-shadow: none;
 }
 
 .segmented-option:active {
@@ -1125,10 +1149,53 @@ svg [fill="gray"], svg [fill="grey"] { fill: var(--muted); }
   z-index: 31;
 }
 
-::view-transition-group(badge-hero) {
+::view-transition-group(badge-hero),
+::view-transition-group(treemap-frame) {
   animation-duration: 400ms;
   animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
   z-index: 40;
+}
+
+::view-transition-group(badge-return) {
+  animation-duration: 420ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 41;
+}
+
+::view-transition-group(badge-swap) {
+  animation-duration: 420ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 42;
+}
+
+/* Circular wave reveal for light/dark theme toggle. */
+:root[data-vt="theme-reveal"] .site-header,
+:root[data-vt="theme-reveal"] .site-footer,
+:root[data-vt="theme-reveal"] .cve-subnav,
+:root[data-vt="theme-reveal"] .back-to-top,
+:root[data-vt="theme-reveal"] .toasts,
+:root[data-vt="theme-reveal"] .treemap-frame,
+:root[data-vt="theme-reveal"] .badge-hero-img {
+  view-transition-name: none !important;
+}
+
+:root[data-vt="theme-reveal"]::view-transition-old(root) {
+  animation: none;
+  z-index: 1;
+}
+
+:root[data-vt="theme-reveal"]::view-transition-new(root) {
+  animation: 450ms cubic-bezier(0.22, 1, 0.36, 1) both vt-theme-circle;
+  z-index: 2;
+}
+
+@keyframes vt-theme-circle {
+  from {
+    clip-path: circle(0px at var(--theme-x, 50%) var(--theme-y, 0%));
+  }
+  to {
+    clip-path: circle(var(--theme-r, 150vmax) at var(--theme-x, 50%) var(--theme-y, 0%));
+  }
 }
 
 ::view-transition-group(site-toasts) {
@@ -1153,6 +1220,14 @@ svg [fill="gray"], svg [fill="grey"] { fill: var(--muted); }
 
 ::view-transition-new(root) {
   animation: 400ms cubic-bezier(0.22, 1, 0.36, 1) both vt-fade-in;
+}
+
+/* In-page state updates: keep root calm (subtle quick crossfade, no slide/zoom). */
+:root[data-vt="in-page"]::view-transition-old(root) {
+  animation: 240ms ease both vt-fade-out;
+}
+:root[data-vt="in-page"]::view-transition-new(root) {
+  animation: 240ms ease both vt-fade-in;
 }
 
 /* Spatial lateral movement (tabs, navbar order, chronological years). */

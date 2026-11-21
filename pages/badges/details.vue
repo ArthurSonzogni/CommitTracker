@@ -39,7 +39,9 @@
                   :enabled="true"
                   :img="item.image"
                   :hover="false"
+                  :transitionSlot="collectionTransitionSlot(item.name)"
                   :name="item.name"
+                  @select="swapCollectionBadge"
                   />
               </div>
             </div>
@@ -48,6 +50,7 @@
             <img
               v-if="badge_data.image"
               class="badge-hero-img"
+              :style="{ viewTransitionName: heroTransitionName }"
               :src="badge_data.image"
               :alt="badge_data.name" />
           </div>
@@ -71,6 +74,7 @@ import {
 } from "~/utils/badges";
 import { SITE_NAME } from "~/utils/pageMeta";
 import { useViewTransitionTarget } from "~/composables/useViewTransitionTarget";
+import { runInPageTransition } from "~/utils/viewTransition";
 
 const { activeBadge } = useViewTransitionTarget();
 
@@ -87,6 +91,43 @@ const badge_data = ref<Partial<BadgeDefinition>>({});
 const related_badges = ref<BadgeDefinition[]>([]);
 const rarity = ref(0);
 const unlocked = ref(false);
+const swapIncoming = ref<string | null>(null);
+const swapOutgoing = ref<string | null>(null);
+const heroTransitionName = ref<"badge-hero" | "badge-swap" | "badge-return">("badge-hero");
+
+const collectionTransitionSlot = (name: string) => {
+  if (swapIncoming.value === name) return "badge-swap";
+  if (swapOutgoing.value === name) return "badge-return";
+  return "";
+};
+
+const swapCollectionBadge = async (targetName: string) => {
+  const previousName = badge.value;
+  if (!targetName || targetName === previousName) return;
+
+  // Old snapshot: clicked thumbnail -> `badge-swap`, current hero -> `badge-return`.
+  swapIncoming.value = targetName;
+  swapOutgoing.value = null;
+  heroTransitionName.value = "badge-return";
+  await nextTick();
+
+  runInPageTransition(
+    async () => {
+      // New snapshot: new hero -> `badge-swap`, previous badge's thumbnail -> `badge-return`.
+      swapIncoming.value = null;
+      swapOutgoing.value = previousName;
+      heroTransitionName.value = "badge-swap";
+      badge.value = targetName;
+      await load();
+      await nextTick();
+    },
+    () => {
+      swapIncoming.value = null;
+      swapOutgoing.value = null;
+      heroTransitionName.value = "badge-hero";
+    },
+  );
+};
 
 const List = () => {
   navigateTo({

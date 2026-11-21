@@ -12,7 +12,7 @@
     :title="description"
     >
     <div class="card_inner"
-         :style="{ transform, viewTransitionName: isTransitionTarget ? 'badge-hero' : undefined }"
+         :style="{ transform, viewTransitionName: transitionName }"
          :class="{ 'is-hovered': mouse_hover }"
          >
 
@@ -38,7 +38,13 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  transitionSlot: {
+    type: String,
+    default: "",
+  },
 });
+
+const emit = defineEmits<{ select: [name: string] }>();
 
 const mouse_hover = ref(false);
 const mouse_position = ref({ x: 0, y: 0 });
@@ -46,11 +52,20 @@ const mouse_position = ref({ x: 0, y: 0 });
 const default_transform = ``;
 const transform = ref(default_transform);
 
-const isTransitionTarget = computed(
-  () => props.hover && Boolean(props.name) && activeBadge.value === props.name,
-);
+const transitionName = computed(() => {
+  if (props.transitionSlot) return props.transitionSlot;
+  if (props.hover && Boolean(props.name) && activeBadge.value === props.name) {
+    return "badge-hero";
+  }
+  return undefined;
+});
 
 const handleClick = async () => {
+  if (!props.hover && props.name) {
+    emit("select", props.name);
+    return;
+  }
+
   if (props.name) {
     activeBadge.value = props.name;
   }
@@ -58,19 +73,13 @@ const handleClick = async () => {
   mouse_hover.value = false;
   await nextTick();
 
-  const params = {
+  navigateTo({
     path: '/badges/details',
     query: {
       developer: props.developer,
       badge: props.name,
     },
-  };
-
-  if (props.hover) {
-    navigateTo(params);
-  } else {
-    router.replace(params);
-  }
+  });
 };
 
 const handleMouseEnter = () => {

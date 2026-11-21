@@ -1,5 +1,5 @@
 <template>
-  <div class="site-header" :class="{ 'is-scrolled': scrolled }">
+  <div class="site-header">
     <img
       v-if="countVisit"
       :key="route.path"
@@ -110,7 +110,7 @@
             class="navbar-item theme-toggle"
             :aria-label="dark ? 'Use the light theme' : 'Use the dark theme'"
             :title="dark ? 'Light theme' : 'Dark theme'"
-            @click="toggleTheme(false)">
+            @click="onToggleTheme($event)">
             <UiIcon :name="dark ? 'weather-sunny' : 'weather-night'" />
           </a>
           <a
@@ -211,11 +211,6 @@ const MENU: Array<NavLeaf | NavGroup> = [
 const isGroupActive = (entry: NavGroup) =>
   entry.items.some((item) => route.path === item.to || (item.to !== "/" && route.path.startsWith(item.to + "/")));
 
-const scrolled = ref(false);
-const onScroll = () => {
-  scrolled.value = window.scrollY > 8;
-};
-
 // The mobile menu, and the dropdown opened by click (they also open on hover
 // on desktop). Both close when navigating, or clicking elsewhere.
 const menuOpen = ref(false);
@@ -238,15 +233,8 @@ const onDocumentClick = (event: MouseEvent) => {
     openDropdown.value = null;
   }
 };
-onMounted(() => {
-  document.addEventListener("click", onDocumentClick);
-  window.addEventListener("scroll", onScroll, { passive: true });
-  onScroll();
-});
-onBeforeUnmount(() => {
-  document.removeEventListener("click", onDocumentClick);
-  window.removeEventListener("scroll", onScroll);
-});
+onMounted(() => document.addEventListener("click", onDocumentClick));
+onBeforeUnmount(() => document.removeEventListener("click", onDocumentClick));
 
 const paletteOpen = useState("command-palette-open", () => false);
 const shortcut = ref("Ctrl K");
@@ -259,24 +247,28 @@ onMounted(() => {
 // The URL holds the state of every page, so sharing it shares the view.
 const { copied, share } = useShareLink();
 
-// The theme follows the system, unless chosen here. Shared across Navbar,
-// CommandPalette, and keyboard shortcuts.
+// The theme follows the system, unless chosen here. Shared across Navbar
+// and CommandPalette.
 const { dark, syncFromDom, toggleTheme } = useTheme();
 onMounted(() => {
   syncFromDom();
 });
+const onToggleTheme = (event: MouseEvent) => {
+  const el = event.currentTarget as HTMLElement | null;
+  const rect = el?.getBoundingClientRect();
+  const origin = event.clientX || event.clientY
+    ? { x: event.clientX, y: event.clientY }
+    : rect
+      ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
+      : undefined;
+  toggleTheme(false, origin);
+};
 </script>
 
 <style scoped>
 .site-header {
-  position: sticky;
-  top: 0;
-  transition: box-shadow 0.2s ease;
+  position: relative;
   z-index: 40;
-}
-
-.site-header.is-scrolled {
-  box-shadow: 0 4px 18px -6px rgba(18, 18, 22, 0.22);
 }
 
 .brand {

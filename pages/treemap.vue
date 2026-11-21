@@ -96,7 +96,7 @@
                 :style="{ background: activeColormapGradient }"/>
           <span>{{ percent(color_domain[1]) }}</span>
 
-          <button type="button" class="button is-small ml-2" @click="fullscreen = true">
+          <button type="button" class="button is-small ml-2" @click="setFullscreen(true)">
             <UiIcon name="fullscreen" size="small" /><span>Full screen</span>
           </button>
         </div>
@@ -116,7 +116,7 @@
             <UiIcon name="arrow-up" size="small" /><span>Up</span>
           </button>
           <span class="fullscreen-path">{{ ['', ...path].join('/') || '/' }}</span>
-          <button type="button" class="button" aria-label="Exit full screen" @click="fullscreen = false">
+          <button type="button" class="button" aria-label="Exit full screen" @click="setFullscreen(false)">
             <UiIcon name="fullscreen-exit" size="small" />
           </button>
         </div>
@@ -218,6 +218,7 @@ import repositories_json from "~/utils/repositories";
 import { allTreemapMetrics, findTreemapMetric, type TreemapMetricEntry } from "~/utils/treemapMetrics";
 import { colormapNames, GetColormapGradient } from "~/utils/colormap";
 import { sameQuery } from "~/composables/useUrlState";
+import { runInPageTransition } from "~/utils/viewTransition";
 
 const treemap = ref<any>(null);
 
@@ -402,18 +403,34 @@ watch(() => route.query, async (newQuery) => {
   }
 });
 
+const withViewTransition = (fn: () => void | Promise<void>) => {
+  runInPageTransition(async () => {
+    await fn();
+    await nextTick();
+  });
+};
+
+const setFullscreen = (next: boolean) => {
+  if (fullscreen.value === next) return;
+  withViewTransition(() => {
+    fullscreen.value = next;
+  });
+};
+
 const selectPreset = (preset: {
   color: string[];
   size: string[];
   start?: string;
   history_size?: boolean;
 }) => {
-  field_size.value = preset.size.map(findMetric).filter((f): f is TreemapMetricEntry => Boolean(f));
-  field_color.value = preset.color.map(findMetric).filter((f): f is TreemapMetricEntry => Boolean(f));
-  history_size.value = !!preset.history_size;
-  if (preset.start) {
-    dates.value = [new Date(preset.start), dates.value[1]];
-  }
+  withViewTransition(() => {
+    field_size.value = preset.size.map(findMetric).filter((f): f is TreemapMetricEntry => Boolean(f));
+    field_color.value = preset.color.map(findMetric).filter((f): f is TreemapMetricEntry => Boolean(f));
+    history_size.value = !!preset.history_size;
+    if (preset.start) {
+      dates.value = [new Date(preset.start), dates.value[1]];
+    }
+  });
 };
 
 const truncate = (str: string, n: number) => {
@@ -517,6 +534,10 @@ section {
     padding: 0.3em;
   }
 
+}
+
+.treemap-frame {
+  view-transition-name: treemap-frame;
 }
 
 .treemap-frame.is-fullscreen {
