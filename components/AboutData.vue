@@ -49,7 +49,7 @@ const dialog = ref(false);
 .about-data {
   background: var(--surface-sunken);
   border-radius: calc(var(--radius) + 3px);
-  margin: 1rem 0;
+  margin: 0 0 1rem;
 }
 
 .about-data summary {

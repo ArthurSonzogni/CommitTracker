@@ -2,9 +2,7 @@
   <div>
     <section class="section">
       <SplitLayout>
-        <template #header>
-          <h1 class="title">Repositories charts</h1>
-        </template>
+        <h1 class="sr-only">Repositories charts</h1>
 
         <template #aside>
         <FilterPanel :summary="summary">

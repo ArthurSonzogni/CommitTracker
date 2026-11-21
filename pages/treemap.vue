@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="m-5">
+    <div class="treemap-top">
       <UiField class="mb-4">
         <RepositorySelector
           v-model="repositories"
@@ -534,6 +534,10 @@ section {
     padding: 0.3em;
   }
 
+}
+
+.treemap-top {
+  margin: var(--page-top-gap) 1.5rem 1.5rem;
 }
 
 .treemap-frame {

@@ -347,10 +347,10 @@ html[data-scrollbottom= "1"] .sticky.bottom {
 
 .sticky.top {
   top: 0;
-  margin-top:0;
-  padding-top:15px;
-  margin-bottom:0;
-  padding-bottom:15px;
+  margin-top: 0;
+  padding-top: var(--page-top-gap);
+  margin-bottom: 0;
+  padding-bottom: 15px;
 }
 
 /* On phones, the filters take too much of the screen to stay visible. */

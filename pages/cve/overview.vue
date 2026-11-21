@@ -1,18 +1,21 @@
 <template>
   <div>
     <CveSubnav />
-    <section class="section container">
-      <h1 class="title">CVE overview</h1>
-      <p>
-        Note: vulnerabilities aren't always associated with a CVE. Bugs are
-        often fixed before affecting stable releases. Some are immediately found
-        using fuzzers, or internal audits. This page only display CVEs. For a
-        more complete view of Chromium security issues, please refer to <NuxtLink
-        to="https://crbug.com/issues?q=((componentid:1363614%2B%20type:vulnerability)%20%7C%20collaborator:security@chromium.org)%20-status:(new%20%7C%20duplicate%20%7C%20infeasible%20%7C%20intended_behavior%20%7C%20not_reproducible%20%7C%20obsolete)%20hotlistid:(5432902%20%7C%205432548)">the bug tracker</NuxtLink>.
-      </p>
+    <section class="section pb-2">
+      <div class="container">
+        <h1 class="sr-only">CVE overview</h1>
+        <p>
+          Note: vulnerabilities aren't always associated with a CVE. Bugs are
+          often fixed before affecting stable releases. Some are immediately found
+          using fuzzers, or internal audits. This page only display CVEs. For a
+          more complete view of Chromium security issues, please refer to <NuxtLink
+          to="https://crbug.com/issues?q=((componentid:1363614%2B%20type:vulnerability)%20%7C%20collaborator:security@chromium.org)%20-status:(new%20%7C%20duplicate%20%7C%20infeasible%20%7C%20intended_behavior%20%7C%20not_reproducible%20%7C%20obsolete)%20hotlistid:(5432902%20%7C%205432548)">the bug tracker</NuxtLink>.
+        </p>
+      </div>
     </section>
 
-    <section class="section container sticky">
+    <section class="section sticky">
+      <div class="container">
       <div class="columns">
         <div class="column">
           <UiField label="Severity">
@@ -41,11 +44,13 @@
 
         </div>
       </div>
+      </div>
     </section>
 
     <section
-      class="section container"
+      class="section"
       v-for="(data,i) in cve_by_year">
+      <div class="container">
 
       <h2 class="title"> {{ data.year }} </h2>
 
@@ -151,6 +156,7 @@
           </tbody>
         </table>
         </div>
+      </div>
     </section>
   </div>
 </template>

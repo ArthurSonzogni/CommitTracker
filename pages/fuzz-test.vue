@@ -2,7 +2,7 @@
   <div>
     <section class="section">
       <div class="container">
-        <h1 class="title">Fuzz test</h1>
+        <h1 class="sr-only">Fuzz test</h1>
         <p class="mb-4">{{ total }} fuzzers in Chromium.</p>
 
         <div style="height: 50vh;">

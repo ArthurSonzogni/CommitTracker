@@ -38,6 +38,7 @@
   --radius-sm: 6px;
   --radius: 9px;
   --radius-lg: 14px;
+  --page-top-gap: 0.625rem;
 
   --shadow-xs: 0 1px 1px color-mix(in srgb, var(--ink) 4%, transparent);
   --shadow-sm: 0 1px 2px color-mix(in srgb, var(--ink) 6%, transparent), 0 0 0 1px color-mix(in srgb, var(--ink) 4%, transparent);
@@ -291,12 +292,12 @@ h2.title:not(.is-1):not(.is-2):not(.is-3):not(.is-4):not(.is-5):not(.is-6) {
 }
 
 .section {
-  padding: 2.5rem 1.25rem;
+  padding: var(--page-top-gap) 1.25rem 2.5rem;
 }
 
 @media (min-width: 769px) {
   .section {
-    padding: 3.5rem 1.5rem;
+    padding: var(--page-top-gap) 1.5rem 3rem;
   }
 }
 
@@ -917,6 +918,12 @@ button.dropdown-item:hover {
   background: var(--surface-sunken);
 }
 
+.navbar.site-navbar .navbar-dropdown .navbar-item.router-link-exact-active {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
 .navbar.site-navbar .navbar-start .icon {
   color: var(--faint);
 }
@@ -1317,6 +1324,20 @@ svg [fill="gray"], svg [fill="grey"] { fill: var(--muted); }
   ::view-transition-new(*) {
     animation: none !important;
   }
+}
+
+/* Visually hidden page titles (kept for accessibility/SEO while the navbar
+ * highlights the active view). */
+.sr-only {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
 }
 
 /* Print / Save-to-PDF ------------------------------------------------------ */

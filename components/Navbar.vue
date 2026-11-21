@@ -70,8 +70,8 @@
                 :aria-expanded="openDropdown === entry.label"
                 @click="toggleDropdown(entry.label)"
                 @keydown.enter.prevent="toggleDropdown(entry.label)">
-                <UiIcon :name="entry.icon" size="small" class="mr-2 menu-icon" />
-                {{ entry.label }}
+                <UiIcon :name="activeChild(entry)?.icon ?? entry.icon" size="small" class="mr-2 menu-icon" />
+                {{ activeChild(entry)?.navLabel ?? entry.label }}
               </a>
               <div class="navbar-dropdown">
                 <NuxtLink
@@ -140,11 +140,13 @@ const countVisit =
   typeof location !== "undefined" &&
   location.hostname === "chrome-commit-tracker.arthursonzogni.com";
 
-const pageItem = (to: string, labelOverride?: string) => {
+const pageItem = (to: string, labelOverride?: string, navLabelOverride?: string) => {
   const page = findSitePage(to);
+  const label = labelOverride ?? page?.label ?? to;
   return {
     to,
-    label: labelOverride ?? page?.label ?? to,
+    label,
+    navLabel: navLabelOverride ?? label,
     icon: page?.icon ?? "circle-small",
   };
 };
@@ -152,6 +154,7 @@ const pageItem = (to: string, labelOverride?: string) => {
 interface NavLeaf {
   to: string;
   label: string;
+  navLabel: string;
   icon: string;
 }
 
@@ -170,46 +173,48 @@ const MENU: Array<NavLeaf | NavGroup> = [
     label: "Repositories",
     icon: "chart-bar",
     items: [
-      pageItem("/repositories", "Charts"),
-      pageItem("/pulse", "Heatmap"),
-      pageItem("/accretion"),
+      pageItem("/repositories", "Charts", "Repo charts"),
+      pageItem("/pulse", "Heatmap", "Repo heatmap"),
+      pageItem("/accretion", "Code accretion", "Accretion"),
     ],
   },
   {
     label: "Organizations",
     icon: "domain",
     items: [
-      pageItem("/organizations/commits", "Commits"),
-      pageItem("/organizations/emails", "Emails"),
+      pageItem("/organizations/commits", "Commits", "Org commits"),
+      pageItem("/organizations/emails", "Emails", "Org emails"),
     ],
   },
   {
     label: "CVE",
     icon: "shield-bug",
     items: [
-      pageItem("/cve/overview", "Overview"),
-      pageItem("/cve/list", "List"),
-      pageItem("/cve/pivot-table", "Pivot table"),
-      pageItem("/cve/reward_per_components", "Reward per component"),
-      pageItem("/cve/money-tree", "Money tree"),
+      pageItem("/cve/overview", "Overview", "CVE overview"),
+      pageItem("/cve/list", "List", "CVE list"),
+      pageItem("/cve/pivot-table", "Pivot table", "CVE pivot"),
+      pageItem("/cve/reward_per_components", "Reward per component", "CVE rewards"),
+      pageItem("/cve/money-tree", "Money tree", "CVE tree"),
     ],
   },
   {
     label: "More",
     icon: "dots-horizontal",
     items: [
-      pageItem("/developer-output"),
+      pageItem("/developer-output", "Developer output", "Dev output"),
       pageItem("/security"),
       pageItem("/leaderboard"),
       pageItem("/badges/list"),
       pageItem("/fuzz-test"),
-      pageItem("/usernames"),
+      pageItem("/usernames", "Usernames distribution", "Usernames"),
     ],
   },
 ];
 
-const isGroupActive = (entry: NavGroup) =>
-  entry.items.some((item) => route.path === item.to || (item.to !== "/" && route.path.startsWith(item.to + "/")));
+const activeChild = (entry: NavGroup): NavLeaf | undefined =>
+  entry.items.find((item) => route.path === item.to || (item.to !== "/" && route.path.startsWith(item.to + "/")));
+
+const isGroupActive = (entry: NavGroup) => Boolean(activeChild(entry));
 
 // The mobile menu, and the dropdown opened by click (they also open on hover
 // on desktop). Both close when navigating, or clicking elsewhere.
@@ -369,7 +374,7 @@ const onToggleTheme = (event: MouseEvent) => {
 }
 
 .search-pill span {
-  margin-right: 1.5rem;
+  margin-right: 0.75rem;
 }
 
 .search-pill kbd {
@@ -381,7 +386,7 @@ const onToggleTheme = (event: MouseEvent) => {
 }
 
 /* On narrow desktops, the menu drops its icons, so that it fits on one line. */
-@media (min-width: 1024px) and (max-width: 1379px) {
+@media (min-width: 1024px) and (max-width: 1479px) {
   .menu-icon {
     display: none;
   }

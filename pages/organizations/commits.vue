@@ -2,9 +2,7 @@
   <div>
     <section class="section">
       <SplitLayout>
-        <template #header>
-          <h1 class="title">Organizations commits</h1>
-        </template>
+        <h1 class="sr-only">Organizations commits</h1>
 
         <template #aside>
         <FilterPanel :summary="summary">

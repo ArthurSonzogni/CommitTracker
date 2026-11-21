@@ -2,7 +2,7 @@
   <div>
     <section class="section">
       <div class="container">
-        <h1 class="title">Commit rates sankey</h1>
+        <h1 class="sr-only">Commit rates sankey</h1>
         <FilterPanel :summary="listSummary(repositoryNames(repoList), 'repositories')">
           <RepositorySelector
             size="is-medium"

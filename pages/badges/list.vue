@@ -2,7 +2,7 @@
   <div>
     <section class="section">
       <div class="container content">
-        <h1 class="title">Badges</h1>
+        <h1 class="sr-only">Badges</h1>
         <p>
           This is a collection of badges that are awarded to the contributors
           of the web platform. The badges are awarded based on the commit

@@ -2,7 +2,7 @@
   <div>
     <section class="section">
       <div class="container">
-        <h1 class="title">Organizations emails</h1>
+        <h1 class="sr-only">Organizations emails</h1>
 
         <FilterPanel :summary="listSummary(repositoryNames(repositories), 'repositories')">
           <RepositorySelector

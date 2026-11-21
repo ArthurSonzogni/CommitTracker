@@ -3,7 +3,7 @@
     <CveSubnav />
     <section class="section pb-2">
       <div class="container is-fluid">
-        <h1 class="title">CVE money tree</h1>
+        <h1 class="sr-only">CVE money tree</h1>
 
         <AboutData>
           <p>

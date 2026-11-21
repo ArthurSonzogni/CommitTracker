@@ -2,7 +2,7 @@
   <div>
     <section class="section">
       <div class="container">
-        <h1 class="title">Code accretion</h1>
+        <h1 class="sr-only">Code accretion</h1>
         <FilterPanel :summary="filterSummary">
           <RepositorySelector v-model="selection" size="is-medium"
             :allowMultiple="false" :allowAll="false" />

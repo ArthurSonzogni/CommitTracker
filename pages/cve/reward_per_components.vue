@@ -3,7 +3,7 @@
     <CveSubnav />
     <section class="section">
       <div class="container">
-        <h1 class="title">CVE reward per component</h1>
+        <h1 class="sr-only">CVE reward per component</h1>
         <ul>
           <li>{{cve_count}} CVEs in between {{dates[0].toISOString().split("T")[0]}} and {{dates[1].toISOString().split("T")[0]}}</li>
           <li>{{dollars_formatter(total_reward)}} total reward</li>

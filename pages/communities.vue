@@ -285,8 +285,6 @@ onBeforeUnmount(() => {
 
 .zoom {
   margin-top: 0;
-  padding: 10px;
-  padding-left: 24px;
-  padding-right: 24px;
+  padding: var(--page-top-gap) 1.5rem 0.75rem;
 }
 </style>

@@ -2,7 +2,7 @@
   <div>
     <section class="section">
       <div class="container">
-        <h1 class="title">Repositories heatmap</h1>
+        <h1 class="sr-only">Repositories heatmap</h1>
 
         <FilterPanel :summary="listSummary(repositoryNames(repositories), 'repositories')">
           <UiField>

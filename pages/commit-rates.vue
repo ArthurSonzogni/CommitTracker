@@ -2,9 +2,7 @@
   <div>
     <section class="section">
       <SplitLayout>
-        <template #header>
-          <h1 class="title">Commit rates</h1>
-        </template>
+        <h1 class="sr-only">Commit rates</h1>
         <template #aside>
         <FilterPanel :summary="listSummary(repositoryNames(repositories), 'repositories')">
           <UiField label="Repository">

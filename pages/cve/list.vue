@@ -7,7 +7,7 @@
       <SplitLayout>
         <template #header>
         <div class="content">
-        <h1 class="title">CVE list</h1>
+        <h1 class="sr-only">CVE list</h1>
 
         <AboutData>
           <p>
