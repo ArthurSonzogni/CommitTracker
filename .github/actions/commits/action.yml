@@ -1,5 +1,5 @@
 name: 'Fetch Commits'
-description: 'Fetches new commits, cleans data, pushes data, and generates derived data'
+description: 'Fetches new commits, cleans data, and pushes data'
 inputs:
   github_token:
     description: 'GitHub Token'
@@ -35,10 +35,3 @@ runs:
         publish_dir: ./public/data/
         publish_branch: data
         force_orphan: true
-
-    - name: Generate derived data
-      shell: bash
-      run: |
-        npm run generate-derived-data
-      env:
-        GITHUB_TOKEN: ${{ inputs.github_token }}

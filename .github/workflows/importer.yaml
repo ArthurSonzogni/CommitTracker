@@ -48,6 +48,7 @@ permissions:
 jobs:
   importer:
     runs-on: ubuntu-latest
+    timeout-minutes: 180
 
     steps:
       - name: Configure Run Flags
@@ -96,18 +97,20 @@ jobs:
           echo "run_commit_rates=$DO_COMMIT_RATES" >> $GITHUB_OUTPUT
           echo "run_accretion=$DO_ACCRETION" >> $GITHUB_OUTPUT
 
+      - name: Checkout main repository
+        uses: actions/checkout@v7
+
       - name: Setup node env
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '22'
-
-      - name: Checkout main repository
-        uses: actions/checkout@v4
+          cache: 'npm'
+          cache-dependency-path: importer/package-lock.json
 
       - name: Pull dependencies
         run: |
           npm run pull-data
-          cd importer && npm install
+          cd importer && npm ci
 
       # --- MODULES (Composite Actions) ---
 

@@ -16,41 +16,53 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - 'AGENTS.md'
+      - 'README.md'
+      - '.github/FUNDING.yml'
+      - '.github/workflows/importer.yaml'
+      - '.github/workflows/fixmailmap.yaml'
+      - '.github/actions/**'
+      - 'graph/**'
 
-# One deployment at a time: a newer run waits for the current one, instead of
-# racing it to deploy.
-concurrency:
-  group: cd
-  cancel-in-progress: false
-
-# For deploying to GitHub Pages.
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 jobs:
   build:
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    concurrency:
+      group: cd-build
+      cancel-in-progress: true
     steps:
       - name: Checkout main repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup node env
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            importer/package-lock.json
 
-      - name: Build website
-        run: |
-          npm install
-          npm run pull-data
-          npm run generate-derived-data
-          npm run generate
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Pull data
+        run: npm run pull-data
+
+      - name: Generate derived data
+        run: npm run generate-derived-data
         env:
           # Fetching files from GitHub is less throttled with a token.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate website
+        run: npm run generate
 
       - name: Test website interactions
         run: npm run test:interactions
@@ -63,7 +75,7 @@ jobs:
       # Deployed as an artifact: much faster than committing the 200k files
       # of the site to a branch, and building it again.
       - name: Upload website
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: .output/public
 
@@ -72,10 +84,18 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # One deployment at a time: a newer deploy waits instead of racing.
+    concurrency:
+      group: cd-deploy
+      cancel-in-progress: false
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - name: Deploy
         id: deploy
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

@@ -1,21 +1,35 @@
-#!/bin/bash
-set -euo pipefail
+#!/bin/sh
+set -eu
+
 repo=https://github.com/ArthurSonzogni/CommitTracker.git
+branches="data community-map fuzz-test treemap cve commit_rates accretion"
+
+pids=""
+for branch in $branches; do
+  rm -rf "public/$branch"
+  git clone --branch "$branch" --single-branch --depth=1 "$repo" "public/$branch" &
+  pids="$pids $!"
+done
+
+failed=0
+for pid in $pids; do
+  wait "$pid" || failed=1
+done
+if [ "$failed" -ne 0 ]; then
+  exit 1
+fi
 
 # The date of the last update of each data branch, for the site footer.
 dates=public/data_updated.json
-echo "{" > $dates
+echo "{" > "$dates"
 separator=""
 
-for branch in "data" "community-map" "fuzz-test" "treemap" "cve" "commit_rates" "accretion"
-do
-  rm -rf public/$branch
-  git clone --branch $branch --single-branch --depth=1 $repo public/$branch
-  date=$(git -C public/$branch log -1 --format=%cI)
-  printf '%s  "%s": "%s"' "$separator" "$branch" "$date" >> $dates
+for branch in $branches; do
+  date=$(git -C "public/$branch" log -1 --format=%cI)
+  printf '%s  "%s": "%s"' "$separator" "$branch" "$date" >> "$dates"
   separator=",
 "
-  rm -rf public/$branch/.git
+  rm -rf "public/$branch/.git"
 done
 
-printf '\n}\n' >> $dates
+printf '\n}\n' >> "$dates"
