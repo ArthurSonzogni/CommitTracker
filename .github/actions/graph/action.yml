@@ -18,7 +18,7 @@ runs:
         sudo apt-get install -y libomp-dev libomp5
 
     - name: Build the C++ project
-      uses: threeal/cmake-action@v1.3.0
+      uses: threeal/cmake-action@b684818e3104c3151285e9001e7652b717f11bcd # v1.3.0
       with:
         source-dir: graph
         build-dir: graph/build
@@ -44,7 +44,7 @@ runs:
         npm run graph
 
     - name: Deploy community map
-      uses: peaceiris/actions-gh-pages@v4
+      uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4.1.0
       with:
         github_token: ${{ inputs.github_token }}
         publish_dir: ./public/community-map/

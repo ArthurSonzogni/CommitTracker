@@ -57,37 +57,55 @@ const repositories_with_commit_count = [
 // To avoid opening too many files, cache the results. Authored commits and
 // reviews are kept apart, sorted by date. Subdirectory repositories (with a
 // "cone") are skipped, their commits are already part of their parent.
+const eligibleRepos = repositories.filter(
+  repository => repositories_with_commit_count.includes(repository.dirname) && !repository.cone,
+);
+const reposByUser = new Map();
+for (const repository of eligibleRepos) {
+  for (const username of repository_usernames.get(repository.dirname)) {
+    let list = reposByUser.get(username);
+    if (!list) {
+      list = [];
+      reposByUser.set(username, list);
+    }
+    list.push(repository.dirname);
+  }
+}
+
+const CONCURRENCY = 64;
 const user_commits = new Map();
 const user_reviews = new Map();
+const usernameList = [...usernames];
 let username_index = 0;
-for (const username of usernames) {
-  username_index++;
-  if (username_index % 100 == 0) {
-    statusLine(`Cache commits [${Math.round(username_index / usernames.size * 100)}%]`);
-  }
-  const commits = [];
-  const reviews = [];
-  for (const repository of repositories) {
-    if (!repositories_with_commit_count.includes(repository.dirname) ||
-        repository.cone) {
-      continue;
-    }
-    const commit_file = `../public/data/${repository.dirname}/usernames/${username}.json`;
-    try {
-      const commit_text = await fs.readFile(commit_file, "utf8");
-      const commit_json = JSON.parse(commit_text);
-      for (const commit of commit_json) {
-        commit.time = new Date(commit.date).getTime();
-        (commit.kind == "author" ? commits : reviews).push(commit);
+
+for (let start = 0; start < usernameList.length; start += CONCURRENCY) {
+  const batch = usernameList.slice(start, start + CONCURRENCY);
+  await Promise.all(
+    batch.map(async username => {
+      const commits = [];
+      const reviews = [];
+      const userRepos = reposByUser.get(username) || [];
+      const repoData = await Promise.all(
+        userRepos.map(async dirname => {
+          const commit_file = `../public/data/${dirname}/usernames/${username}.json`;
+          const commit_text = await fs.readFile(commit_file, "utf8");
+          return JSON.parse(commit_text);
+        }),
+      );
+      for (const commit_json of repoData) {
+        for (const commit of commit_json) {
+          commit.time = new Date(commit.date).getTime();
+          (commit.kind == "author" ? commits : reviews).push(commit);
+        }
       }
-    } catch (e) {
-      // Ignore missing files.
-    }
-  }
-  commits.sort((a, b) => a.time - b.time);
-  reviews.sort((a, b) => a.time - b.time);
-  user_commits.set(username, commits);
-  user_reviews.set(username, reviews);
+      commits.sort((a, b) => a.time - b.time);
+      reviews.sort((a, b) => a.time - b.time);
+      user_commits.set(username, commits);
+      user_reviews.set(username, reviews);
+    }),
+  );
+  username_index += batch.length;
+  statusLine(`Cache commits [${Math.round(username_index / usernameList.length * 100)}%]`);
 }
 
 // The developers who authored at least one commit. Badges about commits are

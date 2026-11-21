@@ -77,7 +77,7 @@ runs:
         fi
 
     - name: Push accretion data
-      uses: peaceiris/actions-gh-pages@v4
+      uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4.1.0
       with:
         github_token: ${{ inputs.github_token }}
         publish_dir: ./public/accretion/
@@ -86,7 +86,7 @@ runs:
 
     - name: Push the replay state
       if: steps.state.outputs.push == 'true'
-      uses: peaceiris/actions-gh-pages@v4
+      uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4.1.0
       with:
         github_token: ${{ inputs.github_token }}
         publish_dir: ./state/

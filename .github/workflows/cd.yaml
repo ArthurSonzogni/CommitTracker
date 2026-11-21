@@ -43,7 +43,9 @@ permissions:
 
 jobs:
   build:
-    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    # Deploy even on partial importer failure: each importer module pushes its
+    # own orphan branch atomically only on success.
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion != 'cancelled'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     concurrency:
@@ -73,6 +75,20 @@ jobs:
         run: npm run pull-data
         env:
           SKIP_BRANCHES: ${{ github.event_name == 'pull_request' && '' || 'commit_rates' }}
+
+      - name: Summarize data freshness
+        run: |
+          {
+            echo "### Data branches"
+            echo "| Branch | Last updated |"
+            echo "| :--- | :--- |"
+            node -e '
+              const dates = JSON.parse(require("fs").readFileSync("public/data_updated.json", "utf8"));
+              for (const [branch, date] of Object.entries(dates)) {
+                console.log(`| \`${branch}\` | ${date} |`);
+              }
+            '
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Generate derived data
         run: npm run generate-derived-data

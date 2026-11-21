@@ -246,3 +246,24 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           force: ${{ inputs.force_graph == true }}
+
+  summary:
+    needs: [config, commits, treemap, fuzz, cve, commit_rates, accretion, graph]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Write workflow summary
+        run: |
+          {
+            echo "### Importer modules"
+            echo "| Module | Result |"
+            echo "| :--- | :--- |"
+            echo "| commits | ${{ needs.commits.result }} |"
+            echo "| treemap | ${{ needs.treemap.result }} |"
+            echo "| fuzz | ${{ needs.fuzz.result }} |"
+            echo "| cve | ${{ needs.cve.result }} |"
+            echo "| commit_rates | ${{ needs.commit_rates.result }} |"
+            echo "| accretion | ${{ needs.accretion.result }} |"
+            echo "| graph | ${{ needs.graph.result }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
