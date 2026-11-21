@@ -440,6 +440,21 @@ watch([
   }
 }, { deep: true, flush: "post" });
 
+const onTreemapKeydown = (event: KeyboardEvent) => {
+  if (!field_color_value.value.length) return;
+  if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
+  const target = event.target as HTMLElement | null;
+  if (target && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))) return;
+  if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+  event.preventDefault();
+  animate.value = false;
+  const stepMs = 30 * 24 * 60 * 60 * 1000;
+  const now = Date.now();
+  const minMs = dates.value[0].getTime() + stepMs;
+  const next = dates.value[1].getTime() + (event.key === "ArrowRight" ? stepMs : -stepMs);
+  dates.value = [dates.value[0], new Date(Math.max(minMs, Math.min(now, next)))];
+};
+
 onMounted(() => {
   const rawColor = firstQueryString(route.query.field_color);
   const rawSize = firstQueryString(route.query.field_size);
@@ -449,6 +464,10 @@ onMounted(() => {
   ) {
     updateUrl();
   }
+  window.addEventListener("keydown", onTreemapKeydown);
+});
+onBeforeUnmount(() => {
+  window.removeEventListener("keydown", onTreemapKeydown);
 });
 
 const animationEnd = async () => {

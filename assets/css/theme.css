@@ -923,8 +923,14 @@ button.dropdown-item:hover {
   .navbar.site-navbar .navbar-start > .navbar-item > .navbar-link:hover,
   .navbar.site-navbar .navbar-start > .navbar-item.has-dropdown:hover > .navbar-link,
   .navbar.site-navbar .navbar-start > .navbar-item.has-dropdown.is-active > .navbar-link,
+  .navbar.site-navbar .navbar-start > .navbar-item.has-dropdown.is-active-group > .navbar-link,
   .navbar.site-navbar .navbar-start > .navbar-item.router-link-exact-active {
     background: var(--nav-hover);
+    color: var(--nav-ink);
+  }
+
+  .navbar.site-navbar .navbar-start > .navbar-item.has-dropdown.is-active-group > .navbar-link > .icon,
+  .navbar.site-navbar .navbar-start > .navbar-item.router-link-exact-active > .icon {
     color: var(--nav-ink);
   }
 
@@ -1019,6 +1025,15 @@ svg [fill="gray"], svg [fill="grey"] { fill: var(--muted); }
   width: 100%;
 }
 
+.toast.is-compact {
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 540;
+  padding: 0.45rem 1rem;
+  text-align: center;
+  width: auto;
+}
+
 .toast.is-warning {
   border-left: 4px solid #eda100;
 }
@@ -1061,5 +1076,207 @@ svg [fill="gray"], svg [fill="grey"] { fill: var(--muted); }
 @media (prefers-reduced-motion: reduce) {
   .skeleton {
     animation: none;
+  }
+}
+
+/* View transitions (app.viewTransition in nuxt.config.ts) ------------------ */
+
+@view-transition {
+  navigation: auto;
+}
+
+.site-header {
+  view-transition-name: site-header;
+}
+
+.site-footer {
+  view-transition-name: site-footer;
+}
+
+.cve-subnav {
+  view-transition-name: cve-subnav;
+}
+
+.back-to-top {
+  view-transition-name: back-to-top;
+}
+
+.toasts {
+  view-transition-name: site-toasts;
+}
+
+.badge-hero-img {
+  border-radius: var(--radius-lg);
+  view-transition-name: badge-hero;
+}
+
+/* Keep persistent chrome anchored above the page crossfade. */
+::view-transition-group(site-header) {
+  z-index: 50;
+}
+
+::view-transition-group(cve-subnav) {
+  z-index: 30;
+}
+
+::view-transition-group(cve-active-tab) {
+  animation-duration: 400ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 31;
+}
+
+::view-transition-group(badge-hero) {
+  animation-duration: 400ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 40;
+}
+
+::view-transition-group(site-toasts) {
+  z-index: 60;
+}
+
+::view-transition-old(site-header),
+::view-transition-new(site-header),
+::view-transition-old(cve-subnav),
+::view-transition-new(cve-subnav),
+::view-transition-old(back-to-top),
+::view-transition-new(back-to-top),
+::view-transition-old(site-toasts),
+::view-transition-new(site-toasts) {
+  animation: none;
+}
+
+/* Default fallback: clean 400ms crossfade. */
+::view-transition-old(root) {
+  animation: 400ms cubic-bezier(0.22, 1, 0.36, 1) both vt-fade-out;
+}
+
+::view-transition-new(root) {
+  animation: 400ms cubic-bezier(0.22, 1, 0.36, 1) both vt-fade-in;
+}
+
+/* Spatial lateral movement (tabs, navbar order, chronological years). */
+:root[data-vt="slide-left"]::view-transition-old(root) {
+  animation: 500ms cubic-bezier(0.22, 1, 0.36, 1) both vt-slide-out-left;
+}
+:root[data-vt="slide-left"]::view-transition-new(root) {
+  animation: 500ms cubic-bezier(0.22, 1, 0.36, 1) both vt-slide-in-right;
+}
+
+:root[data-vt="slide-right"]::view-transition-old(root) {
+  animation: 500ms cubic-bezier(0.22, 1, 0.36, 1) both vt-slide-out-right;
+}
+:root[data-vt="slide-right"]::view-transition-new(root) {
+  animation: 500ms cubic-bezier(0.22, 1, 0.36, 1) both vt-slide-in-left;
+}
+
+/* Hierarchical drill-in (home -> page, list -> detail, profile -> year). */
+:root[data-vt="drill-in"]::view-transition-old(root) {
+  animation: 400ms cubic-bezier(0.22, 1, 0.36, 1) both vt-drill-out-old;
+}
+:root[data-vt="drill-in"]::view-transition-new(root) {
+  animation: 400ms cubic-bezier(0.22, 1, 0.36, 1) both vt-drill-in-new;
+}
+
+/* Hierarchical drill-out (page -> home, detail -> list, year -> profile). */
+:root[data-vt="drill-out"]::view-transition-old(root) {
+  animation: 400ms cubic-bezier(0.22, 1, 0.36, 1) both vt-drill-in-old;
+}
+:root[data-vt="drill-out"]::view-transition-new(root) {
+  animation: 400ms cubic-bezier(0.22, 1, 0.36, 1) both vt-drill-out-new;
+}
+
+@keyframes vt-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes vt-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes vt-slide-out-left {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(-32px); }
+}
+
+@keyframes vt-slide-in-right {
+  from { opacity: 0; transform: translateX(32px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes vt-slide-out-right {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(32px); }
+}
+
+@keyframes vt-slide-in-left {
+  from { opacity: 0; transform: translateX(-32px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes vt-drill-out-old {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.982); }
+}
+
+@keyframes vt-drill-in-new {
+  from { opacity: 0; transform: translateY(10px) scale(1.016); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes vt-drill-in-old {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(8px) scale(0.985); }
+}
+
+@keyframes vt-drill-out-new {
+  from { opacity: 0; transform: scale(0.982); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/* Print / Save-to-PDF ------------------------------------------------------ */
+
+@media print {
+  .site-header,
+  .site-footer,
+  .split-aside,
+  .mobile-filter-bar,
+  .filter-panel,
+  .chart-toolbar,
+  .toasts,
+  .back-to-top {
+    display: none !important;
+  }
+
+  body,
+  html {
+    background: #ffffff !important;
+    color: #121216 !important;
+  }
+
+  .container.split-layout {
+    display: block !important;
+    max-width: 100% !important;
+  }
+
+  .section {
+    padding: 0.75rem 0 !important;
+  }
+
+  svg,
+  table,
+  .card,
+  .bento-card {
+    break-inside: avoid;
   }
 }

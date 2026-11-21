@@ -3,7 +3,12 @@
     <span v-if="updated" :title="updated.toISOString()">
       Data updated {{ ago }} ({{ updated.toISOString().slice(0, 10) }})
     </span>
-    <a href="https://github.com/ArthurSonzogni/CommitTracker">Source on GitHub</a>
+    <nav class="footer-links" aria-label="Footer">
+      <NuxtLink to="/api">API</NuxtLink>
+      <NuxtLink to="/repo-info">Tracked repos</NuxtLink>
+      <NuxtLink to="/page-view">Page views</NuxtLink>
+      <a href="https://github.com/ArthurSonzogni/CommitTracker">Source on GitHub</a>
+    </nav>
   </footer>
 </template>
 
@@ -56,6 +61,12 @@ const ago = computed(() => {
   justify-content: space-between;
   margin-top: 2rem;
   padding: 1.25rem 1.5rem;
+}
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.25rem;
 }
 
 .site-footer a {

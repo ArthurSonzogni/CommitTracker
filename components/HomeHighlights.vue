@@ -1,54 +1,66 @@
 <template>
-  <section v-if="highlights" class="highlights-section">
+  <section v-if="highlights || !failed" class="highlights-section">
     <div class="container">
-      <h2 class="highlights-title">{{ monthName }} in Chromium</h2>
-      <p class="highlights-lede">
-        {{ number(highlights.commits) }} commits
-        <span :class="delta >= 0 ? 'is-up' : 'is-down'">({{ delta >= 0 ? "+" : "" }}{{ delta }}%)</span>
-        by {{ number(highlights.contributors) }} contributors,
-        including {{ highlights.newcomers }} first-time contributors.
-      </p>
+      <template v-if="highlights">
+        <h2 class="highlights-title">{{ monthName }} in Chromium</h2>
+        <p class="highlights-lede">
+          {{ number(highlights.commits) }} commits
+          <span :class="delta >= 0 ? 'is-up' : 'is-down'">({{ delta >= 0 ? "+" : "" }}{{ delta }}%)</span>
+          by {{ number(highlights.contributors) }} contributors,
+          including {{ highlights.newcomers }} first-time contributors.
+        </p>
 
-      <div class="highlights">
-        <div class="highlight is-authors">
-          <h3>Top authors</h3>
-          <ol>
-            <li
-              v-for="[name, count] in highlights.top_authors"
-              :key="name"
-              :style="{ '--bar': barWidth(count, highlights.top_authors) }">
-              <NuxtLink :to="`/developers/${encodeURIComponent(name)}`">{{ name }}</NuxtLink>
-              <span>{{ number(count) }}</span>
-            </li>
-          </ol>
-        </div>
+        <div class="highlights">
+          <div class="highlight is-authors">
+            <h3>Top authors</h3>
+            <ol>
+              <li
+                v-for="[name, count] in highlights.top_authors"
+                :key="name"
+                :style="{ '--bar': barWidth(count, highlights.top_authors) }">
+                <NuxtLink :to="`/developers/${encodeURIComponent(name)}`">{{ name }}</NuxtLink>
+                <span>{{ number(count) }}</span>
+              </li>
+            </ol>
+          </div>
 
-        <div class="highlight is-reviewers">
-          <h3>Top reviewers</h3>
-          <ol>
-            <li
-              v-for="[name, count] in highlights.top_reviewers"
-              :key="name"
-              :style="{ '--bar': barWidth(count, highlights.top_reviewers) }">
-              <NuxtLink :to="`/developers/${encodeURIComponent(name)}`">{{ name }}</NuxtLink>
-              <span>{{ number(count) }}</span>
-            </li>
-          </ol>
-        </div>
+          <div class="highlight is-reviewers">
+            <h3>Top reviewers</h3>
+            <ol>
+              <li
+                v-for="[name, count] in highlights.top_reviewers"
+                :key="name"
+                :style="{ '--bar': barWidth(count, highlights.top_reviewers) }">
+                <NuxtLink :to="`/developers/${encodeURIComponent(name)}`">{{ name }}</NuxtLink>
+                <span>{{ number(count) }}</span>
+              </li>
+            </ol>
+          </div>
 
-        <div class="highlight is-organizations">
-          <h3>Top organizations, {{ quarterName }}</h3>
-          <ol>
-            <li
-              v-for="[name, count] in highlights.top_organizations"
-              :key="name"
-              :style="{ '--bar': barWidth(count, highlights.top_organizations) }">
-              <NuxtLink :to="`/organizations/commits?organizations=${encodeURIComponent(name)}&grouping=quarterly`">{{ name }}</NuxtLink>
-              <span>{{ number(count) }}</span>
-            </li>
-          </ol>
+          <div class="highlight is-organizations">
+            <h3>Top organizations, {{ quarterName }}</h3>
+            <ol>
+              <li
+                v-for="[name, count] in highlights.top_organizations"
+                :key="name"
+                :style="{ '--bar': barWidth(count, highlights.top_organizations) }">
+                <NuxtLink :to="`/organizations/commits?organizations=${encodeURIComponent(name)}&grouping=quarterly`">{{ name }}</NuxtLink>
+                <span>{{ number(count) }}</span>
+              </li>
+            </ol>
+          </div>
         </div>
-      </div>
+      </template>
+      <template v-else>
+        <div class="skeleton" style="height: 1.5rem; width: 14rem; margin-bottom: 0.6rem;" aria-hidden="true" />
+        <div class="skeleton" style="height: 1rem; width: 24rem; max-width: 100%; margin-bottom: 1.5rem;" aria-hidden="true" />
+        <div class="highlights" aria-hidden="true">
+          <div v-for="col in 3" :key="col" class="highlight">
+            <div class="skeleton" style="height: 1rem; width: 8rem; margin-bottom: 0.85rem;" />
+            <div v-for="row in 5" :key="row" class="skeleton" style="height: 1.65rem; margin-bottom: 0.35rem;" />
+          </div>
+        </div>
+      </template>
     </div>
   </section>
 </template>
@@ -72,13 +84,19 @@ const highlights = ref<{
   top_organizations: Ranking;
 } | null>(null);
 
+const failed = ref(false);
+
 onMounted(async () => {
   try {
     const response = await fetch("/data/highlights.json");
     if (response.ok) {
       highlights.value = await response.json();
+    } else {
+      failed.value = true;
     }
-  } catch (e) {}
+  } catch (e) {
+    failed.value = true;
+  }
 });
 
 const number = format(",d");

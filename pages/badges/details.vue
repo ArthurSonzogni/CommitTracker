@@ -45,7 +45,11 @@
             </div>
           </div>
           <div class="column is-7">
-            <img v-if="badge_data.image" :src="badge_data.image" :alt="badge_data.name" />
+            <img
+              v-if="badge_data.image"
+              class="badge-hero-img"
+              :src="badge_data.image"
+              :alt="badge_data.name" />
           </div>
         </div>
         <button type="button" class="button" aria-label="Back to badges" @click="List">
@@ -66,11 +70,18 @@ import {
   type BadgeDefinition,
 } from "~/utils/badges";
 import { SITE_NAME } from "~/utils/pageMeta";
+import { useViewTransitionTarget } from "~/composables/useViewTransitionTarget";
+
+const { activeBadge } = useViewTransitionTarget();
 
 const { developer, badge } = useUrlState({
   developer: urlCodecs.string(""),
   badge: urlCodecs.string(""),
 });
+
+watch(badge, (name) => {
+  if (name) activeBadge.value = name;
+}, { immediate: true });
 
 const badge_data = ref<Partial<BadgeDefinition>>({});
 const related_badges = ref<BadgeDefinition[]>([]);

@@ -1,5 +1,5 @@
 <template>
-  <div class="site-header">
+  <div class="site-header" :class="{ 'is-scrolled': scrolled }">
     <img
       v-if="countVisit"
       :key="route.path"
@@ -60,7 +60,7 @@
             <div
               v-else
               class="navbar-item has-dropdown is-hoverable"
-              :class="{ 'is-active': openDropdown === entry.label }"
+              :class="{ 'is-active': openDropdown === entry.label, 'is-active-group': isGroupActive(entry) }"
               @mouseleave="openDropdown = null">
               <a
                 class="navbar-link"
@@ -110,7 +110,7 @@
             class="navbar-item theme-toggle"
             :aria-label="dark ? 'Use the light theme' : 'Use the dark theme'"
             :title="dark ? 'Light theme' : 'Dark theme'"
-            @click="toggleTheme">
+            @click="toggleTheme(false)">
             <UiIcon :name="dark ? 'weather-sunny' : 'weather-night'" />
           </a>
           <a
@@ -129,6 +129,7 @@
 
 <script setup lang="ts">
 import { useShareLink } from "~/composables/useShareLink";
+import { useTheme } from "~/composables/useTheme";
 import { findSitePage } from "~/utils/pageMeta";
 
 const route = useRoute();
@@ -199,16 +200,21 @@ const MENU: Array<NavLeaf | NavGroup> = [
     items: [
       pageItem("/developer-output"),
       pageItem("/security"),
-      pageItem("/usernames"),
       pageItem("/leaderboard"),
       pageItem("/badges/list"),
       pageItem("/fuzz-test"),
-      pageItem("/api"),
-      pageItem("/repo-info"),
-      pageItem("/page-view"),
+      pageItem("/usernames"),
     ],
   },
 ];
+
+const isGroupActive = (entry: NavGroup) =>
+  entry.items.some((item) => route.path === item.to || (item.to !== "/" && route.path.startsWith(item.to + "/")));
+
+const scrolled = ref(false);
+const onScroll = () => {
+  scrolled.value = window.scrollY > 8;
+};
 
 // The mobile menu, and the dropdown opened by click (they also open on hover
 // on desktop). Both close when navigating, or clicking elsewhere.
@@ -232,8 +238,15 @@ const onDocumentClick = (event: MouseEvent) => {
     openDropdown.value = null;
   }
 };
-onMounted(() => document.addEventListener("click", onDocumentClick));
-onBeforeUnmount(() => document.removeEventListener("click", onDocumentClick));
+onMounted(() => {
+  document.addEventListener("click", onDocumentClick);
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+});
+onBeforeUnmount(() => {
+  document.removeEventListener("click", onDocumentClick);
+  window.removeEventListener("scroll", onScroll);
+});
 
 const paletteOpen = useState("command-palette-open", () => false);
 const shortcut = ref("Ctrl K");
@@ -246,29 +259,24 @@ onMounted(() => {
 // The URL holds the state of every page, so sharing it shares the view.
 const { copied, share } = useShareLink();
 
-// The theme follows the system, unless chosen here. The choice is stored, and
-// applied early by app.vue.
-const dark = ref(false);
+// The theme follows the system, unless chosen here. Shared across Navbar,
+// CommandPalette, and keyboard shortcuts.
+const { dark, syncFromDom, toggleTheme } = useTheme();
 onMounted(() => {
-  const theme = document.documentElement.dataset.theme;
-  dark.value = theme
-    ? theme === "dark"
-    : window.matchMedia("(prefers-color-scheme: dark)").matches;
+  syncFromDom();
 });
-const toggleTheme = () => {
-  dark.value = !dark.value;
-  const theme = dark.value ? "dark" : "light";
-  document.documentElement.dataset.theme = theme;
-  try {
-    localStorage.setItem("theme", theme);
-  } catch {}
-};
 </script>
 
 <style scoped>
 .site-header {
-  position: relative;
+  position: sticky;
+  top: 0;
+  transition: box-shadow 0.2s ease;
   z-index: 40;
+}
+
+.site-header.is-scrolled {
+  box-shadow: 0 4px 18px -6px rgba(18, 18, 22, 0.22);
 }
 
 .brand {

@@ -17,7 +17,7 @@
             aria-expanded="true"
             aria-controls="palette-results"
             :aria-activedescendant="results.length ? `palette-results-${active}` : undefined"
-            placeholder="Search pages, repositories, developers, CVE ids…"
+            placeholder="Search pages, repos, orgs, developers, badges, CVEs…"
             autocomplete="off"
             spellcheck="false"
             @keydown="onPaletteKeydown"
@@ -36,6 +36,7 @@
         <div class="palette-footer">
           <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
           <span><kbd>↵</kbd> open</span>
+          <span><kbd>/</kbd> search</span>
         </div>
       </div>
     </dialog>
@@ -51,7 +52,7 @@ const close = () => {
 };
 
 const { query, active, results, loadUsernames, select, onKeydown } =
-  useSiteSearch({ onSelect: close });
+  useSiteSearch({ onSelect: close, includeRecent: true, includeActions: true });
 
 const dialog = ref<HTMLDialogElement | null>(null);
 const input = ref<HTMLInputElement | null>(null);

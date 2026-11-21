@@ -45,11 +45,6 @@ pids="$pids $!"
 node scripts/derive/cve-summary.mjs public/cve &
 pids="$pids $!"
 
-if [ -d "$ROOT_DIR/importer/chromium" ]; then
-  node scripts/derive/dir-metadata.mjs &
-  pids="$pids $!"
-fi
-
 failed=0
 for pid in $pids; do
   wait "$pid" || failed=1

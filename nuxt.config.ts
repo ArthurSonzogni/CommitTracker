@@ -39,6 +39,9 @@ export default defineNuxtConfig({
   },
 
   // Crossfade between pages. Skipped when the user prefers reduced motion.
+  experimental: {
+    viewTransition: true,
+  },
   app: {
     viewTransition: true,
     head: {

@@ -1,7 +1,13 @@
 <template>
   <div class="container" ref="container">
     <div v-if="!data" class="skeleton accretion-skeleton" aria-hidden="true" />
-    <svg>
+    <ChartToolbar
+      v-if="data"
+      @export-png="exportSvgAsPng(svgEl, 'accretion')"
+      @export-svg="exportSvgAsSvg(svgEl, 'accretion')"
+      @export-csv="exportCsv"
+    />
+    <svg ref="svgEl">
       <g ref="content">
         <g ref="areas" />
         <g ref="milestonesGroup" />
@@ -27,6 +33,7 @@ import { area, stack, stackOffsetExpand, stackOffsetNone } from "d3-shape";
 import "d3-transition";
 import { useElementSize } from "~/composables/useElementSize";
 import { seriesColor } from "~/utils/palette";
+import { exportRowsAsCsv, exportSvgAsPng, exportSvgAsSvg } from "~/utils/chartExport";
 
 const props = defineProps({
   // { dates: string[], years: string[], lines: number[][] }
@@ -38,7 +45,22 @@ const props = defineProps({
 });
 
 const container = ref<HTMLElement | null>(null);
+const svgEl = ref<SVGSVGElement | null>(null);
 const { width: containerWidth, height: containerHeight } = useElementSize(container);
+
+const exportCsv = () => {
+  if (!props.data) return;
+  const { dates, years, lines: matrix } = props.data as {
+    dates: string[];
+    years: string[];
+    lines: number[][];
+  };
+  exportRowsAsCsv(
+    ["date", ...years],
+    dates.map((d, i) => [d, ...(matrix[i] ?? [])]),
+    "accretion",
+  );
+};
 const content = ref<SVGGElement | null>(null);
 const areas = ref<SVGGElement | null>(null);
 const labels = ref<SVGGElement | null>(null);

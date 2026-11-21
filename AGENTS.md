@@ -81,12 +81,12 @@ Run from inside `importer/` (scripts use paths like `../repositories.json5`,
   --since=<date>` refetches a range, e.g. to backfill the reviews.
 - `scripts/derive/` — projects emails → usernames → organizations,
   summaries, commits-per-hour, badges, developer-output, highlights, top bugs,
-  security, CVE summary, compacted treemaps, and dir metadata. Driven by
+  security, CVE summary, and compacted treemaps. Driven by
   `generate-derived-data.sh`, which runs `scripts/derive/data.mjs` first and
   then fans out downstream derivations in parallel (`badges.mjs`,
   `developer-output.mjs` + `og-developer-output.mjs`, `compact-treemap.mjs`,
   `developers.mjs`, `highlights.mjs`, `top-bugs.mjs`, `security.mjs`,
-  `cve-summary.mjs`, `dir-metadata.mjs`).
+  `cve-summary.mjs`).
 - `clean-derived-data.sh` strips derived files back to `emails/` +
   `emails.json` + `logins.json` before pushing the `data` branch (only raw
   data is stored).

@@ -2,7 +2,13 @@
   <div class="container" ref="container" align="center">
     <!-- Placeholder, until the first data arrives. -->
     <div v-if="!loaded" class="skeleton line-skeleton" aria-hidden="true" />
-    <svg>
+    <ChartToolbar
+      v-if="loaded"
+      @export-png="exportSvgAsPng(svgEl, 'chart')"
+      @export-svg="exportSvgAsSvg(svgEl, 'chart')"
+      @export-csv="exportCsv"
+    />
+    <svg ref="svgEl">
       <g ref="content">
         <g ref="milestonesGroup" />
         <g ref="endLabelsGroup" />
@@ -30,10 +36,14 @@ import "d3-transition";
 import {curveMonotoneX} from "d3-shape"
 import {curveLinear} from "d3-shape"
 import { chromeReleases } from "~/utils/chrome-releases";
+import { exportRowsAsCsv, exportSvgAsPng, exportSvgAsSvg } from "~/utils/chartExport";
 
 const { $color } = useNuxtApp();
 
 const container = ref<HTMLElement | null>(null);
+const svgEl = ref<SVGSVGElement | null>(null);
+const hiddenSeries = ref<Set<string>>(new Set());
+const hoveredLabel = ref<string | null>(null);
 const xAxis = ref<SVGGElement | null>(null);
 const yAxis = ref<SVGGElement | null>(null);
 const content = ref<SVGGElement | null>(null);
@@ -72,22 +82,96 @@ const props = defineProps({
 const formatValue = d => props.formatter ? props.formatter(d) : "" + d;
 const milestoneWidthCache = new Map<string, number>();
 
+const visibleSeries = computed<Data[]>(() => {
+  if (!props.data || props.data.length === 0) return [];
+  const list = props.data as Data[];
+  const visible = list.filter((s) => !hiddenSeries.value.has(s.label));
+  return visible.length ? visible : list;
+});
+
 const dateExtent = computed(() => {
-  if (!props.data || props.data.length === 0) return [new Date(), new Date()];
-  const allValues = (props.data as Data[]).map(e => e.values).flat();
+  const list = visibleSeries.value;
+  if (list.length === 0) return [new Date(), new Date()];
+  const allValues = list.map(e => e.values).flat();
   if (allValues.length === 0) return [new Date(), new Date()];
   return extent(allValues.map(d => d.x));
 });
 const patchExtent = computed(() => {
-  if (!props.data || props.data.length === 0) return [0, 0];
-  const allValues = (props.data as Data[]).map(e => e.values).flat();
+  const list = visibleSeries.value;
+  if (list.length === 0) return [0, 0];
+  const allValues = list.map(e => e.values).flat();
   if (allValues.length === 0) return [0, 0];
   return [0, max(allValues.map(d => d.y))];
 });
 
+const exportCsv = () => {
+  const list = visibleSeries.value;
+  if (!list.length) return;
+  const dateMap = new Map<string, Record<string, number | null>>();
+  for (const s of list) {
+    for (const pt of s.values) {
+      const key = pt.x instanceof Date ? pt.x.toISOString().slice(0, 10) : String(pt.x);
+      let row = dateMap.get(key);
+      if (!row) {
+        row = {};
+        dateMap.set(key, row);
+      }
+      row[s.label] = pt.y;
+    }
+  }
+  const dates = Array.from(dateMap.keys()).sort();
+  const headers = ["date", ...list.map((s) => s.label)];
+  const rows = dates.map((d) => [d, ...list.map((s) => dateMap.get(d)?.[s.label] ?? "")]);
+  exportRowsAsCsv(headers, rows, "line-chart");
+};
+
+const applyHoverHighlight = () => {
+  if (!content.value) return;
+  const target = hoveredLabel.value;
+  select(content.value)
+    .selectAll<SVGPathElement, Data>(".line")
+    .style("opacity", (d) => {
+      if (hiddenSeries.value.has(d.label)) return 0;
+      if (!target) return 1;
+      return d.label === target ? 1 : 0.15;
+    })
+    .attr("stroke-width", (d) => {
+      const base = d.strokeWidth || (d.dashed ? 2 : 1.75);
+      return target && d.label === target ? base + 0.9 : base;
+    });
+};
+
+const toggleSeries = (label: string) => {
+  const list = (props.data as Data[]) || [];
+  if (list.length <= 1) return;
+  const next = new Set(hiddenSeries.value);
+  if (next.has(label)) {
+    next.delete(label);
+  } else if (next.size < list.length - 1) {
+    next.add(label);
+  } else {
+    next.clear();
+  }
+  hiddenSeries.value = next;
+  render();
+};
+
+const isolateSeries = (label: string) => {
+  const list = (props.data as Data[]) || [];
+  if (list.length <= 1) return;
+  const allOthersHidden = list.every((s) => s.label === label || hiddenSeries.value.has(s.label));
+  if (allOthersHidden) {
+    hiddenSeries.value = new Set();
+  } else {
+    hiddenSeries.value = new Set(list.filter((s) => s.label !== label).map((s) => s.label));
+  }
+  render();
+};
+
 const render = () => {
   if (!props.data || props.data.length === 0) return;
   const seriesList = props.data as Data[];
+  const activeSeriesList = seriesList.filter((s) => !hiddenSeries.value.has(s.label));
   const margin = {
     top: 10,
     right: 32,
@@ -259,7 +343,7 @@ const render = () => {
       const bisectDate = bisector((d: Point) => d.x).left;
       const date = x.invert(pointer(event)[0] - margin.left);
 
-      const references = seriesList
+      const references = activeSeriesList
         .map(d => {
           const i = bisectDate(d.values, date);
           if (i <= 0 || i >= d.values.length || d.values[i].y === null) {
@@ -344,7 +428,7 @@ const render = () => {
 
   select(content.value)
     .selectAll(".line")
-    .data(seriesList, (d: Data) => d.label)
+    .data(activeSeriesList, (d: Data) => d.label)
     .join(
       enter => {
         const path = enter
@@ -458,14 +542,18 @@ const render = () => {
         .attr("opacity", 0.96);
     });
 
-  select(legend.value)
-    .selectAll(".legend")
+  const legendItems = select(legend.value)
+    .selectAll<SVGGElement, Data>(".legend")
     .data(seriesList, (d: Data) => (d.label + (d.extra_label || "")))
     .join(
       enter => {
         const group = enter
           .append("g")
-          .attr("class", "legend");
+          .attr("class", "legend")
+          .style("cursor", seriesList.length > 1 ? "pointer" : "default");
+
+        group.append("title")
+          .text(seriesList.length > 1 ? "Click to hide · Double-click to isolate" : "");
 
         if (props.animate) {
           group
@@ -474,10 +562,10 @@ const render = () => {
             .transition()
             .duration(500)
             .attr("transform", (d, i) => `translate(10, ${i * 19})`)
-            .attr("opacity", 1);
+            .attr("opacity", d => hiddenSeries.value.has(d.label) ? 0.35 : 1);
         } else {
           group
-            .attr("opacity", 1)
+            .attr("opacity", d => hiddenSeries.value.has(d.label) ? 0.35 : 1)
             .attr("transform", (d, i) => `translate(10, ${i * 19})`);
         }
 
@@ -498,27 +586,31 @@ const render = () => {
           .attr("font-size", "12px")
           .attr("font-weight", "bold")
           .style("fill", d => colorFor(d))
+          .style("text-decoration", d => hiddenSeries.value.has(d.label) ? "line-through" : null)
           .text(d => d.label + (d.extra_label || ""));
         return group;
       },
       update => {
+        update
+          .style("cursor", seriesList.length > 1 ? "pointer" : "default");
         update.select("line.legend-swatch")
           .attr("stroke-dasharray", d => d.dashed ? "4 2.5" : null)
           .style("stroke", d => colorFor(d));
         update.select("text")
           .style("fill", d => colorFor(d))
+          .style("text-decoration", d => hiddenSeries.value.has(d.label) ? "line-through" : null)
           .text(d => d.label + (d.extra_label || ""));
         if (!props.animate) {
           return update
             .interrupt()
             .attr("transform", (d, i) => `translate(10, ${i * 19})`)
-            .attr("opacity", 1);
+            .attr("opacity", d => hiddenSeries.value.has(d.label) ? 0.35 : 1);
         }
         update
           .transition()
           .duration(500)
           .attr("transform", (d, i) => `translate(10, ${i * 19})`)
-          .attr("opacity", 1);
+          .attr("opacity", d => hiddenSeries.value.has(d.label) ? 0.35 : 1);
         return update;
       },
       exit => {
@@ -533,6 +625,26 @@ const render = () => {
           .remove();
       }
     );
+
+  legendItems
+    .on("pointerenter", (_event, d) => {
+      if (seriesList.length <= 1 || hiddenSeries.value.has(d.label)) return;
+      hoveredLabel.value = d.label;
+      applyHoverHighlight();
+    })
+    .on("pointerleave", () => {
+      if (!hoveredLabel.value) return;
+      hoveredLabel.value = null;
+      applyHoverHighlight();
+    })
+    .on("click", (event, d) => {
+      event.stopPropagation();
+      toggleSeries(d.label);
+    })
+    .on("dblclick", (event, d) => {
+      event.stopPropagation();
+      isolateSeries(d.label);
+    });
 
 };
 

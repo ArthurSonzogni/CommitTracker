@@ -40,6 +40,11 @@ export function useShareLink(options: UseShareLinkOptions = {}): {
     try {
       await navigator.clipboard.writeText(url);
       copied.value = true;
+      showToast({
+        message: "Link copied",
+        type: "is-compact",
+        duration: options.duration ?? 1800,
+      });
       clearTimeout(copiedTimer);
       copiedTimer = setTimeout(() => {
         copied.value = false;

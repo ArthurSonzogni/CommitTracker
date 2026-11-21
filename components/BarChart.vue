@@ -1,5 +1,11 @@
 <template>
-  <div>
+  <div class="bar-chart-wrap">
+    <ChartToolbar
+      v-if="loaded"
+      :has-svg="false"
+      :has-csv="true"
+      @export-csv="exportCsv"
+    />
     <div class="line">
       <div class="left"><strong>{{timeLabel}}</strong></div>
       <div class="right"><strong>{{valueLabel}}</strong></div>
@@ -29,6 +35,7 @@ import {format} from "d3-format";
 import {interpolate} from "d3-interpolate";
 import {select} from "d3-selection";
 import "d3-transition";
+import { exportRowsAsCsv } from "~/utils/chartExport";
 
 const props = defineProps({
   timeLabel: {
@@ -53,6 +60,24 @@ const histogram = ref(null);
 
 const formatter_wrap = ref(null);
 const loaded = ref(false);
+
+const exportCsv = () => {
+  if (!props.data?.length) return;
+  const labels = Array.from(
+    new Set(props.data.flatMap((row: any) => (row.values || []).map((v: any) => v.label))),
+  );
+  const headers = [props.timeLabel || "period", "total", ...labels];
+  const rows = props.data.map((row: any) => {
+    const byLabel = new Map<string, number>();
+    let total = 0;
+    for (const v of row.values || []) {
+      byLabel.set(v.label, v.value);
+      total += v.value;
+    }
+    return [row.label, total, ...labels.map((l) => byLabel.get(l) ?? 0)];
+  });
+  exportRowsAsCsv(headers, rows, "bar-chart");
+};
 
 const step = async () => {
   if (!props.data || !histogram.value || !formatter_wrap.value) {
@@ -285,6 +310,10 @@ onMounted(() => {
   gap: 5px;
   padding: 1px;
   overflow: hidden;
+}
+
+.bar-chart-wrap {
+  position: relative;
 }
 
 .left,

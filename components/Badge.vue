@@ -12,7 +12,7 @@
     :title="description"
     >
     <div class="card_inner"
-         :style="{ transform }"
+         :style="{ transform, viewTransitionName: isTransitionTarget ? 'badge-hero' : undefined }"
          :class="{ 'is-hovered': mouse_hover }"
          >
 
@@ -23,8 +23,10 @@
 </template>
 
 <script setup lang="ts">
+import { useViewTransitionTarget } from "~/composables/useViewTransitionTarget";
 
 const router = useRouter();
+const { activeBadge } = useViewTransitionTarget();
 
 const props = defineProps({
   developer: { type: String },
@@ -44,7 +46,18 @@ const mouse_position = ref({ x: 0, y: 0 });
 const default_transform = ``;
 const transform = ref(default_transform);
 
-const handleClick = () => {
+const isTransitionTarget = computed(
+  () => props.hover && Boolean(props.name) && activeBadge.value === props.name,
+);
+
+const handleClick = async () => {
+  if (props.name) {
+    activeBadge.value = props.name;
+  }
+  transform.value = default_transform;
+  mouse_hover.value = false;
+  await nextTick();
+
   const params = {
     path: '/badges/details',
     query: {

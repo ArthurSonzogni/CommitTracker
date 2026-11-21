@@ -225,6 +225,26 @@ watch([time, repositories], () => {
   updateSVG();
 });
 
+const timeSteps = (() => {
+  const years: string[] = [];
+  for (let y = new Date().getFullYear(); y >= 2017; --y) years.push(String(y));
+  return ["forever", "1y", "6m", "3m", "1m", ...years];
+})();
+
+const onCommunitiesKeydown = (event: KeyboardEvent) => {
+  if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
+  const target = event.target as HTMLElement | null;
+  if (target && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))) return;
+  if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+  const idx = timeSteps.indexOf(String(time.value));
+  if (idx === -1) return;
+  const nextIdx = event.key === "ArrowLeft" ? idx - 1 : idx + 1;
+  if (nextIdx >= 0 && nextIdx < timeSteps.length) {
+    event.preventDefault();
+    time.value = timeSteps[nextIdx];
+  }
+};
+
 onMounted(() => {
   // Replace legacy time ranges (e.g. 1w, 1y+1y) in the URL.
   if (typeof rawInitialTime === "string" && rawInitialTime !== time.value) {
@@ -236,6 +256,10 @@ onMounted(() => {
     });
   }
   updateSVG();
+  window.addEventListener("keydown", onCommunitiesKeydown);
+});
+onBeforeUnmount(() => {
+  window.removeEventListener("keydown", onCommunitiesKeydown);
 });
 </script>
 

@@ -1,13 +1,12 @@
 import repositories_json from "~/utils/repositories";
 import site_pages from "../utils/site-pages.json";
-import {
-  componentPath,
-  fetchComponentsDataset,
-  teamPath,
-} from "../utils/componentsData";
+import { useRecentVisits } from "~/composables/useRecentVisits";
+import { useShareLink } from "~/composables/useShareLink";
+import { useTheme } from "~/composables/useTheme";
 
-// Search over the site's pages, repositories, Chromium components & teams,
-// developers and CVE ids. Shared by the command palette and the home page search bar.
+// Search over the site's pages, repositories, organizations, badges,
+// developers (Chromium + sharded all-repo index), CVE ids, recent visits,
+// and quick actions. Shared by the command palette and the home page search bar.
 
 export type SearchItem = {
   group: string;
@@ -16,6 +15,7 @@ export type SearchItem = {
   hint?: string;
   icon: string;
   path: string;
+  action?: () => void;
 };
 
 type IndexedSearchItem = {
@@ -33,7 +33,7 @@ const indexedPages: IndexedSearchItem[] = site_pages.map(page => {
     icon: page.icon,
     path: page.path,
   };
-  return { item, lower: page.label.toLowerCase() };
+  return { item, lower: page.label.toLowerCase(), altLower: page.hint?.toLowerCase() };
 });
 
 const indexedRepositories: IndexedSearchItem[] = repositories_json.map(repo => {
@@ -56,7 +56,7 @@ const scoreLower = (lowerText: string, q: string): number => {
   if (index === -1) return -1;
   if (index === 0) return 0;
   const prev = lowerText[index - 1];
-  if (prev === ">" || prev === "/" || prev === "-" || prev === "_" || prev === "@") {
+  if (prev === ">" || prev === "/" || prev === "-" || prev === "_" || prev === "@" || prev === " ") {
     return 0.4 + index / 200;
   }
   return 1 + index / 100;
@@ -78,26 +78,133 @@ const matching = (entries: IndexedSearchItem[], q: string, limit: number): Searc
   return hits.slice(0, limit).map(h => h.item);
 };
 
-const ENABLE_COMPONENTS_SEARCH = false;
-let usernamesRequest: Promise<string[]> | null = null;
+const shardOf = (ch: string) => (/^[a-z0-9]$/.test(ch) ? ch : "_");
 
-export const useSiteSearch = (options: { onSelect?: () => void; emptyResults?: number } = {}) => {
+let usernamesRequest: Promise<string[]> | null = null;
+let orgsRequest: Promise<string[]> | null = null;
+let badgesRequest: Promise<Array<{ name: string; description?: string }>> | null = null;
+const shardRequests = new Map<string, Promise<string[]>>();
+
+export const useSiteSearch = (options: {
+  onSelect?: () => void;
+  emptyResults?: number;
+  includeRecent?: boolean;
+  includeActions?: boolean;
+} = {}) => {
+  const route = useRoute();
   const query = ref("");
   const active = ref(0);
   const usernames = useState<string[]>("search-usernames", () => []);
-  const indexedComponents = useState<IndexedSearchItem[]>("search-components", () => []);
-  const indexedTeams = useState<IndexedSearchItem[]>("search-teams", () => []);
+  const shardDevelopers = useState<Record<string, string[]>>("search-dev-shards", () => ({}));
+  const indexedOrgs = useState<IndexedSearchItem[]>("search-orgs", () => []);
+  const indexedBadges = useState<IndexedSearchItem[]>("search-badges", () => []);
+
+  const { recent, loadRecent } = useRecentVisits();
+  const { dark, toggleTheme } = useTheme();
+  const { share } = useShareLink();
+
+  const quickActions = computed<IndexedSearchItem[]>(() => {
+    if (!options.includeActions) return [];
+    const actions: IndexedSearchItem[] = [
+      {
+        item: {
+          group: "Actions",
+          key: "action:theme",
+          label: dark.value ? "Switch to light theme" : "Switch to dark theme",
+          hint: "Appearance",
+          icon: dark.value ? "weather-sunny" : "weather-night",
+          path: "",
+          action: () => toggleTheme(true),
+        },
+        lower: dark.value ? "switch to light theme" : "switch to dark theme",
+        altLower: "theme dark light mode toggle",
+      },
+      {
+        item: {
+          group: "Actions",
+          key: "action:share",
+          label: "Copy link to this page",
+          hint: "Share URL",
+          icon: "share-variant",
+          path: "",
+          action: () => { share(); },
+        },
+        lower: "copy link to this page",
+        altLower: "share url clipboard",
+      },
+    ];
+
+    const devMatch = route.path.match(/^\/developers\/([^/]+)$/);
+    if (devMatch) {
+      const dev = decodeURIComponent(devMatch[1]);
+      const year = new Date().getFullYear();
+      actions.unshift({
+        item: {
+          group: "Actions",
+          key: "action:year-in-review",
+          label: `${dev} in ${year}`,
+          hint: "Year in review",
+          icon: "calendar",
+          path: `/developers/${encodeURIComponent(dev)}/${year}`,
+        },
+        lower: `${dev.toLowerCase()} year in review ${year}`,
+        altLower: "year in review wrapped summary",
+      });
+    }
+    return actions;
+  });
+
+  // Lazily fetch the developer shard matching the first character of the query
+  // so developers from Firefox, WebKit, LLVM, Servo, Ladybird, etc. are searchable too.
+  const ensureShard = async (shard: string) => {
+    if (shardDevelopers.value[shard]) return;
+    let req = shardRequests.get(shard);
+    if (!req) {
+      req = fetch(`/data/developers/${shard}.json`)
+        .then((res) => (res.ok ? res.json() : {}))
+        .then((obj) => (obj && typeof obj === "object" ? Object.keys(obj) : []))
+        .catch(() => []);
+      shardRequests.set(shard, req);
+    }
+    const keys = await req;
+    if (keys.length && !shardDevelopers.value[shard]) {
+      shardDevelopers.value = { ...shardDevelopers.value, [shard]: keys };
+    }
+  };
+
+  watch(query, (val) => {
+    const q = val.trim().toLowerCase();
+    if (q.length >= 2) {
+      ensureShard(shardOf(q[0]));
+    }
+  });
 
   const results = computed<SearchItem[]>(() => {
     const q = query.value.trim().toLowerCase();
     if (!q) {
-      return defaultPages.slice(0, options.emptyResults ?? 9);
+      const out: SearchItem[] = [];
+      if (options.includeRecent && recent.value.length > 0) {
+        const recentItems = recent.value
+          .filter((r) => r.path !== route.path)
+          .slice(0, 4)
+          .map((r) => ({ ...r, group: "Recent" }));
+        out.push(...recentItems);
+      }
+      out.push(...defaultPages.slice(0, options.emptyResults ?? 9));
+      if (options.includeActions) {
+        out.push(...quickActions.value.map((a) => a.item));
+      }
+      return out;
     }
 
     const out = [
       ...matching(indexedPages, q, 5),
       ...matching(indexedRepositories, q, 3),
     ];
+
+    if (options.includeActions) {
+      out.push(...matching(quickActions.value, q, 3));
+    }
 
     const cve = q.replace(/^cve-/, "").match(/^\d{4}-\d+$/);
     if (cve) {
@@ -110,29 +217,33 @@ export const useSiteSearch = (options: { onSelect?: () => void; emptyResults?: n
       });
     }
 
-    if (ENABLE_COMPONENTS_SEARCH && q.length >= 2) {
-      const qNormComp = q.replace(/\//g, ">");
-      if (indexedComponents.value.length > 0) {
-        out.push(...matching(indexedComponents.value, qNormComp, 5));
-      }
-      if (indexedTeams.value.length > 0) {
-        out.push(...matching(indexedTeams.value, q, 4));
-      }
+    if (q.length >= 2 && indexedOrgs.value.length > 0) {
+      out.push(...matching(indexedOrgs.value, q, 4));
     }
 
-    if (q.length >= 2 && usernames.value.length > 0) {
+    if (q.length >= 2) {
+      const shard = shardOf(q[0]);
+      const shardList = shardDevelopers.value[shard] ?? [];
+      const seen = new Set<string>();
       const scoredDevs: { name: string; s: number }[] = [];
-      const list = usernames.value;
-      for (let i = 0; i < list.length; i++) {
-        const name = list[i];
-        const s = scoreLower(name.toLowerCase(), q);
-        if (s >= 0) {
-          scoredDevs.push({ name, s });
+
+      const scanList = (list: string[]) => {
+        for (let i = 0; i < list.length; i++) {
+          const name = list[i];
+          if (seen.has(name)) continue;
+          const s = scoreLower(name.toLowerCase(), q);
+          if (s >= 0) {
+            seen.add(name);
+            scoredDevs.push({ name, s });
+          }
         }
-      }
+      };
+
+      scanList(usernames.value);
+      scanList(shardList);
+
       scoredDevs.sort((a, b) => a.s - b.s || a.name.length - b.name.length);
-      const topDevs = scoredDevs.slice(0, 5);
-      for (const { name } of topDevs) {
+      for (const { name } of scoredDevs.slice(0, 5)) {
         out.push({
           group: "Developers",
           key: "dev:" + name,
@@ -143,6 +254,11 @@ export const useSiteSearch = (options: { onSelect?: () => void; emptyResults?: n
         });
       }
     }
+
+    if (q.length >= 2 && indexedBadges.value.length > 0) {
+      out.push(...matching(indexedBadges.value, q, 3));
+    }
+
     return out;
   });
 
@@ -150,77 +266,84 @@ export const useSiteSearch = (options: { onSelect?: () => void; emptyResults?: n
     active.value = 0;
   });
 
-  const loadComponentsAndTeams = async () => {
-    if (!ENABLE_COMPONENTS_SEARCH || indexedComponents.value.length > 0) return;
-    try {
-      const ds = await fetchComponentsDataset();
-      indexedComponents.value = ds.components.map((c) => {
-        const leaf = c.name.split(">").pop() || c.name;
-        const hintParts: string[] = [];
-        if (c.lines > 0) {
-          hintParts.push(
-            c.lines >= 1e6
-              ? `${(c.lines / 1e6).toFixed(1)}M LoC`
-              : `${Math.max(1, Math.round(c.lines / 1e3))}k LoC`,
-          );
-        }
-        if (c.cveTotal > 0) hintParts.push(`${c.cveTotal} CVEs`);
-        else if (c.primaryTeam) hintParts.push(c.primaryTeam);
-
-        return {
-          item: {
-            group: "Components",
-            key: "comp:" + c.name,
-            label: c.name,
-            hint: hintParts.join(" · ") || "Component dossier",
-            icon: "sitemap",
-            path: componentPath(c.name),
-          },
-          lower: leaf.toLowerCase(),
-          altLower: c.name.toLowerCase(),
-        };
-      });
-
-      indexedTeams.value = ds.teams.map((t) => ({
-        item: {
-          group: "Teams",
-          key: "team:" + t.email,
-          label: t.email,
-          hint: `${t.componentCount} ${t.componentCount === 1 ? "component" : "components"}`,
-          icon: "account-group",
-          path: teamPath(t.email),
-        },
-        lower: t.email.toLowerCase(),
-      }));
-    } catch {}
-  };
-
-  // Lazy-loads developers plus DIR_METADATA components and teams on search focus.
+  // Lazy-loads Chromium developers, organizations, badges, and recent visits on focus.
   const loadUsernames = async () => {
-    loadComponentsAndTeams();
-    if (usernames.value.length > 0) return;
-    if (!usernamesRequest) {
-      usernamesRequest = (async () => {
-        const response = await fetch("/data/chromium/usernames.json");
-        if (!response.ok) {
-          throw new Error(`Failed to fetch usernames: ${response.status}`);
-        }
-        return await response.json();
-      })().catch((err) => {
-        usernamesRequest = null;
-        throw err;
+    if (options.includeRecent) loadRecent();
+
+    if (usernames.value.length === 0) {
+      if (!usernamesRequest) {
+        usernamesRequest = fetch("/data/chromium/usernames.json")
+          .then((r) => (r.ok ? r.json() : []))
+          .catch(() => {
+            usernamesRequest = null;
+            return [];
+          });
+      }
+      usernamesRequest.then((loaded) => {
+        if (Array.isArray(loaded) && loaded.length) usernames.value = loaded;
       });
     }
-    try {
-      const loaded = await usernamesRequest;
-      if (Array.isArray(loaded)) {
-        usernames.value = loaded;
+
+    if (indexedOrgs.value.length === 0) {
+      if (!orgsRequest) {
+        orgsRequest = fetch("/data/organizations.json")
+          .then((r) => (r.ok ? r.json() : []))
+          .catch(() => {
+            orgsRequest = null;
+            return [];
+          });
       }
-    } catch {}
+      orgsRequest.then((orgs) => {
+        if (Array.isArray(orgs) && orgs.length) {
+          indexedOrgs.value = orgs.map((org) => ({
+            item: {
+              group: "Organizations",
+              key: "org:" + org,
+              label: org,
+              hint: "Commits",
+              icon: "domain",
+              path: `/organizations/commits?organizations=${encodeURIComponent(org)}`,
+            },
+            lower: org.toLowerCase(),
+          }));
+        }
+      });
+    }
+
+    if (indexedBadges.value.length === 0) {
+      if (!badgesRequest) {
+        badgesRequest = fetch("/badges.json")
+          .then((r) => (r.ok ? r.json() : []))
+          .catch(() => {
+            badgesRequest = null;
+            return [];
+          });
+      }
+      badgesRequest.then((badges) => {
+        if (Array.isArray(badges) && badges.length) {
+          indexedBadges.value = badges.map((b) => ({
+            item: {
+              group: "Badges",
+              key: "badge:" + b.name,
+              label: b.name,
+              hint: "Badge",
+              icon: "certificate",
+              path: `/badges/details?badge=${encodeURIComponent(b.name)}`,
+            },
+            lower: b.name.toLowerCase(),
+            altLower: b.description?.toLowerCase(),
+          }));
+        }
+      });
+    }
   };
 
   const select = (item: SearchItem) => {
     options.onSelect?.();
+    if (item.action) {
+      item.action();
+      return;
+    }
     navigateTo(item.path);
   };
 
@@ -240,5 +363,5 @@ export const useSiteSearch = (options: { onSelect?: () => void; emptyResults?: n
     return true;
   };
 
-  return { query, active, results, loadUsernames, loadComponentsAndTeams, select, onKeydown };
+  return { query, active, results, loadUsernames, select, onKeydown };
 };

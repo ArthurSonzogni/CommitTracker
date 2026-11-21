@@ -280,6 +280,21 @@ const total = computed(() => inYear.value.length);
 const firstYear = computed(() => Math.min(...Object.values(entry.value ?? {}).map(r => r[2])));
 const lastYear = computed(() => Math.max(...Object.values(entry.value ?? {}).map(r => r[3])));
 
+const onYearKeydown = (event: KeyboardEvent) => {
+  if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
+  const target = event.target as HTMLElement | null;
+  if (target && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))) return;
+  if (event.key === "ArrowLeft" && year.value > firstYear.value) {
+    event.preventDefault();
+    navigateTo(yearLink(year.value - 1));
+  } else if (event.key === "ArrowRight" && year.value < lastYear.value) {
+    event.preventDefault();
+    navigateTo(yearLink(year.value + 1));
+  }
+};
+onMounted(() => window.addEventListener("keydown", onYearKeydown));
+onBeforeUnmount(() => window.removeEventListener("keydown", onYearKeydown));
+
 const sum = (list: YearRecord[], key: "additions" | "deletions" | "files") =>
   list.reduce((acc, r) => acc + (r[key] ?? 0), 0);
 

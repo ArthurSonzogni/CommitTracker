@@ -25,25 +25,28 @@
             <p>Commits and reviews of any developer, over time, by hour, and with their peers.</p>
           </div>
           <div class="bento-preview">
-            <svg v-if="topDevelopers.length" viewBox="0 0 300 140" preserveAspectRatio="none" aria-hidden="true">
-              <path
-                v-for="(developer, index) in topDevelopers"
-                :key="developer.name"
-                :d="developer.path"
-                fill="none"
-                :stroke="categoricalPalette[index]"
-                stroke-width="2"
-                vector-effect="non-scaling-stroke"
-                stroke-linejoin="round"
-              />
-            </svg>
-            <ul class="bento-legend">
-              <li v-for="(developer, index) in topDevelopers" :key="developer.name">
-                <span class="dot" :style="{ background: categoricalPalette[index] }"></span>
-                {{ developer.name }}
-              </li>
-            </ul>
-            <p class="bento-caption">Commits per year of the top authors of {{ latestYear }}</p>
+            <template v-if="topDevelopers.length">
+              <svg viewBox="0 0 300 140" preserveAspectRatio="none" aria-hidden="true">
+                <path
+                  v-for="(developer, index) in topDevelopers"
+                  :key="developer.name"
+                  :d="developer.path"
+                  fill="none"
+                  :stroke="categoricalPalette[index]"
+                  stroke-width="2"
+                  vector-effect="non-scaling-stroke"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <ul class="bento-legend">
+                <li v-for="(developer, index) in topDevelopers" :key="developer.name">
+                  <span class="dot" :style="{ background: categoricalPalette[index] }"></span>
+                  {{ developer.name }}
+                </li>
+              </ul>
+              <p class="bento-caption">Commits per year of the top authors of {{ latestYear }}</p>
+            </template>
+            <div v-else class="skeleton bento-skeleton is-tall" aria-hidden="true" />
           </div>
         </NuxtLink>
 
@@ -56,21 +59,24 @@
             <p>Commits, contributors and newcomers of {{ repositoryCount }} repositories.</p>
           </div>
           <div class="bento-preview">
-            <svg v-if="yearlyCommits.length" viewBox="0 0 300 120" preserveAspectRatio="none" aria-hidden="true">
-              <rect
-                v-for="(bar, index) in yearlyCommits"
-                :key="bar.year"
-                :x="index * (300 / yearlyCommits.length) + 1"
-                :y="120 - bar.height"
-                :width="300 / yearlyCommits.length - 2"
-                :height="bar.height"
-                rx="1.5"
-                class="bar"
-              />
-            </svg>
-            <p class="bento-caption">
-              Chromium commits per year<span v-if="firstYear"> · {{ firstYear }}–{{ latestYear }}</span>
-            </p>
+            <template v-if="yearlyCommits.length">
+              <svg viewBox="0 0 300 120" preserveAspectRatio="none" aria-hidden="true">
+                <rect
+                  v-for="(bar, index) in yearlyCommits"
+                  :key="bar.year"
+                  :x="index * (300 / yearlyCommits.length) + 1"
+                  :y="120 - bar.height"
+                  :width="300 / yearlyCommits.length - 2"
+                  :height="bar.height"
+                  rx="1.5"
+                  class="bar"
+                />
+              </svg>
+              <p class="bento-caption">
+                Chromium commits per year<span v-if="firstYear"> · {{ firstYear }}–{{ latestYear }}</span>
+              </p>
+            </template>
+            <div v-else class="skeleton bento-skeleton" aria-hidden="true" />
           </div>
         </NuxtLink>
 
@@ -151,6 +157,18 @@ const latestYear = ref("");
 
 const moreLinks = [
   {
+    to: "/security",
+    label: "Security",
+    icon: "shield-check",
+    description: "Spanification, MiraclePtr, dangling pointers, Rust adoption, and CHECK hardening.",
+  },
+  {
+    to: "/developer-output",
+    label: "Developer output",
+    icon: "trending-up",
+    description: "Are developers landing more than usual? Against a year earlier and the usual years.",
+  },
+  {
     to: "/accretion",
     label: "Code accretion",
     icon: "layers",
@@ -169,22 +187,28 @@ const moreLinks = [
     description: "Security vulnerabilities, severities, components, and rewards.",
   },
   {
-    to: "/developer-output",
-    label: "Developer output",
-    icon: "trending-up",
-    description: "Are developers landing more than usual? Against a year earlier and the usual years.",
-  },
-  {
     to: "/leaderboard",
     label: "Leaderboard",
     icon: "trophy",
-    description: "Most active authors and reviewers by month, quarter, or year.",
+    description: "Most active authors, reviewers, and biggest bugs by period.",
   },
   {
     to: "/badges/list",
     label: "Badges",
     icon: "certificate",
     description: "Achievements awarded to contributors from their commit history.",
+  },
+  {
+    to: "/fuzz-test",
+    label: "Fuzz test",
+    icon: "bug",
+    description: "The fuzzers of Chromium and their evolution over time.",
+  },
+  {
+    to: "/pulse",
+    label: "Repositories heatmap",
+    icon: "pulse",
+    description: "Daily commit cadence across web platform repositories.",
   },
 ];
 
@@ -375,6 +399,16 @@ onMounted(async () => {
   display: block;
   height: 7rem;
   width: 100%;
+}
+
+.bento-skeleton {
+  height: 7rem;
+  width: 100%;
+}
+
+.bento-skeleton.is-tall {
+  flex: 1;
+  min-height: 12.5rem;
 }
 
 .is-individuals .bento-preview svg {
