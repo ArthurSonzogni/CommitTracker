@@ -16,14 +16,9 @@
 
 import fs from 'fs';
 import path from 'path';
+import { shardOf } from './shard.mjs';
 
 const dir = process.argv[2] || 'public/data';
-
-// The shard of a username. Kept in sync with pages/developers/[name]/index.vue.
-const shardOf = username => {
-  const c = username[0].toLowerCase();
-  return /[a-z0-9]/.test(c) ? c : '_';
-};
 
 const readJson = file => fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : {};
 

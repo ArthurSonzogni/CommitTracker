@@ -27,13 +27,16 @@ async function loadDeveloperCommits(
   try {
     const encodedRepo = encodeURIComponent(repo);
     const encodedDev = encodeURIComponent(developer);
+    const isJsonResponse = (res: Response) =>
+      res.ok && (res.headers.get("content-type")?.includes("json") ?? false);
+
     // An email is a username in the GitHub repositories, when it has no GitHub
     // login. Otherwise, it is one of the emails of a username.
     let response = await fetch(`/data/${encodedRepo}/usernames/${encodedDev}.json`);
-    if (!response.ok && developer.includes("@")) {
+    if (!isJsonResponse(response) && developer.includes("@")) {
       response = await fetch(`/data/${encodedRepo}/emails/${encodedDev}.json`);
     }
-    if (!response.ok) {
+    if (!isJsonResponse(response)) {
       cache.delete(cacheKey);
       return { developer, data: [] };
     }
@@ -94,7 +97,9 @@ export const chromiumDataAll = (
 ): Promise<DeveloperCommitsEntry[]> =>
   Promise.all((users || []).map(user => chromiumData(repo, user)));
 
-export default defineNuxtPlugin(nuxtApp => {
-  nuxtApp.provide("chromiumData", chromiumData);
-  nuxtApp.provide("chromiumDataAll", chromiumDataAll);
-});
+export default defineNuxtPlugin(() => ({
+  provide: {
+    chromiumData,
+    chromiumDataAll,
+  },
+}));

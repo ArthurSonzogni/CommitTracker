@@ -43,7 +43,7 @@ import "d3-transition";
 import {transition} from "d3-transition";
 import {format} from "d3-format";
 import type { PropType } from "vue";
-import repositories_json from '../public/data/repositories.json'
+import repositories_json from '~/utils/repositories'
 import MILESTONES from '../utils/milestones.json'
 import { getColormap } from '~/utils/colormap'
 import { callTreemapWorker } from '~/utils/treemapWorkerClient'

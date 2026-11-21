@@ -184,7 +184,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import repositories_raw from '../public/data/repositories.json';
+import repositories_raw from '~/utils/repositories';
 import { useUrlState, urlCodecs } from '~/composables/useUrlState';
 
 const repositories = ref(structuredClone(repositories_raw));

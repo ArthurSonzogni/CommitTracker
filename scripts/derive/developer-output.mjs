@@ -66,10 +66,14 @@
 // size of the commits of the people who land that many.
 
 import fs from "fs/promises";
-import JSON5 from "json5";
-import { loadOrganizations } from "./organizations.mjs";
-import { canonicalEmails, usernameOfEmail } from "./usernames.mjs";
-import { COMMIT_FLAGS } from "./parse_commit_message.mjs";
+import path from "path";
+import { loadOrganizations } from "../../importer/organizations.mjs";
+import { loadRepositories } from "../../importer/repositories.mjs";
+import { canonicalEmails, usernameOfEmail } from "../../importer/usernames.mjs";
+import { COMMIT_FLAGS } from "../../importer/parse_commit_message.mjs";
+import { REPO_ROOT } from "./shard.mjs";
+
+const DATA_DIR = path.join(REPO_ROOT, "public", "data");
 
 const MSG_EXCLUDE = COMMIT_FLAGS.REVERT | COMMIT_FLAGS.ROLL;
 const BYPASS_MASK = COMMIT_FLAGS.NO_TRY | COMMIT_FLAGS.NO_PRESUBMIT |
@@ -88,7 +92,7 @@ const SIZE_QUANTILES = [0.1, 0.25, 0.5, 0.75, 0.9];
 const TINY_COMMIT = 5;
 const FIRST_PERCENTILE_YEAR = 2016;
 
-const repositories = JSON5.parse(await fs.readFile("../repositories.json5", "utf8"));
+const repositories = await loadRepositories();
 
 const { getOrganization } = await loadOrganizations();
 
@@ -156,7 +160,7 @@ const deriveRepository = async repository => {
     byOrg.set(org, (byOrg.get(org) || 0) + 1);
   };
 
-  const repositoryDir = `../public/data/${repository.dirname}`;
+  const repositoryDir = path.join(DATA_DIR, repository.dirname);
   const emails = await fs.readFile(`${repositoryDir}/emails.json`, "utf8").then(JSON.parse, () => null);
   if (!emails) return null;
   const { canonical } = await canonicalEmails(repository, repositoryDir, emails);
@@ -584,7 +588,7 @@ const people = r => r.groups[0].cohort.n[M - 1] ?? 0;
 const recentCommits = r => r.groups[0].commits.slice(-12).reduce((a, b) => a + b, 0);
 output.sort((a, b) => (people(b) - people(a)) || (recentCommits(b) - recentCommits(a)));
 
-await fs.writeFile("../public/data/developer-output.json", JSON.stringify({
+await fs.writeFile(path.join(DATA_DIR, "developer-output.json"), JSON.stringify({
   months,
   window: WINDOW,
   min_window: MIN_WINDOW,

@@ -10,6 +10,7 @@
     "dev": "node scripts/dev.mjs",
     "generate": "node scripts/generate.mjs",
     "preview": "nuxt preview",
+    "typecheck": "nuxt typecheck",
     "test:interactions": "node scripts/test-interactions.mjs .output/public",
     "postinstall": "nuxt prepare"
   },
@@ -31,8 +32,6 @@
     "d3-selection": "^3.0.0",
     "d3-shape": "^3.2.0",
     "d3-transition": "^3.0.1",
-    "human-date": "^1.4.0",
-    "humanize": "^0.0.9",
     "humanize-duration": "^3.32.1",
     "jstat": "^1.9.6",
     "nuxt": "^4.6.2",
@@ -40,6 +39,22 @@
     "vue-router": "^4.4.5"
   },
   "devDependencies": {
-    "subset-font": "^2.9.0"
+    "@types/d3-array": "^3.2.2",
+    "@types/d3-axis": "^3.0.6",
+    "@types/d3-color": "^3.1.3",
+    "@types/d3-ease": "^3.0.2",
+    "@types/d3-format": "^3.0.4",
+    "@types/d3-hierarchy": "^3.1.7",
+    "@types/d3-interpolate": "^3.0.4",
+    "@types/d3-path": "^3.1.1",
+    "@types/d3-sankey": "^0.12.5",
+    "@types/d3-scale": "^4.0.9",
+    "@types/d3-scale-chromatic": "^3.1.0",
+    "@types/d3-selection": "^3.0.12",
+    "@types/d3-shape": "^3.2.0",
+    "@types/d3-transition": "^3.0.9",
+    "subset-font": "^2.9.0",
+    "typescript": "^6.0.3",
+    "vue-tsc": "^3.3.14"
   }
 }

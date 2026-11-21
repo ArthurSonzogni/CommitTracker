@@ -70,8 +70,8 @@ const inner = computed(() => ({
 // The selected and hovered developers last, drawn above the others.
 const points = computed(() => props.developers
   .filter(d => d.breadth && d.commits)
-  .sort((a, b) => (props.selected.includes(a.username) + (hovered.value === a.username ? 2 : 0)) -
-    (props.selected.includes(b.username) + (hovered.value === b.username ? 2 : 0))));
+  .sort((a, b) => ((props.selected.includes(a.username) ? 1 : 0) + (hovered.value === a.username ? 2 : 0)) -
+    ((props.selected.includes(b.username) ? 1 : 0) + (hovered.value === b.username ? 2 : 0))));
 // Both logarithmic: a few developers spread over hundreds of components.
 const x = computed(() => scaleLog()
   .domain([1, Math.max(2, ...points.value.map(p => p.breadth))]).nice()

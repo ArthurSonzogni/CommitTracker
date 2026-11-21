@@ -31,7 +31,7 @@
 
 <script setup lang="ts">
 import type { PropType } from "vue";
-import organizationsData from "../public/data/organizations.json";
+import organizationsData from "~/utils/organizations";
 
 const AVAILABLE_ICONS = new Set([
   "adobe",

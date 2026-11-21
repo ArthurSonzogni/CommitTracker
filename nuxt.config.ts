@@ -144,6 +144,10 @@ export default defineNuxtConfig({
           setResponseHeader(event, 'Cache-Control', 'no-cache')
           return sendStream(event, fs.createReadStream(file))
         }
+        if (pathname.endsWith('.json')) {
+          setResponseStatus(event, 404)
+          return 'Not Found'
+        }
       }),
     }] : [],
   },

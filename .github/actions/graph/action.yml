@@ -30,7 +30,7 @@ runs:
       shell: bash
       run: |
         if [ ! -d public/data/chromium/usernames ]; then
-          cd importer && node derive_data.mjs
+          node scripts/derive/data.mjs
         fi
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}

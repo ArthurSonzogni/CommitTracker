@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import allOrganizations from "../public/data/organizations.json";
+import allOrganizations from "~/utils/organizations";
 import { tagChipStyle } from "~/utils/palette";
 
 const props = defineProps<{

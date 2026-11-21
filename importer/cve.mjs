@@ -35,7 +35,7 @@ const loadDatabase = () => {
 const saveDatabase = (database) => {
   console.log("Saving database")
   fs.mkdirSync('../public/cve', { recursive: true });
-  fs.writeFileSync('../public/cve/data.json', JSON.stringify(database, null, 1))
+  fs.writeFileSync('../public/cve/data.json', JSON.stringify(database))
 }
 
 // Execute a command, and log its output.

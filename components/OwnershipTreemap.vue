@@ -67,10 +67,10 @@ const share = node => node.data.lines ? node.data.owned / node.data.lines : 0;
 
 const nodes = computed(() => {
   if (!width.value) return [];
-  const root = hierarchy(props.tree)
+  const root = hierarchy<any>(props.tree)
     .sum(node => node.children?.length ? 0 : node.owned)
     .sort((a, b) => b.value - a.value);
-  return treemap()
+  return treemap<any>()
     .size([width.value, props.height])
     // After paddingOuter, which sets paddingTop too: room for the labels.
     .paddingOuter(2)

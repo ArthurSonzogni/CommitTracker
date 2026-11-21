@@ -214,7 +214,7 @@
 <script setup lang="ts">
 import { format } from "d3-format";
 import type { LocationQuery, LocationQueryRaw } from "vue-router";
-import repositories_json from "../public/data/repositories.json";
+import repositories_json from "~/utils/repositories";
 import { allTreemapMetrics, findTreemapMetric, type TreemapMetricEntry } from "~/utils/treemapMetrics";
 import { colormapNames, GetColormapGradient } from "~/utils/colormap";
 import { sameQuery } from "~/composables/useUrlState";

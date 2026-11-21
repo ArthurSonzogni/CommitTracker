@@ -79,12 +79,14 @@ Run from inside `importer/` (scripts use paths like `../repositories.json5`,
   `reviewers: "github"`, the pull request approvals are the reviewers, and
   the usernames are the GitHub logins. `node fetch_data.mjs <repo>
   --since=<date>` refetches a range, e.g. to backfill the reviews.
-- `derive_data` script — projects emails → usernames → organizations,
-  summaries, commits-per-hour, badges. Run by `generate-derived-data.sh`,
-  which runs `derive_data.mjs` first and then fans out downstream derivations
-  in parallel (`badges.mjs`, `derive_developer_output.mjs` +
-  `og-developer-output.mjs`, `compact-treemap.mjs`, `derive-developers.mjs`,
-  `derive-highlights.mjs`, `derive-top-bugs.mjs`, `derive-security.mjs`).
+- `scripts/derive/` — projects emails → usernames → organizations,
+  summaries, commits-per-hour, badges, developer-output, highlights, top bugs,
+  security, CVE summary, compacted treemaps, and dir metadata. Driven by
+  `generate-derived-data.sh`, which runs `scripts/derive/data.mjs` first and
+  then fans out downstream derivations in parallel (`badges.mjs`,
+  `developer-output.mjs` + `og-developer-output.mjs`, `compact-treemap.mjs`,
+  `developers.mjs`, `highlights.mjs`, `top-bugs.mjs`, `security.mjs`,
+  `cve-summary.mjs`, `dir-metadata.mjs`).
 - `clean-derived-data.sh` strips derived files back to `emails/` +
   `emails.json` + `logins.json` before pushing the `data` branch (only raw
   data is stored).

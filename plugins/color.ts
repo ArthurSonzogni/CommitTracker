@@ -1,5 +1,7 @@
 import { seriesColor } from "~/utils/palette";
 
-export default defineNuxtPlugin(nuxtApp => {
-  nuxtApp.provide("color", seriesColor);
-});
+export default defineNuxtPlugin(() => ({
+  provide: {
+    color: seriesColor,
+  },
+}));

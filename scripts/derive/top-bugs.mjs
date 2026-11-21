@@ -8,7 +8,7 @@
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
-import { resolveBugTracker } from "./bug-trackers.mjs";
+import { resolveBugTracker } from "../bug-trackers.mjs";
 
 const CONCURRENCY = 64;
 const TOP_PER_METRIC = 100;

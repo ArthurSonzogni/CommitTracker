@@ -191,7 +191,7 @@
 <script setup lang="ts">
 import { useUrlState, urlCodecs } from "~/composables/useUrlState";
 import { capitalize, listSummary, repositoryNames } from "~/utils/filter-summary";
-import repositoriesJson from "../public/data/repositories.json";
+import repositoriesJson from "~/utils/repositories";
 import type { TraitSeries } from "~/components/ReportTraitChart.vue";
 
 const DEFAULT_REPOSITORIES = [

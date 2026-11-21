@@ -159,7 +159,7 @@
 import { format } from "d3-format";
 import { jStat } from "jstat";
 import { useUrlState, urlCodecs } from "~/composables/useUrlState";
-import { fetchCveData, type CveRecord } from "~/utils/cve";
+import { fetchCveSummary, type CveRecord } from "~/utils/cve";
 
 interface Cve extends Omit<CveRecord, "year"> {
   year: number;
@@ -255,7 +255,7 @@ function calculateProjectedInterval(count, timeFraction, confidence = 0.9) {
 }
 
 onMounted(async () => {
-  const data = await fetchCveData();
+  const data = await fetchCveSummary();
   all_cve_data.value = data.map(cve => ({
     ...cve,
     year: getCveYear(cve),
@@ -303,12 +303,11 @@ const cve_by_year = computed(() => {
       return severity_map.get(a.severity) - severity_map.get(b.severity);
     });
 
-    // GroupBy cweId
-    const cves_by_problem = Object.groupBy(out, cve => cve.problem);
-
-    // GroupBy project
-    for (const cweId in cves_by_problem) {
-      cves_by_problem[cweId] = Object.groupBy(cves_by_problem[cweId], cve => cve.project);
+    // GroupBy cweId, then by project
+    const grouped = Object.groupBy(out, cve => cve.problem);
+    const cves_by_problem: Record<string, Record<string, Cve[]>> = {};
+    for (const cweId in grouped) {
+      cves_by_problem[cweId] = Object.groupBy(grouped[cweId], cve => cve.project) as Record<string, Cve[]>;
     }
 
     return {

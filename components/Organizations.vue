@@ -46,8 +46,8 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
 import { format } from "d3-format";
-import repositories from "../public/data/repositories.json";
-import organizations from "../public/data/organizations.json";
+import repositories from "~/utils/repositories";
+import organizations from "~/utils/organizations";
 
 type ConsolidatedData = Record<string, Record<string, number>>;
 
@@ -304,7 +304,12 @@ const refresh = async () => {
     return;
   }
 
-  formatter.value = props.display == "percent" ? format(".2%") : format(",d");
+  formatter.value =
+    props.display == "percent"
+      ? format(".2%")
+      : props.metric == "commit"
+        ? (v) => format(",d")(v) + " ⚙️"
+        : (v) => format(",d")(v) + " 🧍";
 
   if (props.chart == "bar") {
     bar_chart_data.value = Object.keys(data)

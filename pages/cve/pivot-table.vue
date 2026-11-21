@@ -195,7 +195,7 @@ const dates = computed<[Date, Date]>({
     return [
       Number.isNaN(d0.getTime()) ? new Date("2015-01-01") : d0,
       Number.isNaN(d1.getTime()) ? new Date() : d1,
-    ];
+    ] as [Date, Date];
   },
   set: ([d0, d1]) => {
     if (d0 instanceof Date && !Number.isNaN(d0.getTime())) {

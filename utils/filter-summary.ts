@@ -1,4 +1,4 @@
-import repositories_json from "../public/data/repositories.json";
+import repositories_json from "~/utils/repositories";
 
 export type RepositoryInfo = (typeof repositories_json)[number];
 

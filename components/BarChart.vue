@@ -22,6 +22,7 @@
 
 <script setup lang="ts">
 
+import type { PropType } from "vue";
 import {easeBackOut} from "d3-ease";
 import {easeCircleOut} from "d3-ease";
 import {format} from "d3-format";
@@ -39,7 +40,7 @@ const props = defineProps({
     default: "Commits",
   },
   data: {
-    type: Array
+    type: Array as PropType<any[]>
   },
   formatter: {
     type: Function,
@@ -111,7 +112,7 @@ const step = async () => {
     right
       .transition()
       .duration(_d => 350)
-      .textTween(function(_year, index) {
+      .textTween(function(this: any, _year, index) {
         const next = row_width[index];
         const previous = this._current;
         this._current = next;
@@ -139,7 +140,7 @@ const step = async () => {
 
   select(histogram.value)
     .selectAll(".line")
-    .data(props.data, d => d.label)
+    .data(props.data, (d: any) => d.label)
     .join(
       enter => {
         const div = enter.append("div");
@@ -206,7 +207,7 @@ const step = async () => {
     )
     .select(".center")
     .selectAll(".repository")
-    .data(row => row.values, d => d.label)
+    .data((row: any) => row.values, (d: any) => d.label)
     .join(
       enter => {
         const repository = enter.append("div")
@@ -214,7 +215,7 @@ const step = async () => {
           .classed("repository", true)
           .style("flex-grow", 0);
         updateBox(repository);
-        repository.on("mouseover", function(_event, d) {
+        repository.on("mouseover", function(_event, d: any) {
           const box = select(this).node().getBoundingClientRect();
           const tooltip_inner = select(tooltip.value).select(".tooltip-inner");
           select(tooltip.value)

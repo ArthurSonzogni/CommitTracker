@@ -35,7 +35,31 @@ const decodeHtmlEntities = (text: string): string => text
   .replaceAll("&quot;", '"')
   .replaceAll("&#39;", "'");
 
+const normalizeCveRecords = (raw: unknown): CveRecord[] => {
+  const data: CveRecord[] = (Array.isArray(raw) ? raw : []).filter((cve: any) => cve?.id);
+  for (const cve of data) {
+    cve.components = cve.components?.map(decodeHtmlEntities);
+    cve.severity ||= "unknown";
+    cve.year = typeof cve.published === "string" ? cve.published.split("-")[0] : "";
+
+    if (!Array.isArray(cve.repos)) {
+      const repos = new Set<string>();
+      if (cve.commits) {
+        for (const sha in cve.commits) {
+          const commit = cve.commits[sha];
+          if (commit?.type === "commit" && commit.repo) {
+            repos.add(commit.repo);
+          }
+        }
+      }
+      cve.repos = Array.from(repos);
+    }
+  }
+  return data;
+};
+
 let cveDataPromise: Promise<CveRecord[]> | null = null;
+let cveSummaryPromise: Promise<CveRecord[]> | null = null;
 
 export const fetchCveData = (): Promise<CveRecord[]> => {
   if (!cveDataPromise) {
@@ -44,29 +68,31 @@ export const fetchCveData = (): Promise<CveRecord[]> => {
       if (!response.ok) {
         throw new Error(`Failed to fetch /cve/data.json: ${response.status}`);
       }
-      const raw = await response.json();
-      const data: CveRecord[] = (Array.isArray(raw) ? raw : []).filter((cve: any) => cve?.id);
-      for (const cve of data) {
-        cve.components = cve.components?.map(decodeHtmlEntities);
-        cve.severity ||= "unknown";
-        cve.year = typeof cve.published === "string" ? cve.published.split("-")[0] : "";
-
-        const repos = new Set<string>();
-        if (cve.commits) {
-          for (const sha in cve.commits) {
-            const commit = cve.commits[sha];
-            if (commit?.type === "commit" && commit.repo) {
-              repos.add(commit.repo);
-            }
-          }
-        }
-        cve.repos = Array.from(repos);
-      }
-      return data;
+      return normalizeCveRecords(await response.json());
     })().catch((err) => {
       cveDataPromise = null;
       throw err;
     });
   }
   return cveDataPromise;
+};
+
+// Lightweight alternative for pages that don't inspect individual fix commits.
+export const fetchCveSummary = (): Promise<CveRecord[]> => {
+  if (cveDataPromise) {
+    return cveDataPromise;
+  }
+  if (!cveSummaryPromise) {
+    cveSummaryPromise = (async () => {
+      const response = await fetch("/cve/summary.json");
+      if (!response.ok) {
+        return fetchCveData();
+      }
+      return normalizeCveRecords(await response.json());
+    })().catch((err) => {
+      cveSummaryPromise = null;
+      throw err;
+    });
+  }
+  return cveSummaryPromise;
 };

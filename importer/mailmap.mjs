@@ -50,7 +50,7 @@ export function buildMailMap(entries) {
   return resolved;
 }
 
-const data_json = await fs.readFile("../mailmap.json5", "utf8");
+const data_json = await fs.readFile(new URL("../mailmap.json5", import.meta.url), "utf8");
 const map = buildMailMap(JSON5.parse(data_json));
 
 export function mailMap(username) {

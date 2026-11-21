@@ -121,7 +121,7 @@ const props = defineProps<{
 const container_ref = ref<HTMLElement | null>(null);
 const isVisible = ref(false);
 
-const svg_ref = ref<HTMLSvgElement | null>(null);
+const svg_ref = ref<SVGSVGElement | null>(null);
 const svg_graph_ref = ref<SVGPathElement | null>(null);
 const svg_graph_projection_low_ref = ref<SVGPathElement | null>(null);
 const svg_graph_projection_high_ref = ref<SVGPathElement | null>(null);
@@ -543,7 +543,7 @@ const render = () => {
     .transition(t)
     .attrTween('d', function (d) {
       const previous = select(this).attr('d') || "";
-      const current = line_generator(d) || "";
+      const current = line_generator(d as any) || "";
       return interpolatePath(previous, current);
     });
 
@@ -560,7 +560,7 @@ const render = () => {
         .transition(t)
         .attrTween('d', function (d) {
             const previous = select(this).attr('d') || "";
-            const current = line_generator(d) || "";
+            const current = line_generator(d as any) || "";
             return interpolatePath(previous, current);
         });
   } else {
@@ -579,7 +579,7 @@ const render = () => {
         .transition(t)
         .attrTween('d', function (d) {
             const previous = select(this).attr('d') || "";
-            const current = line_generator(d) || "";
+            const current = line_generator(d as any) || "";
             return interpolatePath(previous, current);
         });
   } else {

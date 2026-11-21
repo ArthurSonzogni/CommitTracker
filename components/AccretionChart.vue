@@ -125,7 +125,7 @@ const render = () => {
     .range([0, width])
     .domain([rows[0].date, rows.at(-1).date]);
 
-  const milestones = props.milestones
+  const milestones: any[] = (props.milestones as any[])
     .map(m => ({ ...m, x: x(new Date(m.date)) }))
     .filter(m => m.x >= 0 && m.x <= width);
   // On narrow screens, the labels would overlap: only the markers are drawn.
@@ -140,18 +140,18 @@ const render = () => {
   select(yAxis.value).transition().duration(500)
     .call(axisLeft(y).ticks(height / 50).tickFormat(props.share ? percent : lines));
 
-  const shape = area()
+  const shape = area<any>()
     .x(d => x(d.data.date))
     .y0(d => y(d[0]))
     .y1(d => y(d[1]));
 
   select(areas.value)
     .selectAll("path")
-    .data(series, s => s.key)
+    .data(series, (s: any) => s.key)
     .join("path")
     .attr("fill", s => color(s.key))
     .transition().duration(500)
-    .attr("d", shape);
+    .attr("d", shape as any);
 
   // The milestones: a dashed line from the bottom up to a dot above the
   // areas, and a label next to the dot. Both move up when the label would
@@ -165,7 +165,7 @@ const render = () => {
     });
     return lowest;
   };
-  const bisectDate = bisector(row => row.date).left;
+  const bisectDate = bisector((row: any) => row.date).left;
   for (const m of milestones) {
     // Slightly above the highest of the areas before and after the event,
     // within 2 weeks.
@@ -174,7 +174,7 @@ const render = () => {
   }
   select(milestonesGroup.value)
     .selectAll(".milestone")
-    .data(milestones, m => m.label)
+    .data(milestones, (m: any) => m.label)
     .join(enter => {
       const group = enter.append("g").attr("class", "milestone");
       group.append("line")
@@ -198,7 +198,7 @@ const render = () => {
     })
     .call(group => {
       const texts = group.select("text").text(m => labeled ? m.label : "");
-      texts.each(function (m) { m.width = this.getComputedTextLength(); });
+      texts.each(function (m) { m.width = (this as SVGTextElement).getComputedTextLength(); });
       placeLabels(milestones, width, topBetween);
       texts
         .attr("text-anchor", m => m.anchor)
@@ -221,7 +221,7 @@ const render = () => {
     .filter(({ d }) => y(d[0]) - y(d[1]) > 11);
   select(labels.value)
     .selectAll("text")
-    .data(last, l => l.key)
+    .data(last, (l: any) => l.key)
     .join("text")
     .attr("x", width + 4)
     .attr("font-size", "11px")
@@ -232,7 +232,7 @@ const render = () => {
     .attr("y", l => y((l.d[0] + l.d[1]) / 2));
 
   // On hover: the lines of every year at this date, newest first.
-  const bisect = bisector(row => row.date).center;
+  const bisect = bisector((row: any) => row.date).center;
   select(container.value)
     .on("pointerenter pointermove", event => {
       const i = bisect(rows, x.invert(pointer(event, content.value)[0]));
@@ -278,7 +278,7 @@ const render = () => {
         .attr("x", 8)
         .attr("y", (_, i) => 16 + 14 * i)
         .attr("font-size", "11px")
-        .attr("font-weight", d => d.bold ? "bold" : null)
+        .attr("font-weight", (d: any) => d.bold ? "bold" : null)
         .style("fill", "var(--tooltip-ink)")
         .text(d => d.label)
         .selectAll("tspan")

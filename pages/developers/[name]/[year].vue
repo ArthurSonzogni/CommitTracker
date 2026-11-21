@@ -131,7 +131,7 @@
 </template>
 
 <script setup lang="ts">
-import repositories_json from '../../../public/data/repositories.json';
+import repositories_json from '~/utils/repositories';
 import { shardOf } from '~/utils/badges';
 import { formatDeveloperYearDescription, formatDeveloperYearTitle } from '~/utils/pageMeta';
 import { fetchUsernamesSummary } from '~/utils/usernamesSummary';

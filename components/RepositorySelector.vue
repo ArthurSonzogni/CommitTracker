@@ -15,7 +15,7 @@
 
 <script setup lang="ts">
 import type { PropType } from "vue";
-import repositoriesJson from "../public/data/repositories.json";
+import repositoriesJson from "~/utils/repositories";
 
 const value = defineModel<string[]>({ default: () => [] });
 

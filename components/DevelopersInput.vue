@@ -20,7 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import repositories from "../public/data/repositories.json";
+import repositories from "~/utils/repositories";
 import { tagChipStyle } from "~/utils/palette";
 
 let usernamesPromise: Promise<string[]> | null = null;

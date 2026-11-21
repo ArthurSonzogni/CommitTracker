@@ -96,7 +96,7 @@
                 </div>
 
                 <div class="date">
-                  {{ hdate.prettyPrint(event.date) }}
+                  {{ formatDate(event.date) }}
                 </div>
               </div>
             </div>
@@ -124,11 +124,14 @@
 </template>
 
 <script setup lang="ts">
-import hdate from "human-date";
 import humanizeDuration from "humanize-duration";
 import { format } from "d3-format";
 import { fetchCveData, type CveRecord } from "~/utils/cve";
 import { SITE_NAME } from "~/utils/pageMeta";
+
+const dateFormatter = new Intl.DateTimeFormat("en-US", { dateStyle: "long" });
+const formatDate = (date: Date) =>
+  Number.isNaN(date.getTime()) ? "" : dateFormatter.format(date);
 
 interface CveEvent {
   icon: string;

@@ -27,12 +27,13 @@
 const router = useRouter();
 
 const props = defineProps({
-  developer: {},
-  name: {},
-  img: {},
-  enabled: {},
-  description: {},
+  developer: { type: String },
+  name: { type: String },
+  img: { type: String },
+  enabled: { type: Boolean },
+  description: { type: String },
   hover: {
+    type: Boolean,
     default: true,
   },
 });

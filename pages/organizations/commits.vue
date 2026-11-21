@@ -45,8 +45,8 @@
               <UiSegmented
                 v-model="metric"
                 :options="[
-                { value: 'commit', label: 'Commits', title: 'Number of commits' },
-                { value: 'contributor', label: 'Contributors', title: 'Number of contributors' },
+                { value: 'commit', label: '⚙️ Commits', title: 'Number of commits' },
+                { value: 'contributor', label: '🧍 Contributors', title: 'Number of contributors' },
               ]" />
             </UiField>
 
@@ -135,7 +135,7 @@
 </template>
 
 <script setup lang="ts">
-import all_organizations from "../../public/data/organizations.json";
+import all_organizations from "~/utils/organizations";
 import { useUrlState, urlCodecs, type UrlCodec } from "~/composables/useUrlState";
 import { capitalize, listSummary, repositoryNames } from "~/utils/filter-summary";
 

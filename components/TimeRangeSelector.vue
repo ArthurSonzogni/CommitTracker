@@ -44,13 +44,13 @@ const possibleValues = [
   years,
 ];
 
-const tooltip = new Map([
+const tooltip = new Map<string, string>([
   ['forever', "All time"],
   ['1y', "The last year"],
   ['6m', "The last 6 months"],
   ['3m', "The last 3 months"],
   ['1m', "The last month"],
-  ...years.map(year => [year, year === years[0] ? `${year}, so far` : year]),
+  ...years.map((year): [string, string] => [year, year === years[0] ? `${year}, so far` : year]),
 ]);
 
 const items = ref(possibleValues.flat());

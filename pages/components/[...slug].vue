@@ -246,7 +246,7 @@
 </template>
 
 <script setup lang="ts">
-import { fetchCveData, type CveRecord } from "~/utils/cve";
+import { fetchCveSummary, type CveRecord } from "~/utils/cve";
 import {
   componentPath,
   fetchComponentsDataset,
@@ -266,7 +266,7 @@ onMounted(async () => {
   try {
     const [ds, cves] = await Promise.all([
       fetchComponentsDataset(),
-      fetchCveData().catch(() => [] as CveRecord[]),
+      fetchCveSummary().catch(() => [] as CveRecord[]),
     ]);
     dataset.value = ds;
     allCves.value = cves;

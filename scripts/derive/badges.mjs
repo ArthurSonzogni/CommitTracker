@@ -1,18 +1,21 @@
 // A badge system for web browser developers and related libraries.
 
 import fs from "fs/promises";
-import JSON5 from "json5";
-import statusLine from '@alt-jero/status-line';
-import { COMMIT_FLAGS } from "./parse_commit_message.mjs";
+import path from "path";
+import { loadRepositories, statusLine } from "../../importer/repositories.mjs";
+import { COMMIT_FLAGS } from "../../importer/parse_commit_message.mjs";
+import { REPO_ROOT, shardOf } from "./shard.mjs";
+
+const PUBLIC_DIR = path.join(REPO_ROOT, "public");
+const DATA_DIR = path.join(PUBLIC_DIR, "data");
 
 // Retrieve the list of usernames from every repository.
 const usernames = new Set();
-const repositories_file = await fs.readFile("../repositories.json5", "utf-8");
-const repositories = JSON5.parse(repositories_file);
+const repositories = await loadRepositories();
 const repository_usernames = new Map();
 for (const repository of repositories) {
-  const repository_dir = `../public/data/${repository.dirname}`;
-  const usernames_filename = `${repository_dir}/usernames.json`;
+  const repository_dir = path.join(DATA_DIR, repository.dirname);
+  const usernames_filename = path.join(repository_dir, "usernames.json");
   const usernames_data = JSON.parse(await fs.readFile(usernames_filename, "utf8"));
   repository_usernames.set(repository.dirname, usernames_data);
   for (const username of usernames_data) {
@@ -87,7 +90,7 @@ for (let start = 0; start < usernameList.length; start += CONCURRENCY) {
       const userRepos = reposByUser.get(username) || [];
       const repoData = await Promise.all(
         userRepos.map(async dirname => {
-          const commit_file = `../public/data/${dirname}/usernames/${username}.json`;
+          const commit_file = path.join(DATA_DIR, dirname, "usernames", `${username}.json`);
           const commit_text = await fs.readFile(commit_file, "utf8");
           return JSON.parse(commit_text);
         }),
@@ -294,7 +297,7 @@ const YEAR = 365.25 * DAY;
     details: "I wrote $0 fuzz tests.",
     image: "/img/badges/fuzzer.webp",
   });
-  const fuzz_tests = JSON.parse(await fs.readFile("../public/fuzz-test/data.json", "utf8"));
+  const fuzz_tests = JSON.parse(await fs.readFile(path.join(PUBLIC_DIR, "fuzz-test", "data.json"), "utf8"));
   const fuzz_test_count = new Map();
   for (const fuzz_test of fuzz_tests) {
     const username = fuzz_test.author.split("@")[0];
@@ -856,7 +859,7 @@ const LocalDate = (username, commit) => {
 {
   statusLine.logString(`Processing rank badges...`);
   const yearly = JSON.parse(await fs.readFile(
-    "../public/data/chromium/usernames_summary_commit_yearly_author.json", "utf8"));
+    path.join(DATA_DIR, "chromium", "usernames_summary_commit_yearly_author.json"), "utf8"));
   const years = new Set();
   for (const counts of Object.values(yearly)) {
     Object.keys(counts).forEach(year => years.add(year));
@@ -902,7 +905,7 @@ for (const repository of repositories_with_commit_count) {
     repository === "chromium"
       ? [1, 25, 100, 500, 1000, 2000]
       : [1, 25, 100];
-  const data = await fs.readFile(`../public/data/${repository}/usernames_summary_commit_forever_author.json`, "utf-8");
+  const data = await fs.readFile(path.join(DATA_DIR, repository, "usernames_summary_commit_yearly_author.json"), "utf-8");
   const data_json = JSON.parse(data);
   for(let i = 0; i < badge_levels.length; i++) {
     statusLine.logString(`Processing ${repository} commit level ${i}...`);
@@ -915,7 +918,10 @@ for (const repository of repositories_with_commit_count) {
       image: `/img/badges/${repository.replace("-", "_")}_l${i+1}.webp`,
     });
     for(const username in data_json) {
-      const count = parseInt(data_json[username].forever)
+      let count = 0;
+      for (const n of Object.values(data_json[username])) {
+        count += n;
+      }
       if (count >= badge_levels[i]) {
         GiveUserBadge(username, [count]);
       }
@@ -924,24 +930,18 @@ for (const repository of repositories_with_commit_count) {
 }
 
 // Serialize the badges.json file.
-await fs.writeFile("../public/badges.json", JSON.stringify(badges, null, 2));
+await fs.writeFile(path.join(PUBLIC_DIR, "badges.json"), JSON.stringify(badges, null, 2));
 
 // Print the badges to the public directory.
-const badges_dir = "../public/badges";
+const badges_dir = path.join(PUBLIC_DIR, "badges");
 await fs.rm(badges_dir, { recursive: true, force: true });
 await fs.mkdir(badges_dir, { recursive: true });
-
-// Normalize shard filenames: lowercase alphanumeric, else '_'.
-const badgeShard = name => {
-  const c = name[0]?.toLowerCase() || "_";
-  return /^[a-z0-9]$/.test(c) ? c : "_";
-};
 
 // Because there are 25k usernames, we group them into chunks by normalized
 // first character to avoid hitting file descriptor or filesystem limits.
 const user_badges_chunks = new Map();
 for (const username of usernames) {
-  const chunk = badgeShard(username);
+  const chunk = shardOf(username);
   if (!user_badges_chunks.has(chunk)) {
     user_badges_chunks.set(chunk, []);
   }

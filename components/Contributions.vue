@@ -10,7 +10,7 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
 import { format } from "d3-format";
-import repositories from "../public/data/repositories.json";
+import repositories from "~/utils/repositories";
 import { fetchUsernamesSummary, type UsernamesSummary } from "~/utils/usernamesSummary";
 
 type BarBucket = {
@@ -101,7 +101,7 @@ const traitsPerContributor = (): Trait | undefined => {
     return {
       label: "Contribution",
       graphLabel: () => "Commit",
-      formatter: (v) => format(".2f")(v),
+      formatter: (v) => format(".2f")(v) + " ⚙️",
       solidify: (summary) =>
         contributionPerYear(summary, (c) =>
           c.length ? c.reduce((a, b) => a + b, 0) / c.length : 0,
@@ -113,7 +113,7 @@ const traitsPerContributor = (): Trait | undefined => {
     return {
       label: "Contribution",
       graphLabel: () => "Commit",
-      formatter: (v) => format(",d")(v),
+      formatter: (v) => format(",d")(v) + " ⚙️",
       solidify: (summary) =>
         contributionPerYear(summary, (c) => quantile(c, props.percentile / 100)),
     };
@@ -123,7 +123,7 @@ const traitsPerContributor = (): Trait | undefined => {
     return {
       label: "Contribution",
       graphLabel: (repo) => (repo == "solidified" ? "Commit" : repo),
-      formatter: (v) => format(",d")(v),
+      formatter: (v) => format(",d")(v) + " ⚙️",
       solidify: (summary) => contributionPerYear(summary, (c) => top(c, props.individual)),
     };
   }
@@ -132,7 +132,7 @@ const traitsPerContributor = (): Trait | undefined => {
     return {
       label: "Contribution",
       graphLabel: (repo) => repo,
-      formatter: (v) => format(",d")(v),
+      formatter: (v) => format(",d")(v) + " ⚙️",
       solidify: (summary) => {
         const acc: Record<string, number> = {};
         for (const user of props.developers) {
@@ -151,7 +151,7 @@ const traitsPerContributor = (): Trait | undefined => {
     return {
       label: "Rank",
       graphLabel: () => "Rank",
-      formatter: (v) => format(",d")(v),
+      formatter: (v) => format(",d")(v) + " 🏆",
       solidify: (summary) => {
         const contributions = contributionPerYear(summary, (x) => x);
 
@@ -181,7 +181,7 @@ const traitsPerContributor = (): Trait | undefined => {
     return {
       label: "Rank (%)",
       graphLabel: () => "Rank %",
-      formatter: (v) => format(".2f")(v) + "%",
+      formatter: (v) => format(".2f")(v) + "% 🏆",
       solidify: (summary) => {
         const contributions = contributionPerYear(summary, (x) => x);
 
@@ -215,7 +215,7 @@ const traits = (): Trait | undefined => {
     return {
       label: "Contributors",
       graphLabel: () => "Contributors",
-      formatter: (v) => format(",d")(v),
+      formatter: (v) => format(",d")(v) + " 🧍",
       solidify: (summary) => {
         const acc: Record<string, number> = {};
         for (const user in summary) {
@@ -232,7 +232,7 @@ const traits = (): Trait | undefined => {
     return {
       label: "First time contributor",
       graphLabel: () => "# First time contributors",
-      formatter: (v) => format(",d")(v),
+      formatter: (v) => format(",d")(v) + " 🧍",
       solidify: (summary) => {
         const acc: Record<string, number> = {};
         for (const user in summary) {
@@ -250,7 +250,7 @@ const traits = (): Trait | undefined => {
     return {
       label: "Last time contributor",
       graphLabel: () => "# Last time contributors",
-      formatter: (v) => format(",d")(v),
+      formatter: (v) => format(",d")(v) + " 🧍",
       solidify: (summary) => {
         const acc: Record<string, number> = {};
         for (const user in summary) {
@@ -269,7 +269,7 @@ const traits = (): Trait | undefined => {
     return {
       label: "Commits",
       graphLabel: (repo) => repo,
-      formatter: (v) => format(",d")(v),
+      formatter: (v) => format(",d")(v) + " ⚙️",
       solidify: (summary) => {
         const acc: Record<string, number> = {};
         for (const user in summary) {

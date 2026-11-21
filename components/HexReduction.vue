@@ -28,11 +28,12 @@
 </template>
 
 <script setup lang="ts">
+import type { PropType } from "vue";
 import { format } from "d3-format";
 
 const props = defineProps({
   // [{ written: 2015, values: [reduction at age 1, at age 2, ...] }, ...]
-  years: { type: Array, required: true },
+  years: { type: Array as PropType<any[]>, required: true },
 });
 const crossed = defineModel({ default: null });
 

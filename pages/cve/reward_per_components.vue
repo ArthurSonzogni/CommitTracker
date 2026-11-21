@@ -64,7 +64,7 @@ import "d3-transition";
 import { transition } from "d3-transition";
 import { easeQuadInOut } from "d3-ease";
 import { useUrlState, urlCodecs } from "~/composables/useUrlState";
-import { fetchCveData, type CveRecord } from "~/utils/cve";
+import { fetchCveSummary, type CveRecord } from "~/utils/cve";
 import { categoricalPalette } from "~/utils/palette";
 
 const dollars_formatter = format("$,.0f");
@@ -100,7 +100,7 @@ const dates = computed<[Date, Date]>({
     return [
       Number.isNaN(d0.getTime()) ? new Date(defaultStartIso) : d0,
       Number.isNaN(d1.getTime()) ? new Date() : d1,
-    ];
+    ] as [Date, Date];
   },
   set: ([d0, d1]) => {
     if (d0 instanceof Date && !Number.isNaN(d0.getTime())) {
@@ -482,7 +482,7 @@ watch(dates, render);
 
 onMounted(async () => {
   window.addEventListener("resize", render);
-  data = await fetchCveData();
+  data = await fetchCveSummary();
   render();
 });
 

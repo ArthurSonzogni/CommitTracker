@@ -7,7 +7,7 @@ const MyOctokit = Octokit.plugin(throttling);
 
 export const readGithubToken = async () => {
   try {
-    const token = (await fs.readFile('.token', 'utf8')).trim();
+    const token = (await fs.readFile(new URL('.token', import.meta.url), 'utf8')).trim();
     if (token) {
       return token;
     }

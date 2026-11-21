@@ -53,7 +53,7 @@
       <div class="navbar-menu" :class="{ 'is-active': menuOpen }">
         <div ref="start" class="navbar-start">
           <template v-for="entry in MENU" :key="entry.label">
-            <NuxtLink v-if="entry.to" class="navbar-item" :to="entry.to">
+            <NuxtLink v-if="'to' in entry" class="navbar-item" :to="entry.to">
               <UiIcon :name="entry.icon" size="small" class="mr-2 menu-icon" />
               {{ entry.label }}
             </NuxtLink>

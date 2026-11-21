@@ -1,9 +1,11 @@
 <script setup lang="ts">
 
+import type { PropType } from 'vue';
+
 const props = defineProps({
   name: { type: String },
-  authors: { type: Array },
-  children: { type: Array },
+  authors: { type: Array as PropType<string[]> },
+  children: { type: Array as PropType<any[]> },
   collapsed_default: { type: Boolean, default: true },
 });
 

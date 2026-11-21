@@ -2,47 +2,51 @@
 set -eu
 
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$ROOT_DIR"
 
 if [ "${SKIP_NPM_INSTALL:-0}" != "1" ]; then
   (cd "$ROOT_DIR/importer" && npm install)
 fi
 
 # Step 1: derive usernames, organizations, and summaries.
-(cd "$ROOT_DIR/importer" && node derive_data.mjs)
+node scripts/derive/data.mjs
 
 # Step 2: run independent downstream derivations in parallel.
 rm -f "$ROOT_DIR/public/data/initiatives.json" "$ROOT_DIR/public/cve/lifespan.json"
 
 pids=""
 
-(cd "$ROOT_DIR/importer" && node badges.mjs) &
+node scripts/derive/badges.mjs &
 pids="$pids $!"
 
 (
-  cd "$ROOT_DIR/importer" && node derive_developer_output.mjs
+  node scripts/derive/developer-output.mjs
   if command -v "${CHROME_PATH:-google-chrome}" >/dev/null 2>&1; then
-    cd "$ROOT_DIR" && node scripts/og-developer-output.mjs
+    node scripts/derive/og-developer-output.mjs
   fi
 ) &
 pids="$pids $!"
 
-(cd "$ROOT_DIR" && node scripts/compact-treemap.mjs public/treemap) &
+node scripts/derive/compact-treemap.mjs public/treemap &
 pids="$pids $!"
 
-(cd "$ROOT_DIR" && node scripts/derive-developers.mjs public/data) &
+node scripts/derive/developers.mjs public/data &
 pids="$pids $!"
 
-(cd "$ROOT_DIR" && node scripts/derive-highlights.mjs public/data) &
+node scripts/derive/highlights.mjs public/data &
 pids="$pids $!"
 
-(cd "$ROOT_DIR" && node scripts/derive-top-bugs.mjs public/data) &
+node scripts/derive/top-bugs.mjs public/data &
 pids="$pids $!"
 
-(cd "$ROOT_DIR" && node scripts/derive-security.mjs public) &
+node scripts/derive/security.mjs public &
+pids="$pids $!"
+
+node scripts/derive/cve-summary.mjs public/cve &
 pids="$pids $!"
 
 if [ -d "$ROOT_DIR/importer/chromium" ]; then
-  (cd "$ROOT_DIR" && node importer/dir_metadata.mjs) &
+  node scripts/derive/dir-metadata.mjs &
   pids="$pids $!"
 fi
 

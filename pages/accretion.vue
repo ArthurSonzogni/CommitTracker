@@ -584,7 +584,7 @@
 <script setup lang="ts">
 import { format } from "d3-format";
 import type { LocationQuery, LocationQueryRaw } from "vue-router";
-import repositories_json from "../public/data/repositories.json";
+import repositories_json from "~/utils/repositories";
 // Short explanations of the largest events, by commit hash prefix.
 import eventLabels from "../utils/accretion-events.json";
 import { shardOf } from "~/utils/badges";
@@ -1287,12 +1287,11 @@ const activeLineData = computed(() =>
   isOrganizations.value ? organizationData.value : developerData.value,
 );
 
-const scopeTotalLines = computed(() => {
+const scopeTotalLines = computed<number>(() => {
   if (directory.value) {
-    return (
-      scopeSummary.value?.lines ??
-      (scope.value ? sumRow(scope.value.lines.at(-1) || []) : 0)
-    );
+    return typeof scopeSummary.value?.lines === "number"
+      ? scopeSummary.value.lines
+      : (scope.value ? sumRow(scope.value.lines.at(-1) || []) : 0);
   }
   return (
     languageMeta.value?.lines ??

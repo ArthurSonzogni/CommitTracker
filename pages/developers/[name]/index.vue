@@ -231,7 +231,7 @@
 </template>
 
 <script setup lang="ts">
-import repositories_json from '../../../public/data/repositories.json';
+import repositories_json from '~/utils/repositories';
 import { fetchResolvedDeveloperBadges, shardOf } from '~/utils/badges';
 import { formatDeveloperDescription, formatDeveloperTitle } from '~/utils/pageMeta';
 import { COMMIT_FLAGS, MSG_EXCLUDE_MASK, medianOf, meanOf } from '~/utils/commitFlags';
@@ -379,7 +379,7 @@ const avatar = computed(() => githubLogins.value.length && !avatarFailed.value
   : null);
 
 const allRepositories = computed(() => Object.entries(entry.value ?? {})
-  .map(([dirname, [author, review, first, last]]) => {
+  .map(([dirname, [author, review, first, last]]: [string, [number, number, number, number]]) => {
     const repository = repositories_json.find(repo => repo.dirname === dirname);
     return {
       dirname,

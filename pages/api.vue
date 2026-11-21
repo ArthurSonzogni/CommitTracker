@@ -41,12 +41,6 @@
                   <code>/data/${repo}/emails/${email}.json</code>
                 </a>
               </li>
-
-              <li>
-                <a href="/data/chromium/emails_summary_commit_yearly_author.json">
-                  <code>/data/${repo}/emails_summary_commit_${group_by}_{side}.json</code>
-                </a>
-              </li>
             </ul>
           </li>
 
@@ -64,7 +58,7 @@
 
               <li>
                 <a href="/data/chromium/usernames_summary_commit_yearly_author.json">
-                  <code>/data/${repo}/usernames_summary_commit_${group_by}_{side}.json</code>
+                  <code>/data/${repo}/usernames_summary_${metric}_${user_group_by}_${user_side}.json</code>
                 </a>
               </li>
             </ul>
@@ -126,11 +120,23 @@
             <code>username</code> is a contributor username.
           </li>
           <li>
-            <code>group_by</code> is one of:
+            <code>metric</code> (usernames) is one of:
+            <span class="tag">commit</span> <span class="tag">lines</span> <span class="tag">added_lines</span> <span class="tag">deleted_lines</span>
+          </li>
+          <li>
+            <code>user_group_by</code> is one of:
+            <span class="tag">yearly</span> <span class="tag">monthly</span>
+          </li>
+          <li>
+            <code>user_side</code> is one of:
+            <span class="tag">author</span> <span class="tag">review</span>
+          </li>
+          <li>
+            <code>group_by</code> (organizations) is one of:
             <span class="tag">forever</span> <span class="tag">decennial</span> <span class="tag">yearly</span> <span class="tag">quarterly</span> <span class="tag">monthly</span>
           </li>
           <li>
-            <code>side</code> is one of:
+            <code>side</code> (organizations) is one of:
             <span class="tag">author</span> <span class="tag">review</span> <span class="tag">both</span>
           </li>
           <li>
@@ -153,7 +159,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import repositories_raw from '../public/data/repositories.json'
+import repositories_raw from '~/utils/repositories'
 
 const sortedRepos = computed(() => {
   return repositories_raw.map(r => r.dirname).sort((a, b) => a.localeCompare(b));

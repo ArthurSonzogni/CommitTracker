@@ -33,7 +33,7 @@
 </template>
 
 <script setup lang="ts">
-import repositories_json from '../public/data/repositories.json'
+import repositories_json from '~/utils/repositories'
 
 const repository = ref("Chromium");
 const stats = shallowRef<Record<string, { last_commit?: string }>>({});

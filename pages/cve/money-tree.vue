@@ -243,7 +243,7 @@ const dates = computed<[Date, Date]>({
     return [
       Number.isNaN(d0.getTime()) ? minDataDate.value : d0,
       Number.isNaN(d1.getTime()) ? defaultEndDate : d1,
-    ];
+    ] as [Date, Date];
   },
   set: ([d0, d1]) => {
     if (d0 instanceof Date && !Number.isNaN(d0.getTime())) {

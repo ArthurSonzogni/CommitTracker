@@ -52,7 +52,7 @@ const fetchCommitStats = async file => {
 export const loadOrganizations = async () => {
   const [org_list, org_list_patch, affiliation_text] = await Promise.all([
     fetchCommitStats("org-list.txt"),
-    fs.readFile("../org-list.txt", "utf8"),
+    fs.readFile(new URL("../org-list.txt", import.meta.url), "utf8"),
     fetchCommitStats("affiliations.json5"),
   ]);
 

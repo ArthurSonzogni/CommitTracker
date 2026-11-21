@@ -20,9 +20,9 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const REPO_ROOT = path.resolve(__dirname, '..');
+const REPO_ROOT = path.resolve(__dirname, '../..');
 
-const CHROMIUM_DIR = process.env.CHROMIUM_DIR || path.join(__dirname, 'chromium');
+const CHROMIUM_DIR = process.env.CHROMIUM_DIR || path.join(REPO_ROOT, 'importer', 'chromium');
 const PUBLIC_DIR = process.env.PUBLIC_DIR || path.join(REPO_ROOT, 'public');
 const OUTPUT_FILE = path.join(PUBLIC_DIR, 'data', 'chromium', 'components.json');
 
