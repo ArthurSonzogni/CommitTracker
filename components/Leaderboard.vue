@@ -64,7 +64,7 @@ const svg_title = ref<SVGSVGElement | null>(null);
 const SVG_NS = "http://www.w3.org/2000/svg";
 const take_n = 100;
 const svgHeight = take_n * 50;
-const BUFFER = 12;
+const BUFFER = 4;
 
 let scrollY = 0;
 let windowHeight = 900;
@@ -98,8 +98,12 @@ const getPeriodDuration = () => {
 };
 
 const STEP_DURATION = 420;            // ms for single-frame transitions
-const RANK_TRANSITION_S = 0.25;       // seconds for linear rank swap
+const RANK_TRANSITION_S = 0.30;       // seconds for smooth rank swap
 const OPACITY_TRANSITION_S = 0.25;    // seconds for linear fade in/out
+const SWAP_LOOKAHEAD_RATIO = 0.4;     // start swap slightly before crossing
+const SWAP_HYSTERESIS = 0.005;        // 0.5% margin to prevent near-tie flicker
+
+const smoothstep = (t: number) => t * t * (3 - 2 * t);
 
 const date = ref<string[]>([]);
 const is_animating = ref<boolean>(false);
@@ -142,34 +146,39 @@ const getFrameValueMap = (frame: FrameData): Map<string, number> => {
   return frame.valueMap;
 };
 
-interface BarRow {
-  user: string;
+interface RowDom {
   el: SVGGElement;
   rectEl: SVGRectElement;
-  indexEl: SVGTextElement;
   labelGroupEl: SVGGElement;
-  nameEl: SVGTextElement;
-  commitEl: SVGTextElement;
+  nameText: Text;
+  commitText: Text;
+  lastUser: string;
+  lastY: number;
+  lastOpacity: number;
+  lastRectOpacity: number;
+  lastWidth: number;
+  lastTextX: number;
+  lastAnchor: string;
+  lastCommitText: string;
+}
+
+interface BarRow {
+  user: string;
+  dom: RowDom | null;
   rank: number;
+  rankVel: number;
   startRank: number;
+  startRankVel: number;
   targetRank: number;
   rankProgress: number;
   opacity: number;
   startOpacity: number;
   targetOpacity: number;
-  opacityProgress: number;
   value: number;
   startValue: number;
   targetValue: number;
   active: boolean;
-  visible: boolean;
-  lastY: number;
-  lastOpacity: number;
-  lastWidth: number;
-  lastTextX: number;
-  lastAnchor: string;
-  lastIndexText: string;
-  lastCommitText: string;
+  needsRaise: boolean;
 }
 
 const setRowTargets = (
@@ -180,30 +189,48 @@ const setRowTargets = (
 ) => {
   if (immediate) {
     row.rank = nextRank;
+    row.rankVel = 0;
     row.startRank = nextRank;
+    row.startRankVel = 0;
     row.targetRank = nextRank;
     row.rankProgress = 1;
     row.opacity = nextOpacity;
     row.startOpacity = nextOpacity;
     row.targetOpacity = nextOpacity;
-    row.opacityProgress = 1;
+    row.needsRaise = false;
     return;
   }
   if (nextRank !== row.targetRank) {
-    row.startRank = row.rank;
-    row.targetRank = nextRank;
-    row.rankProgress = Math.abs(nextRank - row.rank) < 0.001 ? 1 : 0;
+    if (nextRank < row.targetRank && row.rank < take_n) {
+      row.needsRaise = true;
+    }
+    const dist = nextRank - row.rank;
+    if (Math.abs(dist) < 0.001) {
+      row.rank = nextRank;
+      row.rankVel = 0;
+      row.startRank = nextRank;
+      row.startRankVel = 0;
+      row.targetRank = nextRank;
+      row.rankProgress = 1;
+    } else {
+      row.startRank = row.rank;
+      row.targetRank = nextRank;
+      const rawM0 = row.rankVel * RANK_TRANSITION_S;
+      if (rawM0 * dist > 0) {
+        const maxM0 = Math.abs(dist) * 1.5;
+        row.startRankVel = Math.sign(dist) * Math.min(Math.abs(rawM0), maxM0);
+      } else {
+        row.startRankVel = 0;
+      }
+      row.rankProgress = 0;
+    }
   }
-  if (nextOpacity !== row.targetOpacity) {
-    row.startOpacity = row.opacity;
-    row.targetOpacity = nextOpacity;
-    row.opacityProgress = Math.abs(nextOpacity - row.opacity) < 0.001 ? 1 : 0;
-  }
+  row.targetOpacity = nextOpacity;
 };
 
 interface StickyTickItem {
   g: SVGGElement;
-  text: SVGTextElement;
+  textNode: Text;
   lastX: number;
   lastLabel: string;
   visible: boolean;
@@ -227,6 +254,9 @@ let axisGridGroupEl: SVGGElement | null = null;
 let axisStickyGroupEl: SVGGElement | null = null;
 const stickyTicks: StickyTickItem[] = [];
 const gridTicks: GridTickItem[] = [];
+const rankLabelEls: SVGTextElement[] = [];
+let lastRankLabelCount = 0;
+const rowDomPool: RowDom[] = [];
 const rows = new Map<string, BarRow>();
 let hasRenderedOnce = false;
 let currentDisplayedDate = "";
@@ -247,47 +277,27 @@ interface PlaybackTrack {
   user: string;
   values: Float64Array;
   currentVal: number;
+  lookVal: number;
 }
 let playbackStartTime = 0;
 let playbackCursor = 0;
 let playbackDates: string[] = [];
 let playbackDateIndices: number[] = [];
 let playbackTracks: PlaybackTrack[] = [];
+let lastPlaybackIdx = -1;
+let intervalTracks: PlaybackTrack[] = [];
 let currentPlaybackDateIndex: number | null = null;
 
-const createRowElement = (
-  user: string,
-  initialRank: number,
-  initialOpacity: number,
-  minVisibleRank: number,
-  maxVisibleRank: number
-): BarRow => {
+const createRowDom = (): RowDom => {
   const el = document.createElementNS(SVG_NS, "g");
-  const initialY = rankToY(initialRank);
-  el.setAttribute("transform", `translate(0, ${initialY.toFixed(2)})`);
-  el.setAttribute("opacity", initialOpacity.toFixed(3));
-
-  const initiallyVisible =
-    initialOpacity > 0 && initialRank >= minVisibleRank && initialRank <= maxVisibleRank;
-  if (!initiallyVisible) {
-    el.style.display = "none";
-  }
 
   const rectEl = document.createElementNS(SVG_NS, "rect");
-  rectEl.setAttribute("fill", $color(user));
   rectEl.setAttribute("opacity", "0.5");
   rectEl.setAttribute("rx", "4");
   rectEl.setAttribute("x", "25");
   rectEl.setAttribute("height", String(rowBandwidth));
   rectEl.setAttribute("width", "0");
   el.appendChild(rectEl);
-
-  const indexEl = document.createElementNS(SVG_NS, "text");
-  indexEl.setAttribute("class", "index");
-  indexEl.setAttribute("dx", "0");
-  indexEl.setAttribute("dy", String(rowBandwidth / 2));
-  indexEl.setAttribute("alignment-baseline", "middle");
-  el.appendChild(indexEl);
 
   const labelGroupEl = document.createElementNS(SVG_NS, "g");
   labelGroupEl.setAttribute("class", "labels");
@@ -297,7 +307,8 @@ const createRowElement = (
   nameEl.setAttribute("dy", "0.35em");
   nameEl.setAttribute("dx", "5");
   nameEl.setAttribute("y", "10");
-  nameEl.textContent = user;
+  const nameText = document.createTextNode("");
+  nameEl.appendChild(nameText);
   labelGroupEl.appendChild(nameEl);
 
   const commitEl = document.createElementNS(SVG_NS, "text");
@@ -305,42 +316,70 @@ const createRowElement = (
   commitEl.setAttribute("dy", "0.35em");
   commitEl.setAttribute("dx", "5");
   commitEl.setAttribute("y", "30");
-  commitEl.textContent = "0";
+  const commitText = document.createTextNode("0");
+  commitEl.appendChild(commitText);
   labelGroupEl.appendChild(commitEl);
 
   el.appendChild(labelGroupEl);
   barsGroupEl?.appendChild(el);
 
   return {
-    user,
     el,
     rectEl,
-    indexEl,
     labelGroupEl,
-    nameEl,
-    commitEl,
-    rank: initialRank,
-    startRank: initialRank,
-    targetRank: initialRank,
-    rankProgress: 1,
-    opacity: initialOpacity,
-    startOpacity: initialOpacity,
-    targetOpacity: initialOpacity,
-    opacityProgress: 1,
-    value: 0,
-    startValue: 0,
-    targetValue: 0,
-    active: true,
-    visible: initiallyVisible,
-    lastY: initialY,
-    lastOpacity: initialOpacity,
-    lastWidth: 0,
+    nameText,
+    commitText,
+    lastUser: "",
+    lastY: NaN,
+    lastOpacity: NaN,
+    lastRectOpacity: 0.5,
+    lastWidth: NaN,
     lastTextX: NaN,
     lastAnchor: "",
-    lastIndexText: "",
     lastCommitText: "0",
   };
 };
+
+const acquireRowDom = (user: string): RowDom => {
+  const dom = rowDomPool.pop() || createRowDom();
+  dom.el.style.display = "";
+  if (dom.lastUser !== user) {
+    dom.rectEl.setAttribute("fill", $color(user));
+    dom.nameText.data = user;
+    dom.lastUser = user;
+  }
+  return dom;
+};
+
+const releaseRowDom = (row: BarRow) => {
+  if (!row.dom) return;
+  row.dom.el.style.display = "none";
+  rowDomPool.push(row.dom);
+  row.dom = null;
+};
+
+const createRow = (
+  user: string,
+  initialRank: number,
+  initialOpacity: number
+): BarRow => ({
+  user,
+  dom: null,
+  rank: initialRank,
+  rankVel: 0,
+  startRank: initialRank,
+  startRankVel: 0,
+  targetRank: initialRank,
+  rankProgress: 1,
+  opacity: initialOpacity,
+  startOpacity: initialOpacity,
+  targetOpacity: initialOpacity,
+  value: 0,
+  startValue: 0,
+  targetValue: 0,
+  active: true,
+  needsRaise: false,
+});
 
 const updateTitle = (dateStr: string, immediate = false) => {
   const titleSvg = svg_title.value;
@@ -370,6 +409,7 @@ const updateTitle = (dateStr: string, immediate = false) => {
         { duration: 320, easing: "linear", fill: "forwards" }
       );
       anim.onfinish = () => prevEl.remove();
+      anim.oncancel = () => prevEl.remove();
     }
   }
 
@@ -398,19 +438,23 @@ const updateTitle = (dateStr: string, immediate = false) => {
 let lastRenderedDomainMax = 0;
 let lastRenderedSvgWidth = 0;
 
-const renderAxes = (x: any, force = false) => {
+const renderAxes = (force = false) => {
   const width = svgWidth();
   const domainMax = Math.max(1, currentMax);
   if (
     !force &&
     width === lastRenderedSvgWidth &&
     lastRenderedDomainMax > 0 &&
-    Math.abs(domainMax - lastRenderedDomainMax) / lastRenderedDomainMax < 0.008
+    Math.abs(domainMax - lastRenderedDomainMax) / lastRenderedDomainMax < 0.002
   ) {
     return;
   }
   lastRenderedSvgWidth = width;
   lastRenderedDomainMax = domainMax;
+
+  const x = scaleLinear()
+    .domain([0, domainMax])
+    .range([25, width - 10]);
 
   const tickCount = Math.max(2, width / 100);
   const ticks: number[] = x.ticks(tickCount);
@@ -426,10 +470,12 @@ const renderAxes = (x: any, force = false) => {
       const text = document.createElementNS(SVG_NS, "text");
       text.setAttribute("y", "-9");
       text.setAttribute("dy", "0em");
+      const textNode = document.createTextNode("");
+      text.appendChild(textNode);
       g.appendChild(line);
       g.appendChild(text);
       axisStickyGroupEl.appendChild(g);
-      stickyTicks.push({ g, text, lastX: NaN, lastLabel: "", visible: true });
+      stickyTicks.push({ g, textNode, lastX: NaN, lastLabel: "", visible: true });
     }
 
     for (let i = 0; i < stickyTicks.length; i++) {
@@ -453,7 +499,7 @@ const renderAxes = (x: any, force = false) => {
       }
       const label = fmt(tickVal);
       if (label !== item.lastLabel) {
-        item.text.textContent = label;
+        item.textNode.data = label;
         item.lastLabel = label;
       }
     }
@@ -493,118 +539,157 @@ const renderAxes = (x: any, force = false) => {
 };
 
 // Update DOM attributes for all active and exiting rows for the current frame.
-const flushDOM = (dt: number, immediate: boolean): boolean => {
+const flushDOM = (dt: number, immediate: boolean, skipRowAdvance = false): boolean => {
   const width = svgWidth();
   const domainMax = Math.max(1, currentMax);
-  const x = scaleLinear()
-    .domain([0, domainMax])
-    .range([25, width - 10]);
+  const x0 = 25;
+  const xSpan = Math.max(1, width - 35);
+  const xScale = xSpan / domainMax;
 
-  const x0 = x(0);
   let allSettled = true;
+  let activeCount = 0;
   const [minVisibleRank, maxVisibleRank] = getVisibleRankBounds();
 
   for (const [user, row] of rows.entries()) {
-    if (immediate || dt <= 0) {
-      row.rank = row.targetRank;
-      row.startRank = row.targetRank;
-      row.rankProgress = 1;
-      row.opacity = row.targetOpacity;
-      row.startOpacity = row.targetOpacity;
-      row.opacityProgress = 1;
-    } else {
-      if (row.rankProgress < 1) {
-        row.rankProgress = Math.min(1, row.rankProgress + dt / RANK_TRANSITION_S);
-        row.rank = row.startRank + (row.targetRank - row.startRank) * row.rankProgress;
-      } else {
+    if (row.active) activeCount++;
+    if (!skipRowAdvance) {
+      if (immediate || dt <= 0) {
         row.rank = row.targetRank;
-      }
-
-      if (row.opacityProgress < 1) {
-        row.opacityProgress = Math.min(1, row.opacityProgress + dt / OPACITY_TRANSITION_S);
-        row.opacity = Math.max(
-          0,
-          Math.min(1, row.startOpacity + (row.targetOpacity - row.startOpacity) * row.opacityProgress)
-        );
-      } else {
+        row.rankVel = 0;
+        row.startRank = row.targetRank;
+        row.startRankVel = 0;
+        row.rankProgress = 1;
         row.opacity = row.targetOpacity;
+        row.startOpacity = row.targetOpacity;
+      } else {
+        if (row.rankProgress < 1) {
+          row.rankProgress = Math.min(1, row.rankProgress + dt / RANK_TRANSITION_S);
+          const t = row.rankProgress;
+          if (t >= 1) {
+            row.rank = row.targetRank;
+            row.rankVel = 0;
+            row.startRankVel = 0;
+          } else {
+            const t2 = t * t;
+            const t3 = t2 * t;
+            const p0 = row.startRank;
+            const p1 = row.targetRank;
+            const m0 = row.startRankVel;
+            row.rank = (2 * t3 - 3 * t2 + 1) * p0 + (t3 - 2 * t2 + t) * m0 + (-2 * t3 + 3 * t2) * p1;
+            row.rankVel = ((6 * t2 - 6 * t) * (p0 - p1) + (3 * t2 - 4 * t + 1) * m0) / RANK_TRANSITION_S;
+            allSettled = false;
+          }
+        } else {
+          row.rank = row.targetRank;
+          row.rankVel = 0;
+        }
+
+        const opDiff = row.targetOpacity - row.opacity;
+        if (Math.abs(opDiff) > 0.001) {
+          const opStep = (1 / OPACITY_TRANSITION_S) * dt;
+          if (Math.abs(opDiff) <= opStep) {
+            row.opacity = row.targetOpacity;
+          } else {
+            row.opacity = Math.max(0, Math.min(1, row.opacity + Math.sign(opDiff) * opStep));
+            allSettled = false;
+          }
+        } else {
+          row.opacity = row.targetOpacity;
+        }
       }
     }
 
     if (!row.active && row.opacity < 0.01 && Math.abs(row.targetOpacity) < 0.01) {
-      row.el.remove();
+      releaseRowDom(row);
       rows.delete(user);
       continue;
     }
 
-    if (row.rankProgress < 1 || row.opacityProgress < 1) {
-      allSettled = false;
-    }
-
-    // Viewport Culling: Only keep rows in the layout tree when within (or near) the viewport.
+    // Viewport Culling: Only hold a pooled DOM row when within (or near) the viewport.
     const inViewport =
-      (row.rank >= minVisibleRank && row.rank <= maxVisibleRank) ||
-      (row.targetRank >= minVisibleRank && row.targetRank <= maxVisibleRank);
+      row.opacity > 0.001 &&
+      ((row.rank >= minVisibleRank && row.rank <= maxVisibleRank) ||
+        (row.targetRank >= minVisibleRank && row.targetRank <= maxVisibleRank));
 
-    if (inViewport) {
-      if (!row.visible) {
-        row.el.style.display = "";
-        row.visible = true;
-      }
-    } else {
-      if (row.visible) {
-        row.el.style.display = "none";
-        row.visible = false;
-      }
+    if (!inViewport) {
+      row.needsRaise = false;
+      releaseRowDom(row);
       continue;
     }
 
+    if (!row.dom) {
+      row.dom = acquireRowDom(user);
+    }
+    const dom = row.dom;
+
+    if (row.needsRaise) {
+      row.needsRaise = false;
+      barsGroupEl?.appendChild(dom.el);
+    }
+
     const yPos = rankToY(row.rank);
-    if (Math.abs(yPos - row.lastY) > 0.05 || isNaN(row.lastY)) {
-      row.el.setAttribute("transform", `translate(0, ${yPos.toFixed(2)})`);
-      row.lastY = yPos;
+    if (Math.abs(yPos - dom.lastY) > 0.05 || isNaN(dom.lastY)) {
+      dom.el.setAttribute("transform", `translate(0, ${yPos.toFixed(2)})`);
+      dom.lastY = yPos;
     }
 
-    if (Math.abs(row.opacity - row.lastOpacity) > 0.005 || isNaN(row.lastOpacity)) {
-      row.el.setAttribute("opacity", row.opacity.toFixed(3));
-      row.lastOpacity = row.opacity;
+    if (Math.abs(row.opacity - dom.lastOpacity) > 0.005 || isNaN(dom.lastOpacity)) {
+      dom.el.setAttribute("opacity", row.opacity.toFixed(3));
+      dom.lastOpacity = row.opacity;
     }
 
-    const xVal = x(Math.max(0, row.value));
-    const barWidth = Math.max(0, xVal - x0);
-    if (Math.abs(barWidth - row.lastWidth) > 0.05 || isNaN(row.lastWidth)) {
-      row.rectEl.setAttribute("width", barWidth.toFixed(2));
-      row.lastWidth = barWidth;
+    // Subtle emphasis on rising bars and dimming on falling bars mid-swap.
+    const deltaRank = row.targetRank - row.rank;
+    const swapIntensity = Math.min(1, Math.abs(deltaRank));
+    const rectOpacity =
+      swapIntensity > 0.05
+        ? deltaRank < 0
+          ? 0.5 + 0.18 * swapIntensity
+          : 0.5 - 0.14 * swapIntensity
+        : 0.5;
+    if (Math.abs(rectOpacity - dom.lastRectOpacity) > 0.01) {
+      dom.rectEl.setAttribute("opacity", rectOpacity.toFixed(2));
+      dom.lastRectOpacity = rectOpacity;
+    }
+
+    const barWidth = Math.max(0, row.value * xScale);
+    const xVal = x0 + barWidth;
+    if (Math.abs(barWidth - dom.lastWidth) > 0.05 || isNaN(dom.lastWidth)) {
+      dom.rectEl.setAttribute("width", barWidth.toFixed(2));
+      dom.lastWidth = barWidth;
     }
 
     const isShort = xVal < 80;
     const textX = xVal + (isShort ? 7 : -7);
     const anchor = isShort ? "start" : "end";
 
-    if (Math.abs(textX - row.lastTextX) > 0.05 || isNaN(row.lastTextX)) {
-      row.labelGroupEl.setAttribute("transform", `translate(${textX.toFixed(2)}, 0)`);
-      row.lastTextX = textX;
+    if (Math.abs(textX - dom.lastTextX) > 0.05 || isNaN(dom.lastTextX)) {
+      dom.labelGroupEl.setAttribute("transform", `translate(${textX.toFixed(2)}, 0)`);
+      dom.lastTextX = textX;
     }
 
-    if (anchor !== row.lastAnchor) {
-      row.labelGroupEl.setAttribute("text-anchor", anchor);
-      row.lastAnchor = anchor;
-    }
-
-    const displayIndex = String(Math.max(1, Math.round(row.rank) + 1));
-    if (displayIndex !== row.lastIndexText) {
-      row.indexEl.textContent = displayIndex;
-      row.lastIndexText = displayIndex;
+    if (anchor !== dom.lastAnchor) {
+      dom.labelGroupEl.setAttribute("text-anchor", anchor);
+      dom.lastAnchor = anchor;
     }
 
     const commitStr = formatValue(row.value);
-    if (commitStr !== row.lastCommitText) {
-      row.commitEl.textContent = commitStr;
-      row.lastCommitText = commitStr;
+    if (commitStr !== dom.lastCommitText) {
+      dom.commitText.data = commitStr;
+      dom.lastCommitText = commitStr;
     }
   }
 
-  renderAxes(x);
+  const visibleRanks = Math.min(take_n, activeCount);
+  if (visibleRanks !== lastRankLabelCount) {
+    for (let i = Math.min(visibleRanks, lastRankLabelCount); i < Math.max(visibleRanks, lastRankLabelCount); i++) {
+      const el = rankLabelEls[i];
+      if (el) el.style.display = i < visibleRanks ? "" : "none";
+    }
+    lastRankLabelCount = visibleRanks;
+  }
+
+  renderAxes();
   return allSettled;
 };
 
@@ -613,7 +698,7 @@ const assignTargetRanks = (topUsers: [string, number][], enterImmediately: boole
     row.active = false;
   }
 
-  const [minVis, maxVis] = getVisibleRankBounds();
+  const [, maxVis] = getVisibleRankBounds();
   const count = Math.min(take_n, topUsers.length);
   let maxVal = 0;
 
@@ -625,7 +710,7 @@ const assignTargetRanks = (topUsers: [string, number][], enterImmediately: boole
     if (!row) {
       const initialRank = enterImmediately ? i : take_n + 0.5;
       const initialOpacity = enterImmediately ? 1 : 0;
-      row = createRowElement(user, initialRank, initialOpacity, minVis, maxVis);
+      row = createRow(user, initialRank, initialOpacity);
       rows.set(user, row);
     }
     row.active = true;
@@ -636,7 +721,7 @@ const assignTargetRanks = (topUsers: [string, number][], enterImmediately: boole
   for (const [user, row] of rows.entries()) {
     if (!row.active) {
       if (enterImmediately || (row.rank > maxVis && row.targetRank > maxVis)) {
-        row.el.remove();
+        releaseRowDom(row);
         rows.delete(user);
       } else {
         setRowTargets(row, take_n + 1, 0, false);
@@ -652,7 +737,7 @@ const assignTargetRanksFromTracks = (topTracks: PlaybackTrack[], enterImmediatel
     row.active = false;
   }
 
-  const [minVis, maxVis] = getVisibleRankBounds();
+  const [, maxVis] = getVisibleRankBounds();
   const count = Math.min(take_n, topTracks.length);
   let maxVal = 0;
 
@@ -666,7 +751,7 @@ const assignTargetRanksFromTracks = (topTracks: PlaybackTrack[], enterImmediatel
     if (!row) {
       const initialRank = enterImmediately ? i : take_n + 0.5;
       const initialOpacity = enterImmediately ? 1 : 0;
-      row = createRowElement(user, initialRank, initialOpacity, minVis, maxVis);
+      row = createRow(user, initialRank, initialOpacity);
       rows.set(user, row);
     }
     row.active = true;
@@ -677,7 +762,7 @@ const assignTargetRanksFromTracks = (topTracks: PlaybackTrack[], enterImmediatel
   for (const [user, row] of rows.entries()) {
     if (!row.active) {
       if (row.rank > maxVis && row.targetRank > maxVis) {
-        row.el.remove();
+        releaseRowDom(row);
         rows.delete(user);
       } else {
         setRowTargets(row, take_n + 1, 0, false);
@@ -696,33 +781,21 @@ const tick = (now: number) => {
   if (animMode === "step" && stepFrame) {
     const elapsed = now - stepStartTime;
     const progress = Math.min(1, elapsed / STEP_DURATION);
+    const rankEase = smoothstep(progress);
 
-    const activeUsers: [string, number][] = [];
+    let maxVal = 0;
     for (const row of rows.values()) {
       row.value = row.startValue + (row.targetValue - row.startValue) * progress;
-      if (row.active || row.value > 0.5) {
-        activeUsers.push([row.user, row.value]);
-      }
-    }
-
-    activeUsers.sort((a, b) => b[1] - a[1]);
-    let maxVal = 0;
-    for (let i = 0; i < activeUsers.length; i++) {
-      const [user, val] = activeUsers[i];
-      const row = rows.get(user)!;
-      if (i < take_n && (row.targetValue > 0 || progress < 1)) {
-        row.active = true;
-        setRowTargets(row, i, 1, false);
-        if (val > maxVal) maxVal = val;
-      } else {
-        row.active = false;
-        setRowTargets(row, take_n + 1, 0, false);
+      row.rank = row.startRank + (row.targetRank - row.startRank) * rankEase;
+      row.opacity = row.startOpacity + (row.targetOpacity - row.startOpacity) * progress;
+      if (row.active && row.value > maxVal) {
+        maxVal = row.value;
       }
     }
     currentMax = maxVal > 0 ? maxVal : 1;
 
-    const settled = flushDOM(dt, false);
-    if (progress >= 1 && settled) {
+    flushDOM(0, false, true);
+    if (progress >= 1) {
       animMode = "idle";
       rafId = null;
       return;
@@ -733,9 +806,10 @@ const tick = (now: number) => {
 
   if (animMode === "playback" && playbackDates.length > 0) {
     const totalIntervals = Math.max(1, playbackDates.length - 1);
+    const periodMs = getPeriodDuration();
     if (is_animating.value) {
       const elapsed = now - playbackStartTime;
-      playbackCursor = Math.min(totalIntervals, Math.max(0, elapsed / getPeriodDuration()));
+      playbackCursor = Math.min(totalIntervals, Math.max(0, elapsed / periodMs));
       if (playbackCursor >= totalIntervals) {
         is_animating.value = false;
       }
@@ -746,6 +820,29 @@ const tick = (now: number) => {
     const idx = Math.min(totalIntervals - 1, Math.floor(cursor));
     const alpha = cursor - idx;
 
+    // Slight lookahead so swaps center on the moment two bars' widths cross.
+    const lookCursor = finishedTime
+      ? cursor
+      : Math.min(totalIntervals, cursor + (RANK_TRANSITION_S * SWAP_LOOKAHEAD_RATIO * 1000) / periodMs);
+    const lookIdx = Math.min(totalIntervals - 1, Math.floor(lookCursor));
+    const lookAlpha = lookCursor - lookIdx;
+
+    if (idx !== lastPlaybackIdx) {
+      lastPlaybackIdx = idx;
+      intervalTracks = [];
+      const maxCheckIdx = Math.min(totalIntervals, idx + 2);
+      for (let i = 0; i < playbackTracks.length; i++) {
+        const track = playbackTracks[i];
+        if (
+          track.values[idx] > 0 ||
+          track.values[idx + 1] > 0 ||
+          track.values[maxCheckIdx] > 0
+        ) {
+          intervalTracks.push(track);
+        }
+      }
+    }
+
     const displayIdx = alpha >= 0.5 ? idx + 1 : idx;
     const frameDate = playbackDates[displayIdx];
     updateTitle(frameDate, false);
@@ -753,17 +850,29 @@ const tick = (now: number) => {
     currentPlaybackDateIndex = playbackDateIndices[displayIdx] ?? null;
 
     const activeTracks: PlaybackTrack[] = [];
-    for (let i = 0; i < playbackTracks.length; i++) {
-      const track = playbackTracks[i];
+    for (let i = 0; i < intervalTracks.length; i++) {
+      const track = intervalTracks[i];
       const v0 = track.values[idx];
       const v1 = track.values[idx + 1];
       const val = v0 + (v1 - v0) * alpha;
-      if (val > 0) {
+      const lv0 = track.values[lookIdx];
+      const lv1 = track.values[lookIdx + 1];
+      const lookVal = lv0 + (lv1 - lv0) * lookAlpha;
+      if (val > 0 || lookVal > 0) {
         track.currentVal = val;
+        track.lookVal = lookVal;
         activeTracks.push(track);
       }
     }
-    activeTracks.sort((a, b) => b.currentVal - a.currentVal);
+    activeTracks.sort((a, b) => {
+      const maxV = Math.max(a.lookVal, b.lookVal);
+      if (!finishedTime && maxV > 0 && Math.abs(a.lookVal - b.lookVal) <= maxV * SWAP_HYSTERESIS) {
+        const ra = rows.get(a.user)?.targetRank ?? Infinity;
+        const rb = rows.get(b.user)?.targetRank ?? Infinity;
+        if (ra !== rb) return ra - rb;
+      }
+      return b.lookVal - a.lookVal || b.currentVal - a.currentVal;
+    });
 
     assignTargetRanksFromTracks(activeTracks, false);
     const settled = flushDOM(dt, false);
@@ -818,35 +927,49 @@ const transitionToFrame = (frame: FrameData | undefined) => {
     return;
   }
 
-  const [minVis, maxVis] = getVisibleRankBounds();
+  const [, maxVis] = getVisibleRankBounds();
   const topSet = new Set<string>();
   for (let i = 0; i < topSlice.length; i++) {
     const [user, val] = topSlice[i];
     topSet.add(user);
     let row = rows.get(user);
     if (!row) {
-      row = createRowElement(user, take_n + 0.5, 0, minVis, maxVis);
+      row = createRow(user, take_n + 0.5, 0);
       row.value = 0;
       rows.set(user, row);
     }
     row.startValue = row.value;
     row.targetValue = val;
+    row.startRank = row.rank;
+    row.targetRank = i;
+    row.rankVel = 0;
+    row.startRankVel = 0;
+    row.rankProgress = 1;
+    row.startOpacity = row.opacity;
+    row.targetOpacity = 1;
     row.active = true;
-    setRowTargets(row, i, 1, false);
+    row.needsRaise = i < row.rank && row.rank < take_n;
   }
 
   const valueMap = getFrameValueMap(frame);
   for (const [user, row] of rows.entries()) {
     if (!topSet.has(user)) {
       if (row.rank > maxVis && row.targetRank > maxVis) {
-        row.el.remove();
+        releaseRowDom(row);
         rows.delete(user);
         continue;
       }
       row.startValue = row.value;
       row.targetValue = valueMap.get(user) || 0;
+      row.startRank = row.rank;
+      row.targetRank = take_n + 1;
+      row.rankVel = 0;
+      row.startRankVel = 0;
+      row.rankProgress = 1;
+      row.startOpacity = row.opacity;
+      row.targetOpacity = 0;
       row.active = false;
-      setRowTargets(row, take_n + 1, 0, false);
+      row.needsRaise = false;
     }
   }
 
@@ -960,7 +1083,10 @@ const animate = async (should_accumulate = false) => {
     user: t.user,
     values: t.values,
     currentVal: 0,
+    lookVal: 0,
   }));
+  lastPlaybackIdx = -1;
+  intervalTracks = [];
   currentPlaybackDateIndex = playbackDateIndices[0] ?? null;
   playbackStartTime = performance.now();
   playbackCursor = 0;
@@ -1011,11 +1137,7 @@ const onResize = () => {
   if (currentDisplayedDate) {
     updateTitle(currentDisplayedDate, true);
   }
-  const width = svgWidth();
-  const x = scaleLinear()
-    .domain([0, Math.max(1, currentMax)])
-    .range([25, width - 10]);
-  renderAxes(x, true);
+  renderAxes(true);
   flushDOM(0, false);
 };
 
@@ -1051,10 +1173,24 @@ onMounted(() => {
     resizeObserver.observe(container.value);
   }
   if (svg.value) {
+    const ranksG = document.createElementNS(SVG_NS, "g");
+    ranksG.setAttribute("class", "rank-labels");
+    for (let i = 0; i < take_n; i++) {
+      const indexEl = document.createElementNS(SVG_NS, "text");
+      indexEl.setAttribute("class", "index");
+      indexEl.setAttribute("x", "0");
+      indexEl.setAttribute("y", (rankToY(i) + rowBandwidth / 2).toFixed(2));
+      indexEl.setAttribute("dominant-baseline", "central");
+      indexEl.style.display = "none";
+      indexEl.textContent = String(i + 1);
+      ranksG.appendChild(indexEl);
+      rankLabelEls.push(indexEl);
+    }
     const barsG = document.createElementNS(SVG_NS, "g");
     const gridG = document.createElementNS(SVG_NS, "g");
     gridG.setAttribute("class", "axis-grid");
     gridG.setAttribute("opacity", "0.2");
+    svg.value.appendChild(ranksG);
     svg.value.appendChild(barsG);
     svg.value.appendChild(gridG);
     barsGroupEl = barsG;
@@ -1083,14 +1219,25 @@ onBeforeUnmount(() => {
     rafId = null;
   }
   for (const row of rows.values()) {
-    row.el.remove();
+    if (row.dom) {
+      row.dom.el.remove();
+      row.dom = null;
+    }
   }
+  for (const dom of rowDomPool) {
+    dom.el.remove();
+  }
+  rowDomPool.length = 0;
+  rankLabelEls.length = 0;
+  lastRankLabelCount = 0;
   rows.clear();
   stickyTicks.length = 0;
   gridTicks.length = 0;
   framesDesc = [];
   playbackDates = [];
   playbackTracks = [];
+  intervalTracks = [];
+  lastPlaybackIdx = -1;
 });
 
 </script>
