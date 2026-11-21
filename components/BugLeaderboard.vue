@@ -20,14 +20,15 @@
         <table class="bug-table">
           <thead>
             <tr>
-              <th>#</th>
+              <th class="num">#</th>
               <th>Bug</th>
+              <th>Title</th>
               <th v-if="showRepo">Repository</th>
-              <th>Commits</th>
-              <th>Authors</th>
-              <th>Lines</th>
-              <th>Timespan</th>
-              <th>Top contributor</th>
+              <th class="num">Commits</th>
+              <th class="num">Authors</th>
+              <th class="num">Lines</th>
+              <th class="num">Timespan</th>
+              <th class="num">Top contributor</th>
             </tr>
           </thead>
           <tbody>
@@ -36,6 +37,16 @@
               <td class="bug-id">
                 <a v-if="row.url" :href="row.url" target="_blank" rel="noopener">#{{ row.id }}</a>
                 <template v-else>#{{ row.id }}</template>
+              </td>
+              <td class="bug-title-cell" :title="row.title || undefined">
+                <a
+                  v-if="row.title && row.url"
+                  :href="row.url"
+                  target="_blank"
+                  rel="noopener"
+                  class="bug-title">{{ row.title }}</a>
+                <span v-else-if="row.title" class="bug-title">{{ row.title }}</span>
+                <span v-else class="bug-title-empty">—</span>
               </td>
               <td v-if="showRepo" class="repo-cell">
                 <span class="repo-dot" :style="{ background: row.repoColor }" />{{ row.repoName }}
@@ -80,6 +91,8 @@ interface RawBug {
   last: string;
   top: string;
   top_n: number;
+  title?: string;
+  url?: string;
 }
 
 const props = defineProps({
@@ -110,19 +123,6 @@ const intFmt = new Intl.NumberFormat("en", { maximumFractionDigits: 0 });
 const compact = (n: number) =>
   n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1e4 ? `${Math.round(n / 1e3)}k` : n >= 1e3 ? `${(n / 1e3).toFixed(1)}k` : intFmt.format(n);
 
-const bugUrlOf = (dirname: string, id: number): string | null => {
-  if (dirname === "firefox" || dirname === "spidermonkey") {
-    return `https://bugzilla.mozilla.org/show_bug.cgi?id=${id}`;
-  }
-  if (dirname === "webkit" || dirname === "jsc") {
-    return `https://bugs.webkit.org/show_bug.cgi?id=${id}`;
-  }
-  const repo = repoMeta.get(dirname);
-  if (repo?.reviewers === true) return `https://crbug.com/${id}`;
-  if (repo?.owner && repo?.repository) return `https://github.com/${repo.owner}/${repo.repository}/issues/${id}`;
-  return null;
-};
-
 const formatSpan = (days: number) => {
   if (days >= 730) return `${(days / 365.25).toFixed(1)}y`;
   if (days >= 60) return `${Math.round(days / 30.4)}mo`;
@@ -146,7 +146,7 @@ const rows = computed(() => {
         repoName: meta?.name ?? dirname,
         repoColor: meta?.color ?? "var(--accent)",
         spanDays,
-        url: bugUrlOf(dirname, b.id),
+        url: b.url ?? null,
       });
     }
   }
@@ -218,7 +218,7 @@ const sortedRows = computed(() => {
   text-align: left;
 }
 
-.bug-table thead th:nth-child(n + 3) {
+.bug-table thead th.num {
   text-align: right;
 }
 
@@ -237,6 +237,26 @@ const sortedRows = computed(() => {
 .bug-id {
   font-family: var(--font-mono);
   font-weight: 600;
+}
+
+.bug-title-cell {
+  max-width: 26rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.bug-title {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+a.bug-title:hover {
+  text-decoration: underline;
+}
+
+.bug-title-empty {
+  color: var(--muted);
 }
 
 .repo-cell {

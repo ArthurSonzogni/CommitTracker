@@ -218,7 +218,8 @@ const tests = [
       __t.byText('.segmented-option', 'Biggest bugs').click();
       const bugs = await __t.until(() =>
         location.search.includes('view=bugs') &&
-        document.querySelectorAll('.bug-table tbody tr').length >= 10, 10000);
+        document.querySelectorAll('.bug-table tbody tr').length >= 10 &&
+        document.querySelectorAll('.bug-table .bug-title').length >= 10, 10000);
       return { ok: !!monthly && !!prev && !!blink && !!stopBtn && !!finished && !!bugs, detail: year + ' -> monthly ' + monthLabel + ' -> previous ' + prevLabel + ' -> animated / url ' + location.search };
     `,
   },

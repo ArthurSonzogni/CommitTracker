@@ -15,6 +15,14 @@ runs:
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
 
+    - name: Fetch bug titles
+      shell: bash
+      run: |
+        cd importer
+        npm run fetch_bug_titles
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+
     - name: Cleanup derived data
       shell: bash
       run: |
