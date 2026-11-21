@@ -99,6 +99,8 @@ jobs:
 
       - name: Generate website
         run: npm run generate
+        env:
+          MOVE_PUBLIC_DATA: '1'
 
       - name: Test website interactions
         if: github.event_name == 'pull_request'

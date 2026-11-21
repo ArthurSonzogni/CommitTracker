@@ -3,6 +3,7 @@ import path from 'path'
 import { defineEventHandler, sendStream, setResponseHeader, setResponseStatus } from 'h3'
 
 const isDev = process.env.NODE_ENV === 'development'
+const publicDir = process.env.NUXT_PUBLIC_DIR || (isDev ? 'public_dev' : 'public')
 const publicRoot = path.resolve('public')
 
 const DEV_CONTENT_TYPES: Record<string, string> = {
@@ -26,7 +27,7 @@ export default defineNuxtConfig({
   ssr: false,
 
   dir: {
-    public: isDev ? 'public_dev' : 'public',
+    public: publicDir,
   },
 
   // Avoid watching the heavy data directories in dev. Patterns without a
