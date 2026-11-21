@@ -46,15 +46,21 @@ permissions:
   contents: write
 
 jobs:
-  importer:
+  config:
     runs-on: ubuntu-latest
-    timeout-minutes: 180
-
+    timeout-minutes: 5
+    outputs:
+      run_commits: ${{ steps.config.outputs.run_commits }}
+      run_treemap: ${{ steps.config.outputs.run_treemap }}
+      run_fuzz: ${{ steps.config.outputs.run_fuzz }}
+      run_cve: ${{ steps.config.outputs.run_cve }}
+      run_graph: ${{ steps.config.outputs.run_graph }}
+      run_commit_rates: ${{ steps.config.outputs.run_commit_rates }}
+      run_accretion: ${{ steps.config.outputs.run_accretion }}
     steps:
       - name: Configure Run Flags
         id: config
         run: |
-          # Default: Assume we do not run anything unless specified
           DO_COMMITS="false"
           DO_TREEMAP="false"
           DO_FUZZ="false"
@@ -63,14 +69,12 @@ jobs:
           DO_COMMIT_RATES="false"
           DO_ACCRETION="false"
 
-          # Logic for Scheduled Runs (Cron)
           if [[ "${{ github.event_name }}" == "schedule" ]]; then
-            # Commits and accretion run every day
+            # Commits and accretion run every weekday
             DO_COMMITS="true"
             DO_ACCRETION="true"
 
             DAY_OF_WEEK=$(date +%u)
-
             if [[ "$DAY_OF_WEEK" == "1" ]]; then DO_TREEMAP="true"; fi
             if [[ "$DAY_OF_WEEK" == "2" ]]; then DO_FUZZ="true"; fi
             if [[ "$DAY_OF_WEEK" == "3" ]]; then DO_COMMIT_RATES="true"; fi
@@ -78,7 +82,6 @@ jobs:
             if [[ "$DAY_OF_WEEK" == "5" ]]; then DO_GRAPH="true"; fi
           fi
 
-          # Logic for Manual Runs
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             DO_COMMITS="${{ inputs.run_commits }}"
             DO_TREEMAP="${{ inputs.run_treemap }}"
@@ -97,31 +100,40 @@ jobs:
           echo "run_commit_rates=$DO_COMMIT_RATES" >> $GITHUB_OUTPUT
           echo "run_accretion=$DO_ACCRETION" >> $GITHUB_OUTPUT
 
+  commits:
+    needs: config
+    if: needs.config.outputs.run_commits == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
       - name: Checkout main repository
         uses: actions/checkout@v7
 
-      - name: Setup node env
-        uses: actions/setup-node@v7
+      - name: Setup importer
+        uses: ./.github/actions/setup-importer
         with:
-          node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: importer/package-lock.json
-
-      - name: Pull dependencies
-        run: |
-          npm run pull-data
-          cd importer && npm ci
-
-      # --- MODULES (Composite Actions) ---
+          branches: data
 
       - name: Run Commits Module
-        if: steps.config.outputs.run_commits == 'true'
         uses: ./.github/actions/commits
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
+  treemap:
+    needs: config
+    if: needs.config.outputs.run_treemap == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout main repository
+        uses: actions/checkout@v7
+
+      - name: Setup importer
+        uses: ./.github/actions/setup-importer
+        with:
+          branches: treemap
+
       - name: Run Treemap Module
-        if: steps.config.outputs.run_treemap == 'true'
         uses: ./.github/actions/run-and-push
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -129,8 +141,21 @@ jobs:
           publish_dir: ./public/treemap/
           publish_branch: treemap
 
+  fuzz:
+    needs: config
+    if: needs.config.outputs.run_fuzz == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout main repository
+        uses: actions/checkout@v7
+
+      - name: Setup importer
+        uses: ./.github/actions/setup-importer
+        with:
+          branches: fuzz-test
+
       - name: Run Fuzz Module
-        if: steps.config.outputs.run_fuzz == 'true'
         uses: ./.github/actions/run-and-push
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -138,8 +163,21 @@ jobs:
           publish_dir: ./public/fuzz-test/
           publish_branch: fuzz-test
 
+  cve:
+    needs: config
+    if: needs.config.outputs.run_cve == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout main repository
+        uses: actions/checkout@v7
+
+      - name: Setup importer
+        uses: ./.github/actions/setup-importer
+        with:
+          branches: cve
+
       - name: Run CVE Module
-        if: steps.config.outputs.run_cve == 'true'
         uses: ./.github/actions/run-and-push
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -147,15 +185,21 @@ jobs:
           publish_dir: ./public/cve/
           publish_branch: cve
 
-      - name: Run Graph Module
-        if: steps.config.outputs.run_graph == 'true'
-        uses: ./.github/actions/graph
+  commit_rates:
+    needs: config
+    if: needs.config.outputs.run_commit_rates == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout main repository
+        uses: actions/checkout@v7
+
+      - name: Setup importer
+        uses: ./.github/actions/setup-importer
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          force: ${{ inputs.force_graph == true }}
+          branches: commit_rates
 
       - name: Run Commit Rates Module
-        if: steps.config.outputs.run_commit_rates == 'true'
         uses: ./.github/actions/run-and-push
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -163,8 +207,42 @@ jobs:
           publish_dir: ./public/commit_rates/
           publish_branch: commit_rates
 
+  accretion:
+    needs: config
+    if: needs.config.outputs.run_accretion == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout main repository
+        uses: actions/checkout@v7
+
+      - name: Setup importer
+        uses: ./.github/actions/setup-importer
+        with:
+          branches: data accretion
+
       - name: Run Accretion Module
-        if: steps.config.outputs.run_accretion == 'true'
         uses: ./.github/actions/accretion
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+
+  # Graph depends on the fresh data branch pushed by commits (when commits runs).
+  graph:
+    needs: [config, commits]
+    if: ${{ always() && needs.config.outputs.run_graph == 'true' && (needs.commits.result == 'success' || needs.commits.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout main repository
+        uses: actions/checkout@v7
+
+      - name: Setup importer
+        uses: ./.github/actions/setup-importer
+        with:
+          branches: data community-map
+
+      - name: Run Graph Module
+        uses: ./.github/actions/graph
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          force: ${{ inputs.force_graph == true }}

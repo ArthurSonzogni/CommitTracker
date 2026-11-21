@@ -25,6 +25,19 @@ on:
       - '.github/actions/**'
       - 'graph/**'
 
+  # Verify builds and interaction tests on pull requests.
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - 'AGENTS.md'
+      - 'README.md'
+      - '.github/FUNDING.yml'
+      - '.github/workflows/importer.yaml'
+      - '.github/workflows/fixmailmap.yaml'
+      - '.github/actions/**'
+      - 'graph/**'
+
 permissions:
   contents: read
 
@@ -34,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     concurrency:
-      group: cd-build
+      group: cd-build-${{ github.event_name == 'pull_request' && github.event.pull_request.number || 'main' }}
       cancel-in-progress: true
     steps:
       - name: Checkout main repository
@@ -50,14 +63,21 @@ jobs:
             importer/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          npm ci
+          (cd importer && npm ci)
 
+      # The commit_rates branch (~30k files) is dormant on production deploys,
+      # so only pull it for PR interaction tests.
       - name: Pull data
         run: npm run pull-data
+        env:
+          SKIP_BRANCHES: ${{ github.event_name == 'pull_request' && '' || 'commit_rates' }}
 
       - name: Generate derived data
         run: npm run generate-derived-data
         env:
+          SKIP_NPM_INSTALL: '1'
           # Fetching files from GitHub is less throttled with a token.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -65,16 +85,13 @@ jobs:
         run: npm run generate
 
       - name: Test website interactions
+        if: github.event_name == 'pull_request'
         run: npm run test:interactions
-
-      # The commit rates pages are dormant: their ~30k data files made the
-      # Pages deployment time out. The pages are still built and tested.
-      - name: Drop dormant data
-        run: rm -rf .output/public/commit_rates
 
       # Deployed as an artifact: much faster than committing the 200k files
       # of the site to a branch, and building it again.
       - name: Upload website
+        if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v5
         with:
           path: .output/public
@@ -83,6 +100,7 @@ jobs:
   # queries for it, and so failed deploys can be re-run without rebuilding.
   deploy:
     needs: build
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     # One deployment at a time: a newer deploy waits instead of racing.

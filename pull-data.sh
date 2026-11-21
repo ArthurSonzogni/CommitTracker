@@ -2,7 +2,16 @@
 set -eu
 
 repo=https://github.com/ArthurSonzogni/CommitTracker.git
-branches="data community-map fuzz-test treemap cve commit_rates accretion"
+all_branches="${PULL_BRANCHES:-data community-map fuzz-test treemap cve commit_rates accretion}"
+skip=" ${SKIP_BRANCHES:-} "
+
+branches=""
+for branch in $all_branches; do
+  case "$skip" in
+    *" $branch "*) continue ;;
+  esac
+  branches="$branches $branch"
+done
 
 pids=""
 for branch in $branches; do

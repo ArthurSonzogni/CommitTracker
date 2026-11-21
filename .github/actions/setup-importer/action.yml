@@ -1,0 +1,25 @@
+name: 'Setup Importer'
+description: 'Sets up Node.js, installs importer dependencies, and pulls required data branches'
+inputs:
+  branches:
+    description: 'Space-separated list of data branches to pull'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup node env
+      uses: actions/setup-node@v7
+      with:
+        node-version: '22'
+        cache: 'npm'
+        cache-dependency-path: importer/package-lock.json
+
+    - name: Install importer dependencies
+      shell: bash
+      run: cd importer && npm ci
+
+    - name: Pull data branches
+      shell: bash
+      run: npm run pull-data
+      env:
+        PULL_BRANCHES: ${{ inputs.branches }}
