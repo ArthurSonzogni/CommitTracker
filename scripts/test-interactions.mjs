@@ -1225,6 +1225,51 @@ const tests = [
       };
     `,
   },
+  {
+    name: 'organizations emails: packed bubbles, inspector, domain filter, search, and links',
+    url: 'organizations/emails',
+    run: `
+      const ready = await __t.until(() =>
+        document.querySelector('.summary-line')?.textContent?.includes('organizations') &&
+        document.querySelectorAll('.bubble-node').length > 100 &&
+        document.querySelector('.inspector-title')?.textContent?.trim() === 'Google', 15000);
+
+      // Clicking a domain chip filters the inspector emails
+      const chromiumChip = [...document.querySelectorAll('.domain-chip')].find(c => c.textContent.includes('@chromium.org'));
+      chromiumChip.click();
+      const domainFiltered = await __t.until(() => {
+        const pills = [...document.querySelectorAll('.email-list .email-pill')];
+        return pills.length > 0 && pills.every(p => p.textContent.trim().endsWith('@chromium.org'));
+      }, 5000);
+      const firstHref = document.querySelector('.email-list .email-pill')?.getAttribute('href') || '';
+      const hrefOk = firstHref.includes('/individuals') && firstHref.includes('repositories=chromium');
+
+      // Clicking another org in the right-hand selector updates the emails panel below
+      const samsungItem = [...document.querySelectorAll('.selector-item')].find(el => el.querySelector('.selector-name')?.textContent?.trim() === 'Samsung');
+      samsungItem.click();
+      const selectorClickOk = await __t.until(() =>
+        document.querySelector('.inspector-title')?.textContent?.trim() === 'Samsung', 5000);
+
+      // Clicking a bubble also updates the emails panel below
+      const igaliaBubble = [...document.querySelectorAll('.bubble-node')].find(n => n.getAttribute('aria-label')?.startsWith('Igalia:'));
+      igaliaBubble.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      const bubbleClickOk = await __t.until(() =>
+        document.querySelector('.inspector-title')?.textContent?.trim() === 'Igalia', 5000);
+
+      // Search highlights matching bubbles and dims non-matches
+      const input = document.querySelector('.search-input');
+      input.value = 'microsoft.com';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      const searchOk = await __t.until(() =>
+        document.querySelectorAll('.bubble-node.is-dimmed').length > 100 &&
+        document.querySelector('.inspector-title')?.textContent?.trim() === 'Microsoft', 5000);
+
+      return {
+        ok: !!(ready && domainFiltered && hrefOk && selectorClickOk && bubbleClickOk && searchOk),
+        detail: JSON.stringify({ ready, domainFiltered, hrefOk, selectorClickOk, bubbleClickOk, searchOk }),
+      };
+    `,
+  },
 ];
 
 let failed = 0;
