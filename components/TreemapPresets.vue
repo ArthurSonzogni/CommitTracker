@@ -96,8 +96,8 @@ const CATEGORIES: {
     name: "Commit activity",
     description: "Where code is changing fastest over the past year or month.",
     presets: [
-      { name: "Commit rate (1 year)", color: ["commits_1y"], size: ["line"], start: "2019-01-01", history_mode: "ratio" },
-      { name: "Recent churn (30 days)", color: ["commits_30d"], size: ["line"], start: "2019-01-01", history_mode: "ratio" },
+      { name: "Commit rate (1 year)", color: ["commits_1y"], size: ["line"], start: "2009-01-01", history_mode: "ratio" },
+      { name: "Recent churn (30 days)", color: ["commits_30d"], size: ["line"], start: "2009-01-01", history_mode: "ratio" },
     ],
   },
   {

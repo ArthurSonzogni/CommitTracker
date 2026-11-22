@@ -10,7 +10,7 @@
     "treemap": "node treemap.mjs",
     "graph": "node graph.mjs",
     "fixmailmap": "node fixmailmap.mjs",
-    "commit_rates": "node commit_rates.mjs",
+    "commit_rates": "node --max-old-space-size=8192 commit_rates.mjs",
     "fuzztest": "node fuzz-test.mjs",
     "cve": "node cve.mjs",
     "accretion": "node --max-old-space-size=8192 accretion.mjs chromium"
