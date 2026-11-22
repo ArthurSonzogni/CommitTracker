@@ -200,16 +200,19 @@ const DISPLAY_DAYS = [
   { jsDay: 0, name: "Sun", isWeekend: true },
 ];
 
-const { repositories, dates } = useUrlState({
-  repositories: urlCodecs.csv(["chromium"]),
+type TzMode = "local" | "mtv" | "par" | "tok";
+type WeeklyWindow = "auto" | "1" | "4" | "13" | "26" | "52";
+
+const { repositories, dates, tz: tzMode, window: weeklyWindow } = useUrlState({
+  repositories: { ...urlCodecs.csv(["chromium"]), history: "push" },
   dates: urlCodecs.dateRange("2000-01-01"),
+  tz: { ...urlCodecs.enum(["local", "mtv", "par", "tok"] as const, "local"), history: "push" },
+  window: { ...urlCodecs.enum(["auto", "1", "4", "13", "26", "52"] as const, "auto"), history: "push" },
 });
 
 const rawAligned = shallowRef<AlignedCommitsPerHour | null>(null);
 const loading = ref(false);
 const loadError = ref<string | null>(null);
-const tzMode = ref<"local" | "utc">("local");
-const weeklyWindow = ref<"auto" | 1 | 4 | 13 | 26 | 52>("auto");
 const themeTick = ref(0);
 
 const rhythmEl = ref<HTMLElement | null>(null);
@@ -232,12 +235,47 @@ const localTzName = computed(() => {
   }
 });
 
+const getIanaOffsetMs = (timeZone: string, fallbackHours: number): number => {
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      timeZoneName: "shortOffset",
+    }).formatToParts(new Date());
+    const tz = parts.find((p) => p.type === "timeZoneName")?.value ?? "";
+    const match = tz.match(/GMT([+-])(\d+)(?::(\d+))?/);
+    if (!match) return fallbackHours * HOUR_MS;
+    const sign = match[1] === "-" ? -1 : 1;
+    const hours = Number(match[2]) + Number(match[3] || 0) / 60;
+    return sign * hours * HOUR_MS;
+  } catch {
+    return fallbackHours * HOUR_MS;
+  }
+};
+
+const TZ_PRESETS: Record<Exclude<TzMode, "local">, { label: string; title: string; iana: string; fallbackHours: number }> = {
+  mtv: { label: "MTV", title: "Mountain View (America/Los_Angeles)", iana: "America/Los_Angeles", fallbackHours: -8 },
+  par: { label: "PAR", title: "Paris (Europe/Paris)", iana: "Europe/Paris", fallbackHours: 1 },
+  tok: { label: "TOK", title: "Tokyo (Asia/Tokyo)", iana: "Asia/Tokyo", fallbackHours: 9 },
+};
+
 const tzOptions = computed(() => [
   { value: "local", label: `Local (${localTzName.value})` },
-  { value: "utc", label: "UTC" },
+  { value: "mtv", label: "MTV", title: TZ_PRESETS.mtv.title },
+  { value: "par", label: "PAR", title: TZ_PRESETS.par.title },
+  { value: "tok", label: "TOK", title: TZ_PRESETS.tok.title },
 ]);
 
-const tzShortLabel = computed(() => (tzMode.value === "utc" ? "UTC" : localTzName.value));
+const tzShortLabel = computed(() =>
+  tzMode.value === "local" ? localTzName.value : TZ_PRESETS[tzMode.value].label,
+);
+
+const tzOffsetMs = computed(() => {
+  if (tzMode.value === "local") {
+    return -new Date().getTimezoneOffset() * 60 * 1000;
+  }
+  const preset = TZ_PRESETS[tzMode.value];
+  return getIanaOffsetMs(preset.iana, preset.fallbackHours);
+});
 
 const fmtInt = (n: number) => Math.round(n).toLocaleString("en-US");
 const formatWeekly = (n: number) => `${fmtInt(n)} / wk`;
@@ -330,8 +368,7 @@ const aggregated = computed(() => {
     };
   }
 
-  const useLocal = tzMode.value === "local";
-  const localOffsetMs = useLocal ? -new Date().getTimezoneOffset() * 60 * 1000 : 0;
+  const offsetMs = tzOffsetMs.value;
 
   const dailyMap = new Map<number, number>();
   let totalCommits = 0;
@@ -365,7 +402,7 @@ const aggregated = computed(() => {
 
     if (val > 0) {
       totalCommits += val;
-      const shiftedMs = tsMs + localOffsetMs;
+      const shiftedMs = tsMs + offsetMs;
       const totalHours = Math.floor(shiftedMs / HOUR_MS);
       const hour = ((totalHours % 24) + 24) % 24;
       // 1970-01-01 was a Thursday (4)
@@ -465,16 +502,16 @@ const autoWeeklyWindow = computed<1 | 4 | 13 | 26 | 52>(() => {
 });
 
 const effectiveWeeklyWindow = computed<number>(() =>
-  weeklyWindow.value === "auto" ? autoWeeklyWindow.value : weeklyWindow.value,
+  weeklyWindow.value === "auto" ? autoWeeklyWindow.value : Number(weeklyWindow.value),
 );
 
 const weeklyWindowOptions = computed(() => [
   { value: "auto", label: `Auto (${autoWeeklyWindow.value}w)` },
-  { value: 1, label: "1w" },
-  { value: 4, label: "4w" },
-  { value: 13, label: "13w" },
-  { value: 26, label: "26w" },
-  { value: 52, label: "52w" },
+  { value: "1", label: "1w" },
+  { value: "4", label: "4w" },
+  { value: "13", label: "13w" },
+  { value: "26", label: "26w" },
+  { value: "52", label: "52w" },
 ]);
 
 const weeklySeries = computed(() => {

@@ -305,18 +305,19 @@ for (const repository of repositories) {
   if (min_date === null) {
     commits_per_hour_out = { startDate: null, commits: [] };
   } else {
-    const min_ms = new Date(min_date).getTime();
+    const startDate = new Date(min_date).toISOString().split("T")[0];
+    const start_ms = Date.parse(`${startDate}T00:00:00Z`);
     const max_ms = new Date(max_date).getTime();
-    const array_size = Math.floor((max_ms - min_ms) / 3600000);
+    const array_size = Math.floor((max_ms - start_ms) / 3600000);
     const hourly = new Array(array_size + 1).fill(0);
     for (const date of valid_author_dates) {
-      const index = Math.floor((new Date(date).getTime() - min_ms) / 3600000);
+      const index = Math.floor((new Date(date).getTime() - start_ms) / 3600000);
       if (index >= 0) {
         hourly[index] += 1;
       }
     }
     commits_per_hour_out = {
-      startDate: new Date(min_date).toISOString().split("T")[0],
+      startDate,
       commits: hourly,
     };
   }

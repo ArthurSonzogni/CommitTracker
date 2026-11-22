@@ -809,12 +809,22 @@ const tests = [
         document.querySelectorAll('.rhythm-cell').length === 168 &&
         document.querySelectorAll('.weekly-chart-wrap svg path').length >= 1 &&
         document.querySelectorAll('svg rect').length > 300, 20000);
-      const utcBtn = [...document.querySelectorAll('.segmented-option')].find(el => el.textContent.trim() === 'UTC');
-      utcBtn.click();
+      const mtvBtn = [...document.querySelectorAll('.segmented-option')].find(el => el.textContent.trim() === 'MTV');
+      mtvBtn.click();
       const tzChanged = await __t.until(() =>
-        document.querySelector('.section-subtitle')?.textContent?.includes('UTC') &&
-        utcBtn.classList.contains('is-selected'), 5000);
-      return { ok: !!(ok && tzChanged), detail: 'rhythmCells=' + __t.count('.rhythm-cell') + ' rects=' + __t.count('svg rect') };
+        location.search.includes('tz=mtv') &&
+        document.querySelector('.section-subtitle')?.textContent?.includes('MTV') &&
+        mtvBtn.classList.contains('is-selected'), 5000);
+      const w13Btn = [...document.querySelectorAll('.segmented-option')].find(el => el.textContent.trim() === '13w');
+      w13Btn.click();
+      const winChanged = await __t.until(() =>
+        location.search.includes('window=13') &&
+        w13Btn.classList.contains('is-selected'), 5000);
+      history.back();
+      const backOk = await __t.until(() =>
+        !location.search.includes('window=13') &&
+        location.search.includes('tz=mtv'), 5000);
+      return { ok: !!(ok && tzChanged && winChanged && backOk), detail: 'rhythmCells=' + __t.count('.rhythm-cell') + ' rects=' + __t.count('svg rect') + ' back=' + !!backOk };
     `,
   },
   {
