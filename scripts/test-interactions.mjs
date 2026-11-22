@@ -1177,6 +1177,54 @@ const tests = [
       return { ok: !!(orgOk && pulsePage && pulseOk && communities), detail: 'org=' + !!orgOk + ' pulse=' + !!pulseOk + ' communitiesCarbon=' + !!communities };
     `,
   },
+  {
+    name: 'usernames: summary, search spotlight, pattern filter, bucket expand, A-Z, and trend chart',
+    url: 'usernames',
+    run: `
+      const ready = await __t.until(() =>
+        document.querySelector('.summary-line')?.textContent?.includes('unique usernames') &&
+        document.querySelectorAll('.hist-row').length > 10, 15000);
+      const trendOk = await __t.until(() =>
+        document.querySelectorAll('.trend-chart-wrap svg path').length >= 2, 15000);
+
+      // Expand a length bucket lazily
+      const beforePills = document.querySelectorAll('.hist-drawer .username-pill').length;
+      const row = [...document.querySelectorAll('.hist-row')].find(r => !r.disabled);
+      row.click();
+      const expandedOk = await __t.until(() =>
+        document.querySelectorAll('.hist-drawer .username-pill').length > 0, 5000);
+      const firstHref = document.querySelector('.hist-drawer .username-pill')?.getAttribute('href') || '';
+      const hrefHasRepo = firstHref.includes('repositories=chromium');
+
+      // Search spotlight
+      const input = document.querySelector('.search-input');
+      input.value = 'arthursonzogni';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      const spotlightOk = await __t.until(() =>
+        document.querySelector('.spotlight-banner')?.textContent?.includes('arthursonzogni') &&
+        document.querySelector('.hist-group.is-highlighted') !== null, 5000);
+      input.value = '';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+
+      // Pattern filter
+      const dotsChip = [...document.querySelectorAll('.pattern-chip')].find(el => el.textContent.includes('Has dots'));
+      dotsChip.click();
+      const filteredOk = await __t.until(() =>
+        dotsChip.classList.contains('is-active') &&
+        document.querySelector('.summary-line')?.textContent?.includes(' of '), 5000);
+
+      // A-Z letter click
+      const letterA = [...document.querySelectorAll('.az-col')].find(b => b.querySelector('.az-label')?.textContent === 'A');
+      letterA.click();
+      const letterOk = await __t.until(() =>
+        document.querySelectorAll('.az-drawer .username-pill').length > 0, 5000);
+
+      return {
+        ok: !!(ready && trendOk && beforePills === 0 && expandedOk && hrefHasRepo && spotlightOk && filteredOk && letterOk),
+        detail: JSON.stringify({ ready, trendOk, beforePills, expandedOk, hrefHasRepo, spotlightOk, filteredOk, letterOk }),
+      };
+    `,
+  },
 ];
 
 let failed = 0;
