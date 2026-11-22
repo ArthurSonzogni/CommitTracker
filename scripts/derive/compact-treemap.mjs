@@ -27,7 +27,7 @@ import path from 'path';
 
 const dir = path.resolve(process.argv[2] || 'public/treemap');
 const commitRatesRoot = path.resolve(dir, '..', 'commit_rates');
-const COMMIT_RATES_START_MS = Date.parse('2018-01-01T00:00:00Z');
+const DEFAULT_COMMIT_RATES_START = '2018-01-01';
 const WEEK_MS = 7 * 86400 * 1000;
 
 function decompressRates(compressed) {
@@ -58,6 +58,19 @@ function deriveCommitRateMetrics(repo, tree, datesIso) {
   const repoRatesDir = path.join(commitRatesRoot, repo);
   if (!fs.existsSync(repoRatesDir)) return null;
 
+  let startDateStr = DEFAULT_COMMIT_RATES_START;
+  const bucketsFile = path.join(repoRatesDir, 'buckets.json');
+  if (fs.existsSync(bucketsFile)) {
+    try {
+      const meta = JSON.parse(fs.readFileSync(bucketsFile, 'utf8'));
+      if (typeof meta?.startDate === 'string' && meta.startDate) {
+        startDateStr = meta.startDate;
+      }
+    } catch {}
+  }
+  const startMs = Date.parse(`${startDateStr}T00:00:00Z`);
+  if (!Number.isFinite(startMs)) return null;
+
   // Map full relative file path -> original treemap node id.
   const pathToOrigId = new Map();
   const walk = (node, prefix) => {
@@ -75,12 +88,22 @@ function deriveCommitRateMetrics(repo, tree, datesIso) {
   };
   walk(tree, '');
 
-  // Precompute week index for each treemap date >= 2018-01-01.
-  const dateWeeks = datesIso.map((iso, idx) => {
+  // Precompute week index for each treemap date >= startDate.
+  // Sample monthly (first snapshot of each YYYY-MM) plus always the last date
+  // to keep rolling-window delta files compact (~60% smaller).
+  const lastIdx = datesIso.length - 1;
+  let lastMonth = '';
+  const dateWeeks = [];
+  for (let idx = 0; idx < datesIso.length; idx++) {
+    const iso = datesIso[idx];
     const ms = Date.parse(iso);
-    if (!Number.isFinite(ms) || ms < COMMIT_RATES_START_MS) return null;
-    return { idx, week: Math.floor((ms - COMMIT_RATES_START_MS) / WEEK_MS) };
-  }).filter(Boolean);
+    if (!Number.isFinite(ms) || ms < startMs) continue;
+    const month = iso.slice(0, 7);
+    if (month !== lastMonth || idx === lastIdx) {
+      lastMonth = month;
+      dateWeeks.push({ idx, week: Math.floor((ms - startMs) / WEEK_MS) });
+    }
+  }
   if (dateWeeks.length === 0) return null;
 
   const commits30d = {};

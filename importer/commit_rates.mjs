@@ -10,7 +10,7 @@ import {IsEmailValid} from './is_email_valid.mjs';
 const CONFIG = {
   baseOutputDir: '../public/commit_rates', // Base output directory
   bucketCount: 2048,
-  startDate: '2018-01-01',
+  startDate: '2008-01-01',
 };
 
 
@@ -307,30 +307,52 @@ async function processRepository(repo) {
 
   await fs.mkdir(outputDir, { recursive: true });
 
-  let bucketsState = { lastCommit: null, lastCommitDate: null };
+  let bucketsState = { lastCommit: null, lastCommitDate: null, startDate: CONFIG.startDate };
+  let startDateChanged = false;
   try {
     const data = await fs.readFile(bucketsFile, 'utf8');
     bucketsState = JSON.parse(data);
-    if (Array.isArray(bucketsState)) bucketsState = { lastCommit: null, lastCommitDate: null };
+    if (Array.isArray(bucketsState)) {
+      bucketsState = { lastCommit: null, lastCommitDate: null, startDate: CONFIG.startDate };
+      startDateChanged = true;
+    } else if (bucketsState.startDate !== CONFIG.startDate) {
+      console.log(`  startDate changed (${bucketsState.startDate || '2018-01-01'} -> ${CONFIG.startDate}): rebuilding from scratch.`);
+      bucketsState = { lastCommit: null, lastCommitDate: null, startDate: CONFIG.startDate };
+      startDateChanged = true;
+    }
   } catch (e) {}
+
+  if (startDateChanged) {
+    // Clear stale bucket files indexed from the previous startDate.
+    const existing = await fs.readdir(outputDir);
+    await Promise.all(
+      existing
+        .filter(f => f.endsWith('.json'))
+        .map(f => fs.rm(path.join(outputDir, f), { force: true })),
+    );
+  }
 
   await timed(`Ensuring git repo for ${repo.dirname}`, async () => {
     await ensureRepo(repo, bucketsState);
   });
 
   let totalRates = [];
-  try {
+  if (!startDateChanged) {
+    try {
       const data = await fs.readFile(totalFile, 'utf8');
       totalRates = JSON.parse(data);
-  } catch (e) {}
+    } catch (e) {}
+  }
 
   const globalRates = new Map();
   const deletionMap = new Map();
   const childMap = new Map();
 
-  await timed(`Loading all buckets for ${repo.dirname}`, async () => {
-    await loadAllBuckets(outputDir, globalRates, deletionMap, childMap);
-  });
+  if (!startDateChanged) {
+    await timed(`Loading all buckets for ${repo.dirname}`, async () => {
+      await loadAllBuckets(outputDir, globalRates, deletionMap, childMap);
+    });
+  }
 
   if (!globalRates.has('.')) {
     const rootChildren = childMap.get('.');
@@ -547,6 +569,7 @@ async function processRepository(repo) {
     }
   });
 
+  bucketsState.startDate = CONFIG.startDate;
   bucketsState.lastCommit = newHead;
   if (newHeadDate) {
       bucketsState.lastCommitDate = newHeadDate;
@@ -560,15 +583,35 @@ async function main() {
   const repositories = await parseFile(JSON5, repositories_file);
   const targetRepo = process.argv[2];
 
+  const activeDirnames = new Set(
+    repositories.filter(r => !r.cone && r.treemap).map(r => r.dirname),
+  );
+
   for (const repository of repositories) {
     if (targetRepo && repository.dirname !== targetRepo) continue;
     if (repository.cone) {
       console.log(`Skipping cone repository: ${repository.owner}/${repository.repository}`);
       continue;
     }
+    if (!targetRepo && !repository.treemap) {
+      continue;
+    }
     await timed(`Processing ${repository.owner}/${repository.repository}`, async () => {
       await processRepository(repository);
     })
+  }
+
+  // Prune unused non-treemap repositories from the commit_rates output directory.
+  if (!targetRepo) {
+    try {
+      const entries = await fs.readdir(CONFIG.baseOutputDir, { withFileTypes: true });
+      for (const entry of entries) {
+        if (entry.isDirectory() && !entry.name.startsWith('.') && !activeDirnames.has(entry.name)) {
+          console.log(`Pruning unused commit_rates directory: ${entry.name}`);
+          await fs.rm(path.join(CONFIG.baseOutputDir, entry.name), { recursive: true, force: true });
+        }
+      }
+    } catch (e) {}
   }
 }
 
