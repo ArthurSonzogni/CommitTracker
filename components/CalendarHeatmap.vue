@@ -1,33 +1,48 @@
 <template>
-  <div class="centered">
-    <svg ref="svg_ref">
-      <g ref="svg_content_ref" />
-      <g ref="tooltip_ref" display="none" opacity="0.95" style="pointer-events: none;">
-        <rect
-          width="88"
-          height="50"
-          fill="var(--surface)"
-          rx="10"
-          ry="10"
-          stroke="var(--line-strong)"
-          stroke-width="1" />
-        <text
-          class="count"
-          x="10"
-          y="22"
-          font-size="20px"
-          font-weight="bold"
-          fill="var(--ink)">
-          0
-        </text>
-        <text
-          class="date"
-          x="10"
-          y="42"
-          font-size="12px"
-          fill="var(--muted)" />
-      </g>
-    </svg>
+  <div class="calendar-heatmap">
+    <div v-if="hasData" class="heatmap-legend" aria-hidden="true">
+      <span>Less</span>
+      <span
+        v-for="(swatch, idx) in legendSwatches"
+        :key="idx"
+        class="legend-swatch"
+        :style="{ backgroundColor: swatch }"
+      />
+      <span>More</span>
+    </div>
+    <div class="svg-scroll">
+      <svg ref="svg_ref" class="heatmap-svg">
+        <g ref="svg_content_ref" />
+        <g ref="tooltip_ref" display="none" opacity="0.97" style="pointer-events: none;">
+          <rect
+            width="156"
+            height="50"
+            fill="var(--surface)"
+            rx="8"
+            ry="8"
+            stroke="var(--line-strong)"
+            stroke-width="1"
+          />
+          <text
+            class="count"
+            x="12"
+            y="22"
+            font-size="15px"
+            font-weight="700"
+            fill="var(--ink)"
+          >
+            0
+          </text>
+          <text
+            class="date"
+            x="12"
+            y="40"
+            font-size="11.5px"
+            fill="var(--muted)"
+          />
+        </g>
+      </svg>
+    </div>
   </div>
 </template>
 
@@ -51,7 +66,12 @@ interface CellDatum {
   x: number;
   y: number;
   z: number;
-  date: Date;
+  dateStr: string;
+}
+
+interface YearHeatmap {
+  year: number;
+  data: CellDatum[];
 }
 
 const props = defineProps({
@@ -64,144 +84,199 @@ const props = defineProps({
 const svg_ref = ref<SVGSVGElement | null>(null);
 const tooltip_ref = ref<SVGGElement | null>(null);
 const svg_content_ref = ref<SVGGElement | null>(null);
+const legendSwatches = ref<string[]>([]);
+const hasData = ref(false);
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const SVG_WIDTH = 1000;
+const CELL = 15;
+const STEP = 18;
+const LEFT_PAD = 36;
+const TOP_PAD = 32;
+const YEAR_HEIGHT = TOP_PAD + 7 * STEP + 20;
+
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTHS = [
+  "Jan", "Feb", "Mar", "Apr",
+  "May", "Jun", "Jul", "Aug",
+  "Sep", "Oct", "Nov", "Dec",
+];
+
+const formatDateLabel = (year: number, monthIdx: number, day: number, weekday: number) => {
+  const m = String(monthIdx + 1).padStart(2, "0");
+  const d = String(day).padStart(2, "0");
+  return `${WEEKDAYS[weekday]}, ${year}-${m}-${d}`;
+};
 
 const refresh = () => {
   if (!svg_ref.value || !svg_content_ref.value) {
     return;
   }
-  if (!props.data.length) {
+  const hasPoints = props.data.some((s) => s.values && s.values.length > 0);
+  hasData.value = hasPoints;
+  if (!hasPoints) {
     select(svg_content_ref.value).selectAll("*").remove();
-    select(svg_ref.value).attr("height", 0);
+    select(svg_ref.value).attr("viewBox", `0 0 ${SVG_WIDTH} 0`).attr("height", 0);
+    legendSwatches.value = [];
     return;
   }
 
-  // Group by year.
-  const per_year: Record<number, HeatmapPoint[]> = {};
+  // Group by UTC year & day-of-year so dates stay consistent across timezones.
+  const perYear = new Map<number, Map<number, CellDatum>>();
   for (const dataset of props.data) {
     for (const row of dataset.values) {
-      const year = row.x.getFullYear();
-      if (!per_year[year]) {
-        per_year[year] = [];
+      const year = row.x.getUTCFullYear();
+      let yearMap = perYear.get(year);
+      if (!yearMap) {
+        yearMap = new Map();
+        perYear.set(year, yearMap);
       }
-      per_year[year].push(row);
+      const jan1Ms = Date.UTC(year, 0, 1);
+      const dayOfYear = Math.floor((row.x.getTime() - jan1Ms) / DAY_MS);
+      if (dayOfYear < 0 || dayOfYear > 366) continue;
+
+      let cell = yearMap.get(dayOfYear);
+      if (!cell) {
+        const offset = new Date(jan1Ms).getUTCDay();
+        const weekday = row.x.getUTCDay();
+        const week = Math.floor((dayOfYear + offset) / 7);
+        cell = {
+          x: week,
+          y: weekday,
+          z: 0,
+          dateStr: formatDateLabel(year, row.x.getUTCMonth(), row.x.getUTCDate(), weekday),
+        };
+        yearMap.set(dayOfYear, cell);
+      }
+      cell.z += row.y;
     }
   }
 
-  const heatmap: Array<{ year: number; data: CellDatum[] }> = [];
-  for (const yearStr in per_year) {
-    const year = Number(yearStr);
-    const year_data: Record<number, CellDatum> = {};
+  const heatmap: YearHeatmap[] = Array.from(perYear.entries())
+    .map(([year, map]) => ({ year, data: Array.from(map.values()) }))
+    .sort((a, b) => b.year - a.year);
 
-    // First displayed cell is Sunday; leave blank cells before Jan 1.
-    const first_day = new Date(year, 0, 1);
-    const offset = first_day.getDay();
-
-    for (const row of per_year[year]) {
-      const id = Math.floor((row.x.getTime() - first_day.getTime()) / (1000 * 60 * 60 * 24));
-      const y = row.x.getDay();
-      const x = Math.floor((id + offset) / 7);
-      year_data[id] ||= { x, y, z: 0, date: row.x };
-      year_data[id].z += row.y;
-    }
-
-    heatmap.push({
-      year,
-      data: Object.values(year_data),
-    });
-  }
-
-  const height_per_year = 200;
-  const height = heatmap.length * height_per_year;
+  const height = heatmap.length * YEAR_HEIGHT + 16;
 
   const values: number[] = [];
   for (const row of heatmap) {
     for (const cell of row.data) {
-      values.push(cell.z);
+      if (cell.z > 0) values.push(cell.z);
     }
   }
   values.sort((a, b) => a - b);
-  const max_value_98percentile = values[Math.floor(values.length * 0.98)] ?? 0;
+  const maxValue98 = values[Math.floor(values.length * 0.98)] ?? 1;
 
   const css = getComputedStyle(document.documentElement);
-  const color_scale = scalePow<string>()
-    .domain([0, max_value_98percentile + 1])
-    .range([
-      css.getPropertyValue("--surface-sunken").trim() || "#ebedf0",
-      css.getPropertyValue("--heat-high").trim() || "#216e39",
-    ])
-    .exponent(0.7);
+  const zeroColor = css.getPropertyValue("--surface-sunken").trim() || "#ebedf0";
+  const highColor = css.getPropertyValue("--heat-high").trim() || "#216e39";
+  const colorScale = scalePow<string>()
+    .domain([0, maxValue98 + 1])
+    .range([zeroColor, highColor])
+    .exponent(0.7)
+    .clamp(true);
 
-  const update_year_rect = (year_rect: any) =>
-    year_rect
-      .attr("transform", (_d: any, i: number) => `translate(0, ${i * height_per_year})`)
-      .attr("opacity", 1);
-
-  const update_cell = (cell: any) =>
-    cell
-      .attr("fill", (d: CellDatum) => color_scale(d.z))
-      .attr("width", 16)
-      .attr("height", 16)
-      .attr("opacity", 1);
+  legendSwatches.value = [0, 0.2, 0.45, 0.72, 1].map((t) =>
+    colorScale(t * (maxValue98 + 1)),
+  );
 
   select(svg_ref.value)
-    .attr("width", 1200)
+    .attr("viewBox", `0 0 ${SVG_WIDTH} ${height}`)
+    .attr("width", SVG_WIDTH)
     .attr("height", height);
 
-  heatmap.sort((a, b) => b.year - a.year);
+  const positionTooltip = (event: MouseEvent) => {
+    if (!tooltip_ref.value || !svg_ref.value) return;
+    const pt = svg_ref.value.createSVGPoint();
+    pt.x = event.clientX;
+    pt.y = event.clientY;
+    const ctm = svg_ref.value.getScreenCTM();
+    if (!ctm) return;
+    const local = pt.matrixTransform(ctm.inverse());
+    const x = Math.min(Math.max(10, local.x + 14), SVG_WIDTH - 166);
+    const y = Math.min(Math.max(10, local.y - 58), Math.max(10, height - 56));
+    select(tooltip_ref.value)
+      .attr("transform", `translate(${x}, ${y})`)
+      .attr("display", "block");
+  };
+
+  const hideTooltip = () => {
+    if (tooltip_ref.value) {
+      select(tooltip_ref.value).attr("display", "none");
+    }
+  };
+
+  const updateYearGroup = (g: any) =>
+    g
+      .attr("transform", (_d: any, i: number) => `translate(0, ${i * YEAR_HEIGHT})`)
+      .attr("opacity", 1);
+
+  const updateCell = (cell: any) =>
+    cell
+      .attr("fill", (d: CellDatum) => (d.z === 0 ? zeroColor : colorScale(d.z)))
+      .attr("width", CELL)
+      .attr("height", CELL)
+      .attr("rx", 3)
+      .attr("ry", 3)
+      .attr("opacity", 1);
+
   const svg = select(svg_content_ref.value);
-  svg
-    .selectAll<SVGGElement, { year: number; data: CellDatum[] }>("g")
+  const yearGroups = svg
+    .selectAll<SVGGElement, YearHeatmap>("g.year-group")
     .data(heatmap, (d) => d.year)
     .join(
       (enter) => {
-        const g = enter.append("g");
+        const g = enter.append("g").classed("year-group", true);
         g.attr("opacity", 0);
-        g.attr("transform", (_d, i) => `translate(-300, ${i * height_per_year})`);
-
-        update_year_rect(
-          g.transition()
-            .duration(300)
-            .delay((_d, i) => i * 100),
-        );
+        g.attr("transform", (_d, i) => `translate(0, ${i * YEAR_HEIGHT})`);
+        updateYearGroup(g.transition().duration(240));
 
         g.append("text")
-          .text((d) => d.year)
+          .text((d) => String(d.year))
           .attr("x", 0)
-          .attr("y", 30)
-          .attr("font-weight", "bold")
-          .attr("font-size", "12px")
+          .attr("y", 20)
+          .attr("font-weight", "700")
+          .attr("font-size", "13px")
           .attr("fill", "var(--ink)");
 
-        const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-        for (let i = 0; i < 7; i++) {
+        for (const dayIdx of [1, 3, 5]) {
           g.append("text")
-            .text(weekdays[i])
+            .text(WEEKDAYS[dayIdx])
             .attr("x", 0)
-            .attr("y", 52 + i * 18)
-            .attr("font-size", "12px")
+            .attr("y", TOP_PAD + dayIdx * STEP + 11)
+            .attr("font-size", "11px")
             .attr("fill", "var(--muted)");
         }
 
-        const months = [
-          "Jan", "Feb", "Mar", "Apr",
-          "May", "Jun", "Jul", "Aug",
-          "Sep", "Oct", "Nov", "Dec",
-        ];
-        for (let i = 0; i < 12; i++) {
-          g.append("text")
-            .text(months[i])
-            .attr("x", 40 + i * 80)
-            .attr("y", 30)
-            .attr("font-size", "12px")
-            .attr("fill", "var(--muted)");
-        }
+        g.each(function (d) {
+          const group = select(this);
+          const jan1Ms = Date.UTC(d.year, 0, 1);
+          const offset = new Date(jan1Ms).getUTCDay();
+          for (let m = 0; m < 12; m++) {
+            const firstOfMonth = Date.UTC(d.year, m, 1);
+            const dayIdx = Math.floor((firstOfMonth - jan1Ms) / DAY_MS);
+            const week = Math.floor((dayIdx + offset) / 7);
+            group
+              .append("text")
+              .text(MONTHS[m])
+              .attr("x", LEFT_PAD + week * STEP)
+              .attr("y", 20)
+              .attr("font-size", "11px")
+              .attr("fill", "var(--muted)");
+          }
+        });
+
+        g.append("g").classed("day-cells", true);
 
         return g;
       },
-      (update) => update_year_rect(update),
+      (update) => updateYearGroup(update),
       (exit) => exit.remove(),
-    )
-    .selectAll<SVGRectElement, CellDatum>("rect")
+    );
+
+  yearGroups
+    .select("g.day-cells")
+    .selectAll<SVGRectElement, CellDatum>("rect.day-cell")
     .data(
       (d) => d.data,
       (d) => `${d.x},${d.y}`,
@@ -210,63 +285,32 @@ const refresh = () => {
       (enter) => {
         const rect = enter
           .append("rect")
-          .attr("x", (d) => 30 + d.x * 18)
-          .attr("y", (d) => d.y * 18 + 40);
+          .classed("day-cell", true)
+          .attr("x", (d) => LEFT_PAD + d.x * STEP)
+          .attr("y", (d) => TOP_PAD + d.y * STEP);
 
-        update_cell(rect.transition().duration(300).delay((_d, i) => i));
+        updateCell(rect);
 
-        rect.on("mouseenter", function () {
-          select(this).attr("stroke", "var(--ink)");
-        });
-        rect.on("mouseleave", function () {
-          select(this).attr("stroke", "none");
-          if (tooltip_ref.value) {
-            select(tooltip_ref.value).attr("display", "none");
-          }
-        });
-
-        rect.on("mousemove", function (event: MouseEvent, d: CellDatum) {
-          let x = event.offsetX - 25;
-          let y = event.offsetY + 30;
-
-          x = Math.floor(x / 18) * 18;
-          y = Math.floor(y / 18) * 18;
-
-          x = Math.max(x, 50);
-          x = Math.min(x, 900);
-          y = Math.max(y, 50);
-
+        rect.on("mouseenter", function (_event: MouseEvent, d: CellDatum) {
+          select(this).attr("stroke", "var(--ink)").attr("stroke-width", 1.5);
           if (!tooltip_ref.value) return;
           select(tooltip_ref.value)
-            .attr("transform", `translate(${x}, ${y})`)
-            .attr("display", "block");
-
-          select(tooltip_ref.value)
             .select(".count")
-            .transition()
-            .duration(100)
-            .textTween(function () {
-              const previous_value = parseInt(select(this).text()) || 0;
-              return (t) => String(Math.floor(previous_value + (d.z - previous_value) * t));
-            });
-          select(tooltip_ref.value)
-            .select(".date")
-            .text(d.date.toISOString().split("T")[0]);
+            .text(`${d.z.toLocaleString("en-US")} ${d.z === 1 ? "commit" : "commits"}`);
+          select(tooltip_ref.value).select(".date").text(d.dateStr);
         });
+
+        rect.on("mouseleave", function () {
+          select(this).attr("stroke", "none");
+          hideTooltip();
+        });
+
+        rect.on("mousemove", positionTooltip);
 
         return rect;
       },
-      (update) => {
-        update_cell(update.transition().duration(300).delay((_d, i) => i));
-        return update;
-      },
-      (exit) =>
-        exit
-          .transition()
-          .duration(300)
-          .delay((_d, i) => i)
-          .attr("opacity", 0)
-          .remove(),
+      (update) => updateCell(update),
+      (exit) => exit.remove(),
     );
 };
 
@@ -292,10 +336,36 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.centered {
+.calendar-heatmap {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  gap: 0.5rem;
+}
+
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.3rem;
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+
+.legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid color-mix(in srgb, var(--ink) 8%, transparent);
+}
+
+.svg-scroll {
   overflow-x: auto;
+}
+
+.heatmap-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-width: 720px;
 }
 </style>

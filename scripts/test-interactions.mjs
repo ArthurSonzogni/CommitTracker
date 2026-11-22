@@ -802,11 +802,19 @@ const tests = [
     `,
   },
   {
-    name: 'pulse: heatmap renders, repository switch',
+    name: 'pulse: weekly rhythm, timezone toggle, and daily calendar heatmap',
     url: 'pulse',
     run: `
-      const ok = await __t.until(() => document.querySelectorAll('svg rect').length > 300, 20000);
-      return { ok: !!ok, detail: 'rects=' + __t.count('svg rect') };
+      const ok = await __t.until(() =>
+        document.querySelectorAll('.rhythm-cell').length === 168 &&
+        document.querySelectorAll('.weekly-chart-wrap svg path').length >= 1 &&
+        document.querySelectorAll('svg rect').length > 300, 20000);
+      const utcBtn = [...document.querySelectorAll('.segmented-option')].find(el => el.textContent.trim() === 'UTC');
+      utcBtn.click();
+      const tzChanged = await __t.until(() =>
+        document.querySelector('.section-subtitle')?.textContent?.includes('UTC') &&
+        utcBtn.classList.contains('is-selected'), 5000);
+      return { ok: !!(ok && tzChanged), detail: 'rhythmCells=' + __t.count('.rhythm-cell') + ' rects=' + __t.count('svg rect') };
     `,
   },
   {
