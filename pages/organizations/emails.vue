@@ -12,6 +12,7 @@
             :allowAll="true">
           </RepositorySelector>
         </FilterPanel>
+        <FetchError v-if="loadError" class="mt-4" :message="loadError" @retry="refresh" />
       </div>
     </section>
 
@@ -21,7 +22,11 @@
              style="background-color: var(--surface-sunken);">
 
           <div class="card-header-title">
-            {{ o.org }}
+            <NuxtLink
+              :to="{ path: '/organizations/commits', query: { organizations: o.org } }"
+              style="color: inherit;">
+              {{ o.org }}
+            </NuxtLink>
           </div>
           <div class="card-header-title">
             <UiTooltip :text="o.username_size + ' unique usernames'" position="bottom">
@@ -56,6 +61,7 @@
 
 <script setup lang="ts">
 import { useUrlState, urlCodecs } from "~/composables/useUrlState";
+import { fetchJson, formatFetchError } from "~/utils/fetchJson";
 import { listSummary, repositoryNames } from "~/utils/filter-summary";
 
 interface OrganizationEmailsEntry {
@@ -72,22 +78,29 @@ const { repositories } = useUrlState({
 });
 
 const data = ref<OrganizationEmailsEntry[]>([]);
+const loadError = ref<string | null>(null);
 let requestId = 0;
 
 const refresh = async () => {
   const id = ++requestId;
   const repos = [...repositories.value];
+  loadError.value = null;
   if (repos.length === 0) {
     data.value = [];
     return;
   }
 
-  const responses = await Promise.all(
-    repos.map(repo => fetch(`/data/${repo}/organizations_emails.json`)),
-  );
-  const json_data: Record<string, string[]>[] = await Promise.all(
-    responses.map(r => r.json()),
-  );
+  let json_data: Record<string, string[]>[];
+  try {
+    json_data = await Promise.all(
+      repos.map(repo => fetchJson<Record<string, string[]>>(`/data/${repo}/organizations_emails.json`, { cache: true })),
+    );
+  } catch (error) {
+    if (id === requestId) {
+      loadError.value = formatFetchError(error, "Failed to load organization emails.");
+    }
+    return;
+  }
   if (id !== requestId) return;
 
   const emails: Record<string, Set<string>> = {};

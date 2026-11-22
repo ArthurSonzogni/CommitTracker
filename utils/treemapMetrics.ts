@@ -10,7 +10,27 @@ export interface TreemapMetricEntry {
   searchText: string;
 }
 
-const rawMetrics: any[] = entries.metrics || [];
+const DERIVED_METRICS: Omit<TreemapMetricEntry, 'searchText'>[] = [
+  {
+    name: 'Commits (1y)',
+    description: 'Number of commits touching each file over the preceding 52 weeks (rolling 1-year window).',
+    file: 'commits_1y',
+    tags: ['activity', 'churn', 'commits'],
+    aliases: ['commit_rate_1y', 'commits_year'],
+  },
+  {
+    name: 'Commits (30d)',
+    description: 'Number of commits touching each file over the preceding 4 weeks (rolling ~30-day window).',
+    file: 'commits_30d',
+    tags: ['activity', 'churn', 'commits'],
+    aliases: ['commit_rate_30d', 'commits_month'],
+  },
+];
+
+const rawMetrics: any[] = [
+  ...(entries.metrics || []),
+  ...DERIVED_METRICS.filter((d) => !(entries.metrics || []).some((m: any) => m.file === d.file)),
+];
 
 export const allTreemapMetrics: TreemapMetricEntry[] = rawMetrics.map((m) => ({
   ...m,

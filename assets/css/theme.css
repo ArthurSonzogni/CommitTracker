@@ -1,6 +1,6 @@
 /*
- * Site-wide theme, layered on top of Bulma. The form components are in
- * components/ui/. Loaded last (see nuxt.config.ts) so it can override Bulma.
+ * Site-wide theme tokens and component styling. The form components are in
+ * components/ui/. Loaded last (see nuxt.config.ts) so it overrides base.css.
  */
 
 :root {
@@ -1338,6 +1338,15 @@ svg [fill="gray"], svg [fill="grey"] { fill: var(--muted); }
   position: absolute;
   white-space: nowrap;
   width: 1px;
+}
+
+.card-header-title {
+  color: var(--ink);
+}
+
+.tag.is-light {
+  background: var(--surface-sunken);
+  color: var(--ink-2);
 }
 
 /* Print / Save-to-PDF ------------------------------------------------------ */

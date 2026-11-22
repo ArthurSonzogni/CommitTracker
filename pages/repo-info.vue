@@ -3,6 +3,7 @@
     <section class="section">
       <div class="container is-fluid">
         <h1 class="title">Repositories tracking info</h1>
+        <FetchError v-if="loadError" class="mb-4" :message="loadError" @retry="loadStats" />
 
         <div class="table-container is-hidden-touch">
           <table class="table is-striped is-hoverable is-fullwidth">
@@ -244,16 +245,19 @@ function sortBy(key: string) {
   }
 }
 
-onMounted(async () => {
+const loadError = ref<string | null>(null);
+
+const loadStats = async () => {
+  loadError.value = null;
   try {
-    const response = await fetch('/data/repositories_stats.json');
-    if (response.ok) {
-      stats.value = await response.json();
-    }
+    stats.value = await fetchJson('/data/repositories_stats.json', { cache: true });
   } catch (e) {
     console.error('Failed to fetch stats:', e);
+    loadError.value = formatFetchError(e, 'Failed to load repository statistics.');
   }
-});
+};
+
+onMounted(loadStats);
 
 function formatMetadata(dirname: string) {
   const dateStr = stats.value[dirname]?.last_commit;

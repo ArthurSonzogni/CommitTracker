@@ -3,6 +3,7 @@
     <section class="section">
       <div class="container">
         <h1 class="sr-only">Fuzz test</h1>
+        <FetchError v-if="loadError" class="mb-4" :message="loadError" @retry="loadFuzzers" />
         <p class="mb-4">{{ total }} fuzzers in Chromium.</p>
 
         <div style="height: 50vh;">
@@ -152,6 +153,7 @@
 
 <script setup lang="ts">
 import { useUrlState, urlCodecs } from "~/composables/useUrlState";
+import { fetchJson, formatFetchError } from "~/utils/fetchJson";
 
 interface RawFuzzerEntry {
   date: string;
@@ -187,12 +189,12 @@ const { dates, type } = useUrlState({
 });
 
 const allFuzzers = shallowRef<NormalizedFuzzer[]>([]);
+const loadError = ref<string | null>(null);
 
-onMounted(async () => {
+const loadFuzzers = async () => {
+  loadError.value = null;
   try {
-    const response = await fetch("/fuzz-test/data.json");
-    if (!response.ok) return;
-    const raw: RawFuzzerEntry[] = await response.json();
+    const raw = await fetchJson<RawFuzzerEntry[]>("/fuzz-test/data.json", { cache: true });
     const normalized: NormalizedFuzzer[] = raw.map(d => {
       const parsed = new Date(d.date);
       const timeMs = parsed.getTime();
@@ -209,8 +211,11 @@ onMounted(async () => {
     allFuzzers.value = normalized;
   } catch (error) {
     console.error("Failed to fetch fuzz-test data:", error);
+    loadError.value = formatFetchError(error, "Failed to load fuzz-test data.");
   }
-});
+};
+
+onMounted(loadFuzzers);
 
 const filteredAsc = computed(() => {
   const startMs = dates.value[0].getTime();
@@ -358,25 +363,28 @@ const hierarchy = computed<HierarchyNode>(() => {
 }
 
 .leaderboard-author {
-  margin:2px;
-  padding:10px;
-  flex-grow:1;
-  background-color: rgba(0,0,0,0.1);
+  margin: 2px;
+  padding: 10px;
+  flex-grow: 1;
+  background-color: var(--surface-sunken);
+  border: 1px solid var(--line);
   color: var(--ink);
   border-radius: 15px;
+  transition: background-color 0.14s, border-color 0.14s;
 
   a {
     color: var(--ink);
-    padding:auto;
+    padding: auto;
   }
 }
 
 .leaderboard-author:hover {
-  background-color: rgba(0,0,0,0.2);
+  background-color: var(--accent-soft);
+  border-color: var(--accent-line);
 }
 
-.leaderboard-author:active{
-  background-color: rgba(0,0,0,0.3);
+.leaderboard-author:active {
+  background-color: var(--accent-line);
 }
 
 .flex-end {

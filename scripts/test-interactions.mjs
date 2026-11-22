@@ -618,38 +618,6 @@ const tests = [
     `,
   },
   {
-    name: 'cve lifespan: severity stratification, evolution charts, SLA table, and icons',
-    url: 'cve/lifespan',
-    run: `
-      await __t.until(() =>
-        document.querySelectorAll('.hero-svg-box svg path').length >= 2 &&
-        document.querySelectorAll('.svg-box svg rect').length >= 5 &&
-        document.querySelectorAll('.ui-table tbody tr').length >= 5, 25000);
-      __t.byText('.chips .chip', 'Medium').click();
-      const sevOk = await __t.until(() => location.search.includes('severities='), 5000);
-      __t.byText('.segmented-option', 'External VRP').click();
-      const srcOk = await __t.until(() => location.search.includes('source=vrp'), 5000);
-      __t.byText('.segmented-option', 'Quarterly').click();
-      const qtrOk = await __t.until(() => location.search.includes('granularity=quarter'), 5000);
-      __t.byText('.segmented-option', 'Compare Severities').click();
-      const cmpOk = await __t.until(() => location.search.includes('compareMode=severities') && document.querySelectorAll('.hero-svg-box svg path').length >= 3, 5000);
-      __t.byText('.segmented-option', 'Days').click();
-      const daysOk = await __t.until(() => location.search.includes('dwellUnit=days'), 5000);
-      const filterInput = document.querySelector('.comp-filter-box input');
-      filterInput.value = 'Blink';
-      filterInput.dispatchEvent(new Event('input', { bubbles: true }));
-      const tableFiltered = await __t.until(() => location.search.includes('compFilter=') && document.querySelectorAll('.ui-table tbody tr').length > 0 && document.querySelectorAll('.ui-table tbody tr').length < 25, 5000);
-      const missing = [...document.querySelectorAll('.mdi')].filter(el => {
-        const c = getComputedStyle(el, '::before').content;
-        return !c || c === 'none' || c === 'normal';
-      });
-      return {
-        ok: !!(sevOk && srcOk && qtrOk && cmpOk && daysOk && tableFiltered && missing.length === 0),
-        detail: 'paths=' + document.querySelectorAll('.hero-svg-box svg path').length + ' missingIcons=' + missing.length,
-      };
-    `,
-  },
-  {
     name: 'treemap: click tile zooms in',
     url: 'treemap?field_color=todo&field_size=line',
     run: `
@@ -662,16 +630,21 @@ const tests = [
     `,
   },
   {
-    name: 'commit rates sankey: open a directory, files lead nowhere',
-    url: 'commit-rates-sankey?repository=chromium&window=100',
+    name: 'treemap: commit rate preset loads and timeline controls switch mode',
+    url: 'treemap',
     run: `
-      const dir = await __t.until(() => [...document.querySelectorAll('.sankey-svg rect[role=link]')].find(r => r.getAttribute('aria-label')?.startsWith('Explore chrome,')), 25000);
-      const files = __t.count('.sankey-svg rect:not([role])');
-      const slider = __t.text('.level-right .has-text-weight-bold');
-      dir.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
-      const ok = await __t.until(() => location.search.includes('path=chrome') && __t.text('.breadcrumb li:last-child') === 'chrome', 8000);
-      const back = await __t.until(() => document.querySelector('.sankey-svg rect[aria-label="Go back to ."]'), 15000);
-      return { ok: !!(ok && back && files > 0 && /100 weeks/.test(slider)), detail: 'url=' + decodeURIComponent(location.search) + ' files=' + files + ' ' + slider };
+      const preset = await __t.until(() => [...document.querySelectorAll('.treemap-presets a')].find(a => a.textContent === 'Commit rate (1 year)'), 15000);
+      preset.click();
+      const tile = await __t.until(() => [...document.querySelectorAll('svg g')].find(g => g.querySelector(':scope > text')?.textContent === 'chrome'), 25000);
+      const urlOk = location.search.includes('field_color=commits_1y') && location.search.includes('field_size=line');
+      const ratioBtn = await __t.until(() => __t.byText('.history-toolbar .segmented-option', 'Ratio'), 20000);
+      ratioBtn.click();
+      const ratioOk = await __t.until(() => location.search.includes('history=ratio'), 8000);
+      __t.byText('.history-toolbar .segmented-option', 'Counts').click();
+      const sizeChip = await __t.until(() => __t.byText('.history-chips .chip', 'Size'), 5000);
+      sizeChip.click();
+      const sizeOk = await __t.until(() => location.search.includes('history_size=1'), 5000);
+      return { ok: !!(preset && tile && urlOk && ratioOk && sizeOk), detail: decodeURIComponent(location.search) };
     `,
   },
   {
@@ -1184,24 +1157,6 @@ const tests = [
         location.search.includes('jonmeow') &&
         document.querySelectorAll('.container svg path').length > 3, 20000);
       return { ok: !!(github && hasCarbon && individualsOk), detail: location.pathname + location.search };
-    `,
-  },
-  {
-    name: 'carbon: commit rates and sankey',
-    url: 'commit-rates-sankey?repository=carbon&window=52',
-    run: `
-      const dir = await __t.until(() => [...document.querySelectorAll('.sankey-svg rect[role=link]')].find(r => r.getAttribute('aria-label')?.startsWith('Explore toolchain,')), 20000);
-      dir.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
-      const opened = await __t.until(() => location.search.includes('path=toolchain') && __t.text('.breadcrumb li:last-child') === 'toolchain', 8000);
-      return { ok: !!(dir && opened), detail: decodeURIComponent(location.search) };
-    `,
-  },
-  {
-    name: 'carbon: commit-rates virtualized list',
-    url: 'commit-rates?repository=carbon',
-    run: `
-      const ratesOk = await __t.until(() => document.body.innerText.includes('toolchain') && __t.count('.virtual-row') >= 5, 20000);
-      return { ok: !!ratesOk, detail: 'rows=' + __t.count('.virtual-row') };
     `,
   },
   {

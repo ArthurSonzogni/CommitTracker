@@ -91,7 +91,8 @@
         </template>
 
         <div class="report-stack">
-        <div v-if="!data" class="skeleton kpi-skeleton" aria-hidden="true" />
+        <FetchError v-if="loadError" :message="loadError" @retry="loadReport" />
+        <div v-else-if="!data" class="skeleton kpi-skeleton" aria-hidden="true" />
         <template v-else-if="group">
           <section class="findings" aria-label="Key findings">
             <h2 class="panel-title">Key findings</h2>
@@ -293,40 +294,15 @@
               :rows="sizeTable" />
           </section>
 
-          <section v-if="repository!.has_msg && traitOptions.length" class="panel">
-            <div>
-              <h2 class="panel-title">{{ traitPanelTitle }}</h2>
-              <p class="panel-text">{{ traitPanelText }}</p>
-            </div>
-            <dl v-if="traitFacts.length" class="trait-facts">
-              <div v-for="fact in traitFacts" :key="fact.label">
-                <dt>{{ fact.label }}</dt>
-                <dd>
-                  <span class="fact-value">{{ fact.previous }} → {{ fact.current }}</span>
-                  <span class="fact-detail">{{ fact.detail }}</span>
-                </dd>
-              </div>
-            </dl>
-            <div class="switches">
-              <UiSegmented v-model="traitView" :options="traitOptions" aria-label="Commit trait" />
-            </div>
-            <div class="legend">
-              <span v-for="s in traitSeries" :key="s.label">
-                <span class="legend-line" :style="{ background: s.color }" />{{ s.label }}
-              </span>
-            </div>
-            <ReportTraitChart
-              :months="data.months"
-              :series="traitSeries"
-              :from="indexFrom"
-              :highlight-from="`${lastYear}-01`"
-              :format="traitFormat"
-              :axis-format="traitAxisFormat"
-              :aria-label="traitPanelTitle" />
-            <ReportDataTable
-              :columns="['Month', ...traitSeries.map(s => s.label)]"
-              :rows="traitTable" />
-          </section>
+          <ReportTraitsSection
+            v-model:trait-view="traitView"
+            :group="group"
+            :repository="repository!"
+            :months="data.months"
+            :window-length="data.window.length"
+            :end-index="endOf()"
+            :last-year="lastYear"
+            :index-from="indexFrom" />
 
           <ReportOrganizationsTable
             v-if="repository!.organizations.length > 1"
@@ -335,6 +311,7 @@
             :current-window-label="windowLabel(lastYear)"
             :previous-window-label="windowLabel(lastYear - 1)"
             :usual-label="usualLabel"
+            :repository="repository?.dirname"
             :min-compared="MIN_COMPARED"
             :has-msg="repository!.has_msg"
             @select="selectGroup" />
@@ -356,7 +333,8 @@
 <script setup lang="ts">
 import { useUrlState, urlCodecs } from "~/composables/useUrlState";
 import type { IndexSeries } from "~/components/ReportIndexChart.vue";
-import type { TraitSeries } from "~/components/ReportTraitChart.vue";
+import type { TraitView } from "~/components/report/TraitsSection.vue";
+import { fetchJson, formatFetchError } from "~/utils/fetchJson";
 import {
   MIN_COMPARED,
   USUAL_SPAN,
@@ -382,7 +360,6 @@ const MSG_STATS: { value: MsgStat; label: string }[] = [
   { value: "p50", label: "Median" },
   { value: "mean", label: "Mean" },
 ];
-type TraitView = "msg" | "reverts" | "bypasses" | "bugs" | "bugs_per_author" | "bug_churn";
 // What each measure is, in the month.
 // Only the ones that need a definition.
 const METRIC_TEXT: Partial<Record<Metric, string>> = {
@@ -420,10 +397,16 @@ const { endMonth, repositoryId, groupId, metric, msgStat, trendView, peopleView,
 });
 
 const raw = shallowRef<RawReport | null>(null);
-onMounted(async () => {
-  const response = await fetch("/data/developer-output.json");
-  raw.value = await response.json();
-});
+const loadError = ref<string | null>(null);
+const loadReport = async () => {
+  loadError.value = null;
+  try {
+    raw.value = await fetchJson<RawReport>("/data/developer-output.json", { cache: true });
+  } catch (error) {
+    loadError.value = formatFetchError(error, "Failed to load developer output report.");
+  }
+};
+onMounted(loadReport);
 // The first end month offered: a year of comparisons before it.
 const FIRST_END = "2017-01";
 // The end month, from the URL: the latest when absent or unknown.
@@ -1141,231 +1124,6 @@ const sizeTable = computed(() => Object.entries(group.value!.commit_size)
     `${size.files}`,
     share(size.added),
   ]));
-
-// Commit messages and traits -----------------------------------------------
-
-const pct1 = (v: number | null) => v === null ? "—" : `${(v * 100).toFixed(1)}%`;
-
-// Whether a monthly series has any tracked (positive) values in the visible range.
-const hasTracked = (values: (number | null)[]) => {
-  if (!data.value) return false;
-  const start = Math.max(0, data.value.months.findIndex(m => m >= indexFrom.value));
-  for (let i = start; i < values.length; i++) {
-    if (values[i] !== null && values[i]! > 0) return true;
-  }
-  return false;
-};
-
-const trackedTraits = computed(() => {
-  const g = group.value;
-  if (!g || !repository.value?.has_msg) {
-    return {
-      msg: false,
-      revert: false,
-      reland: false,
-      bypass: false,
-      no_try: false,
-      bug: false,
-      fix: false,
-      bugs_per_author: false,
-      bug_churn: false,
-    };
-  }
-  const hasBypass = !!repository.value.has_bypass && hasTracked(g.traits.bypass);
-  return {
-    msg: hasTracked(g.msg),
-    revert: hasTracked(g.traits.revert),
-    reland: hasTracked(g.traits.reland),
-    bypass: hasBypass,
-    no_try: hasBypass && hasTracked(g.traits.no_try),
-    bug: hasTracked(g.traits.bug),
-    fix: hasTracked(g.traits.fix),
-    bugs_per_author: hasTracked(g.traits.bugs_per_author),
-    bug_churn: hasTracked(g.traits.commits_per_bug),
-  };
-});
-
-const windowWeightedShare = (values: (number | null)[], weights: number[], last: number) => {
-  const w = data.value!.window.length;
-  let num = 0, den = 0;
-  for (let i = Math.max(0, last - w + 1); i <= last; i++) {
-    if (values[i] === null || !weights[i]) continue;
-    num += values[i]! * weights[i];
-    den += weights[i];
-  }
-  return den ? num / den : null;
-};
-
-const windowAvg = (values: (number | null)[], last: number) => {
-  const w = data.value!.window.length;
-  let sum = 0, n = 0;
-  for (let i = Math.max(0, last - w + 1); i <= last; i++) {
-    if (values[i] === null) continue;
-    sum += values[i]!;
-    n++;
-  }
-  return n ? sum / n : null;
-};
-
-const traitFacts = computed(() => {
-  const g = group.value!;
-  const tracked = trackedTraits.value;
-  const end = endOf(), prev = end - 12;
-  if (prev < 0) return [];
-  const mwCur = g.msg_window[lastYear.value], mwPrev = g.msg_window[lastYear.value - 1];
-  const revPrev = windowWeightedShare(g.traits.revert, g.commits, prev);
-  const revCur = windowWeightedShare(g.traits.revert, g.commits, end);
-  const bypPrev = windowWeightedShare(g.traits.bypass, g.commits, prev);
-  const bypCur = windowWeightedShare(g.traits.bypass, g.commits, end);
-  const bugPrev = windowWeightedShare(g.traits.bug, g.commits, prev);
-  const bugCur = windowWeightedShare(g.traits.bug, g.commits, end);
-  const cpbPrev = windowAvg(g.traits.commits_per_bug, prev);
-  const cpbCur = windowAvg(g.traits.commits_per_bug, end);
-  const bpaPrev = windowAvg(g.traits.bugs_per_author, prev);
-  const bpaCur = windowAvg(g.traits.bugs_per_author, end);
-
-  return [
-    ...(tracked.msg && mwCur && mwPrev ? [{
-      label: "Message length",
-      previous: `${integer.format(mwPrev.p50)}`,
-      current: `${integer.format(mwCur.p50)} chars`,
-      detail: `median (mean ${integer.format(mwPrev.mean)} → ${integer.format(mwCur.mean)})`,
-    }] : []),
-    ...(tracked.revert && revPrev !== null && revCur !== null ? [{
-      label: "Revert rate",
-      previous: pct1(revPrev),
-      current: pct1(revCur),
-      detail: "of commits revert an earlier change",
-    }] : []),
-    ...(tracked.bypass && bypPrev !== null && bypCur !== null ? [{
-      label: "Check bypasses",
-      previous: pct1(bypPrev),
-      current: pct1(bypCur),
-      detail: "use No-Try, No-Presubmit, Owners-Override, or Bypass-*",
-    }] : []),
-    ...(tracked.bugs_per_author && bpaPrev !== null && bpaCur !== null ? [{
-      label: "Bugs per author",
-      previous: decimal.format(bpaPrev),
-      current: `${decimal.format(bpaCur)} / mo`,
-      detail: cpbCur !== null && cpbPrev !== null
-        ? `distinct bugs touched (${decimal.format(cpbPrev)} → ${decimal.format(cpbCur)} commits/bug)`
-        : "distinct bugs touched per active author",
-    }] : tracked.bug && bugPrev !== null && bugCur !== null ? [{
-      label: "Bug-linked",
-      previous: pct1(bugPrev),
-      current: pct1(bugCur),
-      detail: cpbCur !== null && cpbPrev !== null
-        ? `reference a bug (${decimal.format(cpbPrev)} → ${decimal.format(cpbCur)} commits/bug)`
-        : "reference a numeric bug ID",
-    }] : []),
-  ];
-});
-
-const traitOptions = computed(() => {
-  const t = trackedTraits.value;
-  return [
-    ...(t.msg ? [{ value: "msg", label: "Message length" }] : []),
-    ...(t.revert ? [{ value: "reverts", label: "Revert rate" }] : []),
-    ...(t.bypass ? [{ value: "bypasses", label: "Check bypasses" }] : []),
-    ...(t.bugs_per_author ? [{ value: "bugs_per_author", label: "Bugs per author" }] : []),
-    ...(t.bug_churn ? [{ value: "bug_churn", label: "Commits per bug" }] : []),
-    ...(t.bug ? [{ value: "bugs", label: "Bug links" }] : []),
-  ];
-});
-
-watch(traitOptions, opts => {
-  if (opts.length && !opts.some(o => o.value === traitView.value)) {
-    traitView.value = opts[0].value as TraitView;
-  }
-});
-
-const traitPanelTitle = computed(() => ({
-  msg: "Commit message length over time",
-  reverts: "Revert and reland rate",
-  bypasses: "Check and review bypasses",
-  bugs: "Bug-linked and bug-closing commits",
-  bugs_per_author: "Distinct bugs touched per author",
-  bug_churn: "Commits per bug",
-})[traitView.value]);
-
-const traitPanelText = computed(() => ({
-  msg: "Monthly character length (median and mean) of commit descriptions without footers/trailers, excluding reverts and rolls.",
-  reverts: "Share of authored commits each month that revert or reland a previous commit.",
-  bypasses: "Share of authored commits using No-Try, No-Presubmit, No-Tree-Checks, Owners-Override, Bypass-*, or Low-Coverage-Reason.",
-  bugs: "Share of authored commits referencing a numeric bug ID, and share explicitly closing one (Fixed/Fixes/Closes).",
-  bugs_per_author: "Distinct numeric bug IDs referenced in a month, divided by the number of active authors that month.",
-  bug_churn: "Average authored commits per distinct bug ID touched in each month.",
-})[traitView.value]);
-
-const traitSeries = computed<TraitSeries[]>(() => {
-  const g = group.value!;
-  const t = trackedTraits.value;
-  switch (traitView.value) {
-    case "msg":
-      return [
-        { label: "Median", color: "var(--series-1)", values: g.msg },
-        { label: "Mean", color: "var(--series-2)", values: g.msg_mean },
-      ];
-    case "reverts":
-      return [
-        { label: "Reverts", color: "var(--series-8)", values: g.traits.revert },
-        ...(t.reland ? [{ label: "Relands", color: "var(--series-4)", values: g.traits.reland }] : []),
-      ];
-    case "bypasses":
-      return [
-        { label: "Any bypass", color: "var(--series-2)", values: g.traits.bypass },
-        ...(t.no_try ? [{ label: "No-Try", color: "var(--series-1)", values: g.traits.no_try }] : []),
-      ];
-    case "bugs":
-      return [
-        { label: "Has bug", color: "var(--series-1)", values: g.traits.bug },
-        ...(t.fix ? [{ label: "Closes bug", color: "var(--series-3)", values: g.traits.fix }] : []),
-      ];
-    case "bugs_per_author":
-      return [
-        { label: "Bugs / author", color: "var(--series-3)", values: g.traits.bugs_per_author },
-      ];
-    case "bug_churn":
-      return [
-        { label: "Commits / bug", color: "var(--series-1)", values: g.traits.commits_per_bug },
-      ];
-  }
-});
-
-const traitFormat = computed(() => {
-  if (traitView.value === "msg") {
-    return (v: number) => `${integer.format(v)} chars`;
-  }
-  if (traitView.value === "bug_churn" || traitView.value === "bugs_per_author") {
-    return (v: number) => decimal.format(v);
-  }
-  return (v: number) => pct1(v);
-});
-
-const traitAxisFormat = computed(() => {
-  if (traitView.value === "msg") {
-    return (v: number) => integer.format(v);
-  }
-  if (traitView.value === "bug_churn" || traitView.value === "bugs_per_author") {
-    return (v: number) => decimal.format(v);
-  }
-  return (v: number) => {
-    const p = v * 100;
-    return p < 1 && p > 0 ? `${p.toFixed(2)}%` : `${+p.toFixed(1)}%`;
-  };
-});
-
-const traitTable = computed(() => {
-  const months = data.value!.months, series = traitSeries.value, rows: string[][] = [];
-  for (let i = months.length - 1; i >= 0 && months[i] >= indexFrom.value; i--) {
-    if (series.every(s => s.values[i] === null)) continue;
-    rows.push([
-      monthShort(months[i]),
-      ...series.map(s => s.values[i] === null ? "—" : traitFormat.value(s.values[i]!)),
-    ]);
-  }
-  return rows;
-});
 </script>
 
 <style scoped>

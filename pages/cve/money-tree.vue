@@ -52,6 +52,7 @@
         </UiField>
 
         <UiLoading v-model="loading" :is-full-page="false"></UiLoading>
+        <FetchError v-if="loadError" class="mt-4" :message="loadError" @retry="loadData" />
 
         <div v-if="!loading && treeData">
           <div class="tree-container">
@@ -528,7 +529,11 @@ watch(filteredData, (newData) => {
   treeData.value = buildTree(newData);
 });
 
-onMounted(async () => {
+const loadError = ref<string | null>(null);
+
+const loadData = async () => {
+  loading.value = true;
+  loadError.value = null;
   try {
     rawData.value = await fetchCveData();
     processedData.value = processRawData(rawData.value);
@@ -547,12 +552,15 @@ onMounted(async () => {
     }
 
     treeData.value = buildTree(filteredData.value);
-    loading.value = false;
   } catch (error) {
     console.error("Failed to load CVE data", error);
+    loadError.value = formatFetchError(error, "Failed to load CVE data.");
+  } finally {
     loading.value = false;
   }
-});
+};
+
+onMounted(loadData);
 </script>
 
 <style scoped>

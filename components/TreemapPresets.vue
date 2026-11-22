@@ -48,6 +48,10 @@ type Preset = {
   start?: string;
   // Also plot the denominator in the history chart.
   history_size?: boolean;
+  // Default timeline chart mode and multi-metric aggregation.
+  history_mode?: "counts" | "ratio";
+  history_agg?: "individual" | "sum" | "both";
+  exclude_third_party?: boolean;
 };
 
 type EnrichedPreset = Preset & {
@@ -73,8 +77,9 @@ const CATEGORIES: {
     name: "Memory safety",
     description: "Patterns behind most security bugs, and their safer replacements.",
     presets: [
-      { name: "MiraclePtr", color: ["raw_ptr", "raw_ref"], size: ["file"], start: "2021-01-01" },
-      { name: "Dangling pointers", color: ["dangling_untriaged"], size: ["file"], start: "2022-01-01" },
+      { name: "MiraclePtr", color: ["raw_ptr", "raw_ref"], size: ["file"], start: "2021-01-01", history_agg: "both" },
+      { name: "RAW_PTR_EXCLUSION", color: ["raw_ptr_exclusion"], size: ["raw_ptr_exclusion", "raw_ptr", "raw_ref"], start: "2022-01-01", history_mode: "ratio" },
+      { name: "Dangling pointers", color: ["dangling_untriaged"], size: ["raw_ptr", "raw_ref"], start: "2022-01-01", history_mode: "ratio" },
       { name: "reinterpret_cast", color: ["reinterpret_cast"], size: ["line"] },
     ],
   },
@@ -82,17 +87,25 @@ const CATEGORIES: {
     name: "Spanification",
     description: "Buffer accesses being rewritten with bounds-checked spans.",
     presets: [
-      { name: "Unsafe buffer usage", color: ["lines_unsafe_buffer_usage"], size: ["line"], history_size: true },
+      { name: "Unsafe buffer usage", color: ["lines_unsafe_buffer_usage"], size: ["line"], history_mode: "ratio" },
       { name: "Unsafe libc calls", color: ["unsafe_libc"], size: ["line"] },
       { name: "base::span adoption", color: ["base_span"], size: ["line"] },
+    ],
+  },
+  {
+    name: "Commit activity",
+    description: "Where code is changing fastest over the past year or month.",
+    presets: [
+      { name: "Commit rate (1 year)", color: ["commits_1y"], size: ["line"], start: "2019-01-01", history_mode: "ratio" },
+      { name: "Recent churn (30 days)", color: ["commits_30d"], size: ["line"], start: "2019-01-01", history_mode: "ratio" },
     ],
   },
   {
     name: "Tests",
     description: "Where the tests are, and how many are turned off.",
     presets: [
-      { name: "Test density", color: ["tests"], size: ["file"] },
-      { name: "Disabled tests", color: ["disabled_tests"], size: ["tests", "disabled_tests"] },
+      { name: "Test density", color: ["tests"], size: ["file"], history_mode: "ratio" },
+      { name: "Disabled tests", color: ["disabled_tests"], size: ["tests", "disabled_tests"], history_mode: "ratio" },
     ],
   },
   {
@@ -102,7 +115,7 @@ const CATEGORIES: {
       { name: "Polymer → Lit", color: ["lit_element"], size: ["polymer_element", "lit_element"], history_size: true },
       { name: "Legacy IPC → Mojo", color: ["legacy_ipc"], size: ["line"] },
       { name: "absl::optional → std::optional", color: ["std_optional"], size: ["absl_optional", "std_optional"], history_size: true },
-      { name: "StringPiece → string_view", color: ["string_view"], size: ["string_piece", "string_view"], history_size: true },
+      { name: "StringPiece → string_view", color: ["string_view"], size: ["string_piece", "string_view"], history_size: true, history_agg: "both" },
     ],
   },
   {
@@ -110,8 +123,7 @@ const CATEGORIES: {
     description: "Which languages the code is written in.",
     presets: [
       { name: "JavaScript → TypeScript", color: ["javascript_file"], size: ["javascript_file", "typescript_file"], history_size: true },
-      { name: "Java → Kotlin", color: ["java_file"], size: ["java_file", "kotlin_file"] },
-      { name: "Rust", color: ["rust_file"], size: ["rust_file", "file"], history_size: true },
+      { name: "Rust", color: ["rust_file"], size: ["rust_file", "file"], history_mode: "ratio", exclude_third_party: true },
     ],
   },
   {
@@ -146,6 +158,9 @@ const url = (preset: Preset) => `/treemap?${new URLSearchParams({
     dates: `${preset.start},${todayIso}`,
   }),
   ...(preset.history_size && { history_size: "1" }),
+  ...(preset.history_mode && preset.history_mode !== "counts" && { history: preset.history_mode }),
+  ...(preset.history_agg && preset.history_agg !== "individual" && { history_agg: preset.history_agg }),
+  ...(preset.exclude_third_party && { exclude_third_party: "1" }),
 })}`;
 
 const buildCategories = (avail: Set<string> | null) => ENRICHED_CATEGORIES

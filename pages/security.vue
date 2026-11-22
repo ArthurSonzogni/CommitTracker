@@ -42,7 +42,8 @@
         </AboutData>
 
         <!-- 5-Pillar Jump KPI Cards -->
-        <div v-if="payload" class="pillar-kpi-grid mt-4">
+        <FetchError v-if="loadError" class="mt-4" :message="loadError" @retry="loadSecurity" />
+        <div v-else-if="payload" class="pillar-kpi-grid mt-4">
           <a href="#spanification" class="kpi-card">
             <div class="kpi-eyebrow">
               <UiIcon name="code-brackets" size="small" />
@@ -210,6 +211,7 @@ const {
 });
 
 const payload = shallowRef<SecurityPayload | null>(null);
+const loadError = ref<string | null>(null);
 
 const chromeSpan1p = computed(() =>
   payload.value?.spanification.scopes.first_party.repos.find((r) => r.repo === 'chromium'),
@@ -228,16 +230,24 @@ const danglingProjection1y = computed(() => {
   return computeLinearProjection(payload.value.danglingPointers.totalSeries, '1y', '2022-01-01');
 });
 
-onMounted(async () => {
-  const res = await fetch('/data/security.json');
-  if (res.ok) {
-    payload.value = await res.json();
+const loadSecurity = async () => {
+  loadError.value = null;
+  try {
+    payload.value = await fetchJson<SecurityPayload>('/data/security.json', { cache: true });
+  } catch (error) {
+    loadError.value = formatFetchError(error, 'Failed to load security data.');
   }
-});
+};
+
+onMounted(loadSecurity);
 </script>
 
 <style>
 .security-page {
+.security-page {
+  overflow-x: clip;
+}
+
 .page-head {
   align-items: flex-start;
   display: flex;

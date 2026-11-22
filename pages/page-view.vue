@@ -4,6 +4,7 @@
       <div class="container content page-view">
         <h1 class="title">Page view</h1>
         <UiLoading v-model="loading" :is-full-page="false" />
+        <FetchError v-if="loadError" class="mb-4" :message="loadError" @retry="loadViews" />
         <template v-if="quarters.length">
           <p>
             Since <strong>{{ days[0].date }}</strong>, the website has
@@ -223,15 +224,22 @@ const weekdays = computed(() => {
   }));
 });
 
-onMounted(async () => {
+const loadError = ref<string | null>(null);
+
+const loadViews = async () => {
+  loading.value = true;
+  loadError.value = null;
   try {
-    const response = await fetch(hitscounter.toString());
-    json.value = await response.json();
+    json.value = await fetchJson(hitscounter.toString());
   } catch (error) {
     console.error('Error fetching data:', error);
+    loadError.value = formatFetchError(error, 'Failed to load page view statistics.');
+  } finally {
+    loading.value = false;
   }
-  loading.value = false;
-});
+};
+
+onMounted(loadViews);
 
 </script>
 

@@ -17,14 +17,12 @@
           <TreemapInput v-model:value="field_color"
                         :repositories="repositories"
                         placeholder="Add a metric"/>
-          <UiCheckbox v-model="history_color">Show in the history chart</UiCheckbox>
         </UiField>
 
         <UiField label="Size (denominator)" expanded>
           <TreemapInput v-model:value="field_size"
                         :repositories="repositories"
                         placeholder="Add a metric"/>
-          <UiCheckbox v-model="history_size">Show in the history chart</UiCheckbox>
         </UiField>
 
         <UiField label="Colormap">
@@ -130,8 +128,10 @@
           :colormap="colormap"
           :dates="dates"
           :animate="animate"
-          :history_color="history_color"
-          :history_size="history_size"
+          v-model:history_color="history_color"
+          v-model:history_size="history_size"
+          v-model:history_mode="history_mode"
+          v-model:history_agg="history_agg"
           :exclude_test="exclude_test"
           :exclude_third_party="exclude_third_party"
           @zoomin="path = [...path, $event]"
@@ -258,6 +258,8 @@ const default_repo =
 const repositories = ref<string[]>([default_repo]);
 const history_color = ref(true);
 const history_size = ref(false);
+const history_mode = ref<"counts" | "ratio">("counts");
+const history_agg = ref<"individual" | "sum" | "both">("individual");
 const exclude_test = ref(false);
 const exclude_third_party = ref(false);
 
@@ -298,6 +300,11 @@ const applyQuery = (query: LocationQuery) => {
   repositories.value = rawRepos ? rawRepos.split(",").filter(Boolean) : [default_repo];
   history_color.value = firstQueryString(query.history_color) !== "0";
   history_size.value = firstQueryString(query.history_size) === "1";
+  const rawHistoryMode = firstQueryString(query.history);
+  history_mode.value = rawHistoryMode === "ratio" ? "ratio" : "counts";
+  const rawHistoryAgg = firstQueryString(query.history_agg);
+  history_agg.value =
+    rawHistoryAgg === "sum" || rawHistoryAgg === "both" ? rawHistoryAgg : "individual";
   exclude_test.value = query.exclude_test !== undefined && firstQueryString(query.exclude_test) !== "0";
   exclude_third_party.value =
     query.exclude_third_party !== undefined && firstQueryString(query.exclude_third_party) !== "0";
@@ -362,6 +369,12 @@ const buildQuery = (): LocationQueryRaw => {
   if (history_size.value === true) {
     query.history_size = "1";
   }
+  if (history_mode.value === "ratio") {
+    query.history = "ratio";
+  }
+  if (history_agg.value !== "individual") {
+    query.history_agg = history_agg.value;
+  }
   if (exclude_test.value === true) {
     query.exclude_test = null;
   }
@@ -422,11 +435,18 @@ const selectPreset = (preset: {
   size: string[];
   start?: string;
   history_size?: boolean;
+  history_mode?: "counts" | "ratio";
+  history_agg?: "individual" | "sum" | "both";
+  exclude_third_party?: boolean;
 }) => {
   withViewTransition(() => {
     field_size.value = preset.size.map(findMetric).filter((f): f is TreemapMetricEntry => Boolean(f));
     field_color.value = preset.color.map(findMetric).filter((f): f is TreemapMetricEntry => Boolean(f));
+    history_color.value = true;
     history_size.value = !!preset.history_size;
+    history_mode.value = preset.history_mode ?? "counts";
+    history_agg.value = preset.history_agg ?? "individual";
+    exclude_third_party.value = !!preset.exclude_third_party;
     if (preset.start) {
       dates.value = [new Date(preset.start), dates.value[1]];
     }
@@ -449,6 +469,8 @@ watch([
   dates,
   history_color,
   history_size,
+  history_mode,
+  history_agg,
   exclude_test,
   exclude_third_party,
 ], () => {

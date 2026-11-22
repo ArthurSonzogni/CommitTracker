@@ -106,7 +106,11 @@ try {
   const nuxtBin = path.join(projectRoot, 'node_modules', 'nuxt', 'bin', 'nuxt.mjs');
   runOrExit(process.execPath, [nuxtBin, 'generate'], buildEnv);
 
+  // Raw commit_rates/ (~30k bucket files) is folded into treemap commit metrics
+  // by scripts/derive/compact-treemap.mjs and does not need to be deployed.
+  const SKIP_DEPLOY_ENTRIES = new Set(['commit_rates']);
   for (const name of DATA_ENTRIES) {
+    if (SKIP_DEPLOY_ENTRIES.has(name)) continue;
     const src = path.join(publicDir, name);
     if (!fs.existsSync(src)) continue;
     const dst = path.join(outputDir, name);

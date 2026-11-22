@@ -52,3 +52,8 @@ done
 if [ "$failed" -ne 0 ]; then
   exit 1
 fi
+
+# Step 3: refresh static OG preview images when Chrome is available.
+if command -v "${CHROME_PATH:-google-chrome}" >/dev/null 2>&1; then
+  node scripts/derive/og-cards.mjs public
+fi

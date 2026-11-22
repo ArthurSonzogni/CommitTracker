@@ -13,6 +13,8 @@
           />
         </FilterPanel>
 
+        <FetchError v-if="loadError" class="mb-4" :message="loadError" @retry="refresh" />
+
         <p>
           Approximatively <strong>{{sum}}</strong> developers contributed to
           {{repositories.join(", ")}} repository.
@@ -35,6 +37,7 @@ import { interpolate } from "d3-interpolate";
 import { easeBackOut } from "d3-ease";
 import "d3-transition";
 import { useUrlState, urlCodecs } from "~/composables/useUrlState";
+import { fetchJson, formatFetchError } from "~/utils/fetchJson";
 import { listSummary, repositoryNames } from "~/utils/filter-summary";
 
 const router = useRouter();
@@ -45,12 +48,14 @@ const { repositories } = useUrlState({
 const sum = ref(0);
 const distribution = ref<number[]>([]);
 const histogram = ref<HTMLElement | null>(null);
+const loadError = ref<string | null>(null);
 
 let requestId = 0;
 
 const refresh = async () => {
   const id = ++requestId;
   const repos = [...repositories.value];
+  loadError.value = null;
   if (repos.length === 0) {
     sum.value = 0;
     distribution.value = [];
@@ -60,10 +65,17 @@ const refresh = async () => {
     return;
   }
 
-  const responses = await Promise.all(
-    repos.map(repo => fetch(`/data/${repo}/usernames.json`)),
-  );
-  const arrays: string[][] = await Promise.all(responses.map(r => r.json()));
+  let arrays: string[][];
+  try {
+    arrays = await Promise.all(
+      repos.map(repo => fetchJson<string[]>(`/data/${repo}/usernames.json`, { cache: true })),
+    );
+  } catch (error) {
+    if (id === requestId) {
+      loadError.value = formatFetchError(error, "Failed to load usernames data.");
+    }
+    return;
+  }
   if (id !== requestId || !histogram.value) return;
 
   const data = [...new Set(arrays.flat())];

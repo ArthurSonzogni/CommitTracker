@@ -69,12 +69,10 @@ jobs:
           npm ci
           (cd importer && npm ci)
 
-      # The commit_rates branch (~30k files) is dormant on production deploys,
-      # so only pull it for PR interaction tests.
+      # Pull all data branches (including commit_rates, which scripts/derive/compact-treemap.mjs
+      # folds into treemap commit-rate metrics; raw commit_rates/ is omitted from the deployed site).
       - name: Pull data
         run: npm run pull-data
-        env:
-          SKIP_BRANCHES: ${{ github.event_name == 'pull_request' && '' || 'commit_rates' }}
 
       - name: Summarize data freshness
         run: |

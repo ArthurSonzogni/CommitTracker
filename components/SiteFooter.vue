@@ -21,7 +21,6 @@ const BRANCHES: [RegExp, string][] = [
   [/^\/cve/, "cve"],
   [/^\/communities/, "community-map"],
   [/^\/fuzz-test/, "fuzz-test"],
-  [/^\/commit-rates/, "commit_rates"],
   [/^\/accretion/, "accretion"],
 ];
 

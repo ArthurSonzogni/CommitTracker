@@ -15,6 +15,7 @@
           </UiField>
         </FilterPanel>
 
+        <FetchError v-if="loadError" class="mb-4" :message="loadError" @retry="loadRepositories" />
         <CalendarHeatmap :data="data" />
       </div>
     </section>
@@ -28,6 +29,7 @@
 
 <script setup lang="ts">
 import { useUrlState, urlCodecs } from "~/composables/useUrlState";
+import { fetchJson, formatFetchError } from "~/utils/fetchJson";
 import { listSummary, repositoryNames } from "~/utils/filter-summary";
 
 interface CommitsPerHourResponse {
@@ -49,22 +51,21 @@ const { repositories, dates } = useUrlState({
 });
 
 const rawAligned = shallowRef<AlignedCommitsPerHour | null>(null);
+const loadError = ref<string | null>(null);
 let requestId = 0;
 
 const loadRepositories = async () => {
   const id = ++requestId;
   const repos = [...repositories.value];
+  loadError.value = null;
   if (repos.length === 0) {
     rawAligned.value = null;
     return;
   }
 
   try {
-    const responses = await Promise.all(
-      repos.map(repo => fetch(`/data/${repo}/commits_per_hour.json`)),
-    );
-    const jsons: CommitsPerHourResponse[] = await Promise.all(
-      responses.map(res => res.json()),
+    const jsons = await Promise.all(
+      repos.map(repo => fetchJson<CommitsPerHourResponse>(`/data/${repo}/commits_per_hour.json`, { cache: true })),
     );
     if (id !== requestId) return;
 
@@ -88,6 +89,7 @@ const loadRepositories = async () => {
   } catch (error) {
     if (id === requestId) {
       console.error("Failed to fetch commits_per_hour:", error);
+      loadError.value = formatFetchError(error, "Failed to load heatmap data.");
     }
   }
 };

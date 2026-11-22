@@ -22,8 +22,41 @@
             <div ref="content" class="treemap-stage" />
           </div>
 
-          <div>
-            <LineChart v-if="history?.length" :data="history" :milestones="milestones" :animate="false" />
+          <div class="history-pane">
+            <div v-if="hasHistoryPanel" class="history-toolbar">
+              <UiSegmented
+                v-model="modeModel"
+                aria-label="Timeline chart mode"
+                :options="[
+                  { value: 'counts', label: 'Counts' },
+                  { value: 'ratio', label: 'Ratio', disabled: !canShowRatio, title: 'Color ÷ Size over time' },
+                ]" />
+
+              <div v-if="modeModel === 'counts'" class="history-chips" role="group" aria-label="Series">
+                <UiToggle v-model="historyGroups" value="color">Color</UiToggle>
+                <UiToggle v-model="historyGroups" value="size">Size</UiToggle>
+              </div>
+
+              <UiSegmented
+                v-if="modeModel === 'counts' && hasMultiMetricGroup"
+                v-model="aggModel"
+                aria-label="Metric aggregation"
+                :options="[
+                  { value: 'individual', label: 'Each' },
+                  { value: 'sum', label: 'Sum' },
+                  { value: 'both', label: 'Both' },
+                ]" />
+            </div>
+
+            <LineChart
+              v-if="history?.length"
+              :data="history"
+              :milestones="milestones"
+              :formatter="historyFormatter"
+              :animate="false" />
+            <p v-else-if="hasHistoryPanel && !isSnapshotRef" class="history-empty">
+              Select Color or Size above to display series on the timeline.
+            </p>
             <p v-if="history?.length" class="source-note">{{ sourceNote }}</p>
           </div>
         </div>
@@ -63,6 +96,7 @@ const data = shallowRef<any>(null);
 
 let current_date_id = -1;
 let isSnapshot = false;
+const isSnapshotRef = ref(true);
 
 const history = shallowRef<any[]>([]);
 const milestones = shallowRef<any[]>([]);
@@ -72,6 +106,7 @@ let colormapFunc = getColormap("Oranges");
 
 const number_format = format(",d");
 const percent_format = format(".1%");
+const ratio_format = format(".2~%");
 
 const props = defineProps({
   repositories: { type: Array as PropType<string[]>, default: () => [repositories_json[0]?.dirname || "chromium"] },
@@ -85,6 +120,8 @@ const props = defineProps({
   animate: { type: Boolean, default: false },
   history_color: { type: Boolean, default: true },
   history_size: { type: Boolean, default: false },
+  history_mode: { type: String as PropType<"counts" | "ratio">, default: "counts" },
+  history_agg: { type: String as PropType<"individual" | "sum" | "both">, default: "individual" },
   exclude_test: { type: Boolean, default: false },
   exclude_third_party: { type: Boolean, default: false },
 });
@@ -92,7 +129,50 @@ const props = defineProps({
 const emits = defineEmits([
   "zoomin",
   "animationend",
+  "update:history_color",
+  "update:history_size",
+  "update:history_mode",
+  "update:history_agg",
 ]);
+
+const modeModel = computed<"counts" | "ratio">({
+  get: () => props.history_mode,
+  set: (v) => emits("update:history_mode", v),
+});
+
+const aggModel = computed<"individual" | "sum" | "both">({
+  get: () => props.history_agg,
+  set: (v) => emits("update:history_agg", v),
+});
+
+const historyGroups = computed<string[]>({
+  get: () => [
+    ...(props.history_color ? ["color"] : []),
+    ...(props.history_size ? ["size"] : []),
+  ],
+  set: (vals: string[]) => {
+    emits("update:history_color", vals.includes("color"));
+    emits("update:history_size", vals.includes("size"));
+  },
+});
+
+const canShowRatio = computed(
+  () => ((props.field_color as string[])?.length || 0) > 0 && ((props.field_size as string[])?.length || 0) > 0,
+);
+
+const hasMultiMetricGroup = computed(() => {
+  const fColor = (props.field_color as string[]) || [];
+  const fSize = (props.field_size as string[]) || [];
+  return (props.history_color && fColor.length > 1) || (props.history_size && fSize.length > 1);
+});
+
+const hasHistoryPanel = computed(
+  () => !isSnapshotRef.value && (((props.field_color as string[])?.length || 0) > 0 || ((props.field_size as string[])?.length || 0) > 0),
+);
+
+const historyFormatter = computed(() =>
+  props.history_mode === "ratio" ? (v: number) => ratio_format(v) : undefined,
+);
 
 let is_rendering = false;
 let next_render_task: (() => Promise<void>) | null = null;
@@ -131,10 +211,13 @@ const getActiveExcludeMask = () =>
 const getHistoryFields = (): string[] => {
   const fSize = (props.field_size as string[]) || [];
   const fColor = (props.field_color as string[]) || [];
-  if (fSize.length === 0) return Array.from(new Set(fColor));
-  if (fColor.length === 0) return Array.from(new Set(fSize));
+  if (props.history_mode === "ratio") {
+    return Array.from(new Set([...fColor, ...fSize]));
+  }
+  if (fSize.length === 0) return props.history_color ? Array.from(new Set(fColor)) : [];
+  if (fColor.length === 0) return props.history_size ? Array.from(new Set(fSize)) : [];
   if (props.history_color && props.history_size) {
-    return Array.from(new Set([...fSize, ...fColor]));
+    return Array.from(new Set([...fColor, ...fSize]));
   }
   if (props.history_color) return Array.from(new Set(fColor));
   if (props.history_size) return Array.from(new Set(fSize));
@@ -624,10 +707,21 @@ const applyHistorySeries = (seriesMap: Record<string, number[]>) => {
 
   const d0 = (props.dates as Date[])?.[0];
   const d1 = (props.dates as Date[])?.[1];
+  const fColor = (props.field_color as string[]) || [];
+  const fSize = (props.field_size as string[]) || [];
 
-  const out = [];
-  for (const field of fields) {
-    const values = seriesMap[field] || [];
+  const sumSeries = (groupFields: string[]) => {
+    const out = new Array<number>(dates.length).fill(0);
+    for (const field of groupFields) {
+      const vals = seriesMap[field] || [];
+      for (let i = 0; i < vals.length && i < dates.length; i++) {
+        out[i] += vals[i] || 0;
+      }
+    }
+    return out;
+  };
+
+  const toPoints = (values: number[]) => {
     const filtered: { x: Date; y: number }[] = [];
     for (let i = 0; i < values.length && i < dates.length; i++) {
       const xDate = dates[i];
@@ -635,12 +729,61 @@ const applyHistorySeries = (seriesMap: Record<string, number[]>) => {
         filtered.push({ x: xDate, y: values[i] });
       }
     }
+    return filtered;
+  };
+
+  const out: Array<{ label: string; extra_label: string; values: { x: Date; y: number }[] }> = [];
+
+  if (props.history_mode === "ratio" && fColor.length > 0 && fSize.length > 0) {
+    const num = sumSeries(fColor);
+    const den = sumSeries(fSize);
+    const filtered: { x: Date; y: number }[] = [];
+    let lastRatio = 0;
+    for (let i = 0; i < dates.length; i++) {
+      const ratio = den[i] > 0 ? num[i] / den[i] : 0;
+      lastRatio = ratio;
+      const xDate = dates[i];
+      if ((!d0 || xDate >= d0) && (!d1 || xDate <= d1)) {
+        filtered.push({ x: xDate, y: ratio });
+      }
+    }
+    const numLabel = fColor.join(" + ");
+    const denLabel = fSize.join(" + ");
     out.push({
-      label: field,
-      extra_label: " = " + format(",d")(values.at(-1) || 0),
+      label: `${numLabel} ÷ ${denLabel}`,
+      extra_label: " = " + ratio_format(filtered.at(-1)?.y ?? lastRatio),
       values: filtered,
     });
+  } else {
+    const seenLabels = new Set<string>();
+    const pushSeries = (label: string, values: number[]) => {
+      if (seenLabels.has(label)) return;
+      seenLabels.add(label);
+      const filtered = toPoints(values);
+      out.push({
+        label,
+        extra_label: " = " + format(",d")(filtered.at(-1)?.y ?? values.at(-1) ?? 0),
+        values: filtered,
+      });
+    };
+
+    const emitGroup = (groupFields: string[]) => {
+      if (groupFields.length === 0) return;
+      const agg = props.history_agg;
+      if (groupFields.length === 1 || agg === "individual" || agg === "both") {
+        for (const field of groupFields) {
+          pushSeries(field, seriesMap[field] || []);
+        }
+      }
+      if (groupFields.length > 1 && (agg === "sum" || agg === "both")) {
+        pushSeries(groupFields.join(" + "), sumSeries(groupFields));
+      }
+    };
+
+    if (props.history_color) emitGroup(fColor);
+    if (props.history_size) emitGroup(fSize);
   }
+
   history.value = out;
   if (dates.length > 0) {
     sourceNote.value = `Measured on the ${activeRepo()} source tree at ` +
@@ -667,6 +810,7 @@ async function queryAndLoad(mode: "latest" | "full", pathsToExpand: string[][] |
   }
   current_date_id = res.dateId;
   isSnapshot = mode === "latest";
+  isSnapshotRef.value = isSnapshot;
   if (res.root) {
     lastPrunedRoot = res.root;
   }
@@ -815,10 +959,12 @@ watch(() => props.dates, () => lock(async () => {
   }
 }));
 
-// History chart checkboxes only affect the LineChart series.
+// History chart controls only affect the LineChart series.
 watch(() => [
   props.history_color,
   props.history_size,
+  props.history_mode,
+  props.history_agg,
 ], () => lock(async () => {
   if (isSnapshot) return;
   const needed = getHistoryFields();
@@ -885,6 +1031,32 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+.history-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.history-toolbar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.75rem;
+}
+
+.history-chips {
+  display: inline-flex;
+  gap: 0.35rem;
+}
+
+.history-empty {
+  color: var(--muted);
+  font-size: 0.85rem;
+  padding: 2rem 0;
+  text-align: center;
+}
+
 .source-note {
   color: var(--muted);
   font-size: 0.75rem;
