@@ -11,7 +11,7 @@
 import fs from "fs/promises";
 import path from "path";
 import { resolveBugTracker } from "../scripts/bug-trackers.mjs";
-import { computeTopBugs } from "../scripts/derive-top-bugs.mjs";
+import { computeTopBugs } from "../scripts/derive/top-bugs.mjs";
 
 const DATA_DIR = "../public/data";
 const CACHE_PATH = path.join(DATA_DIR, "bug-titles.json");
