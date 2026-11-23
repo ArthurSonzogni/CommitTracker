@@ -397,15 +397,27 @@ const tests = [
     `,
   },
   {
-    name: 'cve overview: severity chips change totals',
+    name: 'cve overview: severity chips and two-level category grouping',
     url: 'cve/overview',
     run: `
       const total = () => document.body.innerText.match(/Total\\s*:\\s*(\\d+) CVEs/)?.[1];
-      await __t.until(() => total(), 25000);
+      await __t.until(() => total() && document.querySelectorAll('.category-row').length > 0, 25000);
       const before = total();
+      const catCount = document.querySelectorAll('.category-row').length;
+      const subBefore = document.querySelectorAll('.subgroup-row').length;
+      // Switch to Categories only -> subgroup rows collapse
+      __t.byText('.segmented-option', 'Categories only').click();
+      const collapsed = await __t.until(() => document.querySelectorAll('.subgroup-row').length === 0, 5000);
+      // Clicking the first category expands its subgroups again
+      document.querySelector('.category-row').click();
+      const expandedOne = await __t.until(() => document.querySelectorAll('.subgroup-row').length > 0, 5000);
+      // Severity chip updates totals
       __t.byText('.chip', 'Medium').click();
       const ok = await __t.until(() => total() && total() !== before, 10000);
-      return { ok: !!ok, detail: 'total ' + before + ' -> ' + total() };
+      return {
+        ok: !!(ok && collapsed && expandedOne && catCount > 0 && subBefore > 0),
+        detail: 'total ' + before + ' -> ' + total() + ', cats=' + catCount + ', subs=' + subBefore,
+      };
     `,
   },
   {
