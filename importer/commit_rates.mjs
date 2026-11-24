@@ -1,6 +1,5 @@
 import path from 'path';
 import {spawn} from 'child_process';
-import crypto from 'crypto';
 import JSON5 from 'json5';
 import fs from 'fs/promises';
 
@@ -162,7 +161,7 @@ async function loadAllBuckets(outputDir, globalRates, deletionMap, childMap) {
     const mainFile = path.join(outputDir, 'main.json');
     const content = await fs.readFile(mainFile, 'utf8');
     loadBucket(JSON.parse(content), globalRates, deletionMap, childMap);
-  } catch (e) {}
+  } catch {}
 
   const batchSize = 100;
   for (let i = 0; i < CONFIG.bucketCount; i += batchSize) {
@@ -174,7 +173,7 @@ async function loadAllBuckets(outputDir, globalRates, deletionMap, childMap) {
         try {
           const content = await fs.readFile(bucketFile, 'utf8');
           loadBucket(JSON.parse(content), globalRates, deletionMap, childMap);
-        } catch (e) {}
+        } catch {}
       })());
     }
     await Promise.all(promises);
@@ -202,7 +201,7 @@ async function ensureRepo(repo, bucketsState) {
       fetchArgs.push(`--shallow-since=${shallowSince}`);
     }
     await runCommand('git', fetchArgs, repo.dirname);
-  } catch (err) {
+  } catch {
     await runCommand('git', ['clone', '--progress', '--verbose', '--filter=blob:none', '--depth', '1', '--no-checkout', repoUrl, repo.dirname], '.');
     await runCommand('git', ['fetch', '--progress', '--verbose', `--shallow-since=${shallowSince}`, '--filter=blob:none'], repo.dirname);
   }
@@ -314,7 +313,7 @@ async function processRepository(repo) {
       bucketsState = { lastCommit: null, lastCommitDate: null, startDate: CONFIG.startDate };
       startDateChanged = true;
     }
-  } catch (e) {}
+  } catch {}
 
   if (startDateChanged) {
     // Clear stale bucket files indexed from the previous startDate.
@@ -335,7 +334,7 @@ async function processRepository(repo) {
     try {
       const data = await fs.readFile(totalFile, 'utf8');
       totalRates = JSON.parse(data);
-    } catch (e) {}
+    } catch {}
   }
 
   const globalRates = new Map();
@@ -602,7 +601,7 @@ async function main() {
           await fs.rm(path.join(CONFIG.baseOutputDir, entry.name), { recursive: true, force: true });
         }
       }
-    } catch (e) {}
+    } catch {}
   }
 }
 

@@ -14,22 +14,23 @@
                   : rarity >= i - 0.5
                     ? 'star-half-full'
                     : 'star-outline'
-                " :style="{
-                  color: rarity >= i-0.5 ? 'orange' : 'gray',
-                }" />
+                " :class="rarity >= i - 0.5 ? 'badge-star-filled' : 'badge-star-empty'" />
 
               ({{ Math.round(rarity * 100)/100 }})
             </p>
             <p> <strong>Holder:</strong> {{ badge_data.recipients }} developers</p>
             <p> <strong>Category:</strong> {{ badge_data.category }}</p>
             <p v-if="developer"> <strong>Unlocked:</strong>
-              <UiIcon :name="unlocked ? 'check' : 'close'" :style="{ color: unlocked ? 'green' : 'red' }" />
+              <UiIcon :name="unlocked ? 'check' : 'close'" :class="unlocked ? 'badge-unlocked-yes' : 'badge-unlocked-no'" />
             </p>
 
             <p>{{ badge_data.description }}</p>
-            <p v-html="badge_data.details" v-if="unlocked"></p>
+            <ul v-if="unlocked && detailListItems.length > 0">
+              <li v-for="(item, index) in detailListItems" :key="index">{{ item }}</li>
+            </ul>
+            <p v-else-if="unlocked && badge_data.details">{{ badge_data.details }}</p>
 
-            <h1 class="title">Collection</h1>
+            <h2 class="title is-4">Collection</h2>
             <div class="card_list_container">
               <div class="cards">
                 <Badge
@@ -91,6 +92,12 @@ const badge_data = ref<Partial<BadgeDefinition>>({});
 const related_badges = ref<BadgeDefinition[]>([]);
 const rarity = ref(0);
 const unlocked = ref(false);
+
+const detailListItems = computed(() => {
+  const raw = badge_data.value.details;
+  if (!raw || !raw.includes("<li>")) return [];
+  return [...raw.matchAll(/<li>([\s\S]*?)<\/li>/g)].map((m) => m[1].trim());
+});
 const swapIncoming = ref<string | null>(null);
 const swapOutgoing = ref<string | null>(null);
 const heroTransitionName = ref<"badge-hero" | "badge-swap" | "badge-return">("badge-hero");
@@ -194,6 +201,22 @@ useSeoMeta({
 </script>
 
 <style scoped>
+
+.badge-star-filled {
+  color: var(--series-4, #e59934);
+}
+
+.badge-star-empty {
+  color: var(--muted-soft);
+}
+
+.badge-unlocked-yes {
+  color: var(--positive);
+}
+
+.badge-unlocked-no {
+  color: var(--negative);
+}
 
 .card_list_container {
   display: flex;

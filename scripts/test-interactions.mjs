@@ -514,7 +514,6 @@ const tests = [
     run: `
       const ready = await __t.until(() =>
         __t.count('.kpi-card') === 5 &&
-        __t.count('.findings li') === 4 &&
         __t.count('.yoy-chart rect.bar') > 100 &&
         __t.text('.yoy-chart .end-label')?.includes('Aug–Oct 2026') &&
         __t.count('.cohort-chart circle.median') >= 10 &&
@@ -594,16 +593,11 @@ const tests = [
         !__t.byText('.segmented-option', 'Reviews per reviewer') &&
         __t.count('.yoy-chart rect.bar') > 100 && __t.count('.cohort-chart circle.median') >= 10);
 
-      // A repository with few people carries a warning. Scrolled down, it
-      // floats at the top of the window for a while.
-      window.scrollTo(0, 1500);
-      await __t.until(() => document.querySelector('.page-head').getBoundingClientRect().top < 0);
+      // A repository with few people carries an inline warning.
       chip('Dawn').click();
       const warning = await __t.until(() =>
-        location.search.includes('repository=dawn') && __t.text('.kicker .caveat.warning')?.includes('Few people') &&
-        __t.text('.caveat-overlay .caveat-note.warning')?.includes('Read the direction') &&
-        __t.count('.caveat-overlay.floating') === 1 &&
-        __t.count('.findings li') === 4 && __t.text('.findings').includes('too few people'));
+        location.search.includes('repository=dawn') &&
+        __t.text('.caveat-list .caveat-note.warning')?.includes('Small sample'));
 
       // Another period: a year earlier, kept in the link.
       chip('Chromium').click();
@@ -614,13 +608,13 @@ const tests = [
       select.dispatchEvent(new Event('change', { bubbles: true }));
       const period = await __t.until(() =>
         location.search.includes('end=2025-10') && value() !== before &&
-        __t.text('.kicker').includes('Aug–Oct 2025') && __t.text('.findings').includes('(2020–2024)'));
+        __t.text('.page-period')?.includes('Aug–Oct 2025'));
 
       // Back returns to the previous period, Forward to the new one.
       const after = value();
       history.back();
       const back = await __t.until(() =>
-        location.search.includes('end=2026-10') && __t.text('.kicker').includes('Aug–Oct 2026') &&
+        location.search.includes('end=2026-10') && __t.text('.page-period')?.includes('Aug–Oct 2026') &&
         value() === before && select.value === '2026-10');
       history.forward();
       const forward = await __t.until(() =>
@@ -1256,7 +1250,7 @@ const tests = [
     `,
   },
   {
-    name: 'organizations emails: packed bubbles, inspector, domain filter, search, and links',
+    name: 'organizations emails: packed bubbles, inspector, domain filter, and links',
     url: 'organizations/emails',
     run: `
       const ready = await __t.until(() =>
@@ -1286,18 +1280,49 @@ const tests = [
       const bubbleClickOk = await __t.until(() =>
         document.querySelector('.inspector-title')?.textContent?.trim() === 'Igalia', 5000);
 
-      // Search highlights matching bubbles and dims non-matches
-      const input = document.querySelector('.search-input');
-      input.value = 'microsoft.com';
-      input.dispatchEvent(new Event('input', { bubbles: true }));
-      const searchOk = await __t.until(() =>
-        document.querySelectorAll('.bubble-node.is-dimmed').length > 100 &&
-        document.querySelector('.inspector-title')?.textContent?.trim() === 'Microsoft', 5000);
-
       return {
-        ok: !!(ready && domainFiltered && hrefOk && selectorClickOk && bubbleClickOk && searchOk),
-        detail: JSON.stringify({ ready, domainFiltered, hrefOk, selectorClickOk, bubbleClickOk, searchOk }),
+        ok: !!(ready && domainFiltered && hrefOk && selectorClickOk && bubbleClickOk),
+        detail: JSON.stringify({ ready, domainFiltered, hrefOk, selectorClickOk, bubbleClickOk }),
       };
+    `,
+  },
+  {
+    name: 'cve pivot table: renders table cells',
+    url: 'cve/pivot-table',
+    run: `
+      const ready = await __t.until(() =>
+        document.querySelectorAll('table tbody tr').length > 5 &&
+        /202\\d/.test(document.body.innerText), 15000);
+      return { ok: !!ready, detail: 'rows=' + document.querySelectorAll('table tbody tr').length };
+    `,
+  },
+  {
+    name: 'cve reward per components: renders sankey chart',
+    url: 'cve/reward_per_components',
+    run: `
+      const ready = await __t.until(() =>
+        document.querySelectorAll('svg path, svg rect').length > 10, 15000);
+      return { ok: !!ready, detail: 'shapes=' + document.querySelectorAll('svg path, svg rect').length };
+    `,
+  },
+  {
+    name: 'cve money tree: renders tree nodes',
+    url: 'cve/money-tree',
+    run: `
+      const ready = await __t.until(() =>
+        document.body.innerText.includes('$') &&
+        document.querySelectorAll('button, .tree-node, li').length > 5, 15000);
+      return { ok: !!ready, detail: 'hasDollar=' + document.body.innerText.includes('$') };
+    `,
+  },
+  {
+    name: 'api: renders static JSON endpoint documentation',
+    url: 'api',
+    run: `
+      const ready = await __t.until(() =>
+        document.body.innerText.includes('/data/') &&
+        document.querySelectorAll('code, pre').length > 3, 10000);
+      return { ok: !!ready, detail: 'codeBlocks=' + document.querySelectorAll('code, pre').length };
     `,
   },
 ];

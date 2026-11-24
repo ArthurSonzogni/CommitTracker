@@ -256,14 +256,14 @@ async function RemoveObsoleteGraphs(repositories) {
 async function ReadPrevious(file, name) {
   try {
     return JSON.parse(await fs.readFile(file, "utf8"));
-  } catch (e) {}
+  } catch {}
   try {
     const response = await fetch(
       `https://chrome-commit-tracker.arthursonzogni.com/community-map/${name}`);
     if (response.ok) {
       return await response.json();
     }
-  } catch (e) {}
+  } catch {}
   return null;
 }
 

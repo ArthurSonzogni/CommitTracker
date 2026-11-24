@@ -67,13 +67,13 @@
 <script setup lang="ts">
 
 import {easeLinear} from "d3-ease";
-import {hierarchy, treemap, treemapSquarify} from "d3-hierarchy";
+import {hierarchy, treemap, treemapSquarify, type HierarchyRectangularNode} from "d3-hierarchy";
 import {interpolateRgb} from "d3-interpolate";
-import {scaleLinear} from "d3-scale";
-import {select} from "d3-selection";
+import {scaleLinear, type ScaleLinear} from "d3-scale";
+import {select, type BaseType, type Selection} from "d3-selection";
 import {hsl} from "d3-color";
 import "d3-transition";
-import {transition} from "d3-transition";
+import {transition, type Transition} from "d3-transition";
 import {format} from "d3-format";
 import type { PropType } from "vue";
 import repositories_json from '~/utils/repositories'
@@ -81,6 +81,34 @@ import MILESTONES from '../utils/milestones.json'
 import { getColormap } from '~/utils/colormap'
 import { callTreemapWorker } from '~/utils/treemapWorkerClient'
 import type { PrunedTreemapNode } from '~/utils/treemap.worker'
+
+interface TreemapTileNode extends HierarchyRectangularNode<PrunedTreemapNode> {
+  _x?: number;
+  _y?: number;
+  _w?: number;
+  _h?: number;
+  _fill?: string;
+  _hoverFill?: string;
+  _isDark?: boolean;
+  _fs?: number;
+  _fs2?: number;
+  _label1?: string;
+  _label2?: string;
+  _clickable?: boolean;
+}
+
+interface HistorySeries {
+  label: string;
+  values: { x: Date; y: number }[];
+  color?: string;
+}
+
+interface TreemapMilestone {
+  date: string;
+  label: string;
+  repository?: string;
+  metrics?: string[];
+}
 
 const container = ref<HTMLElement|null>(null);
 const content = ref<HTMLElement|null>(null);
@@ -92,14 +120,14 @@ const tooltip_dir_dotdot = ref("..");
 let dates: Date[] = [];
 let lastPrunedRoot: PrunedTreemapNode | null = null;
 let lastHistorySeries: Record<string, number[]> = {};
-const data = shallowRef<any>(null);
+const data = shallowRef<TreemapTileNode | null>(null);
 
 let current_date_id = -1;
 let isSnapshot = false;
 const isSnapshotRef = ref(true);
 
-const history = shallowRef<any[]>([]);
-const milestones = shallowRef<any[]>([]);
+const history = shallowRef<HistorySeries[]>([]);
+const milestones = shallowRef<TreemapMilestone[]>([]);
 const sourceNote = ref("");
 
 let colormapFunc = getColormap("Oranges");
@@ -248,11 +276,11 @@ const svgHeight = () => lastHeight || (lastHeight = container.value?.clientHeigh
 // The colormap domain. The bounds not given by the user are centered on the
 // ratio of the displayed directory, so that its children contrast.
 const color_domain = ref([0, 1]);
-const parseBound = (value: any) => {
-  const number = parseFloat(value);
+const parseBound = (value: string | number | null | undefined) => {
+  const number = parseFloat(String(value ?? ""));
   return isNaN(number) ? null : number;
 };
-const updateColorDomain = function(nodeData: any) {
+const updateColorDomain = function(nodeData: TreemapTileNode | null | undefined) {
   if (!nodeData?.data) return;
   const ratio = nodeData.data.area > 0 ? nodeData.data.color / nodeData.data.area : 0;
   color_domain.value = [
@@ -272,12 +300,17 @@ const setAttrIfChanged = (el: Element, name: string, value: string) => {
   }
 };
 
-const prepareTiles = function(children: any[], parentNode: any, x: any, y: any) {
+const prepareTiles = function(
+  children: TreemapTileNode[],
+  parentNode: TreemapTileNode,
+  x: ScaleLinear<number, number>,
+  y: ScaleLinear<number, number>,
+) {
   const colorScale = scaleLinear()
     .domain(color_domain.value)
     .range([0, 1]);
   const total_size = parentNode.data.area;
-  const visible: any[] = [];
+  const visible: TreemapTileNode[] = [];
 
   for (let i = 0; i < children.length; i++) {
     const d = children[i];
@@ -356,8 +389,10 @@ const prepareTiles = function(children: any[], parentNode: any, x: any, y: any) 
   return visible;
 };
 
-const syncTileTexts = function(gSelection: any) {
-  gSelection.each(function(this: SVGGElement, d: any) {
+const syncTileTexts = function(
+  gSelection: Selection<SVGGElement, TreemapTileNode, SVGSVGElement, unknown>,
+) {
+  gSelection.each(function(this: SVGGElement, d: TreemapTileNode) {
     let t1 = this.querySelector(":scope > text.text-1") as SVGTextElement | null;
     if (d._label1) {
       if (!t1) {
@@ -366,8 +401,9 @@ const syncTileTexts = function(gSelection: any) {
         t1.setAttribute("x", "8");
         this.appendChild(t1);
       }
-      setAttrIfChanged(t1, "font-size", String(d._fs));
-      setAttrIfChanged(t1, "y", String(Math.round(5 + d._fs * 1.2)));
+      const fs = d._fs ?? 0;
+      setAttrIfChanged(t1, "font-size", String(fs));
+      setAttrIfChanged(t1, "y", String(Math.round(5 + fs * 1.2)));
       if (t1.textContent !== d._label1) t1.textContent = d._label1;
     } else if (t1) {
       t1.remove();
@@ -381,8 +417,9 @@ const syncTileTexts = function(gSelection: any) {
         t2.setAttribute("x", "8");
         this.appendChild(t2);
       }
-      setAttrIfChanged(t2, "font-size", String(d._fs2));
-      setAttrIfChanged(t2, "y", String(Math.round(5 + d._fs * 2.4)));
+      const fs = d._fs ?? 0;
+      setAttrIfChanged(t2, "font-size", String(d._fs2 ?? 0));
+      setAttrIfChanged(t2, "y", String(Math.round(5 + fs * 2.4)));
       if (t2.textContent !== d._label2) t2.textContent = d._label2;
     } else if (t2) {
       t2.remove();
@@ -390,7 +427,7 @@ const syncTileTexts = function(gSelection: any) {
   });
 };
 
-const tileClass = (d: any) =>
+const tileClass = (d: TreemapTileNode) =>
   "treemap-tile" +
   (d._clickable ? " is-clickable" : "") +
   (d._isDark ? " is-dark-tile" : "");
@@ -399,15 +436,22 @@ let hoveredContainerRect: DOMRect | null = null;
 let hoveredTooltipWidth = 0;
 let hoveredTooltipHeight = 0;
 
-const render = function(group: any, nodeData: any, x: any, y: any, _is_zoom = false, trans: any): number {
+const render = function(
+  group: Selection<SVGSVGElement, unknown, null, undefined>,
+  nodeData: TreemapTileNode | null | undefined,
+  x: ScaleLinear<number, number>,
+  y: ScaleLinear<number, number>,
+  _is_zoom = false,
+  trans: Transition<BaseType, unknown, null, undefined> | null,
+): number {
   if (!nodeData?.children || nodeData.children.length === 0) {
     group.selectAll("g").remove();
 
     const w = svgWidth();
     const h = svgHeight();
-    const text = group.selectAll("text").data([0], (d: any) => d);
+    const text = group.selectAll<SVGTextElement, number>("text").data([0], d => d);
     text.join(
-      (enter: any) => {
+      enter => {
         const t = enter.append("text");
         t.classed("no-data", true)
           .attr("text-anchor", "middle")
@@ -420,39 +464,39 @@ const render = function(group: any, nodeData: any, x: any, y: any, _is_zoom = fa
           .text("Zero data recorded at this directory and date");
         return t;
       },
-      (update: any) => update,
-      (leave: any) => leave.remove()
+      update => update,
+      leave => leave.remove()
     );
     return 0;
   }
   group.selectAll("text.no-data").remove();
 
-  const visibleChildren = prepareTiles(nodeData.children, nodeData, x, y);
+  const visibleChildren = prepareTiles(nodeData.children as TreemapTileNode[], nodeData, x, y);
   let animatedCount = 0;
 
   const child = group
-    .selectAll(":scope > g")
-    .data(visibleChildren, (d: any) => d.data.name)
+    .selectAll<SVGGElement, TreemapTileNode>(":scope > g")
+    .data(visibleChildren, d => d.data.name)
     .join(
-      (enter: any) => {
+      enter => {
         const g = enter.append("g")
           .attr("class", tileClass)
-          .attr("transform", (d: any) => `translate(${d._x}, ${d._y})`);
+          .attr("transform", d => `translate(${d._x}, ${d._y})`);
         g.append("rect")
           .attr("rx", 10)
-          .attr("width", (d: any) => d._w)
-          .attr("height", (d: any) => d._h)
-          .style("fill", (d: any) => d._fill);
+          .attr("width", d => d._w ?? 0)
+          .attr("height", d => d._h ?? 0)
+          .style("fill", d => d._fill ?? "");
         syncTileTexts(g);
         return g;
       },
-      (update: any) => {
-        update.each(function(this: SVGGElement, d: any) {
+      update => {
+        update.each(function(this: SVGGElement, d: TreemapTileNode) {
           setAttrIfChanged(this, "class", tileClass(d));
         });
         syncTileTexts(update);
         if (trans) {
-          const changed = update.filter(function(this: SVGGElement, d: any) {
+          const changed = update.filter(function(this: SVGGElement, d: TreemapTileNode) {
             const tf = `translate(${d._x}, ${d._y})`;
             if (this.getAttribute("transform") !== tf) return true;
             const r = this.querySelector(":scope > rect") as SVGRectElement | null;
@@ -466,50 +510,48 @@ const render = function(group: any, nodeData: any, x: any, y: any, _is_zoom = fa
           animatedCount = changed.size();
           if (animatedCount > 0) {
             const g = changed.transition(trans);
-            g.attr("transform", (d: any) => `translate(${d._x}, ${d._y})`);
+            g.attr("transform", d => `translate(${d._x}, ${d._y})`);
             g.select("rect")
-              .attr("width", (d: any) => d._w)
-              .attr("height", (d: any) => d._h)
-              .style("fill", (d: any) => d._fill);
+              .attr("width", d => d._w ?? 0)
+              .attr("height", d => d._h ?? 0)
+              .style("fill", d => d._fill ?? "");
           }
         } else {
-          update.each(function(this: SVGGElement, d: any) {
+          update.each(function(this: SVGGElement, d: TreemapTileNode) {
             setAttrIfChanged(this, "transform", `translate(${d._x}, ${d._y})`);
             const r = this.querySelector(":scope > rect") as SVGRectElement | null;
             if (r) {
               setAttrIfChanged(r, "width", String(d._w));
               setAttrIfChanged(r, "height", String(d._h));
-              if (r.style.fill !== d._fill) r.style.fill = d._fill;
+              if (d._fill && r.style.fill !== d._fill) r.style.fill = d._fill;
             }
           });
         }
         return update;
       },
-      (leave: any) => leave.remove()
+      leave => leave.remove()
     );
 
   child
-    .on("click", (_event: MouseEvent, d: any) => {
+    .on("click", (_event: MouseEvent, d: TreemapTileNode) => {
       if (d._clickable) zoomin(d);
     })
-    .on("mouseenter", (event: MouseEvent, d: any) => {
+    .on("mouseenter", (event: MouseEvent, d: TreemapTileNode) => {
       hoveredContainerRect = container.value?.getBoundingClientRect() ?? null;
       const rectEl = (event.currentTarget as SVGGElement).querySelector(":scope > rect") as SVGRectElement | null;
-      if (rectEl) rectEl.style.fill = d._hoverFill;
+      if (rectEl && d._hoverFill) rectEl.style.fill = d._hoverFill;
 
       tooltip_title.value = d.data.name;
       tooltip_dir_dot.value = d.data.name;
       tooltip_dir_dotdot.value = nodeData.data.name;
 
-      const fields: string[] = []
-        .concat(props.field_size as any)
-        .concat(props.field_color as any);
+      const fields: string[] = [...props.field_size, ...props.field_color];
 
-      const updateRow = (tr: any) => {
-        tr.select("td.v1").text((field: string) => field);
-        tr.select("td.v2").text((field: string) => number_format(nodeData.data.metrics?.[field] || 0));
-        tr.select("td.v3").text((field: string) => number_format(d.data.metrics?.[field] || 0));
-        tr.select("td.v4").text((field: string) => {
+      const updateRow = (tr: Selection<HTMLTableRowElement, string, HTMLElement, unknown>) => {
+        tr.select("td.v1").text(field => field);
+        tr.select("td.v2").text(field => number_format(nodeData.data.metrics?.[field] || 0));
+        tr.select("td.v3").text(field => number_format(d.data.metrics?.[field] || 0));
+        tr.select("td.v4").text(field => {
           const value = d.data.metrics?.[field] || 0;
           const total = nodeData.data.metrics?.[field] || 0;
           if (value > total) {
@@ -524,11 +566,11 @@ const render = function(group: any, nodeData: any, x: any, y: any, _is_zoom = fa
 
       if (tooltip.value) {
         select(tooltip.value)
-          .select("tbody")
-          .selectAll("tr")
+          .select<HTMLElement>("tbody")
+          .selectAll<HTMLTableRowElement, string>("tr")
           .data(fields)
           .join(
-            (enter: any) => {
+            enter => {
               const row = enter.append("tr");
               row.append("td").attr("class", "v1");
               row.append("td").attr("class", "v2");
@@ -537,7 +579,7 @@ const render = function(group: any, nodeData: any, x: any, y: any, _is_zoom = fa
               return updateRow(row);
             },
             updateRow,
-            (exit: any) => exit.remove()
+            exit => exit.remove()
           );
         tooltip.value.style.opacity = "1";
         hoveredTooltipWidth = tooltip.value.offsetWidth;
@@ -561,16 +603,16 @@ const render = function(group: any, nodeData: any, x: any, y: any, _is_zoom = fa
       const ty = Math.max(0, mouse_y - hoveredContainerRect.top);
       tooltip.value.style.transform = `translate3d(${tx}px, ${ty}px, 0)`;
     })
-    .on("mouseleave", (event: MouseEvent, d: any) => {
+    .on("mouseleave", (event: MouseEvent, d: TreemapTileNode) => {
       const rectEl = (event.currentTarget as SVGGElement).querySelector(":scope > rect") as SVGRectElement | null;
-      if (rectEl) rectEl.style.fill = d._fill;
+      if (rectEl && d._fill) rectEl.style.fill = d._fill;
       if (tooltip.value) tooltip.value.style.opacity = "0";
     });
 
   return animatedCount;
 };
 
-const zoomin = function(child: any) {
+const zoomin = function(child: TreemapTileNode) {
   emits("zoomin", child.data.name);
 };
 
@@ -581,7 +623,11 @@ const cancelLayerAnimations = () => {
   }
 };
 
-const zoom = async function(data_old: any, data_new: any, historySeries: Record<string, number[]>) {
+const zoom = async function(
+  data_old: TreemapTileNode | null | undefined,
+  data_new: TreemapTileNode | null | undefined,
+  historySeries: Record<string, number[]>,
+) {
   if (!data_old || !data_new || !content.value) return;
   const w = Math.max(0, svgWidth() - 20);
   const h = Math.max(0, svgHeight() - 20);
@@ -654,14 +700,14 @@ const zoom = async function(data_old: any, data_new: any, historySeries: Record<
   }
 };
 
-const mytreemap = function(prunedRoot: PrunedTreemapNode | null) {
+const mytreemap = function(prunedRoot: PrunedTreemapNode | null): TreemapTileNode | null {
   if (!prunedRoot) return null;
   const w = svgWidth();
   const h = svgHeight();
 
   const data_with_layout = hierarchy(prunedRoot)
-    .each((d: any) => { d.value = d.data.area; })
-    .sort((a: any, b: any) => b.value - a.value);
+    .each(d => { (d as { value?: number }).value = d.data.area; })
+    .sort((a, b) => (b.value ?? 0) - (a.value ?? 0));
 
   const map = treemap<PrunedTreemapNode>()
     .tile(treemapSquarify)
@@ -669,9 +715,9 @@ const mytreemap = function(prunedRoot: PrunedTreemapNode | null) {
     .round(true);
 
   return map(data_with_layout)
-    .sort((a: any, b: any) =>
+    .sort((a, b) =>
       (b.data.clickable ? 1 : 0) - (a.data.clickable ? 1 : 0)
-    );
+    ) as TreemapTileNode;
 };
 
 // Finds the best index for a given date.

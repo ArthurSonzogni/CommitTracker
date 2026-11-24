@@ -17,6 +17,9 @@ npm install
 npm run pull-data              # Clone the data branches into public/ (needed before anything else)
 npm run generate-derived-data  # Derive usernames/organizations/summaries/badges/... from public/data
 npm run dev                    # Dev server (Nuxt + direct public/ handler)
+npm run lint                   # Fast static lint (oxlint)
+npm run typecheck              # TypeScript / Vue type check
+npm run test:unit              # Node built-in unit tests (tests/*.test.mjs)
 npm run generate               # Production static build -> .output/public
 npm run test:interactions      # E2E tests against .output/public (needs google-chrome or CHROME_PATH)
 ```
@@ -29,8 +32,7 @@ node scripts/test-interactions.mjs .output/public "fuzz test"
 BASE_URL=http://localhost:3000/ node scripts/test-interactions.mjs - "fuzz test"
 ```
 
-There is no linter or unit-test suite. Builds need `--max-old-space-size=8192`
-(already set in the npm scripts).
+Builds need `--max-old-space-size=8192` (already set in the npm scripts).
 
 ## Architecture
 
@@ -112,12 +114,13 @@ dirname, color, GitHub owner/repo, optional `cone` subdirectory + `parent`,
   `.github/actions/setup-importer/` to pull only their required data branches.
   Simple single-script modules share `.github/actions/run-and-push/`, while
   `commits`, `accretion`, and `graph` have dedicated composite actions.
-- `cd.yaml` — split into `build` and `deploy` jobs. On push to `main` or
-  `importer`/`fixmailmap` completion (unless cancelled): pulls data (skipping
-  dormant `commit_rates`), derives data, builds with `MOVE_PUBLIC_DATA=1`, and
-  deploys `.output/public` to GitHub Pages as an artifact (the `gh-pages`
-  branch is no longer used). On pull requests: pulls `commit_rates` too and
-  runs `npm run test:interactions` without deploying.
+- `cd.yaml` — split into `build` and `deploy` jobs. Runs `lint`, `typecheck`,
+  and `test:unit`, pulls all data branches (including `commit_rates`, which
+  `scripts/derive/compact-treemap.mjs` folds into treemap metrics), derives
+  data, and builds with `MOVE_PUBLIC_DATA=1`. On push to `main` or
+  `importer`/`fixmailmap` completion (unless cancelled): deploys `.output/public`
+  to GitHub Pages as an artifact (the `gh-pages` branch is no longer used). On
+  pull requests: runs `npm run test:interactions` without deploying.
 - `fixmailmap.yaml` — re-applies mailmap changes to the `data` branch on push
   to `main`.
 

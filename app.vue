@@ -1,11 +1,14 @@
 <template>
   <div>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <NuxtLoadingIndicator></NuxtLoadingIndicator>
     <CommandPalette/>
     <Navbar/>
-    <NuxtLayout>
-      <NuxtPage/>
-    </NuxtLayout>
+    <main id="main-content">
+      <NuxtLayout>
+        <NuxtPage/>
+      </NuxtLayout>
+    </main>
     <SiteFooter/>
     <Transition name="back-to-top-fade">
       <button
@@ -131,7 +134,8 @@ const onWindowScroll = () => {
   showBackToTop.value = window.scrollY > 600;
 };
 const scrollToTop = () => {
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
 };
 
 onMounted(() => {
@@ -146,6 +150,24 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+.skip-link {
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  color: var(--ink);
+  font-size: 0.875rem;
+  font-weight: 600;
+  left: 0.75rem;
+  padding: 0.5rem 0.9rem;
+  position: fixed;
+  top: -100%;
+  z-index: 100;
+}
+
+.skip-link:focus {
+  top: 0.75rem;
+}
+
 .back-to-top {
   align-items: center;
   background: var(--surface);

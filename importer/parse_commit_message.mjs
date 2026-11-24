@@ -105,8 +105,9 @@ const extractPrimaryBug = (headline, text) => {
   const trailerRe = /^(?:Bug|Fixed|Fixes|Closes|Resolves|BUG|FIXED)\s*[:=]\s*(.+)$/gim;
   let match;
   while ((match = trailerRe.exec(text)) !== null) {
-    if (/^[0-9a-f]{7,40}(?:\s|$)/i.test(match[1].trim())) continue;
-    const n = parseBugNumber(match[1]);
+    const val = match[1].trim();
+    if (!/^\d{1,11}(?:\s|,|$)/.test(val) && /^[0-9a-f]{7,40}(?:\s|$)/i.test(val)) continue;
+    const n = parseBugNumber(val);
     if (n !== null) return n;
   }
 
@@ -168,7 +169,7 @@ export const parseCommitMessage = (message) => {
   const bug = extractPrimaryBug(headline, normalized);
 
   if (bug !== null && (
-      /^(?:Fixed|Fixes|Closes|Resolves)\s*[:=]\s*(?!none\b|0\b|n\/a\b|[0-9a-f]{7,40}(?:\s|$))\S/im.test(normalized) ||
+      /^(?:Fixed|Fixes|Closes|Resolves)\s*[:=]\s*(?!none\b|0\b|n\/a\b|(?=[0-9a-f]*[a-f])[0-9a-f]{7,40}(?:\s|$))\S/im.test(normalized) ||
       /\b(?:Fixes|Fixed|Closes|Closed|Resolves|Resolved)\s+(?:#|https?:\/\/\S+\/issues\/|crbug\.com\/|b\/)\d+/i.test(normalized))) {
     flags |= COMMIT_FLAGS.FIX;
   }

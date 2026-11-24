@@ -90,6 +90,7 @@
 
 <script setup lang="ts">
 import { useUrlState, urlCodecs } from "~/composables/useUrlState";
+import { fetchJson } from "~/utils/fetchJson";
 
 const route = useRoute();
 const router = useRouter();
@@ -164,15 +165,11 @@ const updateZoom = () => {
 
 const fetchGraph = async (src: string, reqId: number): Promise<boolean> => {
   try {
-    const response = await fetch(src.replace(/\.svg$/, ".json"));
+    const data = await fetchJson<Record<string, unknown>>(src.replace(/\.svg$/, ".json"), { cache: true });
     if (reqId !== updateRequestId) return false;
-    if (response.ok && response.headers.get("content-type")?.includes("json")) {
-      const data = await response.json();
-      if (reqId !== updateRequestId) return false;
-      graph.value = data;
-      displayPlaceholder.value = false;
-      return true;
-    }
+    graph.value = data;
+    displayPlaceholder.value = false;
+    return true;
   } catch {}
   if (reqId === updateRequestId) {
     graph.value = null;

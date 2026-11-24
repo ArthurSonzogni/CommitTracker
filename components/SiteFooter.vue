@@ -15,6 +15,7 @@
 <script setup lang="ts">
 // The date of the data shown by the page: the last update of the data branch
 // it comes from, written by pull-data.sh.
+import { fetchJson } from "~/utils/fetchJson";
 
 const BRANCHES: [RegExp, string][] = [
   [/^\/treemap/, "treemap"],
@@ -28,11 +29,8 @@ const route = useRoute();
 const dates = ref<Record<string, string>>({});
 onMounted(async () => {
   try {
-    const response = await fetch("/data_updated.json");
-    if (response.ok) {
-      dates.value = await response.json();
-    }
-  } catch (e) {}
+    dates.value = await fetchJson<Record<string, string>>("/data_updated.json", { cache: true });
+  } catch {}
 });
 
 const updated = computed(() => {

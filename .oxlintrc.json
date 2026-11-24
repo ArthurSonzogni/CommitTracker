@@ -1,0 +1,17 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "rules": {
+    "unicorn/no-new-array": "off"
+  },
+  "ignorePatterns": [
+    ".nuxt/**",
+    ".output/**",
+    "dist/**",
+    "node_modules/**",
+    "importer/node_modules/**",
+    "public/**",
+    "public_dev/**",
+    "public_gen/**",
+    "graph/build/**"
+  ]
+}

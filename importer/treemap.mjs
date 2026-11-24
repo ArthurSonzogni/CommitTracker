@@ -298,7 +298,7 @@ async function processRepository(repo, entries) {
               delete metrics_data[alias];
               try {
                 await fs.unlink(`${metrics_dir}${alias}.json`);
-              } catch (e) {}
+              } catch {}
               break;
             }
           }

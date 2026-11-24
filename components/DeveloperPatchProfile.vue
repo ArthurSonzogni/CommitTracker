@@ -96,6 +96,7 @@
 import type { PropType } from "vue";
 import type { DeveloperCommitsEntry } from "~/composables/useDeveloperCommits";
 import type { TraitSeries } from "~/components/ReportTraitChart.vue";
+import { fetchJson } from "~/utils/fetchJson";
 import { categoricalPalette } from "~/utils/palette";
 import { COMMIT_FLAGS, MSG_EXCLUDE_MASK, medianOf } from "~/utils/commitFlags";
 
@@ -114,11 +115,13 @@ const props = defineProps({
   },
 });
 
-let devOutputCache: Promise<any> | null = null;
-const devOutput = shallowRef<any>(null);
+const devOutput = shallowRef<Record<string, any> | null>(null);
 onMounted(async () => {
-  devOutputCache ??= fetch("/data/developer-output.json").then(r => (r.ok ? r.json() : null), () => null);
-  devOutput.value = await devOutputCache;
+  try {
+    devOutput.value = await fetchJson<Record<string, any>>("/data/developer-output.json", { cache: true });
+  } catch {
+    devOutput.value = null;
+  }
 });
 
 type TrendMetric = "lines" | "msg" | "files";

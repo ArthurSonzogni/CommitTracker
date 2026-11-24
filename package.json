@@ -10,7 +10,9 @@
     "dev": "node scripts/dev.mjs",
     "generate": "node scripts/generate.mjs",
     "preview": "nuxt preview",
+    "lint": "oxlint --deny-warnings pages components composables plugins utils modules scripts importer app.vue error.vue nuxt.config.ts",
     "typecheck": "nuxt typecheck",
+    "test:unit": "node --test tests/*.test.mjs",
     "test:interactions": "node scripts/test-interactions.mjs .output/public",
     "postinstall": "nuxt prepare"
   },
@@ -53,6 +55,7 @@
     "@types/d3-selection": "^3.0.12",
     "@types/d3-shape": "^3.2.0",
     "@types/d3-transition": "^3.0.9",
+    "oxlint": "^1.95.0",
     "subset-font": "^2.9.0",
     "typescript": "^6.0.3",
     "vue-tsc": "^3.3.14"

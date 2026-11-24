@@ -69,6 +69,12 @@ jobs:
           npm ci
           (cd importer && npm ci)
 
+      - name: Lint, typecheck, and unit tests
+        run: |
+          npm run lint
+          npm run typecheck
+          npm run test:unit
+
       # Pull all data branches (including commit_rates, which scripts/derive/compact-treemap.mjs
       # folds into treemap commit-rate metrics; raw commit_rates/ is omitted from the deployed site).
       - name: Pull data

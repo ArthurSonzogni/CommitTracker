@@ -558,7 +558,7 @@ const deriveRepository = async repository => {
   // median), on a January.
   let reviewsFrom = null;
   if (repository.reviewers === true) {
-    const median = [...all.reviews.slice(-12)].sort((a, b) => a - b)[6];
+    const median = all.reviews.slice(-12).sort((a, b) => a - b)[6];
     let s = M - 1;
     while (s > 0 && all.reviews[s - 1] >= 0.2 * median) s--;
     const year = Math.max(2017, +months[s].slice(0, 4) + 1 + (months[s].endsWith("-01") ? 0 : 1));

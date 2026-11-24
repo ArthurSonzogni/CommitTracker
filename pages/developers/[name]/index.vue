@@ -235,6 +235,7 @@ import repositories_json from '~/utils/repositories';
 import { fetchResolvedDeveloperBadges, shardOf } from '~/utils/badges';
 import { formatDeveloperDescription, formatDeveloperTitle } from '~/utils/pageMeta';
 import { COMMIT_FLAGS, MSG_EXCLUDE_MASK, medianOf, meanOf } from '~/utils/commitFlags';
+import { fetchJson as fetchJsonRaw } from '~/utils/fetchJson';
 import type { DeveloperCommit } from '~/plugins/chromiumData';
 
 const route = useRoute();
@@ -256,16 +257,10 @@ const compactNum = (n: number) =>
 const plural = (count: number, word: string) =>
   `${number(count)} ${word}${count === 1 ? "" : "s"}`;
 
-const fetchJson = async (url: string) => {
-  const response = await fetch(url);
-  return response.ok ? response.json() : null;
-};
+const fetchJson = (url: string) =>
+  fetchJsonRaw<any>(url, { cache: true }).catch(() => null);
 
-let devOutputCache: Promise<any> | null = null;
-const fetchDevOutput = () => {
-  devOutputCache ??= fetchJson("/data/developer-output.json");
-  return devOutputCache;
-};
+const fetchDevOutput = () => fetchJson("/data/developer-output.json");
 
 let requestId = 0;
 

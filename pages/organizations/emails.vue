@@ -38,43 +38,11 @@
 
         <template v-else-if="organizations.length > 0">
           <p class="summary-line mt-4">
-            <template v-if="trimmedSearch">
-              <strong>{{ fmtInt(matchingOrgSet.size) }}</strong> of
-              {{ fmtInt(organizations.length) }} organizations matching
-              <code>{{ searchQuery.trim() }}</code>
-              (<strong>{{ fmtInt(matchingEmailsTotal) }}</strong>
-              {{ matchingEmailsTotal === 1 ? "email" : "emails" }}).
-            </template>
-            <template v-else>
-              <strong>{{ fmtInt(totalEmails) }}</strong> emails
-              (<strong>{{ fmtInt(totalUsernames) }}</strong> unique usernames) across
-              <strong>{{ fmtInt(organizations.length) }}</strong> organizations and
-              <strong>{{ fmtInt(totalDomains) }}</strong> domains in {{ repoListLabel }}.
-            </template>
+            <strong>{{ fmtInt(totalEmails) }}</strong> emails
+            (<strong>{{ fmtInt(totalUsernames) }}</strong> unique usernames) across
+            <strong>{{ fmtInt(organizations.length) }}</strong> organizations and
+            <strong>{{ fmtInt(totalDomains) }}</strong> domains in {{ repoListLabel }}.
           </p>
-
-          <!-- Search Bar -->
-          <div class="search-row mt-4">
-            <div class="search-input-wrap">
-              <UiIcon name="magnify" size="small" class="search-icon" />
-              <input
-                v-model="searchQuery"
-                type="search"
-                class="search-input"
-                placeholder="Highlight by organization, domain (e.g. igalia.com), or email…"
-                aria-label="Filter organizations, domains, or emails"
-              />
-              <button
-                v-if="searchQuery"
-                type="button"
-                class="search-clear"
-                aria-label="Clear search"
-                @click="searchQuery = ''"
-              >
-                <UiIcon name="close" size="small" />
-              </button>
-            </div>
-          </div>
 
           <!-- Main Split: Packed Bubble Galaxy + Organization Selector -->
           <div class="workspace mt-4">
@@ -96,8 +64,6 @@
                   :class="{
                     'is-selected': selectedOrgName === node.org,
                     'is-hovered': hoveredBubble?.org === node.org,
-                    'is-dimmed': Boolean(trimmedSearch) && !matchingOrgSet.has(node.org),
-                    'is-matched': Boolean(trimmedSearch) && matchingOrgSet.has(node.org),
                   }"
                   :transform="`translate(${node.x.toFixed(2)}, ${node.y.toFixed(2)})`"
                   tabindex="0"
@@ -204,117 +170,17 @@
           </div>
 
           <!-- Selected Organization Emails Below (Full Width) -->
-          <section v-if="selectedEntry" class="emails-panel mt-5">
-            <div class="inspector-head">
-              <div class="inspector-title-wrap">
-                <span
-                  class="inspector-dot"
-                  :style="{ background: seriesColor(selectedEntry.org) }"
-                />
-                <h2 class="inspector-title">{{ selectedEntry.org }}</h2>
-              </div>
-              <NuxtLink
-                :to="orgCommitsLink(selectedEntry.org)"
-                class="commits-link"
-              >
-                View commits
-                <UiIcon name="arrow-right" size="small" />
-              </NuxtLink>
-            </div>
-
-            <p class="inspector-meta mt-1">
-              <strong>{{ fmtInt(selectedEmailsBase.length) }}</strong>
-              <template v-if="trimmedSearch && selectedEmailsBase.length !== selectedEntry.emails.length">
-                of {{ fmtInt(selectedEntry.emails.length) }}
-              </template>
-              {{ selectedEmailsBase.length === 1 ? "email" : "emails" }}
-              · {{ fmtInt(selectedEntry.usernameCount) }}
-              {{ selectedEntry.usernameCount === 1 ? "unique username" : "unique usernames" }}
-              · {{ fmtInt(selectedEntry.domains.length) }}
-              {{ selectedEntry.domains.length === 1 ? "domain" : "domains" }}
-            </p>
-
-            <!-- Domain Filter Chips -->
-            <div v-if="selectedEntry.domains.length > 0" class="inspector-section mt-4">
-              <div class="inspector-section-head">
-                <span>Domains</span>
-                <button
-                  v-if="selectedDomain"
-                  type="button"
-                  class="domain-clear"
-                  @click="selectedDomain = null"
-                >
-                  Show all
-                </button>
-              </div>
-              <div class="domain-strip">
-                <button
-                  v-for="d in selectedEntry.domains"
-                  :key="d.domain"
-                  type="button"
-                  class="domain-chip"
-                  :class="{
-                    'is-active': selectedDomain === d.domain,
-                    'is-match': trimmedSearch && d.domain.toLowerCase().includes(trimmedSearch),
-                  }"
-                  @click="toggleDomain(d.domain)"
-                >
-                  <span class="domain-name">@{{ d.domain }}</span>
-                  <span class="domain-count">{{ fmtInt(d.count) }}</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Email Grid -->
-            <div class="inspector-section mt-4">
-              <div class="inspector-section-head">
-                <span>
-                  Emails
-                  <template v-if="selectedDomain">
-                    in <code>@{{ selectedDomain }}</code>
-                  </template>
-                </span>
-                <span class="muted-text">{{ fmtInt(selectedEmailsFiltered.length) }}</span>
-              </div>
-
-              <ul class="email-list">
-                <li
-                  v-for="email in selectedEmailsFiltered.slice(0, emailLimit)"
-                  :key="email"
-                  class="email-item"
-                >
-                  <NuxtLink
-                    :to="individualLink(email)"
-                    class="email-pill"
-                    :class="{ 'is-match': trimmedSearch && email.toLowerCase().includes(trimmedSearch) }"
-                    :title="email"
-                  >
-                    {{ email }}
-                  </NuxtLink>
-                </li>
-              </ul>
-
-              <div
-                v-if="selectedEmailsFiltered.length > emailLimit"
-                class="drawer-actions mt-3"
-              >
-                <button
-                  type="button"
-                  class="more-btn"
-                  @click="emailLimit += 120"
-                >
-                  Show 120 more ({{ fmtInt(selectedEmailsFiltered.length - emailLimit) }} remaining)
-                </button>
-                <button
-                  type="button"
-                  class="ghost-btn"
-                  @click="emailLimit = selectedEmailsFiltered.length"
-                >
-                  Show all {{ fmtInt(selectedEmailsFiltered.length) }}
-                </button>
-              </div>
-            </div>
-          </section>
+          <OrganizationsEmailInspector
+            v-if="selectedEntry"
+            :entry="selectedEntry"
+            :color="seriesColor(selectedEntry.org)"
+            :commits-link="orgCommitsLink(selectedEntry.org)"
+            :emails-filtered="selectedEmailsFiltered"
+            v-model:selected-domain="selectedDomain"
+            v-model:email-limit="emailLimit"
+            :individual-link="individualLink"
+            @toggle-domain="toggleDomain"
+          />
         </template>
       </div>
     </section>
@@ -362,7 +228,6 @@ const organizations = ref<OrgEntry[]>([]);
 const loading = ref(false);
 const loadError = ref<string | null>(null);
 
-const searchQuery = ref("");
 const selectedOrgName = ref<string | null>(null);
 const selectedDomain = ref<string | null>(null);
 const emailLimit = ref(120);
@@ -421,72 +286,17 @@ const orgByName = computed(() => {
   return map;
 });
 
-const trimmedSearch = computed(() => searchQuery.value.trim().toLowerCase());
-
-const matchingOrgEntries = computed(() => {
-  const q = trimmedSearch.value;
-  if (!q) return [];
-  const out: { entry: OrgEntry; visibleEmails: string[]; orgMatched: boolean }[] = [];
-  for (const entry of organizations.value) {
-    const orgMatched = entry.org.toLowerCase().includes(q);
-    if (orgMatched) {
-      out.push({ entry, visibleEmails: entry.emails, orgMatched: true });
-      continue;
-    }
-    const matchingEmails = entry.emails.filter((e) => e.toLowerCase().includes(q));
-    if (matchingEmails.length > 0) {
-      out.push({ entry, visibleEmails: matchingEmails, orgMatched: false });
-    }
-  }
-  out.sort(
-    (a, b) =>
-      b.visibleEmails.length - a.visibleEmails.length ||
-      a.entry.org.localeCompare(b.entry.org),
-  );
-  return out;
-});
-
-const matchingOrgMap = computed(() => {
-  const map = new Map<string, { visibleEmails: string[]; orgMatched: boolean }>();
-  for (const m of matchingOrgEntries.value) {
-    map.set(m.entry.org, { visibleEmails: m.visibleEmails, orgMatched: m.orgMatched });
-  }
-  return map;
-});
-
-const matchingOrgSet = computed(() => new Set(matchingOrgMap.value.keys()));
-
-const matchingEmailsTotal = computed(() =>
-  matchingOrgEntries.value.reduce((sum, m) => sum + m.visibleEmails.length, 0),
-);
-
-const selectorOrgs = computed(() => {
-  if (trimmedSearch.value) {
-    return matchingOrgEntries.value.map((m) => ({
-      entry: m.entry,
-      visibleCount: m.visibleEmails.length,
-    }));
-  }
-  return organizations.value.map((entry) => ({
+const selectorOrgs = computed(() =>
+  organizations.value.map((entry) => ({
     entry,
     visibleCount: entry.emails.length,
-  }));
-});
+  })),
+);
 
 const nodeByName = computed(() => {
   const map = new Map<string, BubbleNode>();
   for (const n of packedLayout.value.nodes) map.set(n.org, n);
   return map;
-});
-
-// Auto-select top match when searching if current selection isn't among matches
-watch(matchingOrgEntries, (matches) => {
-  if (!trimmedSearch.value) return;
-  if (matches.length > 0 && (!selectedOrgName.value || !matchingOrgSet.value.has(selectedOrgName.value))) {
-    selectedOrgName.value = matches[0].entry.org;
-    selectedDomain.value = null;
-    emailLimit.value = 120;
-  }
 });
 
 // Log-scaled circle packing: largest at center (0,0), smaller packed around it
@@ -575,19 +385,10 @@ const selectedEntry = computed(() =>
   selectedOrgName.value ? orgByName.value.get(selectedOrgName.value) ?? null : null,
 );
 
-const selectedEmailsBase = computed(() => {
-  const entry = selectedEntry.value;
-  if (!entry) return [];
-  if (trimmedSearch.value) {
-    const m = matchingOrgMap.value.get(entry.org);
-    if (m) return m.visibleEmails;
-  }
-  return entry.emails;
-});
-
 const selectedEmailsFiltered = computed(() => {
-  if (!selectedDomain.value) return selectedEmailsBase.value;
-  return selectedEmailsBase.value.filter((e) => emailDomain(e) === selectedDomain.value);
+  const emails = selectedEntry.value?.emails ?? [];
+  if (!selectedDomain.value) return emails;
+  return emails.filter((e) => emailDomain(e) === selectedDomain.value);
 });
 
 const updateTooltipPos = (event: MouseEvent) => {
@@ -756,64 +557,6 @@ watch(repositories, refresh);
   border-radius: var(--radius-lg);
   color: var(--muted);
   text-align: center;
-}
-
-/* Search */
-.search-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.search-input-wrap {
-  position: relative;
-  flex: 1;
-  max-width: 540px;
-  display: flex;
-  align-items: center;
-}
-
-.search-icon {
-  position: absolute;
-  left: 0.8rem;
-  color: var(--muted);
-  pointer-events: none;
-}
-
-.search-input {
-  width: 100%;
-  padding: 0.56rem 2.3rem 0.56rem 2.35rem;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius);
-  background: var(--surface);
-  color: var(--ink);
-  font-size: 0.92rem;
-  font-family: var(--font-sans);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: var(--ring);
-}
-
-.search-clear {
-  position: absolute;
-  right: 0.45rem;
-  border: 0;
-  background: transparent;
-  color: var(--muted);
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: var(--radius-sm);
-  display: inline-flex;
-  align-items: center;
-}
-
-.search-clear:hover {
-  color: var(--ink);
-  background: var(--surface-sunken);
 }
 
 /* Main Split Workspace */
@@ -1039,229 +782,5 @@ watch(repositories, refresh);
   color: var(--muted);
   font-size: 0.85rem;
   margin: 0;
-}
-
-/* Full-width Emails Panel Below */
-.emails-panel {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xs);
-  padding: 1.25rem 1.35rem;
-}
-
-.inspector-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.inspector-title-wrap {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  min-width: 0;
-}
-
-.inspector-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.inspector-title {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--ink);
-}
-
-.inspector-meta {
-  margin: 0;
-  font-size: 0.88rem;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.inspector-meta strong {
-  color: var(--ink);
-}
-
-.commits-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.34rem 0.7rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.83rem;
-  font-weight: 500;
-  color: var(--accent-ink);
-  background: var(--accent-soft);
-  text-decoration: none;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.commits-link:hover {
-  text-decoration: underline;
-}
-
-.inspector-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-  padding-top: 0.85rem;
-  border-top: 1px solid var(--line);
-}
-
-.inspector-section-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 0.76rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--muted);
-}
-
-.domain-strip {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-}
-
-.domain-chip {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.35rem;
-  padding: 0.22rem 0.6rem;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: var(--surface-sunken);
-  color: var(--ink-2);
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: border-color 0.12s ease, background-color 0.12s ease, color 0.12s ease;
-}
-
-.domain-chip:hover {
-  border-color: var(--line-strong);
-  color: var(--ink);
-}
-
-.domain-chip.is-active,
-.domain-chip.is-match {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  color: var(--accent-ink);
-  font-weight: 600;
-}
-
-.domain-name {
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
-}
-
-.domain-count {
-  font-variant-numeric: tabular-nums;
-  font-size: 0.73rem;
-  opacity: 0.75;
-}
-
-.domain-clear {
-  border: 0;
-  background: transparent;
-  color: var(--accent-ink);
-  font-size: 0.76rem;
-  text-transform: none;
-  letter-spacing: 0;
-  cursor: pointer;
-  padding: 0.12rem 0.4rem;
-  border-radius: var(--radius-sm);
-}
-
-.domain-clear:hover {
-  background: var(--accent-soft);
-}
-
-.email-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 0.15rem 1rem;
-}
-
-.email-item {
-  min-width: 0;
-}
-
-.email-pill {
-  display: block;
-  padding: 0.25rem 0.45rem;
-  border-radius: var(--radius-sm);
-  color: var(--ink);
-  font-family: var(--font-mono);
-  font-size: 0.82rem;
-  text-decoration: none;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  transition: background-color 0.12s ease, color 0.12s ease;
-}
-
-.email-pill:hover {
-  color: var(--accent-ink);
-  background: var(--accent-soft);
-}
-
-.email-pill.is-match {
-  background: var(--accent-soft);
-  color: var(--accent-ink);
-  font-weight: 600;
-}
-
-.drawer-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.more-btn,
-.ghost-btn {
-  border-radius: var(--radius-sm);
-  font-size: 0.82rem;
-  font-weight: 500;
-  cursor: pointer;
-  padding: 0.35rem 0.75rem;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
-}
-
-.more-btn {
-  border: 1px solid var(--line-strong);
-  background: var(--surface);
-  color: var(--ink);
-}
-
-.more-btn:hover {
-  border-color: var(--accent);
-  color: var(--accent-ink);
-}
-
-.ghost-btn {
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--muted);
-}
-
-.ghost-btn:hover {
-  color: var(--ink);
-  background: var(--surface-sunken);
 }
 </style>

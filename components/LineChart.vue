@@ -201,7 +201,7 @@ const render = () => {
 
   const bottomAxis = axisBottom(x).ticks(7);
   const leftAxis = axisLeft(y);
-  if (props.formatter) leftAxis.tickFormat(props.formatter as any);
+  if (props.formatter) leftAxis.tickFormat((d) => props.formatter!(Number(d)));
 
   if (props.animate) {
     select(xAxis.value)
@@ -232,8 +232,8 @@ const render = () => {
     });
   select(releaseAxis.value)
     .attr("transform", `translate(${margin.left}, ${margin.top + innerHeight + 34})`)
-    .selectAll("text")
-    .data(releases, (release: any) => release.milestone)
+    .selectAll<SVGTextElement, typeof releases[number]>("text")
+    .data(releases, release => release.milestone)
     .join("text")
     .attr("x", release => release.x)
     .attr("text-anchor", "middle")
@@ -243,12 +243,23 @@ const render = () => {
 
   // The milestones: a dashed line, labeled near the bottom (or at yRatio for
   // callout pills), in lanes avoiding overlaps.
-  const milestones = (props.milestones as any[])
+  interface MilestoneInput {
+    date: string | Date;
+    label: string;
+    color?: string;
+    pill?: boolean;
+    anchor?: "start" | "end";
+    yRatio?: number;
+  }
+  interface PlacedMilestone extends MilestoneInput {
+    x: number;
+  }
+  const milestones: PlacedMilestone[] = (props.milestones as MilestoneInput[])
     .map(m => ({ ...m, x: x(new Date(m.date)) }))
     .filter(m => m.x >= 0 && m.x <= innerWidth);
   select(milestonesGroup.value)
-    .selectAll(".milestone")
-    .data(milestones, (m: any) => `${m.date}:${m.label}`)
+    .selectAll<SVGGElement, PlacedMilestone>(".milestone")
+    .data(milestones, m => `${m.date}:${m.label}`)
     .join(enter => {
       const group = enter.append("g").attr("class", "milestone");
       group.append("line");
@@ -257,26 +268,26 @@ const render = () => {
       return group;
     })
     .call(group => {
-      group.select("line")
-        .attr("x1", (m: any) => m.x)
-        .attr("x2", (m: any) => m.x)
+      group.select<SVGLineElement>("line")
+        .attr("x1", m => m.x)
+        .attr("x2", m => m.x)
         .attr("y1", 0)
         .attr("y2", innerHeight)
-        .style("stroke", (m: any) => m.color || "var(--faint)")
-        .attr("stroke-width", (m: any) => m.pill ? 1.75 : (m.color ? 1.3 : 1))
-        .attr("stroke-dasharray", (m: any) => m.pill ? "5 3" : "3 3");
+        .style("stroke", m => m.color || "var(--faint)")
+        .attr("stroke-width", m => m.pill ? 1.75 : (m.color ? 1.3 : 1))
+        .attr("stroke-dasharray", m => m.pill ? "5 3" : "3 3");
 
-      const texts = group.select("text")
-        .text((m: any) => m.label)
-        .attr("font-style", (m: any) => m.pill ? "normal" : "italic")
-        .attr("font-weight", (m: any) => m.pill ? "650" : (m.color ? "560" : "normal"))
-        .style("fill", (m: any) => m.color || "var(--muted)");
+      const texts = group.select<SVGTextElement>("text")
+        .text(m => m.label)
+        .attr("font-style", m => m.pill ? "normal" : "italic")
+        .attr("font-weight", m => m.pill ? "650" : (m.color ? "560" : "normal"))
+        .style("fill", m => m.color || "var(--muted)");
 
-      const widths = texts.nodes().map((node: any, i: number) => {
+      const widths = texts.nodes().map((node, i) => {
         const key = `${milestones[i].pill ? "P:" : ""}${milestones[i].label}`;
         let w = milestoneWidthCache.get(key);
         if (w === undefined || w === 0) {
-          w = node.getComputedTextLength() || milestones[i].label.length * 6.2;
+          w = node?.getComputedTextLength() || milestones[i].label.length * 6.2;
           milestoneWidthCache.set(key, w);
         }
         return w;
@@ -303,15 +314,15 @@ const render = () => {
         .attr("x", (_, i) => textPos[i].tx)
         .attr("y", (_, i) => textPos[i].ty);
 
-      group.select("rect.milestone-pill")
-        .attr("display", (m: any) => m.pill ? null : "none")
+      group.select<SVGRectElement>("rect.milestone-pill")
+        .attr("display", m => m.pill ? null : "none")
         .attr("x", (_, i) => textPos[i].anchor === "start" ? textPos[i].tx - 5 : textPos[i].tx - textPos[i].w - 5)
         .attr("y", (_, i) => textPos[i].ty - 12)
         .attr("width", (_, i) => textPos[i].w + 10)
         .attr("height", 17)
         .attr("rx", 4)
         .style("fill", "var(--surface)")
-        .style("stroke", (m: any) => m.color || "var(--line-strong)")
+        .style("stroke", m => m.color || "var(--line-strong)")
         .attr("stroke-width", 1)
         .attr("opacity", 0.96);
     });
@@ -359,8 +370,8 @@ const render = () => {
         .filter((d): d is NonNullable<typeof d> => d !== null);
 
       select(tooltip.value)
-        .selectAll(".tooltipData")
-        .data(references, (reference: any) => reference.label)
+        .selectAll<SVGGElement, typeof references[number]>(".tooltipData")
+        .data(references, reference => reference.label)
         .join(
           enter => {
             const group = enter

@@ -135,6 +135,7 @@ import repositories_json from '~/utils/repositories';
 import { shardOf } from '~/utils/badges';
 import { formatDeveloperYearDescription, formatDeveloperYearTitle } from '~/utils/pageMeta';
 import { fetchUsernamesSummary } from '~/utils/usernamesSummary';
+import { fetchJson as fetchJsonRaw } from '~/utils/fetchJson';
 import { COMMIT_FLAGS, MSG_EXCLUDE_MASK, medianOf } from '~/utils/commitFlags';
 
 // A developer's year: computed from their commits and reviews in each
@@ -193,10 +194,8 @@ const records = shallowRef<YearRecord[]>([]);
 const rank = shallowRef<{ position: number; total: number; repository: string } | null>(null);
 const loaded = ref(false);
 
-const fetchJson = async (url: string) => {
-  const response = await fetch(url);
-  return response.ok ? response.json() : null;
-};
+const fetchJson = (url: string) =>
+  fetchJsonRaw<any>(url, { cache: true }).catch(() => null);
 
 // The repositories, without the directories of another one (e.g. blink in
 // chromium): their commits are also counted in the parent.

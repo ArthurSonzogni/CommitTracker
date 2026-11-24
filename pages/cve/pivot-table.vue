@@ -528,25 +528,21 @@ watch(
 .mycolumns {
   display: flex;
   flex-direction: column;
+  gap: 1em;
+  max-width: 100%;
 }
 
 @media (min-width: 1104px) {
   .mycolumns {
-    display: flex;
     flex-direction: row;
-    max-width: 100%;
-    gap: 1em;
   }
-}
-
-.mycolumns {
-  display: flex;
-  gap: 1em;
 }
 
 #table-column {
   flex: 1;
-  overflow: auto;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
 }
 
 .chips {
@@ -560,7 +556,7 @@ watch(
 }
 
 .table_link:hover {
-  color: blue;
+  color: var(--accent);
 }
 
 </style>

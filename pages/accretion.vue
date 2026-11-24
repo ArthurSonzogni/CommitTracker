@@ -419,6 +419,7 @@
 <script setup lang="ts">
 import { format } from "d3-format";
 import type { LocationQuery, LocationQueryRaw } from "vue-router";
+import { fetchJson } from "~/utils/fetchJson";
 import repositories_json from "~/utils/repositories";
 // Short explanations of the largest events, by commit hash prefix.
 import eventLabels from "../utils/accretion-events.json";
@@ -528,23 +529,8 @@ const organizationsBundle = shallowRef<any>(null);
 
 const missing = ref(false);
 
-// Cache successful JSON fetches; evict transient null failures so retries can succeed.
-const files = new Map<string, Promise<any>>();
-const fetchFile = (url: string): Promise<any> => {
-  const cached = files.get(url);
-  if (cached) return cached;
-  const pending = fetch(url)
-    .then(response => (response.ok ? response.json() : null))
-    .catch(() => null)
-    .then(data => {
-      if (data === null) {
-        files.delete(url);
-      }
-      return data;
-    });
-  files.set(url, pending);
-  return pending;
-};
+const fetchFile = <T = any>(url: string): Promise<T | null> =>
+  fetchJson<T>(url, { cache: true }).catch(() => null);
 
 const repoMeta = computed(() =>
   repositories_json.find(repo => repo.dirname === repository.value),

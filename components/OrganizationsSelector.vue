@@ -32,6 +32,7 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
 import organizationsData from "~/utils/organizations";
+import { fetchJson } from "~/utils/fetchJson";
 
 const AVAILABLE_ICONS = new Set([
   "adobe",
@@ -46,11 +47,10 @@ const AVAILABLE_ICONS = new Set([
   "slack",
 ]);
 
-let summaryPromise: Promise<Record<string, Record<string, number>>> | null = null;
 const fetchOrganizationsSummary = () =>
-  (summaryPromise ??= fetch("/data/organizations_summary.json").then((res) =>
-    res.ok ? res.json() : {},
-  ));
+  fetchJson<Record<string, Record<string, number>>>("/data/organizations_summary.json", {
+    cache: true,
+  }).catch(() => ({}));
 
 const props = defineProps({
   allowMultiple: {

@@ -891,8 +891,8 @@ const LocalDate = (username, commit) => {
     });
     for (const [username, user_ranks] of ranks) {
       const matching_years = user_ranks
-        .filter(([year, user_rank]) => user_rank <= rank)
-        .map(([year, user_rank]) => year);
+        .filter(([_year, user_rank]) => user_rank <= rank)
+        .map(([year]) => year);
       if (matching_years.length > 0 && user_badges.has(username)) {
         GiveUserBadge(username, [matching_years.join(", ")]);
       }

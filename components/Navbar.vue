@@ -53,7 +53,11 @@
       <div class="navbar-menu" :class="{ 'is-active': menuOpen }">
         <div ref="start" class="navbar-start">
           <template v-for="entry in MENU" :key="entry.label">
-            <NuxtLink v-if="'to' in entry" class="navbar-item" :to="entry.to">
+            <NuxtLink
+              v-if="'to' in entry"
+              class="navbar-item"
+              :to="entry.to"
+              @pointerenter="prefetchRouteData(entry.to)">
               <UiIcon :name="entry.icon" size="small" class="mr-2 menu-icon" />
               {{ entry.label }}
             </NuxtLink>
@@ -78,7 +82,8 @@
                   v-for="item in entry.items"
                   :key="item.to"
                   class="navbar-item"
-                  :to="item.to">
+                  :to="item.to"
+                  @pointerenter="prefetchRouteData(item.to)">
                   <UiIcon :name="item.icon" class="mr-2" />
                   {{ item.label }}
                 </NuxtLink>
@@ -215,6 +220,28 @@ const activeChild = (entry: NavGroup): NavLeaf | undefined =>
   entry.items.find((item) => route.path === item.to || (item.to !== "/" && route.path.startsWith(item.to + "/")));
 
 const isGroupActive = (entry: NavGroup) => Boolean(activeChild(entry));
+
+// Warm the browser HTTP cache for lightweight page datasets on link hover.
+const PREFETCH_URLS: Record<string, string[]> = {
+  "/security": ["/data/security.json"],
+  "/developer-output": ["/data/developer-output.json"],
+  "/leaderboard": ["/data/top-bugs.json"],
+  "/badges/list": ["/badges.json"],
+  "/cve/overview": ["/cve/summary.json"],
+  "/organizations/commits": ["/data/organizations.json"],
+  "/repositories": ["/data/repositories_stats.json"],
+};
+const prefetchedUrls = new Set<string>();
+const prefetchRouteData = (to: string) => {
+  if (typeof window === "undefined") return;
+  const conn = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+  if (conn?.saveData) return;
+  for (const url of PREFETCH_URLS[to] ?? []) {
+    if (prefetchedUrls.has(url)) continue;
+    prefetchedUrls.add(url);
+    fetch(url, { priority: "low" } as RequestInit).catch(() => {});
+  }
+};
 
 // The mobile menu, and the dropdown opened by click (they also open on hover
 // on desktop). Both close when navigating, or clicking elsewhere.

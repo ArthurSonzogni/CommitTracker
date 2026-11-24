@@ -1,48 +1,23 @@
 <template>
   <div class="report">
-    <div :class="['warning-vignette', { persistent: hasWarning, flash: warningGlow }]" aria-hidden="true" />
     <section class="section">
       <SplitLayout :width="1080" aside-label="Report parameters">
         <template #header>
-        <header ref="head" :class="['page-head', { 'has-caveats': caveats.length }]">
-          <div>
-            <p class="kicker">
-              Report · {{ repositoryName }}<template v-if="data"> · {{ windowLabel(lastYear) }}</template>
-              <!-- Caveats on the figures, so that they don't move the page: tags in
-                   this line, or the overlay below on large screens. -->
-              <span class="caveat-tags">
-                <template v-for="caveat in caveats" :key="caveat.label">
-                  ·
-                  <UiTooltip :text="caveat.text" multiline position="bottom">
-                    <span :class="['caveat', caveat.kind]" tabindex="0">
-                      <UiIcon :name="caveat.kind === 'warning' ? 'alert-outline' : 'information-outline'" size="small" />
-                      {{ caveat.label }}
-                    </span>
-                  </UiTooltip>
-                </template>
-              </span>
-            </p>
-            <h1 class="title mb-2">{{ repositoryName }} developer output</h1>
-            <p class="lede">
-              How many commits people land, and how big they are, against the same months a year
-              earlier.
-            </p>
-          </div>
-          <aside
-            v-if="caveats.length"
-            ref="overlay"
-            :class="['caveat-overlay', { floating, flashing: warningGlow }]"
-            :style="floating ? {
-              top: `${floatingTop}px`,
-              right: `${floatingRight}px`,
-              transition: floatingMoves ? `top ${MOVE_MS}ms ease` : 'none',
-            } : undefined"
-            aria-label="Caveats">
+        <header class="page-head">
+          <h1 class="title mb-2">{{ repositoryName }} developer output</h1>
+          <p class="lede">
+            Commit volume, per-developer activity, and patch size
+            <template v-if="data">
+              for <span class="page-period">{{ windowLabel(lastYear) }}</span> vs {{ windowLabel(lastYear - 1) }}.
+            </template>
+            <template v-else>compared against the same months a year earlier.</template>
+          </p>
+          <div v-if="caveats.length" class="caveat-list" aria-label="Caveats">
             <p v-for="caveat in caveats" :key="caveat.label" :class="['caveat-note', caveat.kind]">
               <UiIcon :name="caveat.kind === 'warning' ? 'alert-outline' : 'information-outline'" size="small" />
-              <span><strong>{{ caveat.label }}.</strong> {{ caveat.text }}</span>
+              <span><strong>{{ caveat.label }}:</strong> {{ caveat.text }}</span>
             </p>
-          </aside>
+          </div>
         </header>
         </template>
 
@@ -94,53 +69,20 @@
         <FetchError v-if="loadError" :message="loadError" @retry="loadReport" />
         <div v-else-if="!data" class="skeleton kpi-skeleton" aria-hidden="true" />
         <template v-else-if="group">
-          <section class="findings" aria-label="Key findings">
-            <h2 class="panel-title">Key findings</h2>
-            <ul>
-              <li v-for="finding in findings" :key="finding.lead + finding.text">
-                <strong>{{ finding.lead }}</strong> {{ finding.text }}
-              </li>
-            </ul>
-          </section>
-
-          <div>
-            <div class="kpi-grid-wrap">
-            <div class="kpi-grid">
-              <component
-                :is="card.metric ? 'button' : 'div'"
-                v-for="card in kpis"
-                :key="card.label"
-                :type="card.metric ? 'button' : undefined"
-                :class="['kpi-card', { selectable: card.metric, selected: card.metric === metric, wide: card.extra }]"
-                :aria-pressed="card.metric ? card.metric === metric : undefined"
-                :title="card.metric ? `Show ${card.label.toLowerCase()} month by month` : undefined"
-                @click="card.metric && (metric = card.metric)">
-                <span class="kpi-label">{{ card.label }}</span>
-                <span class="kpi-value">{{ card.value }}</span>
-                <span class="kpi-detail">{{ card.detail }}</span>
-                <span v-if="card.extra" class="kpi-extra">
-                  <strong>{{ card.extra.label }}: {{ card.extra.value }}</strong>
-                  <span v-for="line in card.extra.lines" :key="line" class="kpi-extra-line">{{ line }}</span>
-                </span>
-                <span v-if="card.hint" class="kpi-hint">{{ card.hint }}</span>
-              </component>
-            </div>
-            </div>
-            <p class="kpi-caption">
-              {{ windowLabel(lastYear) }} against {{ windowLabel(lastYear - 1) }}. Select a figure
-              to see it month by month below.
-            </p>
-          </div>
+          <ReportFindingsStrip
+            :kpis="kpis"
+            :metric="metric"
+            @update:metric="metric = $event"
+          />
 
           <section class="panel">
             <div>
-              <h2 class="panel-title">{{ trendTitle }}</h2>
+              <h2 class="panel-title">Monthly trend</h2>
               <p v-if="trendView === 'yoy'" class="panel-text">
-                Each bar compares a month with the same month a year earlier. The gray band is the
-                usual range, from {{ usualLabel }}.
+                Year-over-year change per month. The shaded band marks the {{ usualLabel }} range.
               </p>
               <p v-else class="panel-text">
-                Each measure as a 3-month average, where 100 is its {{ usualLabel }} average.
+                3-month rolling average indexed to {{ usualLabel }} = 100.
               </p>
             </div>
             <div class="switches">
@@ -199,14 +141,12 @@
 
           <section class="panel">
             <div>
-              <h2 class="panel-title">{{ peopleTitle }}</h2>
+              <h2 class="panel-title">Same developers, year over year</h2>
               <p v-if="peopleView === 'year'" class="panel-text">
-                The people with at least {{ data.min_window }} commits in both periods, so newcomers
-                and leavers don't count. Each row: how their commits changed, against a year earlier.
+                Restricted to developers with at least {{ data.min_window }} commits in both periods, excluding newcomers and leavers.
               </p>
               <p v-else class="panel-text">
-                The same comparison for the {{ data.window.length }} months ending at each month:
-                the average change of the commits of the people active in both periods.
+                Rolling {{ data.window.length }}-month commit change for developers active in both periods.
               </p>
             </div>
             <div class="switches">
@@ -241,10 +181,9 @@
 
           <section class="panel">
             <div>
-              <h2 class="panel-title">{{ activityTitle }}</h2>
+              <h2 class="panel-title">Activity percentiles</h2>
               <p class="panel-text">
-                The developers ranked by their commits in a month, from the median (p50) to the
-                top 1% (p99). Under each: {{ lastYear }} against {{ lastYear - 1 }}.
+                Monthly commits per developer from the median (p50) to the top 1% (p99), comparing {{ lastYear }} with {{ lastYear - 1 }}.
               </p>
             </div>
             <div class="legend">
@@ -260,10 +199,9 @@
 
           <section class="panel">
             <div>
-              <h2 class="panel-title">{{ sizeTitle }}</h2>
+              <h2 class="panel-title">Commit size</h2>
               <p class="panel-text">
-                The same ranking of developers: the median size of their commits, in lines added
-                plus deleted. Under each: {{ lastYear }} against {{ lastYear - 1 }}.
+                Median lines changed (added + deleted) per commit across developer activity levels.
               </p>
             </div>
             <div class="size-layout">
@@ -337,7 +275,6 @@ import type { TraitView } from "~/components/report/TraitsSection.vue";
 import { fetchJson, formatFetchError } from "~/utils/fetchJson";
 import {
   MIN_COMPARED,
-  USUAL_SPAN,
   reportAt,
   type Group,
   type Organization,
@@ -545,30 +482,27 @@ const kpis = computed(() => {
       detail: `${perAuthor[0] !== null ? decimal.format(perAuthor[0]) : "—"} → ${perAuthor[1] !== null ? decimal.format(perAuthor[1]) : "—"} a month`,
       // The same, without the people who came or left.
       extra: {
-        label: "Commits by the same people",
+        label: "Same people",
         value: enough ? pct(2 ** latest!.p50! - 1) : "—",
         lines: enough
           ? [
-              `Median of ${integer.format(latest!.n)} people active in both years`,
-              ...(usual.length ? [`Usual years (${u0}–${String(u1).slice(2)}): ${pct(Math.min(...usual))} to ${pct(Math.max(...usual))}`] : []),
+              `Median of ${integer.format(latest!.n)} active in both years`,
+              ...(usual.length ? [`${u0}–${String(u1).slice(2)}: ${pct(Math.min(...usual))} to ${pct(Math.max(...usual))}`] : []),
             ]
-          : ["Too few people active in both years to summarize"],
+          : ["Too few active in both years"],
       },
-      hint: "Commits divided by active authors.",
     },
     {
       label: "Lines per commit",
       metric: "lines" as Metric,
       value: ratioPct(k.lines[0], k.lines[1]),
       detail: `${k.lines[0] ?? "—"} → ${k.lines[1] ?? "—"} lines`,
-      hint: "Lines added plus deleted by the median commit.",
     },
     ...(repository.value?.has_msg ? [{
       label: "Message length",
       metric: "msg" as Metric,
       value: ratioPct(k.msg[0], k.msg[1]),
       detail: `${k.msg[0] !== null ? integer.format(k.msg[0]) : "—"} → ${k.msg[1] !== null ? integer.format(k.msg[1]) : "—"} chars`,
-      hint: "Median description without footers, reverts, or rolls.",
     }] : []),
     {
       label: "Active authors",
@@ -760,16 +694,6 @@ const windowChange = (g: Group, m: Metric, back = 0) => {
   const after = windowValue(g, m, last), before = windowValue(g, m, last - 12);
   return after !== null && before ? after / before - 1 : null;
 };
-// The changes of the usual years, the 5 before the end's.
-const usualChanges = (g: Group, m: Metric) => {
-  const out: number[] = [];
-  for (let back = 1; back <= USUAL_SPAN; back++) {
-    if (data.value!.months[endOf() - 12 * back - 12] < repository.value!.data_from) break;
-    const c = windowChange(g, m, back);
-    if (c !== null) out.push(c);
-  }
-  return out;
-};
 const range = (values: number[]) => values.length === 1
   ? pct(values[0])
   : `${pct(Math.min(...values))} to ${pct(Math.max(...values))}`;
@@ -786,49 +710,6 @@ const windowMark = computed(() => {
   };
 });
 
-const trendTitle = computed(() => {
-  if (trendView.value === "index") return `Against the ${usualLabel.value} average`;
-  const change = windowChange(group.value!, metric.value);
-  return change === null
-    ? metricLabel.value
-    : `${metricLabel.value}: ${pct(change)} in ${windowLabel(lastYear.value)}`;
-});
-
-// The change of the same people at the end, when there are enough of them.
-const samePeople = computed(() => {
-  const latest = group.value!.cohort.at(-1);
-  return latest && latest.n >= 10 && latest.p50 !== null
-    ? { change: 2 ** latest.p50 - 1, n: latest.n }
-    : null;
-});
-const peopleTitle = computed(() => {
-  const same = samePeople.value;
-  if (!same) return "The same people, a year apart";
-  const p = Math.round(same.change * 100);
-  return Math.abs(p) < 2
-    ? "The same people land about as many commits"
-    : `The same people land ${Math.abs(p)}% ${p > 0 ? "more" : "fewer"} commits`;
-});
-
-// Whether `values` are above (1), below (-1) the year before at every
-// percentile, by at least 5%, or neither (0).
-const direction = (byYear: Record<string, number[]>) => {
-  const current = byYear[lastYear.value], previous = byYear[lastYear.value - 1];
-  if (!current || !previous) return 0;
-  const factors = current.map((v, k) => previous[k] ? v / previous[k] : 1);
-  return factors.every(f => f >= 1.05) ? 1 : factors.every(f => f <= 0.95) ? -1 : 0;
-};
-const activityTitle = computed(() => ({
-  1: "More commits at every activity level",
-  [-1]: "Fewer commits at every activity level",
-  0: "Commits per developer, by activity level",
-})[direction(percentileValues.value)]!);
-const sizeTitle = computed(() => ({
-  1: "Bigger commits at every activity level",
-  [-1]: "Smaller commits at every activity level",
-  0: "Commit size, by activity level",
-})[direction(sizeValues.value)]!);
-
 // Caveats on the figures of the selection.
 const caveats = computed(() => {
   const r = repository.value, out: { kind: "warning" | "info"; label: string; text: string }[] = [];
@@ -837,228 +718,29 @@ const caveats = computed(() => {
     out.push({
       kind: "warning",
       label: "Data stopped",
-      text: `This repository's data ends in ${monthShort(r.last_month)}. Pick an earlier period on the side to inspect it.`,
+      text: `Data ends in ${monthShort(r.last_month)}. Pick an earlier period to inspect it.`,
     });
   }
   if (few.value) {
     out.push({
       kind: "warning",
-      label: "Few people",
+      label: "Small sample",
       text: `Only ${people.value} ${people.value === 1 ? "person" : "people"}` +
-        (group.value!.id === "all" ? "" : ` of ${group.value!.label}`) +
-        ` ${people.value === 1 ? "was" : "were"} active in both years: one or two can move the figures a lot. ` +
-        "Read the direction, not the exact numbers.",
+        (group.value!.id === "all" ? "" : ` in ${group.value!.label}`) +
+        ` active in both years, so percentages swing widely.`,
     });
   } else if (small.value) {
     out.push({
       kind: "info",
       label: "Small group",
-      text: `Only ${people.value} people were active in both years, so single months swing a lot. ` +
-        "Read the trend, not individual bars.",
+      text: `${people.value} people active in both years; single months are noisy.`,
     });
   }
   if (r.parent) {
     out.push({
       kind: "info",
       label: `Part of ${r.parent}`,
-      text: `Its commits are also counted in ${r.parent}.`,
-    });
-  }
-  return out;
-});
-
-// A caveat appearing while the header is scrolled out of view floats for a
-// while, then goes back to the header. While it floats, it sticks: at the top
-// of the window, or at its place in the header once that is in view (below the
-// navigation bar, which scrolls with the page). It slides from the header and
-// back to it, so that the switch to and from `fixed` doesn't jump.
-const hasWarning = computed(() => caveats.value.some(c => c.kind === "warning"));
-const isLargeScreen = ref(false);
-let largeMedia: MediaQueryList | null = null;
-const onMediaChange = (e: MediaQueryListEvent) => {
-  isLargeScreen.value = e.matches;
-  syncPinnedWarning();
-};
-
-const FLOATING_MS = 6000;
-const MOVE_MS = 450;
-const STICKY_TOP = 16;
-const head = ref<HTMLElement | null>(null);
-const overlay = ref<HTMLElement | null>(null);
-const floating = ref(false);
-const floatingTop = ref(0);
-const floatingRight = ref(STICKY_TOP);
-// Whether `top` transitions: while sliding in or back, not while scrolling.
-const floatingMoves = ref(false);
-const warningGlow = ref(false);
-let floatingTimer: ReturnType<typeof setTimeout> | undefined;
-let moveTimer: ReturnType<typeof setTimeout> | undefined;
-let glowTimer: ReturnType<typeof setTimeout> | undefined;
-let docking = false;
-const triggerWarningGlow = () => {
-  warningGlow.value = false;
-  clearTimeout(glowTimer);
-  requestAnimationFrame(() => {
-    warningGlow.value = true;
-    glowTimer = setTimeout(() => {
-      warningGlow.value = false;
-    }, 650);
-  });
-};
-const headTop = () => head.value?.getBoundingClientRect().top ?? 0;
-const headRightOffset = () => {
-  const rect = head.value?.getBoundingClientRect();
-  return rect ? Math.max(STICKY_TOP, window.innerWidth - rect.right) : STICKY_TOP;
-};
-const stickyTop = () => Math.max(STICKY_TOP, headTop());
-const syncPinnedWarning = () => {
-  if (!hasWarning.value || !isLargeScreen.value) return;
-  clearTimeout(floatingTimer);
-  docking = false;
-  if (headTop() < STICKY_TOP) {
-    floatingMoves.value = false;
-    floatingRight.value = headRightOffset();
-    floatingTop.value = STICKY_TOP;
-    floating.value = true;
-  } else {
-    floating.value = false;
-  }
-};
-const onScroll = () => {
-  if (hasWarning.value && isLargeScreen.value) {
-    syncPinnedWarning();
-  } else if (floating.value && !docking) {
-    floatingTop.value = stickyTop();
-  }
-};
-const moveTo = (top: number, done?: () => void) => {
-  floatingMoves.value = true;
-  floatingTop.value = top;
-  clearTimeout(moveTimer);
-  // A little after the transition, so as not to cut its end.
-  moveTimer = setTimeout(() => {
-    floatingMoves.value = false;
-    done?.();
-  }, MOVE_MS + 50);
-};
-const dock = () => {
-  if (hasWarning.value && isLargeScreen.value && headTop() < STICKY_TOP) return;
-  docking = true;
-  moveTo(headTop(), () => {
-    floating.value = false;
-    docking = false;
-  });
-};
-watch(
-  () => caveats.value.filter(c => c.kind === "warning").map(c => `${repository.value?.dirname}:${c.label}`).join("|"),
-  (warnings, previous) => {
-    if (warnings && warnings !== previous) triggerWarningGlow();
-  },
-);
-watch(() => caveats.value.map(c => c.label).join("|"), async (labels, previous) => {
-  const rect = head.value?.getBoundingClientRect();
-  if (!labels) {
-    clearTimeout(floatingTimer);
-    floating.value = false;
-    return;
-  }
-  if (hasWarning.value && isLargeScreen.value) {
-    clearTimeout(floatingTimer);
-    if (!rect || rect.top >= STICKY_TOP) {
-      floating.value = false;
-      return;
-    }
-    floatingRight.value = headRightOffset();
-    docking = false;
-    if (!floating.value) {
-      floatingMoves.value = false;
-      floatingTop.value = rect.top;
-      floating.value = true;
-      await nextTick();
-      overlay.value?.getBoundingClientRect();
-    }
-    moveTo(STICKY_TOP);
-    return;
-  }
-  if (labels === previous || !rect || rect.top >= 0) return;
-  floatingRight.value = headRightOffset();
-  docking = false;
-  if (!floating.value) {
-    // From the header, where it is.
-    floatingMoves.value = false;
-    floatingTop.value = rect.top;
-    floating.value = true;
-    await nextTick();
-    // The style at the header, computed before moving: a new element has
-    // none yet, and wouldn't transition from it.
-    overlay.value?.getBoundingClientRect();
-  }
-  moveTo(stickyTop());
-  clearTimeout(floatingTimer);
-  floatingTimer = setTimeout(dock, FLOATING_MS);
-});
-onMounted(() => {
-  largeMedia = window.matchMedia("(min-width: 1280px)");
-  isLargeScreen.value = largeMedia.matches;
-  largeMedia.addEventListener("change", onMediaChange);
-  window.addEventListener("scroll", onScroll, { passive: true });
-  window.addEventListener("resize", syncPinnedWarning, { passive: true });
-  syncPinnedWarning();
-});
-onBeforeUnmount(() => {
-  largeMedia?.removeEventListener("change", onMediaChange);
-  window.removeEventListener("scroll", onScroll);
-  window.removeEventListener("resize", syncPinnedWarning);
-  clearTimeout(floatingTimer);
-  clearTimeout(moveTimer);
-  clearTimeout(glowTimer);
-});
-
-const findings = computed(() => {
-  const g = group.value!, out: { lead: string; text: string }[] = [];
-  const perAuthor = windowChange(g, "per_author");
-  if (perAuthor !== null) {
-    const usual = usualChanges(g, "per_author");
-    out.push({
-      lead: `${pct(perAuthor)} commits per author`,
-      text: `in ${windowLabel(lastYear.value)}, against a year earlier` +
-        (usual.length ? `. In the usual years (${usualLabel.value}): ${range(usual)}.` : "."),
-    });
-  }
-  const same = samePeople.value;
-  if (!same) {
-    out.push({
-      lead: "Commits by the same people:",
-      text: `too few people active in both years (${group.value!.cohort.at(-1)?.n ?? 0}) to compare. ` +
-        "Read the direction of the figures, not the exact numbers.",
-    });
-  } else {
-    // The same people explain the change when they move the same way.
-    const explains = perAuthor !== null && Math.sign(same.change) === Math.sign(perAuthor) &&
-      Math.abs(same.change) >= Math.abs(perAuthor) / 2;
-    out.push({
-      lead: `${pct(same.change)} commits by the same people:`,
-      text: `the median of the ${integer.format(same.n)} people active in both years` +
-        (explains ? ", so not because of who joined or left." : "."),
-    });
-  }
-  const lines = windowChange(g, "lines");
-  if (lines !== null) {
-    const after = windowValue(g, "lines", endOf()), before = windowValue(g, "lines", endOf() - 12);
-    const level = direction(sizeValues.value);
-    out.push({
-      lead: `${pct(lines)} lines per commit`,
-      text: `(the median commit: ${before} → ${after} lines)` +
-        (level === 1 ? ", bigger at every activity level, including the people who land the most."
-          : level === -1 ? ", smaller at every activity level." : "."),
-    });
-  }
-  const mwCur = g.msg_window[lastYear.value], mwPrev = g.msg_window[lastYear.value - 1];
-  if (repository.value?.has_msg && mwCur && mwPrev && mwPrev.p50 > 0) {
-    out.push({
-      lead: `${pct(mwCur.p50 / mwPrev.p50 - 1)} commit message length`,
-      text: `(median ${integer.format(mwPrev.p50)} → ${integer.format(mwCur.p50)} chars; ` +
-        `mean ${integer.format(mwPrev.mean)} → ${integer.format(mwCur.mean)}), excluding footers, reverts, and rolls.`,
+      text: `Commits are also included in ${r.parent}.`,
     });
   }
   return out;
@@ -1216,21 +898,8 @@ const sizeTable = computed(() => Object.entries(group.value!.commit_size)
 }
 
 .page-head {
-  align-items: flex-start;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  justify-content: space-between;
-}
-
-.kicker {
-  color: var(--accent-ink);
-  font-family: var(--font-mono);
-  font-size: 0.74rem;
-  font-weight: 640;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.35rem;
-  text-transform: uppercase;
+  display: grid;
+  gap: 0.35rem;
 }
 
 .title {
@@ -1239,9 +908,31 @@ const sizeTable = computed(() => Object.entries(group.value!.commit_size)
 
 .lede {
   color: var(--ink-2);
-  font-size: 1.05rem;
-  line-height: 1.6;
+  font-size: 1rem;
+  line-height: 1.55;
+  margin: 0;
   max-width: 66ch;
+}
+
+.caveat-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin-top: 0.5rem;
+}
+
+.caveat-note {
+  align-items: center;
+  color: var(--muted);
+  display: inline-flex;
+  font-size: 0.84rem;
+  gap: 0.35rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.caveat-note.warning {
+  color: var(--tag-warning-ink);
 }
 
 .selector {
@@ -1294,291 +985,23 @@ const sizeTable = computed(() => Object.entries(group.value!.commit_size)
   text-overflow: ellipsis;
 }
 
-.caveat {
-  align-items: center;
-  border-radius: 999px;
-  cursor: help;
-  display: inline-flex;
-  gap: 0.2rem;
-  padding: 0 0.4rem;
-}
-
-.caveat.warning {
-  background: var(--tag-warning-bg);
-  color: var(--tag-warning-ink);
-}
-
-.caveat.info {
-  background: var(--surface-sunken);
-  color: var(--ink-2);
-}
-
-/* Large screens: the caveats in full, over the empty right of the header, out
- * of the flow so that they never move the page. Elsewhere, the tags. */
-.caveat-overlay {
-  display: none;
-}
-
-@media (min-width: 1280px) {
-  .page-head {
-    position: relative;
-  }
-
-  .page-head.has-caveats > div {
-    padding-right: 410px;
-  }
-
-  .caveat-tags {
-    display: none;
-  }
-
-  .caveat-overlay {
-    display: grid;
-    gap: 0.3rem;
-    position: absolute;
-    right: 0;
-    top: 0;
-    width: 390px;
-    z-index: 2;
-  }
-}
-
-/* Fixed while it floats, on any screen: its top comes from the script. */
-.caveat-overlay.floating {
-  display: grid;
-  gap: 0.3rem;
-  position: fixed;
-  width: min(390px, calc(100vw - 2rem));
-  z-index: 20;
-}
-
-/* Orange edge shadow around the viewport: flashes on new warning, and stays
- * softly visible on large screens while a warning is active. */
-.warning-vignette {
-  --warn-orange: color-mix(in srgb, var(--series-2) 48%, var(--series-4) 52%);
-  box-shadow: inset 0 0 85px 14px var(--warn-orange);
-  inset: 0;
-  opacity: 0;
-  pointer-events: none;
-  position: fixed;
-  transition: opacity 1.1s ease-out, box-shadow 1.1s ease-out;
-  z-index: 19;
-}
-
-@media (min-width: 1280px) {
-  .warning-vignette.persistent {
-    opacity: 0.16;
-  }
-}
-
-.warning-vignette.flash {
-  box-shadow: inset 0 0 115px 24px var(--warn-orange);
-  opacity: 0.46;
-  transition: opacity 0.22s ease-in, box-shadow 0.22s ease-in;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .caveat-overlay.floating {
-    transition: none !important;
-  }
-
-  .warning-vignette {
-    transition: none !important;
-  }
-
-  .warning-vignette.flash {
-    opacity: 0.16;
-  }
-}
-
-.caveat-note {
-  align-items: flex-start;
-  border-radius: var(--radius-lg);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--ink) 8%, transparent);
-  display: flex;
-  font-size: 0.76rem;
-  gap: 0.45rem;
-  line-height: 1.35;
-  margin: 0;
-  padding: 0.4rem 0.65rem;
-  transition: box-shadow 0.9s ease-out, border-color 0.9s ease-out;
-}
-
-.caveat-note :deep(.icon) {
-  flex: none;
-  margin-top: 0.1rem;
-}
-
-.caveat-note.warning {
-  --warn-orange: color-mix(in srgb, var(--series-2) 48%, var(--series-4) 52%);
-  background: var(--tag-warning-bg);
-  border: 1px solid color-mix(in srgb, var(--warn-orange) 55%, transparent);
-  box-shadow:
-    0 4px 18px color-mix(in srgb, var(--warn-orange) 26%, transparent),
-    0 0 0 1px color-mix(in srgb, var(--warn-orange) 18%, transparent);
-  color: var(--ink);
-}
-
-.caveat-overlay.flashing .caveat-note.warning {
-  border-color: var(--warn-orange);
-  box-shadow:
-    0 0 28px 6px color-mix(in srgb, var(--warn-orange) 42%, transparent),
-    0 0 0 2px color-mix(in srgb, var(--warn-orange) 40%, transparent);
-  transition: box-shadow 0.22s ease-in, border-color 0.22s ease-in;
-}
-
-.caveat-note.warning :deep(.icon) {
-  color: var(--tag-warning-ink);
-}
-
-.caveat-note.info {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  color: var(--ink-2);
-}
-
-/* The explanation, in the body text style rather than the kicker's. */
-.kicker :deep(.tooltip-content) {
-  font-family: var(--font-sans);
-  font-weight: 400;
-  letter-spacing: normal;
-  text-align: left;
-  text-transform: none;
-}
-
-.caveat:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
-}
-
-.kpi-grid-wrap {
-  container-type: inline-size;
-}
-
-.kpi-grid {
-  display: grid;
-  gap: 0.75rem;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-}
-
-/* On one row, the card with more to say gets twice the width. */
-@container (min-width: 860px) {
-  .kpi-grid {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-  }
-
-  .kpi-card.wide {
-    grid-column: span 2;
-  }
-}
-
-.kpi-card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  padding: 0.9rem 1rem;
-}
-
-/* The figures that select the measure of the chart below. */
-button.kpi-card {
-  color: inherit;
-  cursor: pointer;
-  font: inherit;
-  text-align: left;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-
-button.kpi-card:hover {
-  border-color: var(--line-strong);
-}
-
-button.kpi-card:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-.kpi-card.selected {
-  border-color: var(--accent-line);
-  box-shadow: inset 0 0 0 1px var(--accent-line);
-}
-
-.kpi-card.selected .kpi-label {
-  color: var(--accent-ink);
-}
-
-.kpi-label {
-  color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.kpi-value {
-  color: var(--ink);
-  font-family: var(--font-mono);
-  font-size: 1.9rem;
-  font-variant-numeric: tabular-nums;
-  font-weight: 500;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-}
-
-.kpi-detail {
-  color: var(--ink-2);
-  font-size: 0.8rem;
-  margin-bottom: 0.45rem;
-}
-
-.kpi-extra {
-  color: var(--ink-2);
-  font-size: 0.78rem;
-  margin-bottom: 0.45rem;
-}
-
-.kpi-extra-line {
-  display: block;
-}
-
-.kpi-extra strong {
-  color: var(--ink);
-  display: block;
-  font-weight: 600;
-}
-
-.kpi-hint {
-  border-top: 1px solid var(--line);
-  color: var(--muted);
-  font-size: 0.76rem;
-  line-height: 1.35;
-  /* At the bottom, lined up across the cards. */
-  margin-top: auto;
-  padding-top: 0.45rem;
-}
-
-.kpi-caption {
-  color: var(--muted);
-  font-size: 0.8rem;
-  margin-top: 0.5rem;
-}
-
 .kpi-skeleton {
-  height: 211px;
+  height: 112px;
 }
 
 .panel {
-  background: var(--surface);
-  border: 1px solid var(--line);
   align-content: start;
-  border-radius: var(--radius-lg);
+  border-top: 1px solid var(--line);
   display: grid;
-  gap: 0.8rem;
+  gap: 0.85rem;
   grid-template-columns: minmax(0, 1fr);
   min-width: 0;
-  padding: 1.1rem 1.2rem;
+  padding-top: 1.5rem;
+}
+
+.panel:first-of-type {
+  border-top: 0;
+  padding-top: 0;
 }
 
 .panel-title {
@@ -1681,32 +1104,6 @@ button.kpi-card:focus-visible {
 .switches > * {
   max-width: 100%;
   min-width: 0;
-}
-
-.findings {
-  background: var(--surface);
-  border: 1px solid var(--accent-line);
-  border-left: 4px solid var(--accent);
-  border-radius: var(--radius-lg);
-  padding: 1rem 1.2rem;
-}
-
-.findings ul {
-  display: grid;
-  gap: 0.45rem;
-  margin: 0.5rem 0 0;
-  padding-left: 1.1rem;
-}
-
-.findings li {
-  color: var(--ink-2);
-  font-size: 0.95rem;
-  line-height: 1.45;
-}
-
-.findings strong {
-  color: var(--ink);
-  font-variant-numeric: tabular-nums;
 }
 
 .legend {

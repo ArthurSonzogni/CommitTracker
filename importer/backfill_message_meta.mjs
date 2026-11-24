@@ -42,7 +42,7 @@ const resolveNewestRef = (gitDir) => {
 
   let bestRef = 'HEAD';
   let bestTime = -1;
-  for (const ref of [...new Set(candidates)]) {
+  for (const ref of new Set(candidates)) {
     try {
       const ct = Number(execFileSync('git', ['-C', gitDir, 'log', '-1', '--format=%ct', ref], {
         encoding: 'utf8',

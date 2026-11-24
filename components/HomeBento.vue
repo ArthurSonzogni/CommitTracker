@@ -145,6 +145,7 @@
 
 <script setup lang="ts">
 import { hierarchy, treemap } from 'd3-hierarchy'
+import { fetchJson } from '~/utils/fetchJson'
 import { categoricalPalette } from '~/utils/palette'
 import repositories_stats from '../public/data/repositories_stats.json'
 
@@ -263,8 +264,15 @@ const treemapTiles = treemap<TreemapDatum>()
 
 onMounted(async () => {
   // {developer: {year: commits}}
-  const response = await fetch("/data/chromium/usernames_summary_commit_yearly_author.json");
-  const summary: Record<string, Record<string, number>> = await response.json();
+  let summary: Record<string, Record<string, number>>;
+  try {
+    summary = await fetchJson<Record<string, Record<string, number>>>(
+      "/data/chromium/usernames_summary_commit_yearly_author.json",
+      { cache: true },
+    );
+  } catch {
+    return;
+  }
 
   const totals: Record<string, number> = {};
   for (const years of Object.values(summary)) {

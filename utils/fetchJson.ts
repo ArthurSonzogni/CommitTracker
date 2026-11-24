@@ -49,9 +49,34 @@ async function doFetchJson<T>(url: string, signal?: AbortSignal): Promise<T> {
   return (await response.json()) as T;
 }
 
+function raceWithSignal<T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (!signal) return promise;
+  if (signal.aborted) {
+    return Promise.reject(
+      signal.reason ?? new DOMException("The operation was aborted.", "AbortError"),
+    );
+  }
+  return new Promise<T>((resolve, reject) => {
+    const onAbort = () => {
+      reject(signal.reason ?? new DOMException("The operation was aborted.", "AbortError"));
+    };
+    signal.addEventListener("abort", onAbort, { once: true });
+    promise.then(
+      (value) => {
+        signal.removeEventListener("abort", onAbort);
+        resolve(value);
+      },
+      (error) => {
+        signal.removeEventListener("abort", onAbort);
+        reject(error);
+      },
+    );
+  });
+}
+
 export function fetchJson<T>(url: string, options: FetchJsonOptions = {}): Promise<T> {
   const { signal, cache = false } = options;
-  if (!cache || signal) {
+  if (!cache) {
     return doFetchJson<T>(url, signal);
   }
 
@@ -60,7 +85,7 @@ export function fetchJson<T>(url: string, options: FetchJsonOptions = {}): Promi
     // Refresh LRU order.
     jsonCache.delete(url);
     jsonCache.set(url, existing);
-    return existing as Promise<T>;
+    return raceWithSignal(existing as Promise<T>, signal);
   }
 
   if (jsonCache.size >= MAX_CACHE_SIZE) {
@@ -75,5 +100,5 @@ export function fetchJson<T>(url: string, options: FetchJsonOptions = {}): Promi
     throw error;
   });
   jsonCache.set(url, pending);
-  return pending;
+  return raceWithSignal(pending, signal);
 }

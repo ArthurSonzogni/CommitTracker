@@ -27,7 +27,7 @@ const loadDatabase = () => {
       cve.components = cve.components?.map(decodeHtmlEntities);
     }
     return values;
-  } catch (e) {
+  } catch {
     return []
   }
 }
@@ -136,14 +136,6 @@ const urlIsChromiumBugTracker = (url) => {
     url.includes('crbug.com') ||
     url.includes('bugs.chromium.org') ||
     ( url.includes("code.google.com") && url.includes("chromium") && url.includes("issues") );
-}
-
-const urlIsChromiumCodeReview = (url) => {
-  return url.includes("chromium.googlesource.com") ||
-    url.includes("review.googlesource.com") ||
-    url.includes("codereview.chromium.org") ||
-    url.includes("src.chromium.org") ||
-    url.includes("crrev.com");
 }
 
 const normalizeCve = (cve) => {
@@ -287,7 +279,6 @@ const transformCve = (cve) => {
 const retrieveCveList = async (database) => {
   await fetchCveRepository()
 
-  const cves = {}
   for (const cve of iterateCVE()) {
     if (!cveIsPublished(cve)) {
       continue;
@@ -425,7 +416,7 @@ const resolveSvnRevision = async (revision) => {
 const parseCodeChangeUrl = (url) => {
   let match;
 
-  match = url.match(/^https?:\/\/crrev\.com\/c\/(\d+)(?:[\/?#]|$)/);
+  match = url.match(/^https?:\/\/crrev\.com\/c\/(\d+)(?:[/?#]|$)/);
   if (match) {
     return {
       origin: "chromium-review.googlesource.com",
@@ -434,13 +425,13 @@ const parseCodeChangeUrl = (url) => {
     };
   }
 
-  match = url.match(/^https?:\/\/crrev\.com\/([0-9a-f]{40})(?:[\/?#]|$)/);
+  match = url.match(/^https?:\/\/crrev\.com\/([0-9a-f]{40})(?:[/?#]|$)/);
   if (match) {
     return { sha: match[1] };
   }
 
   match = url.match(
-    /^https?:\/\/([a-z0-9-]*review\.googlesource\.com)\/(?:#\/)?(?:c\/)?(?:(.+?)\/\+\/)?(\d+)(?:[\/?#]|$)/);
+    /^https?:\/\/([a-z0-9-]*review\.googlesource\.com)\/(?:#\/)?(?:c\/)?(?:(.+?)\/\+\/)?(\d+)(?:[/?#]|$)/);
   if (match) {
     return { origin: match[1], project: match[2] || null, number: match[3] };
   }
@@ -517,7 +508,7 @@ const parseIssueApiResponses = (responses) => {
       if (title) {
         try {
           out.title = JSON.parse(title[1]);
-        } catch (e) {}
+        } catch {}
       }
 
       const regex = /\["([a-z0-9-]+)","([^"]+)",(\d+),\d+\]/g;
@@ -721,7 +712,7 @@ const fetchBugganizer = async (cve, page) => {
           out.fixed_by = Array.from(el.parentElement.parentElement.querySelectorAll('a')).map(el => el.href.trim());
         }
 
-      } catch (e) {
+      } catch {
         out.errors.push("Error reading " + el.textContent);
       }
     }
@@ -1019,7 +1010,7 @@ const findGitilesRepositoryWithCrrev = async (sha) => {
     const url = `https://cr-rev.appspot.com/_ah/api/crrev/v1/redirect/${sha}`;
     console.log("Fetching", url);
     const json = await (await fetch(url)).json();
-    const match = json.redirectUrl?.match(/^https:\/\/([^\/]+)\/(.+)\/\+\//);
+    const match = json.redirectUrl?.match(/^https:\/\/([^/]+)\/(.+)\/\+\//);
     if (!match || json.repo == "chromium/src") {
       return null;
     }

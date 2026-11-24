@@ -70,6 +70,7 @@
 // scripts/derive-highlights.mjs.
 
 import { format } from "d3-format";
+import { fetchJson } from "~/utils/fetchJson";
 
 type Ranking = [string, number][];
 const highlights = ref<{
@@ -88,13 +89,8 @@ const failed = ref(false);
 
 onMounted(async () => {
   try {
-    const response = await fetch("/data/highlights.json");
-    if (response.ok) {
-      highlights.value = await response.json();
-    } else {
-      failed.value = true;
-    }
-  } catch (e) {
+    highlights.value = await fetchJson("/data/highlights.json", { cache: true });
+  } catch {
     failed.value = true;
   }
 });

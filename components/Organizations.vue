@@ -48,6 +48,7 @@ import type { PropType } from "vue";
 import { format } from "d3-format";
 import repositories from "~/utils/repositories";
 import organizations from "~/utils/organizations";
+import { fetchJson } from "~/utils/fetchJson";
 
 type ConsolidatedData = Record<string, Record<string, number>>;
 
@@ -131,13 +132,15 @@ const groupingFunctionReverse = (date: string): Date => {
 };
 
 const dataForRepository = async (repository: string) => {
-  const response = await fetch(
-    `/data/${encodeURIComponent(repository)}/organizations_summary_${encodeURIComponent(props.metric)}_${encodeURIComponent(props.grouping)}_${encodeURIComponent(props.kind)}.json`,
-  );
-  if (!response.ok) {
+  let data_all: Record<string, Record<string, number>>;
+  try {
+    data_all = await fetchJson<Record<string, Record<string, number>>>(
+      `/data/${encodeURIComponent(repository)}/organizations_summary_${encodeURIComponent(props.metric)}_${encodeURIComponent(props.grouping)}_${encodeURIComponent(props.kind)}.json`,
+      { cache: true },
+    );
+  } catch {
     return {};
   }
-  const data_all: Record<string, Record<string, number>> = await response.json();
 
   const data: Record<string, Record<string, number>> = {
     Others: {},

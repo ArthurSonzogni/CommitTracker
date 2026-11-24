@@ -113,9 +113,13 @@ export default defineComponent({
       }
     };
 
-    const toggleDetail = (row: any) => {
+    const toggleDetail = (row: unknown) => {
       const opened = new Set(openedDetails.value);
-      opened.has(row) ? opened.delete(row) : opened.add(row);
+      if (opened.has(row)) {
+        opened.delete(row);
+      } else {
+        opened.add(row);
+      }
       openedDetails.value = opened;
     };
 

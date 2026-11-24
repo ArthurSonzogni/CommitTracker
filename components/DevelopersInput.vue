@@ -21,6 +21,7 @@
 
 <script setup lang="ts">
 import repositories from "~/utils/repositories";
+import { fetchJson } from "~/utils/fetchJson";
 import { tagChipStyle } from "~/utils/palette";
 
 let usernamesPromise: Promise<string[]> | null = null;
@@ -28,14 +29,9 @@ let emailsPromise: Promise<string[]> | null = null;
 
 const fetchAcrossRepositories = (filename: string): Promise<string[]> =>
   Promise.all(
-    repositories.map(async (repo) => {
-      try {
-        const res = await fetch(`/data/${repo.dirname}/${filename}`);
-        return res.ok ? ((await res.json()) as string[]) : [];
-      } catch {
-        return [];
-      }
-    }),
+    repositories.map((repo) =>
+      fetchJson<string[]>(`/data/${repo.dirname}/${filename}`, { cache: true }).catch(() => []),
+    ),
   ).then((lists) => Array.from(new Set(lists.flat())));
 
 const getUsernames = () =>

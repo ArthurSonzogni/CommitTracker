@@ -190,6 +190,7 @@
 import { useUrlState, urlCodecs } from "~/composables/useUrlState";
 import { capitalize, listSummary, repositoryNames } from "~/utils/filter-summary";
 import repositoriesJson from "~/utils/repositories";
+import { fetchJson } from "~/utils/fetchJson";
 import type { TraitSeries } from "~/components/ReportTraitChart.vue";
 
 const DEFAULT_REPOSITORIES = [
@@ -293,8 +294,9 @@ type DevOutputData = {
 const traitData = shallowRef<DevOutputData | null>(null);
 const ensureTraitData = async () => {
   if (traitData.value) return;
-  const response = await fetch("/data/developer-output.json");
-  if (response.ok) traitData.value = await response.json();
+  try {
+    traitData.value = await fetchJson<DevOutputData>("/data/developer-output.json", { cache: true });
+  } catch {}
 };
 watch(isTraitMetric, active => {
   if (active) ensureTraitData();

@@ -147,8 +147,17 @@ const render = () => {
     .range([0, width])
     .domain([rows[0].date, rows.at(-1).date]);
 
-  const milestones: any[] = (props.milestones as any[])
-    .map(m => ({ ...m, x: x(new Date(m.date)) }))
+  interface AccretionMilestone {
+    date: string;
+    label: string;
+    x: number;
+    dot: number;
+    width: number;
+    anchor: "start" | "end";
+    baseline: number;
+  }
+  const milestones: AccretionMilestone[] = (props.milestones as { date: string; label: string }[])
+    .map(m => ({ ...m, x: x(new Date(m.date)), dot: 0, width: 0, anchor: "start" as const, baseline: 0 }))
     .filter(m => m.x >= 0 && m.x <= width);
   // On narrow screens, the labels would overlap: only the markers are drawn.
   const labeled = width > 600 && milestones.length > 0;
@@ -162,24 +171,24 @@ const render = () => {
   select(yAxis.value).transition().duration(500)
     .call(axisLeft(y).ticks(height / 50).tickFormat(props.share ? percent : lines));
 
-  const shape = area<any>()
-    .x(d => x(d.data.date))
+  const shape = area<typeof series[number][number]>()
+    .x(d => x(d.data.date as unknown as Date))
     .y0(d => y(d[0]))
     .y1(d => y(d[1]));
 
   select(areas.value)
-    .selectAll("path")
-    .data(series, (s: any) => s.key)
+    .selectAll<SVGPathElement, typeof series[number]>("path")
+    .data(series, s => s.key)
     .join("path")
     .attr("fill", s => color(s.key))
     .transition().duration(500)
-    .attr("d", shape as any);
+    .attr("d", shape);
 
   // The milestones: a dashed line from the bottom up to a dot above the
   // areas, and a label next to the dot. Both move up when the label would
   // cover the areas or another label. The largest events are placed first.
   const top = series.at(-1).map(d => y(d[1]));
-  const topBetween = (from, to) => {
+  const topBetween = (from: number, to: number) => {
     let lowest = Infinity;
     rows.forEach((row, i) => {
       const position = x(row.date);
@@ -187,7 +196,7 @@ const render = () => {
     });
     return lowest;
   };
-  const bisectDate = bisector((row: any) => row.date).left;
+  const bisectDate = bisector((row: typeof rows[number]) => row.date).left;
   for (const m of milestones) {
     // Slightly above the highest of the areas before and after the event,
     // within 2 weeks.
@@ -195,8 +204,8 @@ const render = () => {
     m.dot = Math.min(...top.slice(Math.max(0, i - 3), i + 2)) - 8;
   }
   select(milestonesGroup.value)
-    .selectAll(".milestone")
-    .data(milestones, (m: any) => m.label)
+    .selectAll<SVGGElement, AccretionMilestone>(".milestone")
+    .data(milestones, m => m.label)
     .join(enter => {
       const group = enter.append("g").attr("class", "milestone");
       group.append("line")
@@ -239,11 +248,11 @@ const render = () => {
     });
 
   // Label the years thick enough at the right edge.
-  const last = series.map(s => ({ key: s.key, d: s.at(-1) }))
+  const last = series.map(s => ({ key: s.key, d: s.at(-1)! }))
     .filter(({ d }) => y(d[0]) - y(d[1]) > 11);
   select(labels.value)
-    .selectAll("text")
-    .data(last, (l: any) => l.key)
+    .selectAll<SVGTextElement, typeof last[number]>("text")
+    .data(last, l => l.key)
     .join("text")
     .attr("x", width + 4)
     .attr("font-size", "11px")
@@ -254,7 +263,7 @@ const render = () => {
     .attr("y", l => y((l.d[0] + l.d[1]) / 2));
 
   // On hover: the lines of every year at this date, newest first.
-  const bisect = bisector((row: any) => row.date).center;
+  const bisect = bisector((row: typeof rows[number]) => row.date).center;
   select(container.value)
     .on("pointerenter pointermove", event => {
       const i = bisect(rows, x.invert(pointer(event, content.value)[0]));
@@ -300,7 +309,7 @@ const render = () => {
         .attr("x", 8)
         .attr("y", (_, i) => 16 + 14 * i)
         .attr("font-size", "11px")
-        .attr("font-weight", (d: any) => d.bold ? "bold" : null)
+        .attr("font-weight", d => "bold" in d && d.bold ? "bold" : null)
         .style("fill", "var(--tooltip-ink)")
         .text(d => d.label)
         .selectAll("tspan")

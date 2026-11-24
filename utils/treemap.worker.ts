@@ -8,17 +8,25 @@ export interface PrunedTreemapNode {
   children?: PrunedTreemapNode[];
 }
 
+type CompactTreeNode = string | [string, ...CompactTreeNode[]];
+
+interface LegacyTreeNode {
+  name: string;
+  id: number;
+  children?: LegacyTreeNode[];
+}
+
 interface InternalTreeNode {
   name: string;
   id: number;
   subtreeEnd: number;
-  raw?: any[];
+  raw?: [string, ...CompactTreeNode[]];
   children?: InternalTreeNode[];
 }
 
 interface TreeIndex {
   root: InternalTreeNode;
-  rawRoot?: any;
+  rawRoot?: CompactTreeNode;
   numNodes: number;
   parentId: Int32Array;
   subtreeEnd: Int32Array;
@@ -131,7 +139,7 @@ function formatDateIdx(datesMs: number[], targetMs: number): number {
   return bestIndex;
 }
 
-function buildTreeIndexFromCompact(compact: any): TreeIndex {
+function buildTreeIndexFromCompact(compact: CompactTreeNode): TreeIndex {
   let cap = 65536;
   let parentId = new Int32Array(cap);
   let subtreeEnd = new Int32Array(cap);
@@ -147,7 +155,7 @@ function buildTreeIndexFromCompact(compact: any): TreeIndex {
     subtreeEnd = nextEnd;
   };
 
-  const indexWalk = (node: any, pId: number) => {
+  const indexWalk = (node: CompactTreeNode, pId: number) => {
     const id = nextId++;
     if (id >= cap) grow();
     parentId[id] = pId;
@@ -186,9 +194,9 @@ function buildTreeIndexFromCompact(compact: any): TreeIndex {
   };
 }
 
-function buildTreeIndexFromLegacy(rawRoot: any): TreeIndex {
+function buildTreeIndexFromLegacy(rawRoot: LegacyTreeNode): TreeIndex {
   let maxId = 0;
-  const findMax = (n: any) => {
+  const findMax = (n: LegacyTreeNode) => {
     if (n.id > maxId) maxId = n.id;
     for (const c of n.children || []) findMax(c);
   };
@@ -198,7 +206,7 @@ function buildTreeIndexFromLegacy(rawRoot: any): TreeIndex {
   const subtreeEnd = new Int32Array(numNodes);
   let nextId = 0;
 
-  const convert = (n: any, pId: number): InternalTreeNode => {
+  const convert = (n: LegacyTreeNode, pId: number): InternalTreeNode => {
     const id = n.id;
     if (id + 1 > nextId) nextId = id + 1;
     parentId[id] = pId;
@@ -206,7 +214,7 @@ function buildTreeIndexFromLegacy(rawRoot: any): TreeIndex {
       subtreeEnd[id] = nextId;
       return { name: n.name, id, subtreeEnd: nextId };
     }
-    const children = n.children.map((c: any) => convert(c, id));
+    const children = n.children.map(c => convert(c, id));
     subtreeEnd[id] = nextId;
     return { name: n.name, id, subtreeEnd: nextId, children };
   };
@@ -256,7 +264,7 @@ function ensureExcludeFlags(treeIndex: TreeIndex) {
 
   if (treeIndex.isCompact && treeIndex.rawRoot) {
     const se = treeIndex.subtreeEnd;
-    const walkCompact = (node: any, id: number, tpParent: boolean, inh: number) => {
+    const walkCompact = (node: CompactTreeNode, id: number, tpParent: boolean, inh: number) => {
       const name: string = typeof node === "string" ? node : node[0];
       let f = inh;
       if (id > 0 && name) {
@@ -680,7 +688,40 @@ async function ensureFullState(
   return { treeIdx, datesMs, metricsMap, dateId, allFields };
 }
 
-async function processMessage(msg: any) {
+interface WorkerQueryMessage {
+  id: number;
+  type: "query";
+  repo: string;
+  mode?: "latest" | "full";
+  fieldColor?: string[];
+  fieldSize?: string[];
+  historyFields?: string[];
+  dateEndMs?: number;
+  excludeMask?: number;
+  pathsToExpand?: string[][] | null;
+  path?: string[];
+}
+
+interface WorkerDownloadMessage {
+  id: number;
+  type: "download";
+  repo: string;
+  kind: "temporal_json" | "temporal_csv" | "spatial_json" | "spatial_csv";
+  fieldSize?: string[];
+  fieldColor?: string[];
+  path?: string[];
+  excludeMask?: number;
+  dateEndMs?: number;
+}
+
+type WorkerMessage = WorkerQueryMessage | WorkerDownloadMessage;
+
+interface SpatialJsonNode {
+  children?: Record<string, SpatialJsonNode>;
+  [metric: string]: number | Record<string, SpatialJsonNode> | undefined;
+}
+
+async function processMessage(msg: WorkerMessage) {
   const { id, type } = msg;
 
   try {
@@ -804,9 +845,9 @@ async function processMessage(msg: any) {
 
       const startNode = getTreeNodeFromPath(treeIdx, path, excludeMask);
       if (kind === "spatial_json") {
-        const get = (file: InternalTreeNode): any => {
+        const get = (file: InternalTreeNode): SpatialJsonNode | null => {
           if (isExcluded(treeIdx, file.id, excludeMask)) return null;
-          const out: any = {};
+          const out: SpatialJsonNode = {};
           let allZero = true;
           for (const field of fields) {
             const v = metricsAccumulation.get(field)?.[file.id] || 0;
@@ -859,8 +900,8 @@ async function processMessage(msg: any) {
     }
 
     self.postMessage({ id, result: null });
-  } catch (err: any) {
-    self.postMessage({ id, error: String(err?.message || err) });
+  } catch (err: unknown) {
+    self.postMessage({ id, error: err instanceof Error ? err.message : String(err) });
   }
 }
 

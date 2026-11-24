@@ -26,7 +26,7 @@
       </div>
     </section>
 
-    <section class="sankey" style="overflow-x: auto">
+    <section class="sankey" style="overflow-x: auto; max-width: 100%;">
       <svg
         :width="width"
         :height="height"

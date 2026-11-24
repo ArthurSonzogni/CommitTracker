@@ -28,15 +28,24 @@
             :key="row.label"
             :class="{ small: !row.measured, selected: row.selected }">
             <th scope="row">
-              <button
-                v-if="row.group"
-                type="button"
-                class="row-link"
-                :title="`Show ${row.label}`"
-                @click="emit('select', row.group)">
-                {{ row.label }}
-              </button>
-              <template v-else>{{ row.label }}</template>
+              <div class="org-cell">
+                <button
+                  v-if="row.group"
+                  type="button"
+                  class="row-link"
+                  :title="`Show ${row.label}`"
+                  @click="emit('select', row.group)">
+                  {{ row.label }}
+                </button>
+                <template v-else>{{ row.label }}</template>
+                <NuxtLink
+                  :to="{ path: '/organizations/commits', query: { organizations: row.label, ...(repository ? { repositories: repository } : {}) } }"
+                  class="org-commits-link"
+                  :title="`Open ${row.label} in Organizations commits`"
+                  :aria-label="`Open ${row.label} in Organizations commits`">
+                  <UiIcon name="open-in-new" size="small" />
+                </NuxtLink>
+              </div>
             </th>
             <td>
               <span v-if="row.authors" class="figure">{{ row.authors }}</span>
@@ -106,6 +115,7 @@ defineProps<{
   usualLabel: string;
   minCompared: number;
   hasMsg?: boolean;
+  repository?: string;
 }>();
 
 const emit = defineEmits<{
@@ -132,6 +142,28 @@ const emit = defineEmits<{
   font-weight: 640;
   margin-bottom: 0.15rem;
   text-wrap: balance;
+}
+
+.org-cell {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.35rem;
+}
+
+.org-commits-link {
+  color: var(--faint);
+  display: inline-flex;
+  opacity: 0.45;
+  transition: color 0.14s, opacity 0.14s;
+}
+
+tr:hover .org-commits-link,
+.org-commits-link:focus-visible {
+  opacity: 1;
+}
+
+.org-commits-link:hover {
+  color: var(--accent);
 }
 
 .panel-text {

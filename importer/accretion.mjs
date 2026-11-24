@@ -2285,7 +2285,7 @@ const Validate = async (state, cwd, dir, pathspecs, blame_count) => {
       await fs.writeFile(file, await run(["git", "show",
         `${state.head}:.git-blame-ignore-revs`], cwd));
       options.push(`--ignore-revs-file=${file}`);
-    } catch (error) { }
+    } catch {}
   }
   // Prefer the files modified by the replayed commits.
   const files = [...state.files.keys()].filter(file =>
@@ -2353,7 +2353,7 @@ const main = async () => {
   try {
     state = State.deserialize(await fs.readFile(state_file));
     console.log(`Loaded state at ${state.head}: ${state.files.size} files`);
-  } catch (error) {
+  } catch {
     state = new State();
     state.options = {
       ignore_revs: !flag("no-ignore-revs"),
@@ -2409,7 +2409,7 @@ const main = async () => {
         const hash = line.trim();
         if (/^[0-9a-f]{40}$/.test(hash)) ignore_revs.add(hash);
       }
-    } catch (error) { }
+    } catch {}
   }
   console.log(`Ignored revisions: ${ignore_revs.size}`);
 

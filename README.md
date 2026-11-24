@@ -1,113 +1,56 @@
 # CommitTracker
 
-CommitTracker is a [web
-application](https://chrome-commit-tracker.arthursonzogni.com/) that displays
-statistics about commits for web browsers and related libraries. It provides
-insights into the development activity of various open-source projects
-(including Chromium, Dawn, ANGLE, Skia, and WebRTC), helping
-users visualize and analyze commit data through various charts and graphs.
+[CommitTracker](https://chrome-commit-tracker.arthursonzogni.com/) is a static Nuxt 4 / Vue 3 web application visualizing commit, review, organization, treemap, code accretion, fuzz-test, CVE, and community-graph statistics for Chromium and related web-platform repositories.
 
-## Table of Contents
+## Quick Start
 
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-- [Usage](#usage)
-  - [Running the Development Server](#running-the-development-server)
-  - [Testing](#testing)
-  - [Pull new data](#pull-new-data)
-- [Architecture](#architecture)
-- [Contact](#contact)
-
-## Getting Started
-
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
-
-### Prerequisites
-
-- [Node.js](https://nodejs.org/)
-
-### Installation
-
-1. Clone the repo
-   ```sh
-   git clone https://github.com/ArthurSonzogni/CommitTracker.git
-   ```
-2. Install NPM packages
-   ```sh
-   npm install
-   ```
-
-## Usage
-
-### Running the Development Server
-
-To run the development server, execute the following commands:
+Requires Node.js 22+.
 
 ```bash
-npm run pull-data
-npm run generate-derived-data
-npm run dev
+git clone https://github.com/ArthurSonzogni/CommitTracker.git
+cd CommitTracker
+npm install
+npm run pull-data              # Shallow-clone the data branches into public/
+npm run generate-derived-data  # Precompute summaries, badges, security & CVE rollups
+npm run dev                    # Start dev server at http://localhost:3000
 ```
 
-### Testing
-
-The interaction tests drive a headless Chrome over the generated website.
-They run before every deployment.
+## Checks & Build
 
 ```bash
-npm run generate
-npm run test:interactions
+npm run lint                   # Fast static lint (oxlint)
+npm run typecheck              # Vue + TypeScript check (nuxt typecheck)
+npm run test:unit              # Unit tests for parsers and data helpers
+npm run generate               # Production static build -> .output/public
+npm run test:interactions      # Headless Chrome E2E tests against .output/public
 ```
 
-### Pull new data
+`lint`, `typecheck`, and `test:unit` run on every CI build; `test:interactions` runs on pull requests.
 
-The data is refreshed automatically every day. You can pull it using:
+## Updating Raw Data (`importer/`)
 
-**Pull updated data:**
-
-```bash
-npm run pull-data
-npm run generate-derived-data
-```
-
-**Fetch new data:**
-
-The following scripts are located in the `importer` directory and can be used to produce new data.
+Data branches are refreshed automatically by GitHub Actions ([importer.yaml](.github/workflows/importer.yaml)). To run importers locally:
 
 ```bash
 cd importer
 npm install
 
-# Import new commits.
-npm run fetch_data
+npm run fetch_data       # Fetch new commits
+npm run treemap          # Count source metrics for the treemap
+npm run graph            # Generate developer community maps
+npm run fuzztest         # Retrieve fuzz tests from sources
+npm run cve              # Fetch Chromium CVE data
+npm run commit_rates     # Compute commit rates per directory
+npm run accretion        # Replay commits for code accretion
 
-# Count source code specific lines.
-npm run treemap
-
-# Generate developers interactions graph.
-npm run graph
-
-# Retrieve new fuzz tests from sources.
-npm run fuzztest
-
-# Fetch new CVE data.
-npm run cve
-
-# Compute the commit rates per directory.
-npm run commit_rates
-
-# Pre-compute derived data.
-npm run derive_data
+cd ..
+npm run generate-derived-data
 ```
 
 ## Architecture
 
-[AGENTS.md](AGENTS.md) describes how the code and data fit together: the data
-branches, the dev server, the importer pipeline and the CI workflows.
+See [AGENTS.md](AGENTS.md) for the full architecture overview (code vs. data branches, dev/build quirks, importer pipeline, and CI workflows).
 
-## Contact
+## Contributing
 
-For any questions or suggestions, please open a pull request.
-
-Project Link: [https://github.com/ArthurSonzogni/CommitTracker](https://github.com/ArthurSonzogni/CommitTracker)
+Pull requests and issues are welcome at [ArthurSonzogni/CommitTracker](https://github.com/ArthurSonzogni/CommitTracker).

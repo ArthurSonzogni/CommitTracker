@@ -220,7 +220,8 @@ const onPointerUp = (event: PointerEvent) => {
   const dx = event.clientX - pointer_x;
   pointer_x = null;
   if (Math.abs(dx) > 50) {
-    dx < 0 ? next() : previous();
+    if (dx < 0) next();
+    else previous();
   }
 };
 

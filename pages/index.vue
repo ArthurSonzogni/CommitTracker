@@ -34,6 +34,7 @@
 
 <script setup lang="ts">
 import repositories_json from '~/utils/repositories'
+import { fetchJson } from '~/utils/fetchJson'
 
 const repository = ref("Chromium");
 const stats = shallowRef<Record<string, { last_commit?: string }>>({});
@@ -57,10 +58,10 @@ const lastUpdate = computed(() => {
 
 onMounted(async () => {
   try {
-    const response = await fetch("/data/repositories_stats.json");
-    if (response.ok) {
-      stats.value = await response.json();
-    }
+    stats.value = await fetchJson<Record<string, { last_commit?: string }>>(
+      "/data/repositories_stats.json",
+      { cache: true },
+    );
   } catch (e) {
     console.error("Failed to fetch stats:", e);
   }

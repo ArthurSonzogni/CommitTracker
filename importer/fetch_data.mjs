@@ -174,7 +174,6 @@ const ProcessRepository = async (repository) => {
   statusLine.logString(`Processing ${repository.dirname}`);
 
   const repository_dir = `../public/data/${repository.dirname}`;
-  const last_file = `${repository_dir}/last.json`;
   const emails_dir = `${repository_dir}/emails`;
   const emails_file = `${repository_dir}/emails.json`;
 
@@ -204,7 +203,7 @@ const ProcessRepository = async (repository) => {
     try {
       const data = await fs.readFile(`${emails_dir}/${email}.json`, 'utf8');
       return JSON.parse(data);
-    } catch (e) {
+    } catch {
       return [];
     }
   };
@@ -384,7 +383,6 @@ const ProcessRepository = async (repository) => {
             duplicate++;
           }
         }
-        const pageInfo = history.pageInfo;
         hasNextPage = history.pageInfo.hasNextPage;
         cursor = history.pageInfo.endCursor;
 

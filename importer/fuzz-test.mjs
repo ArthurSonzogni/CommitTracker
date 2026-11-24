@@ -178,7 +178,7 @@ const main = async () => {
         fuzz_test.sha = range.commit.oid;
         fuzz_test.date = range.commit.committedDate;
       }
-    } catch (e) {
+    } catch {
       console.log('Failed to blame file', fuzz_test.file);
     }
   }

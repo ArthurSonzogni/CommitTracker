@@ -85,6 +85,7 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
 import repositoriesJson from "~/utils/repositories";
+import { fetchJson } from "~/utils/fetchJson";
 import { runInPageTransition } from "~/utils/viewTransition";
 
 interface RawBug {
@@ -136,8 +137,9 @@ watch(() => props.repositories, () => { limit.value = 50; });
 
 onMounted(async () => {
   try {
-    const res = await fetch("/data/top-bugs.json");
-    if (res.ok) rawData.value = await res.json();
+    rawData.value = await fetchJson("/data/top-bugs.json", { cache: true });
+  } catch {
+    // Graceful fallback: empty state.
   } finally {
     loaded.value = true;
   }
