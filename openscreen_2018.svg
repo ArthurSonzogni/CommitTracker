@@ -1,0 +1,23 @@
+<svg width="4000" height="2000" viewBox="-0.025 -0.025 2.05 1.05" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    path {
+      fill: none;
+      stroke-linecap: round;
+      stroke-opacity: 0.4;
+    }
+
+    text {
+      text-anchor: middle;
+      alignment-baseline: hanging;
+    }
+  </style>
+  <g opacity="0.4">
+<path d="M1.600 0.786 Q1.266 0.761 1.144 0.918" stroke="hsl(0.0,100%,35%)" stroke-width="0.12990"></path>
+<path d="M1.144 0.918 Q1.478 0.943 1.600 0.786" stroke="hsl(0.0,100%,35%)" stroke-width="0.02784"></path>
+<path d="M1.477 0.927 Q1.318 0.856 1.144 0.918" stroke="hsl(0.0,100%,35%)" stroke-width="0.01237"></path>
+<path d="M1.477 0.927 Q1.652 0.881 1.600 0.786" stroke="hsl(0.0,100%,35%)" stroke-width="0.00309"></path>
+</g>
+<text x="1.600" y="0.718" font-size="0.136277" fill="hsl(0.0,100%,20%)">btolsch</text>
+<text x="1.144" y="0.848" font-size="0.140153" fill="hsl(0.0,100%,20%)">mfoltz</text>
+<text x="1.477" y="0.906" font-size="0.042258" fill="hsl(0.0,100%,20%)">cliffordcheng</text>
+</svg>
